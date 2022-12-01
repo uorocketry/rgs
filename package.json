@@ -5,7 +5,8 @@
     "client"
   ],
   "scripts": {
-    "dev-client": "cd client && pnpm dev --https",
-    "dev-server": "cd server && pnpm dev"
+    "dev-client": "cd client && pnpm dev",
+    "dev-server": "cd server &&  pnpm dev",
+    "dev-proxy-server": "cd proxy-server &&  pnpm dev"
   }
 }

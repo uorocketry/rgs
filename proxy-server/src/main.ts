@@ -1,17 +1,6 @@
 
 import { Server } from "socket.io";
-import { io } from "socket.io-client";
 
-const socket = io("ws://localhost:3500");
-
-socket.on("connect", () => {
-    console.log("Connected to proxy server");
-    socket.emit("meta");
-});
-
-socket.on("meta", (keys) => {
-    console.log("Got meta", keys);
-});
 
 // Warning!
 // If you are having trouble accessing your local server from production, make sure to "allow insecure localhost" in your browser.
@@ -19,6 +8,7 @@ socket.on("meta", (keys) => {
 
 
 import { createServer } from 'http';
+import { env } from "node:process";
 // import { createServer } from 'https';
 // const { readFileSync } = require("fs");
 const server = createServer({
@@ -27,17 +17,17 @@ const server = createServer({
 });
 
 console.log("Starting blob");
-const rgsServer = new Server(server, {
+const io = new Server(server, {
     cors: {
         origin: '*',
     },
 });
 
 
-console.log("Server started on port 3000");
+console.log("Server started on port " + (env.PORT || 3500));
 let data: Map<string, Map<number, number>> = new Map();
 
-rgsServer.on('connection', (socket) => {
+io.on('connection', (socket) => {
     console.log('user connected');
 
     socket.on('message', (message) => {
@@ -61,7 +51,7 @@ rgsServer.on('connection', (socket) => {
             const timestamp = new Date().getTime();
             data.get(key)?.set(timestamp, value.value);
         }
-        rgsServer.to(key).emit('put', key, value);
+        io.to(key).emit('put', key, value);
     });
 
     socket.on('get', (key, filter) => {
@@ -125,7 +115,7 @@ setInterval(() => {
         curLat = 90 + (curLat + 90);
     }
 
-    rgsServer.to("lat").emit('put', "lat", now, curLat);
+    io.to("lat").emit('put', "lat", now, curLat);
     deviation = Math.sin(Math.random()) * 0.01;
     curLon += deviation + 0.002;
     // Wrap around -180 and 180
@@ -134,7 +124,7 @@ setInterval(() => {
     } else if (curLon < -180) {
         curLon = 180 + (curLon + 180);
     }
-    rgsServer.to("lon").emit('put', "lon", now, curLon);
+    io.to("lon").emit('put', "lon", now, curLon);
 }, 200);
 
 
@@ -142,9 +132,9 @@ setInterval(() => {
 setInterval(() => {
     let now = new Date().getTime();
     let x = now / 1000;
-    rgsServer.to("Phase 1").emit('put', "Phase 1", now, Math.sin(x));
-    rgsServer.to("Phase 2").emit('put', "Phase 2", now, Math.sin(x + 4 / 3 * Math.PI));
-    rgsServer.to("Phase 3").emit('put', "Phase 3", now, Math.sin(x + 2 / 3 * Math.PI));
+    io.to("Phase 1").emit('put', "Phase 1", now, Math.sin(x));
+    io.to("Phase 2").emit('put', "Phase 2", now, Math.sin(x + 4 / 3 * Math.PI));
+    io.to("Phase 3").emit('put', "Phase 3", now, Math.sin(x + 2 / 3 * Math.PI));
 }, 200);
 
-server.listen(3000);
+server.listen(env.PORT || 3500);
