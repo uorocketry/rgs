@@ -1,22 +1,47 @@
 
-import { Server } from "socket.io";
+import { Server, Socket } from "socket.io";
+
+import { program } from 'commander';
+
+// Arguments:
+// --port: Port to run the server on
+// --log: Log level (default: info)
+program
+    .option('-p, --port <port>', 'Port to run the server on', '3500')
+    .option('-l, --log <log>', 'Minimum Log level (off, error, warn, log, all)', 'all')
+
+program.parse();
+
+const options = program.opts();
+
+const PORT = options['port'];
+const LOG_LEVEL = options['log'];
+
+if (LOG_LEVEL === "off") {
+    console.log = () => { };
+    console.warn = () => { };
+    console.error = () => { };
+} else if (LOG_LEVEL === "error") {
+    console.log = () => { };
+    console.warn = () => { };
+} else if (LOG_LEVEL === "warn") {
+    console.log = () => { };
+}
 
 
 // Warning!
 // If you are having trouble accessing your local server from production, make sure to "allow insecure localhost" in your browser.
 // chrome://flags/#allow-insecure-localhost
 
-
+// Initialize the server
 import { createServer } from 'http';
-import { env } from "node:process";
-// import { createServer } from 'https';
-// const { readFileSync } = require("fs");
-const server = createServer({
-    // key: readFileSync('key.pem'),
-    // cert: readFileSync('cert.pem')
-});
+import { env } from 'process';
+import { TimeSeries } from "./TimeSeries";
+import { time } from "console";
+import { Room } from "./Room";
 
-console.log("Starting blob");
+const server = createServer();
+
 const io = new Server(server, {
     cors: {
         origin: '*',
@@ -24,117 +49,89 @@ const io = new Server(server, {
 });
 
 
-console.log("Server started on port " + (env.PORT || 3500));
-let data: Map<string, Map<number, number>> = new Map();
+console.log("Server started on port " + PORT);
+
+let clientSettings = new Map<[string, string], Map<string, any>>();
+
+let rooms = new Map<string, Room>();
 
 io.on('connection', (socket) => {
-    console.log('user connected');
+    console.log('CONNECTED(' + socket.id + ')');
 
-    socket.on('message', (message) => {
-        console.log(message);
-    });
-    socket.on('disconnect', () => {
-        console.log('disconnected');
+    socket.on('ping', (callback) => {
+        console.log('PING(' + socket.id + ')');
+        callback();
     });
 
-    socket.on('ping', () => {
-        socket.emit('pong');
+    socket.on('disconnect', (reason) => {
+        console.log('DISCONNECT(' + socket.id + '):', reason);
     });
 
-    socket.on('put', (key, value) => {
-        console.log('put', key, value);
-        if (!data.has(key)) {
-            data.set(key, new Map());
-            let keysInData = Array.from(data.keys());
-            socket.emit("meta", keysInData);
-        } else {
-            const timestamp = new Date().getTime();
-            data.get(key)?.set(timestamp, value.value);
+    socket.on('create_room', (roomName) => {
+        console.log('CREATE_ROOM(' + socket.id + '):', roomName);
+        rooms.set(roomName, new Room(roomName, io));
+    });
+
+    socket.on('delete_room', (roomName) => {
+        console.log('DELETE_ROOM(' + socket.id + '):', roomName);
+        rooms.delete(roomName);
+    });
+
+    socket.on('put', (roomName, key, value) => {
+        console.log('PUT(' + socket.id + '):', roomName, key, value);
+        rooms.get(roomName).put(key, value);
+    });
+
+    socket.on('get', (roomName, a, b, callback) => {
+        // If only "a" is provided, return the value at that key
+        // If "a" and "b" are provided, return time series data between those two timestamps
+        if (callback) {
+            callback(rooms.get(roomName).get(a, b));
         }
-        io.to(key).emit('put', key, value);
     });
 
-    socket.on('get', (key, filter) => {
-        console.log('get', key, filter);
-        if (!data.has(key)) {
-            data.set(key, new Map());
-        }
-        let dataset = data.get(key);
-        if (filter && dataset) {
-            // Filter compromisses of gt and lt for key,key
-            const filtered = new Map();
-            for (let [timestamp, value] of dataset) {
-                if (timestamp > filter.gt && timestamp < filter.lt) {
-                    filtered.set(timestamp, value);
-                }
+    socket.on('meta', (callback) => {
+        console.log('META(' + socket.id + ')');
+        let ret: any = {};
+        rooms.forEach((room, key) => {
+            ret[key] = {
+                length: room.lenght(),
+                type: room.roomType()
             }
-            dataset = filtered;
+            if (room.roomType() === "series") {
+                ret[key].min = room.range[0];
+                ret[key].max = room.range[1];
+            }
+        });
+        // Room name, lenght, range, type
+        if (callback) {
+            callback(ret);
         }
-        socket.emit('get', key, dataset);
     });
 
-    socket.on("meta", async () => {
-        let keysInData = Array.from(data.keys());
-        socket.emit("meta", keysInData);
-        console.log("Sending", keysInData);
-    });
+
+    // socket.on("meta", async () => {
+    //     let ret = new Map<string, string>();
+    //     rooms.forEach((room, key) => {
+    //         ret.set(key, room.roomType);
+    //     });
+    //     console.log(rooms.get("vars").roomType);
+    //     socket.emit("meta", typeof rooms.get("vars"));
+    //     console.log("Sending", keysInData);
+    // });
 
     // subscribe to room
-    socket.on("sub", (room) => {
+    socket.on("join", (room) => {
         socket.join(room);
     });
 
     // subscribe to room
-    socket.on("unsub", (room) => {
+    socket.on("leave", (room) => {
         socket.leave(room);
     });
 });
 
-// Mock data
-
-// Fake lat and long
-data.set("lat", new Map());
-data.set("lon", new Map());
-
-// Test three-phase system
-data.set("Phase 1", new Map()); // sin(x)
-data.set("Phase 2", new Map()); // sin(x + 4/3 * pi)
-data.set("Phase 3", new Map()); // sin(x + 2/3 * pi)
-
-
-let curLat = 34;
-let curLon = -105;
-setInterval(() => {
-    let now = new Date().getTime();
-    let deviation = Math.sin(Math.random()) * 0.0005;
-    curLat += deviation + 0.0002;
-    // Wrap around 90 and -90
-    if (curLat > 90) {
-        curLat = -90 + (curLat - 90);
-    } else if (curLat < -90) {
-        curLat = 90 + (curLat + 90);
-    }
-
-    io.to("lat").emit('put', "lat", now, curLat);
-    deviation = Math.sin(Math.random()) * 0.01;
-    curLon += deviation + 0.002;
-    // Wrap around -180 and 180
-    if (curLon > 180) {
-        curLon = -180 + (curLon - 180);
-    } else if (curLon < -180) {
-        curLon = 180 + (curLon + 180);
-    }
-    io.to("lon").emit('put', "lon", now, curLon);
-}, 200);
 
 
 
-setInterval(() => {
-    let now = new Date().getTime();
-    let x = now / 1000;
-    io.to("Phase 1").emit('put', "Phase 1", now, Math.sin(x));
-    io.to("Phase 2").emit('put', "Phase 2", now, Math.sin(x + 4 / 3 * Math.PI));
-    io.to("Phase 3").emit('put', "Phase 3", now, Math.sin(x + 2 / 3 * Math.PI));
-}, 200);
-
-server.listen(env.PORT || 3500);
+server.listen(PORT);
