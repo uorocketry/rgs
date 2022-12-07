@@ -1,0 +1,45 @@
+namespace IMUData;
+ 
+enum Color:byte { Red = 0, Green, Blue = 2 }
+ 
+union Equipment { Weapon } // Optionally add more tables.
+ 
+struct Vec3 {
+  x:float;
+  y:float;
+  z:float;
+}
+
+struct Vec4 {
+  x:float;
+  y:float;
+  z:float;
+  w:float;
+}
+ 
+table IMUData {
+    timestamp:long;
+    // roll, pitch, yaw
+    axis:Vec3; 
+    axisAccuracy:Vec3;
+    // latitude, longitude, altitude 
+    gps:Vec3; 
+    gpsAccuracy:Vec3;
+    // velocity in m/s 
+    velocity:Vec3; 
+    velocityAccuracy:Vec3;
+    // gyro
+    gyro:Vec3;
+    // other 
+    status:byte;
+    temperature:float;
+    deltaVelocity:Vec3;
+    deltaAngle:Vec3;
+
+    relativeBarometricAltitude:float;
+    acceleration:Vec3;
+
+    quat:Vec4; // TODO
+}
+ 
+root_type Monster;
