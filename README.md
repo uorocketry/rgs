@@ -2,13 +2,12 @@
 
 In this repository you may find the:
 
-> RGS = Rocket Ground Station
-
-- RGS web application
-- RGS server
-- RGS API
+- Rocket Ground Station web application
+- Docker compose files for running RabbitMQ and InfluxDB
 
 ## How to run
+
+> ⚠️ This section is outdated
 
 The application can be run locally by using the following commands:
 
