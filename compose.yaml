@@ -1,22 +1,14 @@
 version: '3'
 services:
-  
-  influxdb:
-    image: influxdb:latest
-    # Uncomment the following lines to persist data
-    # volumes:
-      # - ./influxdb:/var/lib/influxdb2
+  redis:
+    image: redis
+    volumes:
+      - ./data:/data
     ports:
-      - "8086:8086"
-    environment:
-      - DOCKER_INFLUXDB_INIT_MODE=setup
-      - DOCKER_INFLUXDB_INIT_USERNAME=user
-      - DOCKER_INFLUXDB_INIT_PASSWORD=password
-      - DOCKER_INFLUXDB_INIT_ORG=uorocketry
-      - DOCKER_INFLUXDB_INIT_BUCKET=default
-      - DOCKER_INFLUXDB_INIT_ADMIN_TOKEN=uorocketry
-  rabbitmq:
-    image: rabbitmq:management
+      - 6379:6379
+  web:
+    build: ./client
     ports:
-      - "15672:15672"
-      - "5672:5672"
+      # Container port 8080 will be mapped to port 18080 on the host
+      # (You can access the app at http://localhost:18080
+      - 18080:8080
