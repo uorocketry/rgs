@@ -140,3 +140,6 @@ node_modules
 !.env.example
 .vercel
 .output
+
+# Redis store
+data

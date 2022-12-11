@@ -1,9 +1,0 @@
-{
-  "extends": "@sindresorhus/tsconfig",
-  "compilerOptions": {
-    // Disable possibly undefined errors
-    "strictNullChecks": false,
-    // Allow unused variables
-    "noUnusedLocals": false,
-  }
-}
