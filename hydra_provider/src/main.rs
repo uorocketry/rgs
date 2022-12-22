@@ -1,8 +1,11 @@
+use anyhow::Context;
+use anyhow::Result;
 use clap::Parser;
+use env_logger::Env;
+use log::*;
 use messages::Message;
 use postcard::from_bytes_cobs;
 use serialport::available_ports;
-use std::error::Error;
 use std::io::{BufRead, BufReader};
 use std::time::Duration;
 
@@ -20,39 +23,51 @@ struct Args {
 }
 
 fn main() {
+    env_logger::Builder::from_env(Env::default().default_filter_or("info")).init();
+
+    if let Err(err) = run() {
+        error!("{:?}", err)
+    }
+}
+
+fn run() -> Result<()> {
     let args = Args::parse();
 
     let port = if let Some(port) = args.serial_port {
         port
     } else {
         available_ports()
-            .expect("No serial port specified and couldn't retrieve available ports")
+            .context("No serial port specified and couldn't retrieve available ports")?
             .iter()
             .filter(|x| x.port_name.contains("USB"))
             .last()
-            .expect("No serial port specified and couldn't find any port")
+            .context("No serial port specified and couldn't find any port")?
             .port_name
             .clone()
     };
 
-    println!("Using serial port '{}'", port);
+    info!("Using serial port '{port}'");
 
     let port = serialport::new(&port, args.baud_rate)
         .timeout(Duration::new(30, 0))
         .open()
-        .unwrap_or_else(|_| panic!("Failed to open serial connection {}", port));
+        .with_context(|| format!("Failed to open serial connection '{port}'"))?;
 
     let mut f = BufReader::new(port);
 
     loop {
         match read_message(&mut f) {
-            Ok(msg) => println!("Received message: {:?}", serde_json::to_string(&msg)),
-            Err(err) => println!("Error reading message: {}", err),
+            Ok(msg) => {
+                if let Ok(msg) = serde_json::to_string(&msg) {
+                    info!("Received message: {msg}")
+                }
+            }
+            Err(err) => info!("Error reading message: {err}"),
         }
     }
 }
 
-fn read_message(mut reader: impl BufRead) -> Result<Message, Box<dyn Error>> {
+fn read_message(mut reader: impl BufRead) -> Result<Message> {
     let mut data = vec![];
     reader.read_until(0x0, &mut data)?;
 
