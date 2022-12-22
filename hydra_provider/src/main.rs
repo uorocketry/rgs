@@ -46,7 +46,7 @@ fn main() {
 
     loop {
         match read_message(&mut f) {
-            Ok(msg) => println!("Received message: {:?}", msg),
+            Ok(msg) => println!("Received message: {:?}", serde_json::to_string(&msg)),
             Err(err) => println!("Error reading message: {}", err),
         }
     }
