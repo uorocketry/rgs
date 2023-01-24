@@ -5,9 +5,9 @@ use env_logger::Env;
 use log::*;
 use messages::Message;
 use postcard::from_bytes_cobs;
+use serialport::available_ports;
+use std::io::{BufRead, BufReader};
 use std::time::Duration;
-use tokio::io::{AsyncBufRead, AsyncBufReadExt, BufReader};
-use tokio_serial::{available_ports, SerialPortBuilderExt};
 
 /// Program to read and parse data from a HYDRA system
 #[derive(Parser, Debug)]
@@ -22,9 +22,15 @@ struct Args {
     baud_rate: u32,
 }
 
-#[tokio::main]
-async fn main() -> Result<()> {
+fn main() {
     env_logger::Builder::from_env(Env::default().default_filter_or("info")).init();
+
+    if let Err(err) = run() {
+        error!("{:?}", err)
+    }
+}
+
+fn run() -> Result<()> {
     let args = Args::parse();
 
     let port = if let Some(port) = args.serial_port {
@@ -42,15 +48,15 @@ async fn main() -> Result<()> {
 
     info!("Using serial port '{port}'");
 
-    let port = tokio_serial::new(&port, args.baud_rate)
+    let port = serialport::new(&port, args.baud_rate)
         .timeout(Duration::new(30, 0))
-        .open_native_async()
+        .open()
         .with_context(|| format!("Failed to open serial connection '{port}'"))?;
 
     let mut f = BufReader::new(port);
 
     loop {
-        match read_message(&mut f).await {
+        match read_message(&mut f) {
             Ok(msg) => {
                 if let Ok(msg) = serde_json::to_string(&msg) {
                     info!("Received message: {msg}")
@@ -61,9 +67,9 @@ async fn main() -> Result<()> {
     }
 }
 
-async fn read_message<T: AsyncBufRead + Unpin>(reader: &mut T) -> Result<Message> {
+fn read_message(mut reader: impl BufRead) -> Result<Message> {
     let mut data = vec![];
-    reader.read_until(0x0, &mut data).await?;
+    reader.read_until(0x0, &mut data)?;
 
     let msg: Message = from_bytes_cobs(data.as_mut_slice())?;
 
