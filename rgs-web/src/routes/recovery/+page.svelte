@@ -1,35 +1,8 @@
 <!-- For a more tidy example -->
 <script defer lang="ts" type="module">
-  import { onSocket } from "$lib/common/utils";
-  import { ClientSocket } from "$lib/common/ClientSocket";
-  import { onDestroy, onMount } from "svelte";
-
   //   Leaflet
   import L from "leaflet";
   import { LatLng } from "leaflet";
-
-  let lastLat: number = 0;
-  let lastLon: number = 0;
-
-  onMount(() => {
-    ClientSocket.socket.emit("sub", "lat");
-    ClientSocket.socket.emit("sub", "lon");
-  });
-
-  onDestroy(() => {
-    ClientSocket.socket.emit("unsub", "lat");
-    ClientSocket.socket.emit("unsub", "lon");
-  });
-
-  onSocket("put", (key, _, value) => {
-    // console.log(key, timestamp, value);
-    if (key == "lat") {
-      lastLat = value;
-    }
-    if (key == "lon") {
-      lastLon = value;
-    }
-  });
 
   let map: L.Map | null = null;
 
@@ -69,25 +42,6 @@
     return div;
   };
 
-  toolbar.onRemove = () => {
-    // if (toolbarComponent) {
-    //   toolbarComponent.$destroy();
-    //   toolbarComponent = null;
-    // }
-  };
-
-  function createLines() {
-    return L.polyline(markerLocations, { color: "#E4E", opacity: 0.5 });
-  }
-
-  let realTimeLayer: L.LayerGroup;
-  let realTimeMarker: L.Marker;
-  $: {
-    if (realTimeMarker) {
-      realTimeMarker.setLatLng([lastLat, lastLon]);
-    }
-  }
-
   let markerLayers;
   let lineLayers;
   function mapAction(container: string | HTMLElement) {
@@ -105,18 +59,8 @@
       markerLayers.addLayer(m);
     }
 
-    realTimeLayer = L.layerGroup();
-    realTimeMarker = L.marker([lastLat, lastLon], {
-      icon: L.divIcon({
-        // Rocket live position?
-        className: "fa-solid fa-location-crosshairs fa-xl text-red-500",
-      }),
-    });
-    realTimeLayer.addLayer(realTimeMarker);
+    lineLayers = L.polyline(markerLocations, { color: "#E4E", opacity: 0.5 });
 
-    lineLayers = createLines();
-
-    realTimeLayer.addTo(map);
     markerLayers.addTo(map);
     lineLayers.addTo(map);
 
@@ -137,23 +81,6 @@
 </script>
 
 <!-- See https://svelte.dev/repl/62271e8fda854e828f26d75625286bc3?version=3.50.1 -->
-
-<div class="prose bg-base-200 p-4 min-w-full">
-  <h2>Last position reported</h2>
-
-  <div class="stats shadow">
-    <div class="stat place-items-center">
-      <div class="stat-title">Latitude</div>
-      <div class="stat-value">{lastLat.toFixed(2)}</div>
-    </div>
-
-    <div class="stat place-items-center">
-      <div class="stat-title">Longitude</div>
-      <div class="stat-value">{lastLon.toFixed(2)}</div>
-    </div>
-  </div>
-</div>
-
 <svelte:window on:resize={resizeMap} />
 <link
   rel="stylesheet"

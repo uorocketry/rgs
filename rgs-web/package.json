@@ -1,5 +1,5 @@
 {
-  "name": "rgs-client",
+  "name": "rgs-web",
   "version": "0.0.1",
   "type": "module",
   "scripts": {
@@ -27,6 +27,7 @@
     "postcss": "^8.4.21",
     "socket.io": "^4.5.4",
     "socket.io-client": "^4.5.4",
+    "stats.js": "^0.17.0",
     "svelte": "^3.55.1",
     "svelte-check": "^3.0.3",
     "svelte-preprocess": "^5.0.1",

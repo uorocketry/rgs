@@ -1,9 +1,9 @@
 {
   "name": "rgs",
   "workspaces": [
-    "client"
+    "rgs-web"
   ],
   "scripts": {
-    "dev:client": "cd client && pnpm dev"
+    "dev:web": "cd rgs-web && pnpm dev"
   }
 }
