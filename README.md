@@ -2,25 +2,21 @@
 
 In this repository you may find the:
 
-- Rocket Ground Station web application
-- Docker compose files for running RabbitMQ and InfluxDB
+- Rocket Proxy Server
+- Rocket Ground Station Web Application
 
 ## How to run
-
-> ⚠️ This section is outdated
 
 The application can be run locally by using the following commands:
 
 ```bash
 pnpm install
-pnpm dev-server
 pnpm dev-client
 ```
 
-> Alternatively, you can use npm or yarn
-
 Please refer to each of the following for more information.
 
+- [uORocketry Wiki - Ground Station](https://avwiki.uorocketry.ca/en/Avionics/HYDRA/Software/Ground-Station) (Project Documentation)
+- [ZeroMQ](https://zeromq.org/get-started/) (Proxy-Web Server Networking)
+- [Socket.IO](https://socket.io/docs/v4/) (Web Server-Browser Networking)
 - [SvelteKit](https://kit.svelte.dev/docs/introduction) (Web Framework)
-- [Socket.IO](https://socket.io/docs/v4/) (Server-Client Networking)
-- [uORocketry Wiki](https://avwiki.uorocketry.ca/en/home) (Project Documentation)

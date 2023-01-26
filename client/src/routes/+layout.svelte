@@ -3,6 +3,8 @@
   import "../app.css";
   import "@fortawesome/fontawesome-free/css/all.min.css";
 
+  import { ClientSocket } from "$lib/common/ClientSocket";
+
   import Header from "$lib/components/Header.svelte";
 </script>
 
@@ -11,13 +13,9 @@
     <Header />
   </header>
 
-  <main>
+  <main class="overflow-auto">
     <slot />
   </main>
-
-  <!-- <footer>
-    <p>Footer</p>
-  </footer> -->
 </div>
 
 <style>

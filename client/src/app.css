@@ -4,15 +4,15 @@
 
 body,
 html {
-  height: 100%;
-  margin: 0px auto;
-  padding: 0px auto;
+    height: 100%;
+    margin: 0px auto;
+    padding: 0px auto;
 }
 
 .article {
-  @apply prose;
-  @apply bg-base-200;
-  @apply m-auto;
-  @apply min-h-screen;
-  @apply p-4;
+    @apply prose;
+    @apply bg-base-200;
+    @apply m-auto;
+    @apply min-h-screen;
+    @apply p-4;
 }

@@ -1,16 +1,12 @@
 <!-- For a more tidy example -->
 <script defer lang="ts" type="module">
-  import { onSocket, onSocketChange } from "$lib/common/utils";
+  import { onSocket } from "$lib/common/utils";
   import { ClientSocket } from "$lib/common/ClientSocket";
   import { onDestroy, onMount } from "svelte";
 
   //   Leaflet
   import L from "leaflet";
   import { LatLng } from "leaflet";
-
-  onSocketChange(() => {
-    ClientSocket.socket.emit("meta");
-  });
 
   let lastLat: number = 0;
   let lastLon: number = 0;

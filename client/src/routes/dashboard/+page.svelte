@@ -1,10 +1,5 @@
 <script defer lang="ts" type="module">
-  import {
-    onInterval,
-    onSocket,
-    onSocketChange,
-    onThemeChange,
-  } from "$lib/common/utils";
+  import { onInterval, onSocket, onThemeChange } from "$lib/common/utils";
 
   import { ClientSocket } from "$lib/common/ClientSocket";
   import { onMount } from "svelte";
@@ -24,11 +19,6 @@
     if (metaIter) {
       labels = Array.from(metaIter);
     }
-  });
-
-  onSocketChange(() => {
-    labels = [];
-    ClientSocket.socket.emit("meta");
   });
 
   let canvas: HTMLCanvasElement;

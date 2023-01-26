@@ -1,6 +1,5 @@
 <script lang="ts">
   import { ClientSocket } from "$lib/common/ClientSocket";
-  import StatusBar from "$lib/components/StatusBar.svelte";
   import { get } from "svelte/store";
   import { theme } from "$lib/common/utils";
   import { browser } from "$app/environment";
@@ -43,21 +42,20 @@
       </a>
     </div>
 
-    <div class="dropdown ">
-      <div class="tooltip tooltip-right" data-tip="Status">
-        <button class="btn btn-ghost normal-case text-xl">
-          {#if $socketOK}
-            <i class="fa-solid fa-link text-green-500" />
-          {:else}
-            <i class="fa-solid fa-link-slash text-red-500" />
-          {/if}
-        </button>
+    <div class="tooltip tooltip-bottom" data-tip="Logging">
+        <a href="/logging" class="btn btn-ghost normal-case text-xl">
+          <i class="fa-solid fa-file-lines" />
+        </a>
       </div>
-      <div
-        class="dropdown-content p-2 shadow bg-base-100 rounded-box menu mt-4"
-      >
-        <StatusBar />
-      </div>
+
+    <div class="tooltip tooltip-bottom" data-tip="Status">
+      <button class="btn btn-ghost normal-case text-xl">
+        {#if $socketOK}
+          <i class="fa-solid fa-link text-green-500" />
+        {:else}
+          <i class="fa-solid fa-link-slash text-red-500" />
+        {/if}
+      </button>
     </div>
   </div>
   <div class="navbar-end">
