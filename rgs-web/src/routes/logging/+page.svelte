@@ -1,30 +1,23 @@
 <script lang="ts">
   import { ClientSocket } from "$lib/common/ClientSocket";
-
+  import GenericLogCard from "$lib/components/GenericLogCard.svelte";
+  import VirtualList from "@sveltejs/svelte-virtual-list";
+  import { onMount } from "svelte";
   let logs: any[] = [];
-
+  let start: number;
+  let end: number;
   ClientSocket.on("zmq", (log) => {
     let obj: any = JSON.parse(log);
-    logs = [obj, ...logs];
+    logs = [...logs, obj];
   });
 </script>
 
-<div class="p-4 grid w-full gap-4 grid-auto-width">
-  {#each logs as log}
-    <div class="card w=full gap-8 bg-base-100 shadow-xl">
-      <div class="card-body">
-        <h2 class="card-title">{log.type}</h2>
-        <!-- For each entry in log data -->
-        {#each Object.entries(log.data) as [k, v]}
-          <p>{k}: {Math.round(Number(v))}</p>
-        {/each}
-      </div>
-    </div>
-  {/each}
-</div>
+<div class="p-2 h-full flex flex-col">
+  <p>Showing {start}-{end} of {logs.length} rows</p>
 
-<style>
-  .grid-auto-width {
-    /* grid-template-columns: repeat(auto-fit, minmax(13rem, 1fr)); */
-  }
-</style>
+  <VirtualList items={logs} let:item bind:start bind:end>
+    <div class="my-2">
+      <GenericLogCard log={item} />
+    </div>
+  </VirtualList>
+</div>
