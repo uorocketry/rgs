@@ -15,6 +15,8 @@ importers:
       '@tailwindcss/typography': ^0.5.9
       '@types/cookie': ^0.5.1
       '@types/leaflet': ^1.9.0
+      '@types/motion-sensors-polyfill': ^0.3.1
+      '@types/three': ^0.148.1
       '@types/zeromq': ^5.2.1
       '@vitejs/plugin-basic-ssl': ^1.0.1
       autoprefixer: ^10.4.13
@@ -30,6 +32,7 @@ importers:
       svelte-check: ^3.0.3
       svelte-preprocess: ^5.0.1
       tailwindcss: ^3.2.4
+      three: ^0.149.0
       tslib: ^2.4.1
       typescript: ^4.9.4
       vite: ^4.0.4
@@ -43,6 +46,8 @@ importers:
       '@tailwindcss/typography': 0.5.9_tailwindcss@3.2.4
       '@types/cookie': 0.5.1
       '@types/leaflet': 1.9.0
+      '@types/motion-sensors-polyfill': 0.3.1
+      '@types/three': 0.148.1
       '@types/zeromq': 5.2.1
       '@vitejs/plugin-basic-ssl': 1.0.1_vite@4.0.4
       autoprefixer: 10.4.13_postcss@8.4.21
@@ -58,6 +63,7 @@ importers:
       svelte-check: 3.0.3_pehl75e5jsy22vp33udjja4soi
       svelte-preprocess: 5.0.1_oifjsu5oar4lzyaoppb2hxramu
       tailwindcss: 3.2.4_postcss@8.4.21
+      three: 0.149.0
       tslib: 2.4.1
       typescript: 4.9.4
       vite: 4.0.4
@@ -434,6 +440,7 @@ packages:
   /@sveltejs/svelte-virtual-list/3.0.1:
     resolution: {integrity: sha512-aF9TptS7NKKS7/TqpsxQBSDJ9Q0XBYzBehCeIC5DzdMEgrJZpIYao9LRLnyyo6SVodpapm2B7FE/Lj+FSA5/SQ==}
     dev: true
+
   /@sveltejs/vite-plugin-svelte/2.0.2_svelte@3.55.1+vite@4.0.4:
     resolution: {integrity: sha512-xCEan0/NNpQuL0l5aS42FjwQ6wwskdxC3pW1OeFtEKNZwRg7Evro9lac9HesGP6TdFsTv2xMes5ASQVKbCacxg==}
     engines: {node: ^14.18.0 || >= 16}
@@ -503,6 +510,10 @@ packages:
       '@types/geojson': 7946.0.10
     dev: true
 
+  /@types/motion-sensors-polyfill/0.3.1:
+    resolution: {integrity: sha512-bRj35fP3tT7T9u2y6EGCUL7z4oeQKWPrMUr9HGbyV50ui9eFUl3dcmIrcUnZjM+NTuUV9XWWnaZdCjU0XLRkCw==}
+    dev: true
+
   /@types/node/18.11.18:
     resolution: {integrity: sha512-DHQpWGjyQKSHj3ebjFI/wRKcqQcdR+MoFBygntYOZytCqNfkd2ZC4ARDJ2DQqhjH5p85Nnd3jhUJIXrszFX/JA==}
     dev: true
@@ -519,6 +530,16 @@ packages:
     resolution: {integrity: sha512-BPdoIt1lfJ6B7rw35ncdwBZrAssjcwzI5LByIrYs+tpXlj/CAkuVdRsgZDdP4lq5EjyWzwxZCqAoFyHKFwp32g==}
     dependencies:
       '@types/node': 18.11.18
+    dev: true
+
+  /@types/three/0.148.1:
+    resolution: {integrity: sha512-gZwIyTBMxKXqJHXmZ0dzvDieuQ4hz8MPNHtkRrAwER/xPlAh9eP2WIfaolvQY+wJAzlNV5a9ceS4JT+i/jybsw==}
+    dependencies:
+      '@types/webxr': 0.5.1
+    dev: true
+
+  /@types/webxr/0.5.1:
+    resolution: {integrity: sha512-xlFXPfgJR5vIuDefhaHuUM9uUgvPaXB6GKdXy2gdEh8gBWQZ2ul24AJz3foUd8NNKlSTQuWYJpCb1/pL81m1KQ==}
     dev: true
 
   /@types/zeromq/5.2.1:
@@ -1838,6 +1859,10 @@ packages:
       resolve: 1.22.1
     transitivePeerDependencies:
       - ts-node
+    dev: true
+
+  /three/0.149.0:
+    resolution: {integrity: sha512-tohpUxPDht0qExRLDTM8sjRLc5d9STURNrdnK3w9A+V4pxaTBfKWWT/IqtiLfg23Vfc3Z+ImNfvRw1/0CtxrkQ==}
     dev: true
 
   /tiny-glob/0.2.9:

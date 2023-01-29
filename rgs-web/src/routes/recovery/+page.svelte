@@ -81,11 +81,11 @@
 </script>
 
 <!-- See https://svelte.dev/repl/62271e8fda854e828f26d75625286bc3?version=3.50.1 -->
-<svelte:window on:resize={resizeMap} />
+<svelte:window on:resize="{resizeMap}" />
 <link
   rel="stylesheet"
   href="https://unpkg.com/leaflet@1.6.0/dist/leaflet.css"
   integrity="sha512-xwE/Az9zrjBIphAcBb3F6JVqxf46+CDLwfLMHloNu6KEQCAWi6HcDUbeOfBIptF7tcCzusKFjFw2yuvEpDL9wQ=="
   crossorigin=""
 />
-<div class="map" style="height:100%;width:100%" use:mapAction />
+<div class="map" style="height:100%;width:100%" use:mapAction></div>
