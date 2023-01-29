@@ -34,5 +34,5 @@ export function createSockMockWork() {
     pos.z += 1;
     sock.send(JSON.stringify({ type: "imu", data: imu }));
     sock.send(JSON.stringify({ type: "position", data: pos }));
-  }, 1000);
+  }, 300);
 }
