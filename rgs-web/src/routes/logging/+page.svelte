@@ -1,8 +1,8 @@
 <script lang="ts">
   import { ClientSocket } from "$lib/common/ClientSocket";
   import GenericLogCard from "$lib/components/GenericLogCard.svelte";
-  import VirtualList from "@sveltejs/svelte-virtual-list";
-  import { onMount } from "svelte";
+  import VirtualList from "$lib/components/VirtualList.svelte";
+
   let logs: any[] = [];
   let start: number;
   let end: number;
