@@ -1,37 +1,58 @@
-<!-- For a more tidy example -->
 <script defer lang="ts" type="module">
   //   Leaflet
+  import "./leaflet.css";
   import L from "leaflet";
   import { LatLng } from "leaflet";
+  import { LatLngBounds } from "leaflet";
 
-  let map: L.Map | null = null;
+  let map: L.Map | null;
 
-  const markerLocations = [
-    new LatLng(29.8283, -96.5795),
-    new LatLng(37.8283, -90.5795),
-    new LatLng(43.8283, -102.5795),
-    new LatLng(48.4, -122.5795),
-    new LatLng(43.6, -79.5795),
-    new LatLng(36.8283, -100.5795),
-    new LatLng(38.4, -122.5795),
-  ];
+  const urlTemplate = "/api/tiles/{z}/{x}/{y}.png";
 
-  // TODO: Use satellite map + offline tiles
-  const initialView = new LatLng(39.8283, -98.5795);
+  const initialView = new LatLng(48.8236, -81.1547);
+  const blBound: L.LatLngTuple = [48.25185234761422, -81.83239949136214];
+  const tlBound: L.LatLngTuple = [49.11214456878958, -80.82574599219527];
+
+  const mockRocketPos: L.LatLngTuple = [48.48598684581202, -81.31160217615952];
+  let target: L.LatLngTuple = mockRocketPos;
+  const mockRocketMarker = L.marker(mockRocketPos, {
+    icon: L.divIcon({
+      // Maybe some custom checkpoints?
+      html: "🚀",
+      className: "bg-transparent text-3xl ",
+    }),
+  });
+
+  setInterval(() => {
+    let randLat = blBound[0] + Math.random() * (tlBound[0] - blBound[0]);
+    let randLng = blBound[1] + Math.random() * (tlBound[1] - blBound[1]);
+    target = [randLat, randLng];
+  }, 2000);
+
+  setInterval(() => {
+    let curPos: L.LatLng = mockRocketMarker.getLatLng();
+    const lerpFactor = 0.01;
+    let lerpedPos: L.LatLngTuple = [
+      curPos.lat + lerpFactor * (target[0] - curPos.lat),
+      curPos.lng + lerpFactor * (target[1] - curPos.lng),
+    ];
+    mockRocketMarker.setLatLng(lerpedPos);
+  }, 10);
+
+  const bounds: L.LatLngBounds = new LatLngBounds(blBound, tlBound);
+
   function createMap(container: string | HTMLElement) {
     let m = L.map(container, {
       preferCanvas: true,
       worldCopyJump: true,
-    }).setView(initialView, 5);
-    L.tileLayer(
-      "https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png",
-      {
-        attribution: `&copy;<a href="https://www.openstreetmap.org/copyright" target="_blank">OpenStreetMap</a>,
-	        &copy;<a href="https://carto.com/attributions" target="_blank">CARTO</a>`,
-        subdomains: "abcd",
-        maxZoom: 14,
-      }
-    ).addTo(m);
+      minZoom: 10,
+      maxBounds: bounds,
+    }).setView(initialView, 10);
+
+    L.tileLayer(urlTemplate, {
+      maxNativeZoom: 14,
+      minNativeZoom: 10,
+    }).addTo(m); // The actual satellite imagery
 
     return m;
   }
@@ -48,22 +69,7 @@
     map = createMap(container);
     toolbar.addTo(map);
 
-    markerLayers = L.layerGroup();
-    for (let location of markerLocations) {
-      let m = L.marker(location, {
-        icon: L.divIcon({
-          // Maybe some custom checkpoints?
-          className: "fa-solid fa-location-dot fa-2xl",
-        }),
-      });
-      markerLayers.addLayer(m);
-    }
-
-    lineLayers = L.polyline(markerLocations, { color: "#E4E", opacity: 0.5 });
-
-    markerLayers.addTo(map);
-    lineLayers.addTo(map);
-
+    mockRocketMarker.addTo(map);
     return {
       destroy: () => {
         toolbar.remove();
@@ -81,11 +87,12 @@
 </script>
 
 <!-- See https://svelte.dev/repl/62271e8fda854e828f26d75625286bc3?version=3.50.1 -->
-<svelte:window on:resize={resizeMap} />
-<link
-  rel="stylesheet"
-  href="https://unpkg.com/leaflet@1.6.0/dist/leaflet.css"
-  integrity="sha512-xwE/Az9zrjBIphAcBb3F6JVqxf46+CDLwfLMHloNu6KEQCAWi6HcDUbeOfBIptF7tcCzusKFjFw2yuvEpDL9wQ=="
-  crossorigin=""
-/>
-<div class="map" style="height:100%;width:100%" use:mapAction />
+<svelte:window on:resize="{resizeMap}" />
+
+<div class="map" style="height:100%;width:100%" use:mapAction></div>
+
+<style>
+  .rocket-emoji::before {
+    content: "a";
+  }
+</style>
