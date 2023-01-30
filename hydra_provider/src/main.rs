@@ -1,3 +1,6 @@
+mod serial_input;
+
+use crate::serial_input::SerialInput;
 use anyhow::Context;
 use anyhow::Result;
 use clap::Parser;
@@ -33,30 +36,10 @@ fn main() {
 fn run() -> Result<()> {
     let args = Args::parse();
 
-    let port = if let Some(port) = args.serial_port {
-        port
-    } else {
-        available_ports()
-            .context("No serial port specified and couldn't retrieve available ports")?
-            .iter()
-            .filter(|x| x.port_name.contains("USB"))
-            .last()
-            .context("No serial port specified and couldn't find any port")?
-            .port_name
-            .clone()
-    };
-
-    info!("Using serial port '{port}'");
-
-    let port = serialport::new(&port, args.baud_rate)
-        .timeout(Duration::new(30, 0))
-        .open()
-        .with_context(|| format!("Failed to open serial connection '{port}'"))?;
-
-    let mut f = BufReader::new(port);
+    let mut reader = SerialInput::new(&args.serial_port, args.baud_rate)?;
 
     loop {
-        match read_message(&mut f) {
+        match reader.read_message() {
             Ok(msg) => {
                 if let Ok(msg) = serde_json::to_string(&msg) {
                     info!("Received message: {msg}")
@@ -65,13 +48,4 @@ fn run() -> Result<()> {
             Err(err) => info!("Error reading message: {err}"),
         }
     }
-}
-
-fn read_message(mut reader: impl BufRead) -> Result<Message> {
-    let mut data = vec![];
-    reader.read_until(0x0, &mut data)?;
-
-    let msg: Message = from_bytes_cobs(data.as_mut_slice())?;
-
-    Ok(msg)
 }
