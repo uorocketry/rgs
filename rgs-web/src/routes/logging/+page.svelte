@@ -1,8 +1,8 @@
 <script lang="ts">
   import { ClientSocket } from "$lib/common/ClientSocket";
   import GenericLogCard from "$lib/components/GenericLogCard.svelte";
-  import VirtualList from "@sveltejs/svelte-virtual-list";
-  import { onMount } from "svelte";
+  import VirtualList from "$lib/components/VirtualList.svelte";
+
   let logs: any[] = [];
   let start: number;
   let end: number;
@@ -15,9 +15,9 @@
 <div class="p-2 h-full flex flex-col">
   <p>Showing {start}-{end} of {logs.length} rows</p>
 
-  <VirtualList items={logs} let:item bind:start bind:end>
+  <VirtualList items="{logs}" let:item bind:start="{start}" bind:end="{end}">
     <div class="my-2">
-      <GenericLogCard log={item} />
+      <GenericLogCard log="{item}" />
     </div>
   </VirtualList>
 </div>

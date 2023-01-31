@@ -4,27 +4,13 @@
   import "@fortawesome/fontawesome-free/css/all.min.css";
 
   import Header from "$lib/components/Header.svelte";
-  import Stats from "stats.js";
   import { onMount } from "svelte";
-  // Stats.js
-  // TODO: Add a toggle to enable/disable this
-  var stats = new Stats();
-  stats.showPanel(2);
-  onMount(() => {
-    const el = document.getElementById("wrapper")?.appendChild(stats.dom);
-    el.style = "position: fixed; right: 0px; bottom: 0px;";
-  });
 
   function animate() {
-    stats.begin();
-    stats.end();
     requestAnimationFrame(animate);
   }
 
   requestAnimationFrame(animate);
-  setInterval(() => {
-    stats.update();
-  }, 1000);
 </script>
 
 <div id="wrapper" class="wrapper">
