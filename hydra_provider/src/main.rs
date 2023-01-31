@@ -1,16 +1,13 @@
 mod serial_input;
+mod zeromq_server;
 
 use crate::serial_input::SerialInput;
+use crate::zeromq_server::ZeroMQServer;
 use anyhow::Context;
 use anyhow::Result;
 use clap::Parser;
 use env_logger::Env;
 use log::*;
-use messages::Message;
-use postcard::from_bytes_cobs;
-use serialport::available_ports;
-use std::io::{BufRead, BufReader};
-use std::time::Duration;
 
 /// Program to read and parse data from a HYDRA system
 #[derive(Parser, Debug)]
@@ -37,15 +34,21 @@ fn run() -> Result<()> {
     let args = Args::parse();
 
     let mut reader = SerialInput::new(&args.serial_port, args.baud_rate)?;
+    let server = ZeroMQServer::new();
 
     loop {
-        match reader.read_message() {
-            Ok(msg) => {
-                if let Ok(msg) = serde_json::to_string(&msg) {
-                    info!("Received message: {msg}")
-                }
-            }
-            Err(err) => info!("Error reading message: {err}"),
+        let result: Result<_> = (|| {
+            let msg = reader.read_message().context("Failed to read message")?;
+
+            server.send(&msg).context("Failed to send message")?;
+
+            debug!("Received message: {}", serde_json::to_string(&msg)?);
+
+            Ok(())
+        })();
+
+        if let Err(err) = result {
+            error!("Error reading and sending message: {}", err);
         }
     }
 }
