@@ -14,3 +14,4 @@ clap = { version = "4.0.29", features = ["derive", "env"] }
 anyhow = { version = "1.0.68", features = ["backtrace"] }
 log = "0.4.17"
 env_logger = "0.10.0"
+zmq = "0.10.0"
