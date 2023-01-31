@@ -47,9 +47,3 @@ ClientSocket.socket.on("disconnect", () => {
   console.log("Disconnected from server");
   ClientSocket.connected.set(false);
 });
-
-if (browser) {
-  console.log("Hello from client");
-} else {
-  console.log("Hello from server");
-}
