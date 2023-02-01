@@ -5,6 +5,8 @@ use messages::Message;
 use rand::rngs::ThreadRng;
 use rand::Rng;
 use std::time::{Duration, Instant};
+use std::time::UNIX_EPOCH;
+use std::time::SystemTime;
 
 pub struct RandomInput {
     rng: ThreadRng,
@@ -32,8 +34,15 @@ impl HydraInput for RandomInput {
             height: self.rng.gen(),
         };
 
-        let time =
-            fugit::Instant::<u64, 1, 1000>::from_ticks(self.time.elapsed().as_millis() as u64);
+        // Get unix timestamp
+        // fugit::Instant::<u64, 1, 1000>::from_ticks(self.time.elapsed().as_millis() as u64);
+
+        let time = SystemTime::now()
+            .duration_since(UNIX_EPOCH)
+            .expect("Time went backwards")
+            .as_millis() as u64;
+
+            let time = fugit::Instant::<u64, 1, 1000>::from_ticks(time);
 
         Ok(Message::new(&time, Sender::MainBoard, Sensor::new(0, sbg)))
     }

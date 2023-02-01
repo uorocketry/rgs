@@ -2,6 +2,7 @@ use anyhow::Result;
 use messages::Message;
 use zmq::Socket;
 
+
 pub struct ZeroMQServer {
     socket: Socket,
 }
@@ -19,6 +20,7 @@ impl ZeroMQServer {
 
     pub fn send(&self, msg: &Message) -> Result<()> {
         self.socket.send(&serde_json::to_string(msg)?, 0)?;
+        // println!("Sent message: {:?}", msg);
 
         Ok(())
     }

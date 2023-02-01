@@ -1,7 +1,7 @@
 import type { ViteDevServer } from "vite";
 import { Server } from "socket.io";
 import zmq from "zeromq";
-import { createSockMockWork } from "./producer";
+// import { createSockMockWork } from "./producer";
 
 export let io: Server;
 export let zmqSock: zmq.Socket;
@@ -21,14 +21,15 @@ export default {
     }
 
     // Sets up zmq socket and endpoint
-    zmqSock = zmq.socket("pull");
+    zmqSock = zmq.socket("sub");
     // console.log(process.env);
     console.log("ZMQ_ENDPOINT", process.env.ZMQ_ENDPOINT);
     zmqSock.connect(process.env.ZMQ_ENDPOINT ?? "tcp://127.0.0.1:3000");
-
+    zmqSock.subscribe("");
+    console.log("Connecting to ZeroMQ endpoint");
     // TODO: Remove this mock work after implementing the real thing
     try {
-      createSockMockWork(); // Sends some mock data
+      // createSockMockWork(); // Sends some mock data
     } catch (error) {
       console.error("Error creating mock work", error);
       // If you get an error: Error creating mock work Error: Address already in use
@@ -41,7 +42,9 @@ export default {
 
     // Basically messages from the zmq socket to the socket.io socket
     zmqSock.on("message", (msg) => {
-      io.emit("zmq", msg.toString());
+      io.emit("zmq", JSON.stringify(JSON.parse(msg)));
     });
   },
 };
+
+
