@@ -1,40 +1,68 @@
-mod serial_input;
+mod input;
 mod zeromq_server;
 
-use crate::serial_input::SerialInput;
+use crate::input::SerialInput;
+use crate::input::{HydraInput, RandomInput};
 use crate::zeromq_server::ZeroMQServer;
 use anyhow::Context;
 use anyhow::Result;
+use clap::ArgGroup;
 use clap::Parser;
-use env_logger::Env;
 use log::*;
 
 /// Program to read and parse data from a HYDRA system
 #[derive(Parser, Debug)]
 #[command(author, version, about, long_about = None)]
+#[command(group(
+    ArgGroup::new("input")
+        .required(false)
+        .args(["serial_port", "random_input"])
+))]
 struct Args {
     /// Serial port to read from. If not specified, the first port found will be used.
+    /// Is used as default input if not other inputs are specified.
     #[arg(short, long, env)]
     serial_port: Option<String>,
 
     /// Baud rate to use for the serial connection
     #[arg(short, long, env, default_value = "9600")]
     baud_rate: u32,
+
+    /// Port of the ZeroMQ server
+    #[arg(short, long, env, default_value = "2223")]
+    zeromq_port: u32,
+
+    /// Simulate a source with random data for testing
+    #[arg(short, long, env, default_value = "false")]
+    random_input: bool,
+
+    /// Logging level
+    #[arg(short, long, env, default_value = "Info")]
+    log: LevelFilter,
 }
 
 fn main() {
-    env_logger::Builder::from_env(Env::default().default_filter_or("info")).init();
+    let args = Args::parse();
+    env_logger::Builder::from_default_env()
+        .filter(None, args.log)
+        .init();
 
-    if let Err(err) = run() {
+    if let Err(err) = run(&args) {
         error!("{:?}", err)
     }
 }
 
-fn run() -> Result<()> {
-    let args = Args::parse();
+fn run(args: &Args) -> Result<()> {
+    let mut reader: Box<dyn HydraInput> = if !args.random_input {
+        info!("Using serial input");
+        Box::new(SerialInput::new(&args.serial_port, args.baud_rate)?)
+    } else {
+        info!("Using random input");
+        Box::new(RandomInput::new())
+    };
 
-    let mut reader = SerialInput::new(&args.serial_port, args.baud_rate)?;
-    let server = ZeroMQServer::new();
+    info!("Starting ZeroMQ server on port {}", args.zeromq_port);
+    let server = ZeroMQServer::new(args.zeromq_port);
 
     loop {
         let result: Result<_> = (|| {
@@ -48,7 +76,7 @@ fn run() -> Result<()> {
         })();
 
         if let Err(err) = result {
-            error!("Error reading and sending message: {}", err);
+            error!("Error reading and sending message: {:?}", err);
         }
     }
 }
