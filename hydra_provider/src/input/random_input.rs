@@ -4,9 +4,9 @@ use messages::sensor::{Sbg, Sensor};
 use messages::Message;
 use rand::rngs::ThreadRng;
 use rand::Rng;
-use std::time::{Duration, Instant};
-use std::time::UNIX_EPOCH;
 use std::time::SystemTime;
+use std::time::UNIX_EPOCH;
+use std::time::{Duration, Instant};
 
 pub struct RandomInput {
     rng: ThreadRng,
@@ -25,7 +25,7 @@ impl RandomInput {
 
 impl HydraInput for RandomInput {
     fn read_message(&mut self) -> anyhow::Result<Message> {
-        std::thread::sleep(Duration::from_secs(1));
+        std::thread::sleep(Duration::from_millis(1));
 
         let sbg = Sbg {
             accel: self.rng.gen(),
@@ -42,7 +42,7 @@ impl HydraInput for RandomInput {
             .expect("Time went backwards")
             .as_millis() as u64;
 
-            let time = fugit::Instant::<u64, 1, 1000>::from_ticks(time);
+        let time = fugit::Instant::<u64, 1, 1000>::from_ticks(time);
 
         Ok(Message::new(&time, Sender::MainBoard, Sensor::new(0, sbg)))
     }

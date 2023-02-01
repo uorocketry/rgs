@@ -11,40 +11,22 @@ export default {
   name: "RGS Server Plugin",
 
   configureServer(server: ViteDevServer) {
-    if (!server.httpServer) {
-      throw new Error("No HTTP server found");
-    }
-    try {
-      io = new Server(server.httpServer);
-    } catch (error) {
-      console.error("Error creating socket.io server", error);
-    }
-
-    // Sets up zmq socket and endpoint
+    io = new Server(server.httpServer as any);
     zmqSock = zmq.socket("sub");
-    // console.log(process.env);
-    console.log("ZMQ_ENDPOINT", process.env.ZMQ_ENDPOINT);
-    zmqSock.connect(process.env.ZMQ_ENDPOINT ?? "tcp://127.0.0.1:3000");
+
+    const endpoint = process.env.ZMQ_ENDPOINT ?? "tcp://127.0.0.1:3000";
+    console.log("ZMQ_ENDPOINT:", endpoint);
+    zmqSock.connect(endpoint);
     zmqSock.subscribe("");
     console.log("Connecting to ZeroMQ endpoint");
-    // TODO: Remove this mock work after implementing the real thing
-    try {
-      // createSockMockWork(); // Sends some mock data
-    } catch (error) {
-      console.error("Error creating mock work", error);
-      // If you get an error: Error creating mock work Error: Address already in use
-      // It's fine due to how the mock work is implemented
-    }
-    // https://zeromq.github.io/zeromq.js/interfaces/EventSubscriber.html#on
-    zmqSock.on("accept", (msg) => {
-      console.log("Server connected to ZeroMQ endpoint", msg);
-    });
 
     // Basically messages from the zmq socket to the socket.io socket
     zmqSock.on("message", (msg) => {
-      io.emit("zmq", JSON.stringify(JSON.parse(msg)));
+      let obj = JSON.parse(msg.toString());
+      let rec = Date.now();
+      let delta = rec - obj.timestamp;
+      console.log("Delta:", delta, "ms");
+      io.emit("zmq", JSON.stringify(obj));
     });
   },
 };
-
-
