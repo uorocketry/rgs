@@ -1,8 +1,10 @@
 mod input;
+mod processing;
 mod zeromq_server;
 
 use crate::input::SerialInput;
 use crate::input::{HydraInput, RandomInput};
+use crate::processing::Processing;
 use crate::zeromq_server::ZeroMQServer;
 use anyhow::Context;
 use anyhow::Result;
@@ -64,13 +66,19 @@ fn run(args: &Args) -> Result<()> {
     info!("Starting ZeroMQ server on port {}", args.zeromq_port);
     let server = ZeroMQServer::new(args.zeromq_port);
 
+    let processing = Processing::new();
+
     loop {
         let result: Result<_> = (|| {
             let msg = reader.read_message().context("Failed to read message")?;
 
-            server.send(&msg).context("Failed to send message")?;
-
             debug!("Received message: {}", serde_json::to_string(&msg)?);
+
+            let processed = processing.process(msg);
+
+            debug!("Processed message: {}", serde_json::to_string(&processed)?);
+
+            server.send(&processed).context("Failed to send message")?;
 
             Ok(())
         })();
