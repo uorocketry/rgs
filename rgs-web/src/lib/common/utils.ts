@@ -1,6 +1,5 @@
 import { onDestroy } from "svelte";
 import { get, writable, type Writable } from "svelte/store";
-import { ClientSocket } from "./ClientSocket";
 
 export let theme: Writable<string> = writable();
 
@@ -20,13 +19,5 @@ export function onInterval(callback: () => void, milliseconds: number) {
 
   onDestroy(() => {
     clearInterval(interval);
-  });
-}
-
-export function onSocket(event: string, callback: (...data: any) => void) {
-  let unsubscribe = ClientSocket.on(event, callback);
-
-  onDestroy(() => {
-    unsubscribe();
   });
 }

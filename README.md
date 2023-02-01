@@ -3,7 +3,10 @@
 In this repository you may find the:
 
 - Rocket Proxy Server
+  - hydra_provider: The ZeroMQ proxy server
 - Rocket Ground Station Web Application
+  - rgs-web: The web application
+  - ws-server: The websocket server
 
 ## How to run
 

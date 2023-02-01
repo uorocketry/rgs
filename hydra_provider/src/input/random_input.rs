@@ -25,7 +25,7 @@ impl RandomInput {
 
 impl HydraInput for RandomInput {
     fn read_message(&mut self) -> anyhow::Result<Message> {
-        std::thread::sleep(Duration::from_millis(1));
+        std::thread::sleep(Duration::from_millis(100));
 
         let sbg = Sbg {
             accel: self.rng.gen(),

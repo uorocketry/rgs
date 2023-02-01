@@ -2,7 +2,6 @@ use anyhow::Result;
 use messages::Message;
 use zmq::Socket;
 
-
 pub struct ZeroMQServer {
     socket: Socket,
 }

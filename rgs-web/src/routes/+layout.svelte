@@ -4,13 +4,10 @@
   import "@fortawesome/fontawesome-free/css/all.min.css";
 
   import Header from "$lib/components/Header.svelte";
-  import { onMount } from "svelte";
 
-  function animate() {
-    requestAnimationFrame(animate);
-  }
+  import io from "socket.io-client";
 
-  requestAnimationFrame(animate);
+  const socket = io("http://localhost:3000");
 </script>
 
 <div id="wrapper" class="wrapper">
