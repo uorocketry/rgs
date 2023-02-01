@@ -7,12 +7,12 @@ pub struct ZeroMQServer {
 }
 
 impl ZeroMQServer {
-    pub fn new() -> Self {
+    pub fn new(port: u32) -> Self {
         let ctx = zmq::Context::new();
 
-        let socket = ctx.socket(zmq::SUB).unwrap();
+        let socket = ctx.socket(zmq::PUB).unwrap();
 
-        socket.connect("tcp://127.0.0.1:2227").unwrap();
+        socket.bind(&format!("tcp://*:{port}")).unwrap();
 
         ZeroMQServer { socket }
     }

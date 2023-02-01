@@ -1,3 +1,4 @@
+use crate::input::HydraInput;
 use anyhow::Context;
 use anyhow::Result;
 use log::info;
@@ -39,8 +40,10 @@ impl SerialInput {
             reader: Box::new(f),
         })
     }
+}
 
-    pub fn read_message(&mut self) -> Result<Message> {
+impl HydraInput for SerialInput {
+    fn read_message(&mut self) -> Result<Message> {
         let mut data = vec![];
         self.reader.read_until(0x0, &mut data)?;
 
