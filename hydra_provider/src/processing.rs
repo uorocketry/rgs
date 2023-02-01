@@ -1,8 +1,10 @@
 use derive_more::From;
 use serde::Deserialize;
 use serde::Serialize;
+use ts_rs::TS;
 
-#[derive(Serialize, Deserialize, Clone, Debug, From)]
+#[derive(Serialize, Deserialize, Clone, Debug, From, TS)]
+#[ts(export)]
 pub enum ProcessedMessage {
     RocketData(messages::Message),
 }
