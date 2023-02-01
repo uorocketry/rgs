@@ -3,7 +3,10 @@ import { writable, type Unsubscriber } from "svelte/store";
 import { browser } from "$app/environment";
 
 export class ClientSocket {
-  public static _socket: Socket = io();
+  public static _socket: Socket = io({
+    upgrade: false,
+    transports: ["websocket"],
+  });
   public static connected = writable(false);
   // On callbacks is a map of event names to array of callback functions
   public static onCallbacks: Map<string, ((...args: any[]) => void)[]> =

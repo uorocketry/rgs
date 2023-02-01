@@ -23,9 +23,7 @@ export default {
     // Basically messages from the zmq socket to the socket.io socket
     zmqSock.on("message", (msg) => {
       let obj = JSON.parse(msg.toString());
-      let rec = Date.now();
-      let delta = rec - obj.timestamp;
-      console.log("Delta:", delta, "ms");
+      obj.serverDelta = Date.now() - obj.timestamp;
       io.emit("zmq", JSON.stringify(obj));
     });
   },
