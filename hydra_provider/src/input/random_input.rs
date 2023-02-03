@@ -4,21 +4,17 @@ use messages::sensor::{Sbg, Sensor};
 use messages::Message;
 use rand::rngs::ThreadRng;
 use rand::Rng;
+use std::time::Duration;
 use std::time::SystemTime;
-use std::time::{Duration, Instant};
 
 pub struct RandomInput {
     rng: ThreadRng,
-    time: Instant,
 }
 
 impl RandomInput {
     pub fn new() -> Self {
         let rng = rand::thread_rng();
-        RandomInput {
-            rng,
-            time: Instant::now(),
-        }
+        RandomInput { rng }
     }
 }
 
