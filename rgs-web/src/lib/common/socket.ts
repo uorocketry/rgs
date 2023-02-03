@@ -3,12 +3,24 @@ import { onDestroy } from "svelte";
 import io from "socket.io-client";
 import type { Socket } from "socket.io";
 import type { Unsubscriber } from "svelte/store";
+import type {
+  ClientToServerEvents,
+  Data,
+  Message,
+  ServerToClientEvents,
+} from "./Message";
+import type {
+  ReservedOrUserEventNames,
+  ReservedOrUserListener,
+} from "socket.io/dist/typed-events";
+import type { SocketReservedEventsMap } from "socket.io/dist/socket";
 
 /**
  * The client's socket connection to the server. Value is null on the server.
  * Prefer using onSocket() instead of socket.on() directly.
  */
-export let socket: Socket | null = null;
+export let socket: Socket<ServerToClientEvents, ClientToServerEvents> | null =
+  null;
 
 const initSocket = () => {
   console.log("Initializing socket");
@@ -31,7 +43,12 @@ const initSocket = () => {
  * @param event The event name.
  * @param data The data to send.
  */
-export function onSocket(event: string, callback: (...data: any) => void) {
+export function onSocket<
+  Ev extends ReservedOrUserEventNames<
+    ClientToServerEvents,
+    ServerToClientEvents
+  >
+>(event: Ev, callback: ReservedOrUserListener<ServerToClientEvents, any, any>) {
   socket?.on(event, callback);
 
   onDestroy(() => {
@@ -46,3 +63,6 @@ export function onSocket(event: string, callback: (...data: any) => void) {
 if (browser) {
   initSocket();
 }
+
+// StrictEventEmitter<ListenEvents extends EventsMap, EmitEvents extends EventsMap, ReservedEvents extends EventsMap = {}>
+// on<Ev extends ReservedOrUserEventNames<ReservedEvents, ListenEvents>>(ev: Ev, listener: ReservedOrUserListener<ReservedEvents, ListenEvents, Ev>): this;

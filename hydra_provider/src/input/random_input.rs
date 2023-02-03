@@ -4,6 +4,7 @@ use messages::sensor::{Sbg, Sensor};
 use messages::Message;
 use rand::rngs::ThreadRng;
 use rand::Rng;
+use std::time::SystemTime;
 use std::time::{Duration, Instant};
 
 pub struct RandomInput {
@@ -32,8 +33,12 @@ impl HydraInput for RandomInput {
             height: self.rng.gen(),
         };
 
-        let time =
-            fugit::Instant::<u64, 1, 1000>::from_ticks(self.time.elapsed().as_millis() as u64);
+        let time = fugit::Instant::<u64, 1, 1000>::from_ticks(
+            SystemTime::now()
+                .duration_since(SystemTime::UNIX_EPOCH)?
+                .as_millis() as u64,
+        );
+        // fugit::Instant::<u64, 1, 1000>::from_ticks(self.time.elapsed().as_millis() as u64);
 
         Ok(Message::new(&time, Sender::MainBoard, Sensor::new(0, sbg)))
     }

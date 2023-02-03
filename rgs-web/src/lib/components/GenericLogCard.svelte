@@ -1,7 +1,7 @@
 <script lang="ts">
-  import type { ZMQMessage } from "$lib/common/ZMQMessage";
+  import type { Message } from "$lib/common/Message";
 
-  export let msg: ZMQMessage;
+  export let msg: Message;
   let t = Date.now();
 </script>
 
@@ -10,7 +10,6 @@
     <h2 class="card-title">
       {msg.sender}
     </h2>
-    <p>Server DT @ {msg.serverDelta}</p>
     <p>Client DT @ {t - msg.timestamp}</p>
     {#each Object.entries(msg.data) as [k, v]}
       <p>{k}: {JSON.stringify(v)}</p>

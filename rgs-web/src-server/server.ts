@@ -19,7 +19,11 @@ export const setupServer = (http: HTTPServer) => {
   });
 
   zmqSock.on("message", (msg: any) => {
-    // console.log("Received message from ZMQ: ", msg.toString());
-    io.emit("zmq", msg.toString());
+    const obj = JSON.parse(msg.toString());
+    // Get object keys
+    const keys = Object.keys(obj);
+    for (let key of keys) {
+      io.emit(key, obj[key]);
+    }
   });
 };
