@@ -1,8 +1,5 @@
 {
   "name": "rgs",
-  "workspaces": [
-    "rgs-web"
-  ],
   "scripts": {
     "dev:web": "cd rgs-web && pnpm dev"
   }

@@ -1,4 +1,5 @@
 <script lang="ts" type="module">
+  import { browser } from "$app/environment";
   import { onDestroy, onMount } from "svelte";
   import * as THREE from "three";
 
@@ -55,7 +56,9 @@
   let done: boolean = false;
   onDestroy(() => {
     done = true;
-    render();
+    if (browser) {
+      renderer.dispose();
+    }
   });
 
   function render() {

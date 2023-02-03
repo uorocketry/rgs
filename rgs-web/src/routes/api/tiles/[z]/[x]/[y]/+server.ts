@@ -8,6 +8,10 @@ import {
   writeFile,
 } from "fs";
 
+const dataDir = "./data";
+if (!existsSync(dataDir)) {
+  mkdirSync(dataDir);
+}
 const tilesDir = "./data/tiles";
 // Initialize ./data/tiles directory if it doesn't exist
 if (!existsSync(tilesDir)) {
