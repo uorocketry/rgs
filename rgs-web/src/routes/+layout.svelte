@@ -1,16 +1,10 @@
 <script lang="ts">
   // CSS
   import "../app.css";
+  import "../leaflet.css";
   import "@fortawesome/fontawesome-free/css/all.min.css";
 
   import Header from "$lib/components/Header.svelte";
-  import { onMount } from "svelte";
-
-  function animate() {
-    requestAnimationFrame(animate);
-  }
-
-  requestAnimationFrame(animate);
 </script>
 
 <div id="wrapper" class="wrapper">

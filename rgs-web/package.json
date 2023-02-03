@@ -3,6 +3,7 @@
   "version": "0.0.1",
   "type": "module",
   "scripts": {
+    "postinstall": "svelte-kit sync",
     "dev": "vite dev",
     "build": "vite build",
     "preview": "vite preview",
@@ -10,14 +11,15 @@
     "check:watch": "svelte-kit sync && svelte-check --tsconfig ./tsconfig.json --watch"
   },
   "devDependencies": {
-    "@fortawesome/fontawesome-free": "^6.2.1",
+    "@fortawesome/fontawesome-free": "6.2.1",
     "@sveltejs/adapter-auto": "1.0.02",
     "@sveltejs/adapter-node": "^1.1.4",
     "@sveltejs/kit": "1.2.10",
     "@tailwindcss/typography": "^0.5.9",
     "@types/cookie": "^0.5.1",
+    "@types/express": "^4.17.16",
+    "@types/koa": "^2.13.5",
     "@types/leaflet": "^1.9.0",
-    "@types/motion-sensors-polyfill": "^0.3.1",
     "@types/three": "^0.148.1",
     "@types/zeromq": "^5.2.1",
     "@vitejs/plugin-basic-ssl": "^1.0.1",
@@ -25,6 +27,7 @@
     "billboard.js": "^3.7.2",
     "chart.js": "^4.2.0",
     "daisyui": "^2.49.0",
+    "koa": "^2.14.1",
     "leaflet": "^1.9.3",
     "postcss": "^8.4.21",
     "socket.io": "^4.5.4",

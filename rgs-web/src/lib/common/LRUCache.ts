@@ -1,3 +1,6 @@
+/**
+ * Least Recently Used (LRU) cache implementation.
+ */
 export class LRUCache<K, V> {
   public cache = new Map<K, V>();
   public capacity: number;
