@@ -1,13 +1,10 @@
 <script lang="ts">
   // CSS
   import "../app.css";
+  import "../leaflet.css";
   import "@fortawesome/fontawesome-free/css/all.min.css";
 
   import Header from "$lib/components/Header.svelte";
-
-  import io from "socket.io-client";
-
-  const socket = io("http://localhost:3000");
 </script>
 
 <div id="wrapper" class="wrapper">

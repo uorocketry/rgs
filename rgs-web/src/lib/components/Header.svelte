@@ -3,12 +3,19 @@
   import { theme } from "$lib/common/utils";
   import { browser } from "$app/environment";
   import { onMount } from "svelte";
+  import { onSocket } from "$lib/common/socket";
 
   let themeState: boolean = false;
   let socketOK = writable(false);
+  onSocket("connect", () => {
+    socketOK.set(true);
+  });
+
+  onSocket("disconnect", () => {
+    socketOK.set(false);
+  });
+
   onMount(() => {
-    // TODO: Update me
-    // socketOK = ClientSocket.connected;
     let initialTheme = "light";
     if (browser && localStorage.getItem("theme")) {
       initialTheme = localStorage.getItem("theme") || initialTheme;

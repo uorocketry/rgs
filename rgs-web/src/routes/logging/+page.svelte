@@ -16,8 +16,7 @@
   let avgServerDt = 0;
   let avgKbps = 0;
   if (browser) {
-    onSocket("zmq", (log) => {
-      console.log(log);
+    onSocket("zmq", (log: any) => {
       let obj: ZMQMessage = JSON.parse(log);
       logs = [...logs, obj];
       recDts = [...recDts, Date.now()];

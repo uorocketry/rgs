@@ -1,5 +1,5 @@
 import { onDestroy } from "svelte";
-import { get, writable, type Writable } from "svelte/store";
+import { get, writable, type Unsubscriber, type Writable } from "svelte/store";
 
 export let theme: Writable<string> = writable();
 
@@ -12,6 +12,7 @@ export function onThemeChange(callback: () => void) {
   onDestroy(() => {
     unsubscribe();
   });
+  return unsubscribe;
 }
 
 export function onInterval(callback: () => void, milliseconds: number) {
@@ -20,4 +21,8 @@ export function onInterval(callback: () => void, milliseconds: number) {
   onDestroy(() => {
     clearInterval(interval);
   });
+  let unsubscriber: Unsubscriber = () => {
+    clearInterval(interval);
+  };
+  return unsubscriber;
 }

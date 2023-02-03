@@ -1,6 +1,4 @@
 <script defer lang="ts" type="module">
-  //   Leaflet
-  import "./leaflet.css";
   import L from "leaflet";
   import { LatLngBounds } from "leaflet";
   import { onInterval } from "$lib/common/utils";
