@@ -13,7 +13,6 @@
   let end: number;
 
   let avgClientDt = 0;
-  let avgServerDt = 0;
   let avgKbps = 0;
   if (browser) {
     onSocket("zmq", (log: any) => {
@@ -34,7 +33,6 @@
       avgKbps = totalBytesTransferred / 1000;
       avgClientDt =
         recDts.reduce((a, b, i) => a + b - logs[i].timestamp, 0) / logs.length;
-      avgServerDt = logs.reduce((a, b) => a + b.serverDelta, 0) / logs.length;
       sizes = [];
     }, 1000);
   }
@@ -43,22 +41,17 @@
 <div class="p-2 h-full flex flex-col">
   <p>Showing {start}-{end} of {logs.length} rows</p>
   <p>
-    Average Server DT @
-    {avgServerDt.toFixed(2)} ms
-  </p>
-  <p>
-    Average Client DT @
+    Average Message DT @
     <!-- // recDts[i] - msg.timestamp -->
-    {avgClientDt.toFixed(2)} ms
+    ~{avgClientDt.toFixed(2)} ms
   </p>
   <p>
-    Transfer Rate @
-    {avgKbps.toFixed(4)} KBps
+    Transfer Rate @ ~{avgKbps.toFixed(4)} KBps
   </p>
 
-  <!-- <VirtualList items="{logs}" let:item bind:start="{start}" bind:end="{end}">
+  <VirtualList items="{logs}" let:item bind:start="{start}" bind:end="{end}">
     <div class="my-2">
       <ZMQLogCard msg="{item}" />
     </div>
-  </VirtualList> -->
+  </VirtualList>
 </div>
