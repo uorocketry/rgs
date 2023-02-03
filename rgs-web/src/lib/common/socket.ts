@@ -10,8 +10,23 @@ import type { Unsubscriber } from "svelte/store";
  */
 export let socket: Socket | null = null;
 
+export let uuid = "";
+export let secret = "";
+
 const initSocket = () => {
   console.log("Initializing socket");
+
+  // Check if we have a uuid in local storage
+  uuid = localStorage.getItem("uuid") || "";
+  secret = localStorage.getItem("secret") || "";
+  if (!uuid || !secret) {
+    // If not, generate one
+    uuid = self.crypto.randomUUID();
+    secret = self.crypto.randomUUID();
+    localStorage.setItem("uuid", uuid);
+    localStorage.setItem("secret", secret);
+  }
+
   socket = io() as unknown as Socket;
   socket.on("connect", () => {
     console.log("Connected to server");
@@ -23,6 +38,9 @@ const initSocket = () => {
   socket.on("message", (data: string) => {
     console.log("Received message from server: ", data);
   });
+
+  // Emit a login message to the server with our uuid
+  socket.emit("login", uuid, secret);
 };
 
 /**
@@ -31,7 +49,17 @@ const initSocket = () => {
  * @param event The event name.
  * @param data The data to send.
  */
-export function onSocket(event: string, callback: (...data: any) => void) {
+export function onSocket<
+  Ev extends ReservedOrUserEventNames<
+    SocketReservedEventsMap,
+    ServerToClientEvents
+  >,
+  Cb extends ReservedOrUserListener<
+    SocketReservedEventsMap,
+    ServerToClientEvents,
+    Ev
+  >
+>(event: Ev, callback: Cb) {
   socket?.on(event, callback);
 
   onDestroy(() => {

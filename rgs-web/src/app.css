@@ -16,3 +16,18 @@ html {
     @apply min-h-screen;
     @apply p-4;
 }
+
+/* ScrollBar */
+
+::-webkit-scrollbar {
+    width: 5px;
+    height: 5px;
+}
+
+
+::-webkit-scrollbar-thumb {
+    background-color: hsl(var(--bc));
+    border-radius: 0.5rem;
+    min-height: 2rem;
+    min-width: 2rem;
+}
