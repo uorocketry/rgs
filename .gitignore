@@ -14,9 +14,6 @@ node_modules/
 # TypeScript cache
 *.tsbuildinfo
 
-# Yarn Integrity file
-.yarn-integrity
-
 # dotenv environment variable files
 .env.development.local
 .env.test.local
@@ -37,3 +34,6 @@ node_modules
 
 # Temporary files
 data
+
+# Cargo
+target/
