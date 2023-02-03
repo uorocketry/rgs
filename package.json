@@ -1,0 +1,6 @@
+{
+  "name": "rgs",
+  "scripts": {
+    "dev:web": "cd rgs-web && pnpm dev"
+  }
+}
