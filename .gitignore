@@ -2,9 +2,6 @@
 logs
 *.log
 npm-debug.log*
-yarn-debug.log*
-yarn-error.log*
-lerna-debug.log*
 .pnpm-debug.log*
 
 
@@ -13,12 +10,6 @@ node_modules/
 
 # TypeScript cache
 *.tsbuildinfo
-
-# dotenv environment variable files
-.env.development.local
-.env.test.local
-.env.production.local
-.env.local
 
 # SvelteKit
 .DS_Store
@@ -29,7 +20,6 @@ node_modules
 .env
 .env.*
 !.env.example
-.vercel
 .output
 
 # Temporary files
