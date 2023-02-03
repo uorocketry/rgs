@@ -59,7 +59,7 @@
     bind:start="{start}"
     bind:end="{end}"
   >
-    <div class="my-2">
+    <div class="p-4">
       <ZMQLogCard msg="{item}" />
     </div>
   </VirtualList>
