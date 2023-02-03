@@ -5,14 +5,23 @@
   let t = Date.now();
 </script>
 
-<div class="card w=full gap-8 bg-base-100 shadow-xl">
+<div class="card bg-accent text-accent-content shadow-md">
   <div class="card-body">
     <h2 class="card-title">
-      {msg.sender}
+      {msg.sender} | {msg.data.sensor ? "Sensor Data" : ""}
     </h2>
-    <p>Client DT @ {t - msg.timestamp}</p>
-    {#each Object.entries(msg.data) as [k, v]}
-      <p>{k}: {JSON.stringify(v)}</p>
-    {/each}
+    {#if msg.data.sensor}
+      <div class="card-body">
+        {#each Object.entries(msg.data.sensor.data.Sbg ?? {}) as [k, v]}
+          <div class="capitalize">
+            <p>{k}: {JSON.stringify(v)}</p>
+          </div>
+        {/each}
+      </div>
+    {/if}
+
+    {#if msg.data.state}
+      <p>State</p>
+    {/if}
   </div>
 </div>

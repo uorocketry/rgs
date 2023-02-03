@@ -33,10 +33,14 @@ export interface Sbg {
   height: number;
 }
 
-export type SensorData = Sbg;
+export type SensorData = {
+  Sbg?: Sbg;
+};
 
-export type Data = State | Sensor;
-
+export type Data = {
+  state?: State;
+  sensor?: Sensor;
+};
 export interface ServerToClientEvents {
   RocketData: (data: Message) => void;
   connect: () => void;
