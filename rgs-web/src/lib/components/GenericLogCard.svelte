@@ -14,9 +14,6 @@
     </h2>
     <p>Server DT @ {msg.serverDelta}</p>
     <p>Client DT @ {t - msg.timestamp}</p>
-    <!-- {#each Object.entries(msg.data) as [k, v]}
-      <p>{k}: {JSON.stringify(v)}</p>
-    {/each} -->
     <table class="table w-full">
       <thead>
         <tr>
