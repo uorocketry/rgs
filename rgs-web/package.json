@@ -10,6 +10,9 @@
     "check": "svelte-kit sync && svelte-check --tsconfig ./tsconfig.json",
     "check:watch": "svelte-kit sync && svelte-check --tsconfig ./tsconfig.json --watch"
   },
+  "dependencies": {
+    "socket.io": "^4.6.1"
+  },
   "devDependencies": {
     "@fortawesome/fontawesome-free": "6.3.0",
     "@sveltejs/adapter-node": "^1.2.0",
@@ -26,7 +29,6 @@
     "daisyui": "^2.51.0",
     "leaflet": "^1.9.3",
     "postcss": "^8.4.21",
-    "socket.io": "^4.6.1",
     "socket.io-client": "^4.6.1",
     "svelte": "^3.55.1",
     "svelte-check": "^3.0.3",
@@ -36,6 +38,6 @@
     "tslib": "^2.5.0",
     "typescript": "^4.9.5",
     "vite": "^4.1.4",
-    "zeromq": "5"
+    "zeromq": "^5.3.1"
   }
 }

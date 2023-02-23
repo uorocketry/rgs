@@ -1,0 +1,6 @@
+{
+	"name": "uORocketry",
+	"build": {
+		"dockerfile": "Dockerfile"
+	}
+}

@@ -3,6 +3,9 @@ import { onDestroy } from "svelte";
 import io from "socket.io-client";
 import type { Socket } from "socket.io";
 import type { Unsubscriber } from "svelte/store";
+import type { ReservedOrUserEventNames, ReservedOrUserListener } from "socket.io/dist/typed-events";
+import type { ServerToClientEvents } from "./Message";
+import type { SocketReservedEventsMap } from "socket.io/dist/socket";
 
 /**
  * The client's socket connection to the server. Value is null on the server.
@@ -42,6 +45,8 @@ const initSocket = () => {
   // Emit a login message to the server with our uuid
   socket.emit("login", uuid, secret);
 };
+
+// TODO: improve typings
 
 /**
  * Subscribes to a socket event and unsubscribes when the component is destroyed.
