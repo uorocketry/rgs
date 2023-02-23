@@ -4,6 +4,7 @@
   import { browser } from "$app/environment";
   import { onMount } from "svelte";
   import { onSocket } from "$lib/common/socket";
+  import TimeCounter from "./TimeCounter.svelte";
 
   let themeState: boolean = false;
   let socketOK = writable(false);
@@ -60,6 +61,18 @@
       </a>
     </div>
 
+    <div class="tooltip tooltip-bottom" data-tip="Team">
+      <a href="/team" class="btn btn-ghost normal-case text-xl">
+        <i class="fa-solid fa-user"></i>
+      </a>
+    </div>
+
+    <div class="tooltip tooltip-bottom" data-tip="TODO: Panels">
+      <a href="/panels" class="btn btn-ghost normal-case text-xl">
+        <i class="fa-solid fa-table"></i>
+      </a>
+    </div>
+
     <div class="tooltip tooltip-bottom" data-tip="Status">
       <button class="btn btn-ghost normal-case text-xl">
         {#if $socketOK}
@@ -71,6 +84,7 @@
     </div>
   </div>
   <div class="navbar-end">
+    <TimeCounter />
     <div class="tooltip tooltip-bottom" data-tip="Theme">
       <label class="btn btn-ghost text-xl swap swap-rotate">
         <input
