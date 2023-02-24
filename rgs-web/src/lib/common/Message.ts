@@ -66,4 +66,5 @@ export interface ServerToClientEvents {
 export interface ClientToServerEvents {
   chat: (data: ChatMessage) => void;
   login: (uuid: string, secret: string) => void;
+  ping: (cb: (n: number) => void) => void;
 }

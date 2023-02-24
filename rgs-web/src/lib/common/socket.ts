@@ -4,14 +4,14 @@ import io from "socket.io-client";
 import type { Socket } from "socket.io";
 import type { Unsubscriber } from "svelte/store";
 import type { ReservedOrUserEventNames, ReservedOrUserListener } from "socket.io/dist/typed-events";
-import type { ServerToClientEvents } from "./Message";
+import type { ClientToServerEvents, ServerToClientEvents } from "./Message";
 import type { SocketReservedEventsMap } from "socket.io/dist/socket";
 
 /**
  * The client's socket connection to the server. Value is null on the server.
  * Prefer using onSocket() instead of socket.on() directly.
  */
-export let socket: Socket | null = null;
+export let socket: Socket<ServerToClientEvents, ClientToServerEvents> | null = null;
 
 export let uuid = "";
 export let secret = "";

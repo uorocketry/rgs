@@ -79,6 +79,10 @@ export const setupServer = (http: HTTPServer) => {
       io.emit("chat", msg);
     });
 
+    socket.on("ping", (cb) => {
+      cb(Date.now());
+    });
+
     socket.on("login", (uuid: string, secret: string) => {
       // Check if uuid is not already in use
       if (serverData.userCreds.has(uuid)) {
