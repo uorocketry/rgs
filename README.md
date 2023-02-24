@@ -12,10 +12,22 @@ In this repository you may find the:
 
 The application can be run locally by using the following commands:
 
+### rgs-web
+
 ```bash
+cd rgs-web
 pnpm install
-pnpm dev-client
+pnpm dev
 ```
+
+### hydra_provider
+
+```bash
+cargo build
+cargo run -- -r -z 3002
+```
+
+## Troubleshooting
 
 Please refer to each of the following for more information.
 

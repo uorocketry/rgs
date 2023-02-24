@@ -1,0 +1,24 @@
+version: "3.9"
+
+services:
+  rgs-web:
+    build: ./rgs-web
+    container_name: rgs-web
+    ports:
+      - "3000:3000"
+    volumes:
+      - ./rgs-web:/app:z
+
+    networks:
+      - app_net
+  # hydra_provider:
+  #   build: ./hydra_provider
+  #   container_name: hydra_provider
+  #   ports:
+  #     - "5555:5555"
+  #   networks:
+  #     - app_net
+
+networks:
+  app_net:
+    driver: bridge

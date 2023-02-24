@@ -65,6 +65,7 @@ export function onSocket<
     Ev
   >
 >(event: Ev, callback: Cb) {
+  //@ts-ignore FIXME: why does this not work?
   socket?.on(event, callback);
 
   onDestroy(() => {

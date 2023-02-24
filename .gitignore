@@ -38,3 +38,4 @@ node_modules
 
 # Temporary files
 data
+vite.config.ts.*.mjs

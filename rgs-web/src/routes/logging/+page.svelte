@@ -1,8 +1,8 @@
 <script lang="ts">
   import { browser } from "$app/environment";
+  import type { ProxyMessage, ZMQMessage } from "$lib/common/Message";
   import { onSocket } from "$lib/common/socket";
   import { onInterval } from "$lib/common/utils";
-  import type { ZMQMessage } from "$lib/common/ZMQMessage";
   import ZMQLogCard from "$lib/components/GenericLogCard.svelte";
   import VirtualList from "$lib/components/VirtualList.svelte";
 
@@ -15,11 +15,12 @@
   let avgClientDt = 0;
   let avgKbps = 0;
   if (browser) {
-    onSocket("zmq", (log: any) => {
-      let obj: ZMQMessage = JSON.parse(log);
+    onSocket("RocketData", (obj) => {
       logs = [...logs, obj];
       recDts = [...recDts, Date.now()];
-      sizes = [...sizes, new TextEncoder().encode(log).length];
+      // Get size of object in bytes
+      let objSize = new Blob([JSON.stringify(obj)]).size;
+      sizes = [...sizes, objSize];
       // Limit to 1000 logs
       if (logs.length > 1000) {
         logs.shift();

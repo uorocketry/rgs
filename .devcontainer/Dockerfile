@@ -1,11 +1,21 @@
-FROM ubuntu:latest
+FROM rustlang/rust:nightly
 
-RUN apt update
-RUN apt install -y curl build-essential git pkg-config libudev-dev
-# Install Node
+# Install dependencies
+RUN apt-get update
+RUN apt-get install -y \
+    curl \
+    git \
+    cmake \
+    pkg-config \
+    libczmq-dev \
+    libudev-dev
+# Also install node and pnpm for the dev server
 RUN curl -sL https://deb.nodesource.com/setup_lts.x | bash
 RUN apt-get install -y nodejs
 RUN npm install -g pnpm
-# Run install rust
-RUN curl https://sh.rustup.rs -sSf | sh -s -- -y --profile minimal --default-toolchain nightly 
-RUN . "$HOME/.cargo/env"
+
+
+# Clean environment 
+RUN rm -rf ./.pnpm-store ./rgs-web/node_modules ./rgs-web/.pnpm-lock.yaml ./rgs-web/.svelte-kit
+RUN rm -rf ./hydra_provider/target ./hydra_provider/Cargo.lock
+
