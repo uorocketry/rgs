@@ -1,7 +1,14 @@
-export interface Message {
+export interface ProxyMessage {
   timestamp: number;
   sender: Sender;
   data: Data;
+}
+
+/*
+ * Upgraded version of ProxyMessage that includes the server timestamp
+ */
+export type ZMQMessage = ProxyMessage & {
+  serverTimestamp: number;
 }
 
 export enum Sender {
@@ -48,7 +55,7 @@ export interface ChatMessage {
   sender: string;
 }
 export interface ServerToClientEvents {
-  RocketData: (data: Message) => void;
+  RocketData: (data: ZMQMessage) => void;
   connect: () => void;
   disconnect: () => void;
   message: (data: any) => void;
@@ -59,4 +66,5 @@ export interface ServerToClientEvents {
 export interface ClientToServerEvents {
   chat: (data: ChatMessage) => void;
   login: (uuid: string, secret: string) => void;
+  ping: (cb: (n: number) => void) => void;
 }

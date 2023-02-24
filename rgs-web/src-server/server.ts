@@ -2,6 +2,7 @@ import zmq from "zeromq";
 import type { Server as HTTPServer } from "http";
 import fs from "fs";
 import { Server } from "socket.io";
+import type { ClientToServerEvents, ServerToClientEvents, ZMQMessage } from "$lib/common/Message";
 
 const randomId = () => {
   return Math.random().toString(36);
@@ -53,13 +54,14 @@ export const setupServer = (http: HTTPServer) => {
     fs.writeFileSync("data/server.json", JSON.stringify({}));
   }
 
-  const PORT = 3002;
-  const zmqSock = zmq.socket("sub");
-  zmqSock.subscribe("");
-  zmqSock.connect("tcp://localhost:" + PORT);
-  console.log("ZMQ connecting to port:", PORT);
+  // expect zmq sub socket to run on port 3002
+  const zmqSock = new zmq.Subscriber;
+  console.log("Connecting to ZMQ socket");
+  zmqSock.connect("tcp://localhost:3002");
+  console.log("Connected to ZMQ socket");
+  zmqSock.subscribe();
 
-  const io = new Server(http);
+  const io = new Server<ClientToServerEvents, ServerToClientEvents>(http);
   console.log("Socket.io server started");
   io.on("connection", (socket) => {
     socket.on("disconnect", () => {
@@ -75,6 +77,10 @@ export const setupServer = (http: HTTPServer) => {
       msg.sender = serverData.loggedUsers.get(socket.id)?.id || "Unknown";
       serverData.chat.push(msg);
       io.emit("chat", msg);
+    });
+
+    socket.on("ping", (cb) => {
+      cb(Date.now());
     });
 
     socket.on("login", (uuid: string, secret: string) => {
@@ -105,11 +111,17 @@ export const setupServer = (http: HTTPServer) => {
     });
   });
 
-  zmqSock.on("message", (msg: any) => {
-    const obj = JSON.parse(msg.toString());
-    const keys = Object.keys(obj);
-    for (let key of keys) {
-      io.emit(key, obj[key]);
+  const onMessage = async () => {
+    for await (const [msg] of zmqSock) {
+      const obj = JSON.parse(msg.toString()) as ZMQMessage;
+      const timeStamp = new Date().getTime();
+      obj.serverTimestamp = timeStamp;
+      const keys = Object.keys(obj);
+      for (let key of keys) {
+        io.emit("RocketData", obj);
+      }
     }
-  });
+  }
+
+  onMessage();
 };

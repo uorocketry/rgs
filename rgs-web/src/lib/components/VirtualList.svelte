@@ -3,8 +3,6 @@
 
   // props
   export let items: any;
-  export let height = "100%";
-  export let itemHeight: undefined | number = undefined;
 
   // read-only, but visible to consumers via bind:start
   export let start = 0;
@@ -28,13 +26,9 @@
   });
 
   // whenever `items` changes, invalidate the current heightmap
-  $: if (mounted) refresh(items, viewport_height, itemHeight);
+  $: if (mounted) refresh(items, viewport_height);
 
-  async function refresh(
-    items: string | any[],
-    viewport_height: number,
-    itemHeight: number | undefined
-  ) {
+  async function refresh(items: string | any[], viewport_height: number) {
     const { scrollTop } = viewport;
 
     await tick(); // wait until the DOM is up to date
@@ -51,8 +45,8 @@
         row = rows[i - start];
       }
 
-      const row_height = (height_map[i] = itemHeight || row.offsetHeight);
-      content_height += row_height;
+      height_map[i] = row.offsetHeight;
+      content_height += height_map[i];
       i += 1;
     }
 
@@ -71,7 +65,7 @@
     const old_start = start;
 
     for (let v = 0; v < rows.length; v += 1) {
-      height_map[start + v] = itemHeight || rows[v].offsetHeight;
+      height_map[start + v] = rows[v].offsetHeight;
     }
 
     let i = 0;
@@ -115,17 +109,13 @@
       for (let i = start; i < old_start; i += 1) {
         if (rows[i - start]) {
           expected_height += height_map[i];
-          actual_height += itemHeight || rows[i - start].offsetHeight;
+          actual_height += rows[i - start].offsetHeight;
         }
       }
 
       const d = actual_height - expected_height;
       viewport.scrollTo(0, scrollTop + d);
     }
-
-    // TODO if we overestimated the space these
-    // rows would occupy we may need to add some
-    // more. maybe we can just call handle_scroll again?
   }
 
   // trigger initial refresh
@@ -139,7 +129,7 @@
   bind:this="{viewport}"
   bind:offsetHeight="{viewport_height}"
   on:scroll="{handle_scroll}"
-  style="height: {height};"
+  class="h-full"
 >
   <svelte-virtual-list-contents
     bind:this="{contents}"

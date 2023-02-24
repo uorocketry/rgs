@@ -10,6 +10,7 @@ lerna-debug.log*
 
 # Dependency directories
 node_modules/
+.pnpm-store
 
 # TypeScript cache
 *.tsbuildinfo
@@ -37,3 +38,4 @@ node_modules
 
 # Temporary files
 data
+vite.config.ts.*.mjs
