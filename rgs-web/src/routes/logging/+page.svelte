@@ -49,7 +49,7 @@
     Transfer Rate @ ~{avgKbps.toFixed(4)} KBps
   </p>
 
-  <VirtualList items="{logs}" let:item bind:start="{start}" bind:end="{end}">
+  <VirtualList items="{logs.reverse()}" let:item bind:start="{start}" bind:end="{end}">
     <div class="my-2">
       <ZMQLogCard msg="{item}" />
     </div>
