@@ -1,57 +1,107 @@
 <script lang="ts">
   import { browser } from "$app/environment";
-  import { onSocket } from "$lib/common/socket";
+  import type { ZMQMessage } from "$lib/common/Message";
+  import { onSocket, socket } from "$lib/common/socket";
   import { onInterval } from "$lib/common/utils";
-  import type { ZMQMessage } from "$lib/common/ZMQMessage";
-  import ZMQLogCard from "$lib/components/GenericLogCard.svelte";
+  import GenericLogCard from "$lib/components/GenericLogCard.svelte";
   import VirtualList from "$lib/components/VirtualList.svelte";
 
+  let reverseLogs: boolean = false;
   let logs: ZMQMessage[] = [];
-  let recDts: number[] = [];
   let sizes: number[] = [];
   let start: number;
   let end: number;
 
-  let avgClientDt = 0;
+  let clientToServerPing: number = 0;
+  let serverToClientPing: number = 0;
+  $: ping = clientToServerPing + serverToClientPing;
+
+  const MAX_ROWS = 1000;
+  const AVG_DT_WINDOW = 1000;
+  const RUNNING_SLOW_THRESHOLD = 1000;
+
   let avgKbps = 0;
   if (browser) {
-    onSocket("zmq", (log: any) => {
-      let obj: ZMQMessage = JSON.parse(log);
+    onSocket("RocketData", (obj) => {
       logs = [...logs, obj];
-      recDts = [...recDts, Date.now()];
-      sizes = [...sizes, new TextEncoder().encode(log).length];
+      // Get size of object in bytes
+      let objSize = new Blob([JSON.stringify(obj)]).size;
+      sizes = [...sizes, objSize];
       // Limit to 1000 logs
-      if (logs.length > 1000) {
+      if (logs.length > MAX_ROWS) {
         logs.shift();
-        recDts.shift();
       }
     });
 
     // Every second
     onInterval(() => {
       let totalBytesTransferred = sizes.reduce((a, b) => a + b, 0);
-      avgKbps = totalBytesTransferred / 1000;
-      avgClientDt =
-        recDts.reduce((a, b, i) => a + b - logs[i].timestamp, 0) / logs.length;
+      avgKbps = totalBytesTransferred / AVG_DT_WINDOW;
       sizes = [];
-    }, 1000);
+
+      // Have another cancellable timeout if ping doesn't come back
+      const pingGuard = setTimeout(() => {
+        console.warn("Ping timeout");
+        clientToServerPing = 99999999;
+        serverToClientPing = 0;
+      }, AVG_DT_WINDOW);
+
+      let startMs = Date.now();
+      socket?.emit("ping", (serverRcvT: number) => {
+        clientToServerPing = serverRcvT - startMs;
+        serverToClientPing = Date.now() - serverRcvT;
+        clearTimeout(pingGuard);
+      });
+    }, AVG_DT_WINDOW);
   }
 </script>
 
 <div class="p-2 h-full flex flex-col">
-  <p>Showing {start}-{end} of {logs.length} rows</p>
-  <p>
-    Average Message DT @
-    <!-- // recDts[i] - msg.timestamp -->
-    ~{avgClientDt.toFixed(2)} ms
-  </p>
-  <p>
-    Transfer Rate @ ~{avgKbps.toFixed(4)} KBps
-  </p>
+  <div class="flex gap-4 pb-2">
+    <div class="card bg-base-200 text-base-content p-4">
+      <p>Showing {start}-{end} of {logs.length} rows</p>
+      <p>
+        Ping:
+        <span class="{ping > RUNNING_SLOW_THRESHOLD ? 'text-error' : ''}">
+          ~{ping} ms
+        </span>
+      </p>
+      <p>
+        Rx: ~{avgKbps.toFixed(4)} KBps
+      </p>
+    </div>
+    <div
+      class="flex flex-1 place-items-start card bg-base-200 text-base-content p-4"
+    >
+      <!-- Filter reverse -->
+      <div
+        class="tooltip tooltip-right"
+        data-tip="{!reverseLogs
+          ? 'Showing oldest first'
+          : 'Showing newest first'}"
+      >
+        <label class="btn btn-square swap">
+          <!-- this hidden checkbox controls the state -->
+          <input type="checkbox" bind:checked="{reverseLogs}" />
 
-  <VirtualList items="{logs.reverse()}" let:item bind:start="{start}" bind:end="{end}">
+          <!-- volume on icon -->
+          <i class="swap-on fill-current fa-solid fa-arrow-down-a-z"></i>
+          <!-- volume off icon -->
+          <!-- <i class="swap-off fill-current fa-duotone fa-sort-up"></i> -->
+          <i class="swap-off fa-solid fa-arrow-up-z-a"></i>
+        </label>
+      </div>
+    </div>
+  </div>
+
+  <VirtualList
+    items="{reverseLogs ? logs.slice().reverse() : logs}"
+    let:item
+    bind:start="{start}"
+    bind:end="{end}"
+  >
     <div class="my-2">
-      <ZMQLogCard msg="{item}" />
+      <GenericLogCard msg="{item}" />
     </div>
   </VirtualList>
 </div>

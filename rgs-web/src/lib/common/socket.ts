@@ -3,12 +3,15 @@ import { onDestroy } from "svelte";
 import io from "socket.io-client";
 import type { Socket } from "socket.io";
 import type { Unsubscriber } from "svelte/store";
+import type { ReservedOrUserEventNames, ReservedOrUserListener } from "socket.io/dist/typed-events";
+import type { ClientToServerEvents, ServerToClientEvents } from "./Message";
+import type { SocketReservedEventsMap } from "socket.io/dist/socket";
 
 /**
  * The client's socket connection to the server. Value is null on the server.
  * Prefer using onSocket() instead of socket.on() directly.
  */
-export let socket: Socket | null = null;
+export let socket: Socket<ServerToClientEvents, ClientToServerEvents> | null = null;
 
 export let uuid = "";
 export let secret = "";
@@ -43,6 +46,8 @@ const initSocket = () => {
   socket.emit("login", uuid, secret);
 };
 
+// TODO: improve typings
+
 /**
  * Subscribes to a socket event and unsubscribes when the component is destroyed.
  * Prefer using this over socket.on() directly.
@@ -60,6 +65,7 @@ export function onSocket<
     Ev
   >
 >(event: Ev, callback: Cb) {
+  //@ts-ignore FIXME: why does this not work?
   socket?.on(event, callback);
 
   onDestroy(() => {

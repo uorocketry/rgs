@@ -1,20 +1,47 @@
 <script lang="ts">
-  import type { ZMQMessage } from "$lib/common/ZMQMessage";
-    import { json } from "@sveltejs/kit";
-    import { each } from "svelte/internal";
+  import type { ZMQMessage } from "$lib/common/Message";
 
   export let msg: ZMQMessage;
   let t = Date.now();
+
+  function formatData(data: any) {
+    // let canBeNumber = parseFloat(data);
+
+    if (1) {
+      // If not integer, return as float with fixed 8 decimal places
+      if (data % 1 !== 0) {
+        let dataString = data.toString();
+        let decimalIndex = dataString.indexOf(".");
+        let decimalPlaces = dataString.length - decimalIndex - 1;
+        return `${data.toFixed(8)}`;
+      }
+    }
+    return data;
+  }
+
+  let timeDtFormat = new Intl.RelativeTimeFormat("en", {
+    numeric: "auto",
+    style: "long",
+  });
+
+  let timeFormat = new Intl.DateTimeFormat("en", {
+    hour: "numeric",
+    minute: "numeric",
+    second: "numeric",
+  });
 </script>
 
-<div class="card w=full gap-8 bg-base-100 shadow-xl">
-  <div class="card-body">
-    <h2 class="card-title">
+<div class="card card-compact bg-base-200 shadow-xl">
+  <div class="card-body gap-0 !p-2">
+    <div class="card-title">
       {msg.sender}
-    </h2>
-    <p>Server DT @ {msg.serverDelta}</p>
-    <p>Client DT @ {t - msg.timestamp}</p>
-    <table class="table w-full">
+      <div class="flex-1 text-end">
+        <p class="text-sm">
+          {timeFormat.format(msg.timestamp)}
+        </p>
+      </div>
+    </div>
+    <table class="table table-compact">
       <thead>
         <tr>
           <th>Property</th>
@@ -28,24 +55,24 @@
               {#if componentData}
                 <tr>
                   <td>{componentId}</td>
-                  <td>
+                  <td class="p-0 m-0">
                     <table>
                       {#each Object.entries(componentData) as [sensorName, sensorData]}
                         <tr>
                           {#if sensorData}
                             <td>{sensorName}</td>
-                            <td>
+                            <td class="p-0 m-0">
                               <table>
                                 {#each Object.entries(sensorData) as [dataKey, dataValue]}
                                   <tr>
                                     <td>{dataKey}</td>
                                     {#if dataValue}
-                                      <td>
+                                      <td class="p-0 m-0">
                                         <table>
                                           {#each Object.entries(dataValue) as [subKey, subValue]}
                                             <tr>
                                               <td>{subKey}</td>
-                                              <td>{subValue}</td>
+                                              <td>{formatData(subValue)}</td>
                                             </tr>
                                           {/each}
                                         </table>
