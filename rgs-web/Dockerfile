@@ -6,7 +6,6 @@ RUN apt-get update
 RUN apt-get install -y \
     curl \
     git \
-    # Install dev dependencies
     build-essential \
     pkg-config \
     libudev-dev
