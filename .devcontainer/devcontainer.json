@@ -2,9 +2,6 @@
     "name": "uORocketry",
     "build": {
         "dockerfile": "Dockerfile",
-        "args": {
-            // Use env-file on environments/
-        },
         "context": "../"
     },
     "features": {

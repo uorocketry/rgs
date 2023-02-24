@@ -27,6 +27,8 @@ cargo build
 cargo run -- -r -z 3002
 ```
 
+As of now the hydra provider port is [hardcored in rgs-web]([https://](https://github.com/uorocketry/rgs/blob/a4d3ed4c31c5a392d4cf58b708f6f9fba854fed7/rgs-web/src-server/server.ts#L60))
+
 ## Troubleshooting
 
 Please refer to each of the following for more information.

@@ -2,7 +2,7 @@ import zmq from "zeromq";
 import type { Server as HTTPServer } from "http";
 import fs from "fs";
 import { Server } from "socket.io";
-import type { ClientToServerEvents, ProxyMessage, ServerToClientEvents, ZMQMessage } from "$lib/common/Message";
+import type { ClientToServerEvents, ServerToClientEvents, ZMQMessage } from "$lib/common/Message";
 
 const randomId = () => {
   return Math.random().toString(36);
