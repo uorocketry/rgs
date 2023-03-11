@@ -7,6 +7,9 @@
   import { Quaternion } from "three";
   import NavBall from "$lib/components/NavBall.svelte";
   import "golden-layout/dist/css/themes/goldenlayout-dark-theme.css";
+  import { rotation } from "$lib/stores";
+  import { get } from "svelte/store";
+  import type { LayoutConfig } from "golden-layout";
 
   const components = {
     Hello,
@@ -14,15 +17,8 @@
     NavBall,
   } as const;
 
-  let rotation: THREE.Quaternion = new Quaternion();
-  setInterval(() => {
-    rotation.setFromEuler(
-      new Euler(Math.random() * 7, Math.random() * 7, Math.random() * 7)
-    );
-  }, 1000);
-
   // LayoutConfig where componentType is keyof components
-  type LayoutConfig = {
+  type LayoutCfg = LayoutConfig & {
     root: {
       type: "row" | "column";
       content: Array<{
@@ -33,15 +29,24 @@
     };
   };
 
-  const layout: LayoutConfig = {
+  const layout: LayoutCfg = {
     root: {
       type: "row",
       content: [
         {
           type: "component",
+          title: "NavBall 1",
           componentType: "NavBall",
           componentState: {
-            targetRotation: rotation,
+            targetRotation: get(rotation),
+          },
+        },
+        {
+          type: "component",
+          title: "NavBall 2",
+          componentType: "NavBall",
+          componentState: {
+            targetRotation: get(rotation),
           },
         },
         {
