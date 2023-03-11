@@ -1,5 +1,6 @@
 <script lang="ts" type="module">
   import { browser } from "$app/environment";
+  import { onInterval } from "$lib/common/utils";
   import { onDestroy, onMount } from "svelte";
   import * as THREE from "three";
 
@@ -21,6 +22,14 @@
 
   let orthographicCamera = new THREE.OrthographicCamera();
   orthographicCamera.position.z = 2;
+
+  let clientWidth: number;
+  let clientHeight: number;
+  $: if (renderer) {
+    // Keep aspect ratio (1/1) with black bars
+    let size = Math.min(clientWidth, clientHeight);
+    renderer.setSize(size, size);
+  }
 
   onMount(() => {
     scene = new THREE.Scene();
@@ -79,4 +88,9 @@
   }
 </script>
 
-<div class="w-full h-full" bind:this="{container}"></div>
+<div
+  class="w-full h-full grid place-items-center"
+  bind:this="{container}"
+  bind:clientHeight="{clientHeight}"
+  bind:clientWidth="{clientWidth}"
+></div>

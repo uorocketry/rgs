@@ -6,8 +6,9 @@ const config = (mode: string) => {
   process.env = { ...process.env, ...loadEnv(mode, "../", "") };
   return defineConfig({
     server: {
-      port: parseInt(process.env["PORT"] ?? '') || 3000,
+      port: parseInt(process.env["PORT"] ?? "") || 3000,
     },
+
     plugins: [sveltekit(), viteMiddlewareServer],
   });
 };

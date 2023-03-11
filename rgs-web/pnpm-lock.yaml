@@ -14,12 +14,14 @@ specifiers:
   billboard.js: ^3.7.4
   chart.js: ^4.2.1
   daisyui: ^2.51.0
+  golden-layout: ^2.6.0
   leaflet: ^1.9.3
   postcss: ^8.4.21
   socket.io: ^4.6.1
   socket.io-client: ^4.6.1
   svelte: ^3.55.1
   svelte-check: ^3.0.3
+  svelte-golden-layout: ^0.1.1
   svelte-preprocess: ^5.0.1
   tailwindcss: ^3.2.7
   three: ^0.149.0
@@ -27,6 +29,9 @@ specifiers:
   typescript: ^4.9.5
   vite: ^4.1.4
   zeromq: ^6.0.0-beta.16
+
+dependencies:
+  svelte-golden-layout: 0.1.1_golden-layout@2.6.0
 
 devDependencies:
   '@fortawesome/fontawesome-free': 6.3.0
@@ -42,6 +47,7 @@ devDependencies:
   billboard.js: 3.7.4
   chart.js: 4.2.1
   daisyui: 2.51.0_gbtt6ss3tbiz4yjtvdr6fbrj44
+  golden-layout: 2.6.0
   leaflet: 1.9.3
   postcss: 8.4.21
   socket.io: 4.6.1
@@ -1182,6 +1188,9 @@ packages:
     resolution: {integrity: sha512-uHJgbwAMwNFf5mLst7IWLNg14x1CkeqglJb/K3doi4dw6q2IvAAmM/Y81kevy83wP+Sst+nutFTYOGg3d1lsxg==}
     dev: true
 
+  /golden-layout/2.6.0:
+    resolution: {integrity: sha512-sIVQCiRWOymHbVD1Aw/T9/ijbPYAVGBlgGYd1N9MRKfcyBNSpjr87Vg9nSHm+RCT8ELrvK8IJYJV0QRJuVUkCQ==}
+
   /graceful-fs/4.2.10:
     resolution: {integrity: sha512-9ByhssR2fPVsNZj478qUUbKfmL0+t5BDVyjShtyZZLiK7ZDAArFFfopyOTj0M05wE2tJPisA4iTnnXl2YoPvOA==}
     dev: true
@@ -1806,6 +1815,14 @@ packages:
       - stylus
       - sugarss
     dev: true
+
+  /svelte-golden-layout/0.1.1_golden-layout@2.6.0:
+    resolution: {integrity: sha512-rY4GpZU+rOcBCWfT6UC0JzmC39mMsrv9Yhp7/4l3+lN/WuGPyakNxr/0EAUUwcyQvIT+3wBwwTTwZvTMy2ZsXw==}
+    peerDependencies:
+      golden-layout: ^2.3.0
+    dependencies:
+      golden-layout: 2.6.0
+    dev: false
 
   /svelte-hmr/0.15.1_svelte@3.55.1:
     resolution: {integrity: sha512-BiKB4RZ8YSwRKCNVdNxK/GfY+r4Kjgp9jCLEy0DuqAKfmQtpL38cQK3afdpjw4sqSs4PLi3jIPJIFp259NkZtA==}
