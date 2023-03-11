@@ -1,53 +1,58 @@
-<!-- Custom panels and window dragging -->
 <script lang="ts">
+  import type { LayoutConfig } from "golden-layout";
+  import "svelte-golden-layout/css/themes/goldenlayout-light-theme.css";
   import Bonjour from "$lib/components/Panels/Bonjour.svelte";
   import Hello from "$lib/components/Panels/Hello.svelte";
-  import Panel from "$lib/components/Panels/Panel.svelte";
+  import GoldenLayout from "svelte-golden-layout";
+  import { Euler } from "three";
+  import { Quaternion } from "three";
+  import NavBall from "$lib/components/NavBall.svelte";
 
-  const tabs = [["hello", Hello]];
+  const components = { Bonjour, Hello, NavBall };
+  let rotation: THREE.Quaternion = new Quaternion();
+  setInterval(() => {
+    rotation.setFromEuler(
+      new Euler(Math.random() * 7, Math.random() * 7, Math.random() * 7)
+    );
+  }, 1000);
+  //  <NavBall bind:targetRotation="{rotation}" />
+
+  const layout: LayoutConfig = {
+    root: {
+      type: "row",
+      content: [
+        {
+          type: "component",
+          componentType: "NavBall",
+          componentState: {
+            targetRotation: rotation,
+          },
+        },
+        {
+          type: "component",
+          componentType: "Hello",
+        },
+        {
+          type: "component",
+          componentType: "Bonjour",
+        },
+      ],
+    },
+  };
 </script>
 
-<div class="hsplit w-full h-full bg-gray-700">
-  <div class="vsplit">
-    <Panel tabs="{tabs}" />
-    <span>B</span>
-  </div>
-
-  <div class="hsplit">
-    <span>C</span>
-    <span>D</span>
-  </div>
+<div class="layout-container">
+  <GoldenLayout config="{layout}" let:componentType let:componentState>
+    <svelte:component this="{components[componentType]}" {...componentState} />
+  </GoldenLayout>
 </div>
 
 <style>
-  .hsplit {
-    display: flex;
-    flex-direction: row;
-    flex: 1;
-    overflow: auto;
-  }
+  .layout-container {
+    width: 800px;
+    height: 600px;
 
-  .vsplit {
-    display: flex;
-    flex-direction: column;
-    flex: 1;
-    overflow: auto;
-  }
-
-  .hsplit > * {
-    flex: 1;
+    margin: 150px auto;
     border: 1px solid black;
-    border-radius: 0.5rem;
-    padding: 0.25rem;
-    gap: 1rem;
-  }
-
-  .vsplit > * {
-    cursor: move;
-    flex: 1;
-    border: 1px solid black;
-    border-radius: 0.5rem;
-    padding: 0.25rem;
-    gap: 1rem;
   }
 </style>
