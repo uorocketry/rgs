@@ -30,7 +30,7 @@
 
     // NavBall
     var loader = new THREE.TextureLoader();
-    loader.load("textures/navball-bw.png", function (texture: THREE.Texture) {
+    loader.load("textures/navball.png", function (texture: THREE.Texture) {
       texture.anisotropy = 32;
       var geometry = new THREE.SphereGeometry(
         1,
