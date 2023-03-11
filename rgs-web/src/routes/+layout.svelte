@@ -3,8 +3,6 @@
   import "../app.css";
   import "../leaflet.css";
   import "@fortawesome/fontawesome-free/css/all.min.css";
-  import "golden-layout/dist/css/goldenlayout-base.css";
-  import "golden-layout/dist/css/themes/goldenlayout-dark-theme.css";
 
   import Header from "$lib/components/Header.svelte";
 </script>
