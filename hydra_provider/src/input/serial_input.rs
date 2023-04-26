@@ -2,11 +2,15 @@ use crate::input::HydraInput;
 use anyhow::Context;
 use anyhow::Result;
 use log::info;
+use mavlink::error::MessageReadError;
+use mavlink::uorocketry;
+use mavlink::uorocketry::MavMessage;
 use messages::Message;
-use postcard::from_bytes_cobs;
+use postcard::from_bytes;
 use serialport::available_ports;
 use std::io::{BufRead, BufReader};
 use std::time::Duration;
+use mavlink;
 
 pub struct SerialInput {
     reader: Box<dyn BufRead>,
@@ -44,11 +48,27 @@ impl SerialInput {
 
 impl HydraInput for SerialInput {
     fn read_message(&mut self) -> Result<Message> {
+ 
         let mut data = vec![];
         self.reader.read_until(0x0, &mut data)?;
 
-        let msg: Message = from_bytes_cobs(data.as_mut_slice())?;
+        let mav_msg = mavlink::uorocketry::POSTCARD_MESSAGE_DATA::deser(mavlink::MavlinkVersion::V2, &data);
+        match mav_msg {
+            Ok(msg) => {
+                info!("received: {:#?}", msg);
+                let mut data = msg.message.to_vec();
+                let msg: Message = from_bytes(data.as_mut_slice())?;
 
-        Ok(msg)
+                return Ok(msg);
+            }
+            Err(e) => {
+                info!("error: {:#?}", e);
+                return Err(anyhow::anyhow!("error: {:#?}", e));
+            }
+        }  
+
+        // let serial_input = format!("{}:{}", self.port, self.baud_rate);
+        // let mut mavcon = mavlink::connect::<mavlink::uorocketry::MavMessage>(&serial_input).unwrap();
+        // let vehicle = Arc::new(mavcon);
     }
 }
