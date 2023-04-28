@@ -2,9 +2,7 @@ use crate::input::HydraInput;
 use anyhow::Context;
 use anyhow::Result;
 use log::info;
-use mavlink::error::MessageReadError;
 use mavlink::uorocketry;
-use mavlink::uorocketry::MavMessage;
 use messages::Message;
 use postcard::from_bytes;
 use serialport::available_ports;
@@ -52,23 +50,17 @@ impl HydraInput for SerialInput {
         let mut data = vec![];
         self.reader.read_until(0x0, &mut data)?;
 
-        let mav_msg = mavlink::uorocketry::POSTCARD_MESSAGE_DATA::deser(mavlink::MavlinkVersion::V2, &data);
-        match mav_msg {
-            Ok(msg) => {
-                info!("received: {:#?}", msg);
-                let mut data = msg.message.to_vec();
-                let msg: Message = from_bytes(data.as_mut_slice())?;
+        let (_header, recv_msg): (mavlink::MavHeader, uorocketry::MavMessage) = mavlink::read_v2_msg(&mut data.as_slice()).expect("Failed to read");
 
+        match recv_msg {
+            uorocketry::MavMessage::POSTCARD_MESSAGE(data) => {
+                let msg: Message = from_bytes(data.message.as_slice())?;
+                info!("received: {:#?}", msg);
                 return Ok(msg);
             }
-            Err(e) => {
-                info!("error: {:#?}", e);
-                return Err(anyhow::anyhow!("error: {:#?}", e));
+            _ => {
+                return Err(anyhow::anyhow!("error: {:#?}", "wrong message type"));
             }
-        }  
-
-        // let serial_input = format!("{}:{}", self.port, self.baud_rate);
-        // let mut mavcon = mavlink::connect::<mavlink::uorocketry::MavMessage>(&serial_input).unwrap();
-        // let vehicle = Arc::new(mavcon);
+        }
     }
 }
