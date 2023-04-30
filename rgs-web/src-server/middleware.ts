@@ -1,4 +1,3 @@
-import { Server } from "socket.io";
 import type { PluginOption, ViteDevServer } from "vite";
 import type { Server as HTTPServer } from "http";
 import { setupServer } from "./server";
