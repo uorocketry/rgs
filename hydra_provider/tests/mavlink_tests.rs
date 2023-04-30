@@ -1,8 +1,11 @@
 mod test_mavlink {
+    use std::io::{BufReader, BufRead};
     use std::time::SystemTime;
 
+    use anyhow::Ok;
+    use log::info;
     use mavlink::{uorocketry};
-    use postcard::to_vec; 
+    use postcard::{to_vec, from_bytes}; 
     use messages::sender::Sender;
     use messages::sensor::{Sbg, Sensor};
     use messages::Message;
@@ -86,6 +89,7 @@ mod test_mavlink {
                         data.message.remove(i);
                     }
                 }
+                println!("{:?}", data.message);
                 assert_eq!(data.message, payload_clone)
             }
             _ => {
@@ -93,5 +97,30 @@ mod test_mavlink {
             }
         }
         
+    }
+
+    #[test]
+    pub fn read_radio_message() -> anyhow::Result<()>{
+        let radio_msg = std::fs::File::open("tests/radio_message.txt").expect("Failed to open file");
+        let mut v = vec![];
+        let mut reader : Box<dyn BufRead> = Box::new(BufReader::new(radio_msg));
+        reader.read_until(0x0, &mut v)?;
+        let mut v = v.as_slice();
+        
+        println!("{:?}", v);
+
+
+        let (_header, recv_msg): (mavlink::MavHeader, uorocketry::MavMessage) = mavlink::read_v2_msg(&mut v)?;
+
+            match recv_msg {
+                uorocketry::MavMessage::POSTCARD_MESSAGE(data) => {
+                    let msg: Message = from_bytes(data.message.as_slice())?;
+                    info!("received: {:#?}", msg);
+                    Ok(())
+                }
+                _ => {
+                    return Err(anyhow::anyhow!("error: {:#?}", "wrong message type"));
+                }
+            }
     }
 }
