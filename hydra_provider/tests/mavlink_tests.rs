@@ -19,10 +19,23 @@ mod test_mavlink {
         let mut rng = rand::thread_rng();
 
         let sbg = Sbg {
-            accel: rng.gen(),
-            speed: rng.gen(),
+            accel_x: rng.gen(),
+            accel_y: rng.gen(),
+            accel_z: rng.gen(),
+            velocity_n: rng.gen(),
+            velocity_e: rng.gen(),
             pressure: rng.gen(),
             height: rng.gen(),
+            roll: rng.gen(),
+            yaw: rng.gen(),
+            pitch: rng.gen(),
+            latitude: rng.gen(),
+            longitude: rng.gen(),
+            quant_w: rng.gen(),
+            quant_x: rng.gen(),
+            quant_y: rng.gen(),
+            velocity_d: rng.gen(),
+            quant_z: rng.gen(),
         };
 
         let time = fugit::Instant::<u64, 1, 1000>::from_ticks(
@@ -59,7 +72,20 @@ mod test_mavlink {
             mavlink::read_v2_msg(&mut data).expect("Failed to read");
 
         match recv_msg {
-            uorocketry::MavMessage::POSTCARD_MESSAGE(data) => {
+            uorocketry::MavMessage::POSTCARD_MESSAGE(mut data) => {
+                let mut i=0;
+                while i < data.message.len()-2 {
+                    if data.message[i]==0 && data.message[i+1]==0 && data.message[i+2]==0{
+                        data.message.remove(i);
+                    }
+                    else {
+                        i+=1;
+                    }
+                    if i==data.message.len()-2 {
+                        data.message.remove(i);
+                        data.message.remove(i);
+                    }
+                }
                 assert_eq!(data.message, payload_clone)
             }
             _ => {
