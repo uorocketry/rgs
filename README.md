@@ -12,10 +12,24 @@ In this repository you may find the:
 
 The application can be run locally by using the following commands:
 
+### rgs-web
+
 ```bash
+cd rgs-web
 pnpm install
-pnpm dev-client
+pnpm dev
 ```
+
+### hydra_provider
+
+```bash
+cargo build
+cargo run -- -r -z 3002
+```
+
+As of now the hydra provider port is [hardcored in rgs-web]([https://](https://github.com/uorocketry/rgs/blob/a4d3ed4c31c5a392d4cf58b708f6f9fba854fed7/rgs-web/src-server/server.ts#L60))
+
+## Troubleshooting
 
 Please refer to each of the following for more information.
 

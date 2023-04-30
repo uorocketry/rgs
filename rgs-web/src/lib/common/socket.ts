@@ -3,27 +3,33 @@ import { onDestroy } from "svelte";
 import io from "socket.io-client";
 import type { Socket } from "socket.io";
 import type { Unsubscriber } from "svelte/store";
-import type {
-  ClientToServerEvents,
-  Data,
-  Message,
-  ServerToClientEvents,
-} from "./Message";
-import type {
-  ReservedOrUserEventNames,
-  ReservedOrUserListener,
-} from "socket.io/dist/typed-events";
+import type { ReservedOrUserEventNames, ReservedOrUserListener } from "socket.io/dist/typed-events";
+import type { ClientToServerEvents, ServerToClientEvents } from "./Message";
 import type { SocketReservedEventsMap } from "socket.io/dist/socket";
 
 /**
  * The client's socket connection to the server. Value is null on the server.
  * Prefer using onSocket() instead of socket.on() directly.
  */
-export let socket: Socket<ServerToClientEvents, ClientToServerEvents> | null =
-  null;
+export let socket: Socket<ServerToClientEvents, ClientToServerEvents> | null = null;
+
+export let uuid = "";
+export let secret = "";
 
 const initSocket = () => {
   console.log("Initializing socket");
+
+  // Check if we have a uuid in local storage
+  uuid = localStorage.getItem("uuid") || "";
+  secret = localStorage.getItem("secret") || "";
+  if (!uuid || !secret) {
+    // If not, generate one
+    uuid = self.crypto.randomUUID();
+    secret = self.crypto.randomUUID();
+    localStorage.setItem("uuid", uuid);
+    localStorage.setItem("secret", secret);
+  }
+
   socket = io() as unknown as Socket;
   socket.on("connect", () => {
     console.log("Connected to server");
@@ -35,7 +41,12 @@ const initSocket = () => {
   socket.on("message", (data: string) => {
     console.log("Received message from server: ", data);
   });
+
+  // Emit a login message to the server with our uuid
+  socket.emit("login", uuid, secret);
 };
+
+// TODO: improve typings
 
 /**
  * Subscribes to a socket event and unsubscribes when the component is destroyed.
@@ -45,10 +56,16 @@ const initSocket = () => {
  */
 export function onSocket<
   Ev extends ReservedOrUserEventNames<
-    ClientToServerEvents,
+    SocketReservedEventsMap,
     ServerToClientEvents
+  >,
+  Cb extends ReservedOrUserListener<
+    SocketReservedEventsMap,
+    ServerToClientEvents,
+    Ev
   >
->(event: Ev, callback: ReservedOrUserListener<ServerToClientEvents, any, any>) {
+>(event: Ev, callback: Cb) {
+  //@ts-ignore FIXME: why does this not work?
   socket?.on(event, callback);
 
   onDestroy(() => {
@@ -63,6 +80,3 @@ export function onSocket<
 if (browser) {
   initSocket();
 }
-
-// StrictEventEmitter<ListenEvents extends EventsMap, EmitEvents extends EventsMap, ReservedEvents extends EventsMap = {}>
-// on<Ev extends ReservedOrUserEventNames<ReservedEvents, ListenEvents>>(ev: Ev, listener: ReservedOrUserListener<ReservedEvents, ListenEvents, Ev>): this;
