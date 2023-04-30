@@ -23,11 +23,11 @@ use log::*;
 struct Args {
     /// Serial port to read from. If not specified, the first port found will be used.
     /// Is used as default input if not other inputs are specified.
-    #[arg(short, long, env)]
+    #[arg(short, long, env, default_value = "/dev/ttyUSB0")]
     serial_port: Option<String>,
 
     /// Baud rate to use for the serial connection
-    #[arg(short, long, env, default_value = "9600")]
+    #[arg(short, long, env, default_value = "57600")]
     baud_rate: u32,
 
     /// Port of the ZeroMQ server

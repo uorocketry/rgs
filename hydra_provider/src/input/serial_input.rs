@@ -48,9 +48,8 @@ impl HydraInput for SerialInput {
     fn read_message(&mut self) -> Result<Message> {
  
         let mut data = vec![];
-        self.reader.read_until(0x0, &mut data)?;
-
-        let (_header, recv_msg): (mavlink::MavHeader, uorocketry::MavMessage) = mavlink::read_v2_msg(&mut data.as_slice()).expect("Failed to read");
+        self.reader.read_until(0xfe, &mut data)?;
+        let (_header, recv_msg): (mavlink::MavHeader, uorocketry::MavMessage) = mavlink::read_v2_msg(&mut data.as_slice())?;
 
         match recv_msg {
             uorocketry::MavMessage::POSTCARD_MESSAGE(data) => {
