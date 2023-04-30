@@ -3,15 +3,12 @@ import { defineConfig, loadEnv } from "vite";
 import { viteMiddlewareServer } from "./src-server/middleware";
 
 const config = (mode: string) => {
-  process.env = { ...process.env, ...loadEnv(mode, "../environments", "") };
+  process.env = { ...process.env, ...loadEnv(mode, "../", "") };
   return defineConfig({
     server: {
-      port: 3000,
-      hmr: {
-        port: 3001,
-        protocol: "ws",
-      },
+      port: parseInt(process.env["PORT"] ?? "") || 3000,
     },
+
     plugins: [sveltekit(), viteMiddlewareServer],
   });
 };
