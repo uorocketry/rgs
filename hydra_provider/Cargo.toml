@@ -6,10 +6,12 @@ edition = "2021"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-messages = { git = "https://github.com/uorocketry/hydra", branch = "master" }
+messages = { git = "https://github.com/uorocketry/hydra", features = ["ts"] }
 serialport = "4.2.0"
 postcard = "1.0.2"
 serde_json = "1.0.91"
+serde = "1.0.152"
+derive_more = "0.99.17"
 clap = { version = "4.0.29", features = ["derive", "env"] }
 anyhow = { version = "1.0.68", features = ["backtrace"] }
 log = "0.4.17"
@@ -17,3 +19,4 @@ env_logger = "0.10.0"
 zmq = "0.10.0"
 rand = "0.8.5"
 fugit = "0.3.6"
+ts-rs = "6.2.1"
