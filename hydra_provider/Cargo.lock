@@ -579,7 +579,7 @@ dependencies = [
 [[package]]
 name = "messages"
 version = "0.1.0"
-source = "git+https://github.com/uorocketry/hydra?branch=messages-improvements#2410011a3eb2a9563c2a36db858a7478a40e3aac"
+source = "git+https://github.com/uorocketry/hydra#54a99bef696ab765c682d10d6d6e5e992d97f319"
 dependencies = [
  "defmt",
  "derive_more",
