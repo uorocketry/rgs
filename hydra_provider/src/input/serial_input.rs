@@ -2,16 +2,15 @@ use crate::input::HydraInput;
 use anyhow::Context;
 use anyhow::Result;
 use log::info;
+use mavlink::MavConnection;
 use mavlink::uorocketry;
 use messages::Message;
 use postcard::from_bytes;
-use serialport::available_ports;
-use std::io::{BufRead, BufReader};
-use std::time::Duration;
 use mavlink;
+use serialport::available_ports;
 
 pub struct SerialInput {
-    reader: Box<dyn BufRead>,
+    reader: Box<dyn MavConnection<uorocketry::MavMessage>>,
 }
 
 impl SerialInput {
@@ -28,28 +27,18 @@ impl SerialInput {
                 .port_name
                 .clone()
         };
-
-        info!("Using serial port '{port}'");
-
-        let port = serialport::new(&port, baud_rate)
-            .timeout(Duration::new(30, 0))
-            .open()
-            .with_context(|| format!("Failed to open serial connection '{port}'"))?;
-
-        let f = BufReader::new(port);
+        let config = format!("serial:{}:{}", port, baud_rate.to_string());
+        let link = mavlink::connect::<uorocketry::MavMessage>(config.as_str())?;
 
         Ok(SerialInput {
-            reader: Box::new(f),
+            reader: link,
         })
     }
 }
 
 impl HydraInput for SerialInput {
     fn read_message(&mut self) -> Result<Message> {
- 
-        let mut data = vec![];
-        self.reader.read_until(0xfe, &mut data)?;
-        let (_header, recv_msg): (mavlink::MavHeader, uorocketry::MavMessage) = mavlink::read_v2_msg(&mut data.as_slice())?;
+        let (_header, recv_msg): (mavlink::MavHeader, uorocketry::MavMessage) = self.reader.recv()?;
 
         match recv_msg {
             uorocketry::MavMessage::POSTCARD_MESSAGE(data) => {
