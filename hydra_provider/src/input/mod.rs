@@ -5,8 +5,8 @@ pub use random_input::RandomInput;
 pub use serial_input::SerialInput;
 
 use anyhow::Result;
-use messages::Message;
+use crate::message_types::MessageTypes;
 
 pub trait HydraInput {
-    fn read_message(&mut self) -> Result<Message>;
+    fn read_message(&mut self) -> Result<MessageTypes>;
 }
