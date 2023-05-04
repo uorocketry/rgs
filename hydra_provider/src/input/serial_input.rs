@@ -1,5 +1,8 @@
 use crate::input::HydraInput;
+use crate::message_types::MessageTypes;
+use crate::message_types::RadioStatus;
 use anyhow::Context;
+use anyhow::Ok;
 use anyhow::Result;
 use log::info;
 use mavlink::MavConnection;
@@ -37,14 +40,20 @@ impl SerialInput {
 }
 
 impl HydraInput for SerialInput {
-    fn read_message(&mut self) -> Result<Message> {
+    fn read_message(&mut self) -> Result<MessageTypes, anyhow::Error> {
+        
         let (_header, recv_msg): (mavlink::MavHeader, uorocketry::MavMessage) = self.reader.recv()?;
 
         match recv_msg {
             uorocketry::MavMessage::POSTCARD_MESSAGE(data) => {
                 let msg: Message = from_bytes(data.message.as_slice())?;
                 info!("received: {:#?}", msg);
-                return Ok(msg);
+                return Ok(MessageTypes::Message(msg));
+            }
+            uorocketry::MavMessage::RADIO_STATUS(data) => {
+                let msg: RadioStatus = RadioStatus{radio: data};
+                info!("received: {:#?}", msg);
+                return Ok(MessageTypes::RadioStatus(msg));
             }
             _ => {
                 return Err(anyhow::anyhow!("error: {:#?}", "wrong message type"));

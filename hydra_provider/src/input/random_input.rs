@@ -1,4 +1,5 @@
 use crate::input::HydraInput;
+use crate::message_types::MessageTypes;
 use messages::sender::Sender;
 use messages::sensor::{Sbg, Sensor};
 use messages::Message;
@@ -19,7 +20,7 @@ impl RandomInput {
 }
 
 impl HydraInput for RandomInput {
-    fn read_message(&mut self) -> anyhow::Result<Message> {
+    fn read_message(&mut self) -> anyhow::Result<MessageTypes> {
         std::thread::sleep(Duration::from_secs(1));
 
         let sbg = Sbg {
@@ -49,6 +50,6 @@ impl HydraInput for RandomInput {
         );
         // fugit::Instant::<u64, 1, 1000>::from_ticks(self.time.elapsed().as_millis() as u64);
 
-        Ok(Message::new(&time, Sender::MainBoard, Sensor::new(0, sbg)))
+        Ok(MessageTypes::Message(Message::new(&time, Sender::MainBoard, Sensor::new(0, sbg))))
     }
 }

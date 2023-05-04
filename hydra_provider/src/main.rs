@@ -1,6 +1,7 @@
 mod input;
 mod processing;
 mod zeromq_server;
+mod message_types;
 
 use crate::input::SerialInput;
 use crate::input::{HydraInput, RandomInput};
@@ -71,16 +72,25 @@ fn run(args: &Args) -> Result<()> {
     loop {
         let result: Result<_> = (|| {
             let msg = reader.read_message().context("Failed to read message")?;
+            
+            match msg {
+                message_types::MessageTypes::Message(msg) => {
+                    debug!("Received message: {}", serde_json::to_string(&msg)?);
 
-            debug!("Received message: {}", serde_json::to_string(&msg)?);
+                    let processed = processing.process(msg);
 
-            let processed = processing.process(msg);
+                    debug!("Processed message: {}", serde_json::to_string(&processed)?);
 
-            debug!("Processed message: {}", serde_json::to_string(&processed)?);
+                    server.send(&processed).context("Failed to send message")?;
 
-            server.send(&processed).context("Failed to send message")?;
+                    Ok(())
+                },
+                message_types::MessageTypes::RadioStatus(msg) => {
+                    println!("Received message: {:?}", msg);
 
-            Ok(())
+                    Ok(())
+                }
+            }
         })();
 
         if let Err(err) = result {
