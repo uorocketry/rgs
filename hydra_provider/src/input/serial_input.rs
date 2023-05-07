@@ -5,7 +5,6 @@ use log::info;
 use mavlink::MavConnection;
 use mavlink::uorocketry;
 use messages::Message;
-use postcard::from_bytes;
 use mavlink;
 use serialport::available_ports;
 
@@ -41,8 +40,8 @@ impl HydraInput for SerialInput {
         let (_header, recv_msg): (mavlink::MavHeader, uorocketry::MavMessage) = self.reader.recv()?;
 
         match recv_msg {
-            uorocketry::MavMessage::POSTCARD_MESSAGE(data) => {
-                let msg: Message = from_bytes(data.message.as_slice())?;
+            uorocketry::MavMessage::POSTCARD_MESSAGE(mut data) => {
+                let msg: Message = postcard::from_bytes_cobs(&mut data.message[..])?;
                 info!("received: {:#?}", msg);
                 return Ok(msg);
             }
