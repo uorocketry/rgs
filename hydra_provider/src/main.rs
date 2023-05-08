@@ -11,9 +11,11 @@ use anyhow::Result;
 use clap::ArgGroup;
 use clap::Parser;
 use log::*;
+use std::sync::mpsc;
+use std::thread;
 
 /// Program to read and parse data from a HYDRA system
-#[derive(Parser, Debug)]
+#[derive(Parser, Debug, Clone)]
 #[command(author, version, about, long_about = None)]
 #[command(group(
     ArgGroup::new("input")
@@ -55,36 +57,51 @@ fn main() {
 }
 
 fn run(args: &Args) -> Result<()> {
-    let mut reader: Box<dyn HydraInput> = if !args.random_input {
-        info!("Using serial input");
-        Box::new(SerialInput::new(&args.serial_port, args.baud_rate)?)
-    } else {
-        info!("Using random input");
-        Box::new(RandomInput::new())
-    };
+    let (send, recv) = mpsc::channel();
 
-    info!("Starting ZeroMQ server on port {}", args.zeromq_port);
-    let server = ZeroMQServer::new(args.zeromq_port);
+    let args1 = args.clone();
+    let send_handle = thread::spawn(move || -> Result<()> {
+        let mut reader: Box<dyn HydraInput> = if !args1.random_input {
+            info!("Using serial input");
+            Box::new(SerialInput::new(&args1.serial_port, args1.baud_rate)?)
+        } else {
+            info!("Using random input");
+            Box::new(RandomInput::new())
+        };
 
-    let processing = Processing::new();
+        reader.read_loop(send);
+    });
 
-    loop {
-        let result: Result<_> = (|| {
-            let msg = reader.read_message().context("Failed to read message")?;
+    let args2 = args.clone();
+    let server_handle = thread::spawn(move || {
+        info!("Starting ZeroMQ server on port {}", args2.zeromq_port);
+        let server = ZeroMQServer::new(args2.zeromq_port);
 
-            debug!("Received message: {}", serde_json::to_string(&msg)?);
+        let processing = Processing::new();
 
-            let processed = processing.process(msg);
+        loop {
+            let msg = recv
+                .recv()
+                .expect("Failed to receive message. Are all senders closed?");
 
-            debug!("Processed message: {}", serde_json::to_string(&processed)?);
+            let result = (|| {
+                debug!("Received message: {}", serde_json::to_string(&msg)?);
 
-            server.send(&processed).context("Failed to send message")?;
+                let processed = processing.process(msg);
 
-            Ok(())
-        })();
+                debug!("Processed message: {}", serde_json::to_string(&processed)?);
 
-        if let Err(err) = result {
-            error!("Error reading and sending message: {:?}", err);
+                server.send(&processed).context("Failed to send message")
+            })();
+
+            if let Err(e) = result {
+                error!("Failed to send message: {:?}", e);
+            }
         }
-    }
+    });
+
+    send_handle.join().unwrap()?;
+    server_handle.join().unwrap();
+
+    Ok(())
 }
