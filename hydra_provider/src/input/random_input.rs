@@ -1,4 +1,5 @@
 use crate::input::HydraInput;
+use log::error;
 use messages::sender::Sender;
 use messages::sensor::{Sbg, Sensor};
 use messages::Message;
@@ -19,6 +20,21 @@ impl RandomInput {
 }
 
 impl HydraInput for RandomInput {
+    fn read_loop(&mut self, send: std::sync::mpsc::Sender<Message>) -> ! {
+        loop {
+            match self.read_message() {
+                Ok(msg) => {
+                    send.send(msg).expect("Failed to send message");
+                }
+                Err(e) => {
+                    error!("Error reading message: {:?}", e);
+                }
+            }
+        }
+    }
+}
+
+impl RandomInput {
     fn read_message(&mut self) -> anyhow::Result<Message> {
         std::thread::sleep(Duration::from_secs(1));
 
