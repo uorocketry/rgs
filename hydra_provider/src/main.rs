@@ -86,8 +86,13 @@ fn run(args: &Args) -> Result<()> {
                     Ok(())
                 },
                 message_types::MessageTypes::RadioStatus(msg) => {
-                    println!("Received message: {:?}", msg);
+                    debug!("Received message: {:?}", msg);
 
+                    let processed = processing.process_radio(msg);
+
+                    debug!("Processed message: {:?}", processed);
+
+                    // server.send(&processed).context("Failed to send message")?;
                     Ok(())
                 }
             }

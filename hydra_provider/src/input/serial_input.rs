@@ -50,7 +50,7 @@ impl HydraInput for SerialInput {
                 return Ok(MessageTypes::Message(msg));
             }
             uorocketry::MavMessage::RADIO_STATUS(data) => {
-                let msg: RadioStatus = RadioStatus{radio: data};
+                let msg: RadioStatus = data.into();
                 info!("received: {:#?}", msg);
                 return Ok(MessageTypes::RadioStatus(msg));
             }
