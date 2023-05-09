@@ -112,14 +112,16 @@ export const setupServer = (http: HTTPServer) => {
   });
 
   const onMessage = async () => {
+    console.log("Listening for ZMQ messages")
     for await (const [msg] of zmqSock) {
       const obj = JSON.parse(msg.toString()) as ZMQMessage;
+      console.log(obj.RocketData.data.sensor?.data.Sbg)
       const timeStamp = new Date().getTime();
       obj.serverTimestamp = timeStamp;
-      const keys = Object.keys(obj);
-      for (let key of keys) {
-        io.emit("RocketData", obj);
-      }
+      // const keys = Object.keys(obj);
+      io.emit("RocketData", obj);
+      // for (let key of keys) {
+      // }
     }
   }
 
