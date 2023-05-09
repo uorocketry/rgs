@@ -1,5 +1,7 @@
 use crate::input::HydraInput;
+use crate::processing::InputData;
 use log::error;
+use mavlink::MavHeader;
 use messages::sender::Sender;
 use messages::sensor::{Sbg, Sensor};
 use messages::Message;
@@ -20,24 +22,18 @@ impl RandomInput {
 }
 
 impl HydraInput for RandomInput {
-    fn read_loop(&mut self, send: std::sync::mpsc::Sender<Message>) -> ! {
+    fn read_loop(&mut self, send: std::sync::mpsc::Sender<InputData>) -> ! {
         loop {
-            match self.read_message() {
-                Ok(msg) => {
-                    send.send(msg).expect("Failed to send message");
-                }
-                Err(e) => {
-                    error!("Error reading message: {:?}", e);
-                }
-            }
+            std::thread::sleep(Duration::from_secs(1));
+
+            let msg = self.read_message();
+            send.send(msg).unwrap();
         }
     }
 }
 
 impl RandomInput {
-    fn read_message(&mut self) -> anyhow::Result<Message> {
-        std::thread::sleep(Duration::from_secs(1));
-
+    fn random_sbg(&mut self) -> Message {
         let sbg = Sbg {
             accel_x: self.rng.gen(),
             accel_y: self.rng.gen(),
@@ -60,11 +56,26 @@ impl RandomInput {
 
         let time = fugit::Instant::<u64, 1, 1000>::from_ticks(
             SystemTime::now()
-                .duration_since(SystemTime::UNIX_EPOCH)?
+                .duration_since(SystemTime::UNIX_EPOCH)
+                .unwrap()
                 .as_millis() as u64,
         );
-        // fugit::Instant::<u64, 1, 1000>::from_ticks(self.time.elapsed().as_millis() as u64);
 
-        Ok(Message::new(&time, Sender::MainBoard, Sensor::new(0, sbg)))
+        Message::new(&time, Sender::MainBoard, Sensor::new(0, sbg))
+    }
+
+    fn random_mavheader(&mut self) -> MavHeader {
+        MavHeader {
+            system_id: 0,
+            component_id: 0,
+            sequence: self.rng.gen(),
+        }
+    }
+
+    fn read_message(&mut self) -> InputData {
+        match self.rng.gen_range(0..=1) {
+            0 => InputData::RocketData(self.random_sbg()),
+            _ => InputData::MavlinkHeader(self.random_mavheader()),
+        }
     }
 }

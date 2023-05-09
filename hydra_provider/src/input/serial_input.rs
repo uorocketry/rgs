@@ -1,7 +1,8 @@
 use crate::input::HydraInput;
+use crate::processing::InputData;
 use anyhow::Context;
 use anyhow::Result;
-use log::{error, info};
+use log::{debug, error, info};
 use mavlink;
 use mavlink::uorocketry;
 use mavlink::MavConnection;
@@ -36,32 +37,37 @@ impl SerialInput {
 }
 
 impl HydraInput for SerialInput {
-    fn read_loop(&mut self, send: Sender<Message>) -> ! {
+    fn read_loop(&mut self, send: Sender<InputData>) -> ! {
         loop {
-            match self.read_message() {
-                Ok(msg) => {
-                    send.send(msg).expect("Failed to send message");
-                }
-                Err(e) => {
-                    error!("Error reading message: {:?}", e);
-                }
+            if let Err(e) = self.read_message(&send) {
+                error!("Error reading message: {:?}", e);
             }
         }
     }
 }
 
 impl SerialInput {
-    fn read_message(&mut self) -> Result<Message> {
-        let (_header, recv_msg): (mavlink::MavHeader, uorocketry::MavMessage) =
+    fn read_message(&mut self, send: &Sender<InputData>) -> Result<()> {
+        let (header, recv_msg): (mavlink::MavHeader, uorocketry::MavMessage) =
             self.reader.recv()?;
 
-        match recv_msg {
+        send.send(InputData::MavlinkHeader(header)).unwrap();
+
+        let msg = match recv_msg {
             uorocketry::MavMessage::POSTCARD_MESSAGE(data) => {
                 let msg: Message = from_bytes(data.message.as_slice())?;
-                info!("received: {:#?}", msg);
-                Ok(msg)
+                debug!("Received rocket message: {:#?}", msg);
+                InputData::RocketData(msg)
             }
-            _ => Err(anyhow::anyhow!("error: {:#?}", "wrong message type")),
-        }
+            uorocketry::MavMessage::RADIO_STATUS(data) => {
+                debug!("Received radio status: {:?}", data);
+                InputData::RadioStatus(data)
+            }
+            _ => Err(anyhow::anyhow!("error: {:#?}", "wrong message type"))?,
+        };
+
+        send.send(msg).unwrap();
+
+        Ok(())
     }
 }

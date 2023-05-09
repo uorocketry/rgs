@@ -7,7 +7,7 @@ edition = "2021"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-messages = { git = "https://github.com/uorocketry/hydra", branch = "messages-improvements", features = ["ts"] }
+messages = { git = "https://github.com/uorocketry/hydra", features = ["ts"] }
 mavlink = { git = "https://github.com/uorocketry/rust-mavlink", branch = "hydra_dialect", features = ["default"] }
 serialport = "4.2.0"
 postcard = "1.0.2"
