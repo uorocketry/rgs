@@ -13,7 +13,9 @@
         let dataString = data.toString();
         let decimalIndex = dataString.indexOf(".");
         let decimalPlaces = dataString.length - decimalIndex - 1;
-        return `${data.toFixed(8)}`;
+        // return `${data.toFixed(8)}`;
+        // TODO: Fix me
+        return data;
       }
     }
     return data;
