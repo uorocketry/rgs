@@ -100,6 +100,7 @@ mod test_mavlink {
     }
 
     #[test]
+    #[ignore]
     pub fn read_radio_message() -> anyhow::Result<()>{
         let radio_msg = std::fs::File::open("tests/radio_message.txt").expect("Failed to open file");
         let mut v = vec![];

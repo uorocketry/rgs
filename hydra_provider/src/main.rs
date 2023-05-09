@@ -1,4 +1,5 @@
 mod input;
+mod message_types;
 mod processing;
 mod zeromq_server;
 
