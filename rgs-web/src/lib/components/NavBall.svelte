@@ -82,6 +82,7 @@
     // Interpolate currentRotation to targetRotation
     currentRotation = currentRotation.slerp(targetRotation, 0.1);
 
+    // BOP
     group.setRotationFromQuaternion(currentRotation);
 
     renderer.render(scene, camera);
@@ -90,7 +91,7 @@
 
 <div
   class="w-full h-full grid place-items-center"
-  bind:this="{container}"
-  bind:clientHeight="{clientHeight}"
-  bind:clientWidth="{clientWidth}"
-></div>
+  bind:this={container}
+  bind:clientHeight
+  bind:clientWidth
+/>

@@ -1,3 +1,5 @@
+
+
 export interface ProxyMessage {
   timestamp: number;
   sender: Sender;
@@ -7,8 +9,9 @@ export interface ProxyMessage {
 /*
  * Upgraded version of ProxyMessage that includes the server timestamp
  */
-export type ZMQMessage = ProxyMessage & {
+export type ZMQMessage = {
   serverTimestamp: number;
+  RocketData: ProxyMessage;
 }
 
 export enum Sender {
@@ -33,11 +36,25 @@ export interface Sensor {
   data: SensorData;
 }
 
+
 export interface Sbg {
-  accel: number;
-  speed: number;
+  accel_x: number;
+  accel_y: number;
+  accel_z: number;
+  velocity_n: number;
+  velocity_e: number;
+  velocity_d: number;
   pressure: number;
   height: number;
+  roll: number;
+  yaw: number;
+  pitch: number;
+  latitude: number;
+  longitude: number;
+  quant_w: number;
+  quant_x: number;
+  quant_y: number;
+  quant_z: number;
 }
 
 export type SensorData = {
