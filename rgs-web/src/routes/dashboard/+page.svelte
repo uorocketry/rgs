@@ -27,9 +27,9 @@
     const toDeg = (rad: number) => (rad * 180) / Math.PI;
     rotation.setFromEuler(
       new Euler(
-        toDeg(packet.RocketData.data.sensor.data.Sbg?.pitch),
-        toDeg(packet.RocketData.data.sensor.data.Sbg?.roll),
-        toDeg(packet.RocketData.data.sensor.data.Sbg?.yaw)
+        packet.RocketData.data.sensor.data.Sbg?.quant_x,
+        packet.RocketData.data.sensor.data.Sbg?.quant_y,
+        packet.RocketData.data.sensor.data.Sbg?.quant_z
       )
     );
   });
