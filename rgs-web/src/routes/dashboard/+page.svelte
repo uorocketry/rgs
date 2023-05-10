@@ -7,8 +7,9 @@
   let rotation: THREE.Quaternion = new THREE.Quaternion();
 
   onSocket("RocketData", (packet) => {
-    if (packet.RocketData.data.sensor === undefined) return;
-    if (packet.RocketData.data.sensor.data.Sbg === undefined) return;
+    // smh smh smh
+    if (packet.RocketData?.data?.sensor?.data?.Sbg == null) return;
+    console.log("Updating NavBall Rotation", packet);
     rotation.setFromEuler(
       new Euler(
         packet.RocketData.data.sensor.data.Sbg?.quant_x,
