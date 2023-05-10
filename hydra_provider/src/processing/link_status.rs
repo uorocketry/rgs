@@ -92,15 +92,11 @@ impl LinkStatusProcessing {
     }
 
     fn process_header(&mut self, header: MavHeader) {
+        // Use modulo arithmetic (rem_euclid) to calculate the missed messages.
         let missed_messages = match self.last_sequence {
             None => 0,
             Some(last_sequence) => {
-                match (header.sequence as i32 - last_sequence as i32).rem_euclid(u8::MAX as i32)
-                    as u8
-                {
-                    0 => 0,
-                    r => r - 1,
-                }
+                (header.sequence as i32 - last_sequence as i32 - 1).rem_euclid(u8::MAX as i32) as u8
             }
         };
 
@@ -166,8 +162,8 @@ impl LinkStatusProcessing {
 #[cfg(test)]
 mod test {
     use crate::processing::link_status::LinkStatusProcessing;
+    use crate::processing::LinkData;
     use crate::processing::ProcessedMessage;
-    use crate::processing::{LinkData};
     use mavlink::MavHeader;
     use std::sync::mpsc;
     use std::thread;
@@ -196,10 +192,11 @@ mod test {
         data_send.send(create_mavheader(241))?;
         data_send.send(create_mavheader(250))?;
         data_send.send(create_mavheader(5))?;
+        data_send.send(create_mavheader(5))?;
 
         assert!(matches!(
             dbg!(processed_receive.recv().unwrap()),
-            ProcessedMessage::LinkStatus(x) if x.missed_messages == 17 && x.recent_error_rate == 17.0/21.0
+            ProcessedMessage::LinkStatus(x) if x.missed_messages == 271 && x.recent_error_rate == 271.0/276.0
         ));
 
         Ok(())
