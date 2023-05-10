@@ -1,5 +1,5 @@
 use crate::processing::InputData;
-use mavlink::MavHeader;
+use messages::mavlink::MavHeader;
 use messages::sender::Sender;
 use messages::sensor::{Sbg, Sensor};
 use messages::Message;

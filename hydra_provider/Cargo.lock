@@ -512,7 +512,6 @@ dependencies = [
  "fugit",
  "heapless",
  "log",
- "mavlink",
  "messages",
  "postcard",
  "rand",
@@ -702,12 +701,13 @@ dependencies = [
 [[package]]
 name = "messages"
 version = "0.1.0"
-source = "git+https://github.com/uorocketry/hydra#fc316eb35e3604757807ca9cbb52cf5b21933df6"
+source = "git+https://github.com/uorocketry/hydra#8acd5c412d5eebfefe9393d4417c0ff94285f872"
 dependencies = [
  "defmt",
  "derive_more",
  "fugit",
  "heapless",
+ "mavlink",
  "serde",
  "ts-rs",
 ]

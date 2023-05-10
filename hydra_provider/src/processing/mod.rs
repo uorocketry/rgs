@@ -1,4 +1,5 @@
 use derive_more::From;
+use messages::mavlink;
 use serde::{Deserialize, Serialize};
 use ts_rs::TS;
 
