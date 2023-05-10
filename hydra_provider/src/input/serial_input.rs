@@ -4,8 +4,9 @@ use anyhow::Ok;
 use anyhow::Result;
 use log::{error, trace};
 
-use mavlink::uorocketry;
-use mavlink::MavConnection;
+use messages::mavlink;
+use messages::mavlink::uorocketry;
+use messages::mavlink::MavConnection;
 use messages::Message;
 use postcard::from_bytes;
 use serialport::available_ports;

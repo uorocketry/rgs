@@ -1,7 +1,7 @@
 use crate::processing::ProcessedMessage;
 use log::{debug, info};
-use mavlink::uorocketry::RADIO_STATUS_DATA;
-use mavlink::MavHeader;
+use messages::mavlink::uorocketry::RADIO_STATUS_DATA;
+use messages::mavlink::MavHeader;
 use serde::{Deserialize, Serialize};
 use std::sync::mpsc::{Receiver, Sender};
 use std::time::{Duration, Instant};
@@ -164,7 +164,7 @@ mod test {
     use crate::processing::link_status::LinkStatusProcessing;
     use crate::processing::LinkData;
     use crate::processing::ProcessedMessage;
-    use mavlink::MavHeader;
+    use messages::mavlink::MavHeader;
     use std::sync::mpsc;
     use std::thread;
     use std::time::Duration;

@@ -4,7 +4,7 @@ mod test_mavlink {
 
     use anyhow::Ok;
     use log::info;
-    use mavlink::uorocketry;
+    use messages::mavlink::uorocketry;
     use messages::sender::Sender;
     use messages::sensor::{Sbg, Sensor};
     use messages::Message;
