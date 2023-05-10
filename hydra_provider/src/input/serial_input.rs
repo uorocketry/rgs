@@ -1,10 +1,9 @@
-use crate::input::HydraInput;
 use crate::processing::InputData;
 use anyhow::Context;
 use anyhow::Ok;
 use anyhow::Result;
-use log::{debug, error, info};
-use mavlink;
+use log::{error, trace};
+
 use mavlink::uorocketry;
 use mavlink::MavConnection;
 use messages::Message;
@@ -12,8 +11,11 @@ use postcard::from_bytes;
 use serialport::available_ports;
 use std::sync::mpsc::Sender;
 
+use std::thread;
+
+
 pub struct SerialInput {
-    reader: Box<dyn MavConnection<uorocketry::MavMessage>>,
+    link: Box<dyn MavConnection<uorocketry::MavMessage> + Send + Sync>,
 }
 
 impl SerialInput {
@@ -30,39 +32,77 @@ impl SerialInput {
                 .port_name
                 .clone()
         };
-        let config = format!("serial:{}:{}", port, baud_rate.to_string());
+        let config = format!("serial:{}:{}", port, baud_rate);
         let link = mavlink::connect::<uorocketry::MavMessage>(config.as_str())?;
 
-        Ok(SerialInput { reader: link })
-    }
-}
-
-impl HydraInput for SerialInput {
-    fn read_loop(&mut self, send: Sender<InputData>) -> ! {
-        loop {
-            if let Err(e) = self.read_message(&send) {
-                error!("Error reading message: {:?}", e);
-            }
-        }
+        Ok(SerialInput { link })
     }
 }
 
 impl SerialInput {
-    fn read_message(&mut self, send: &Sender<InputData>) -> Result<()> {
-        let (header, recv_msg): (mavlink::MavHeader, uorocketry::MavMessage) =
-            self.reader.recv()?;
+    pub fn read_write_loop(&self, send: Sender<InputData>) -> ! {
+        thread::scope(|s| {
+            // Reading thread
+            s.spawn(move || loop {
+                if let Err(e) = self.read_message(&send) {
+                    error!("Error reading message: {:?}", e);
+                }
+            });
 
-        send.send(InputData::MavlinkHeader(header)).unwrap();
+            // Writing (heartbeat) thread
+            s.spawn(|| loop {
+                if let Err(e) = self.send_heartbeat() {
+                    error!("Error sending heartbeat: {:?}", e);
+                }
+            });
+        });
+
+        // To satisfy that we never return.
+        panic!("Serial threads ended!");
+    }
+
+    fn send_heartbeat(&self) -> Result<()> {
+        let msg = uorocketry::HEARTBEAT_DATA {
+            custom_mode: 0,
+            mavtype: 0,
+            autopilot: 0,
+            base_mode: 0,
+            system_status: 0,
+            mavlink_version: 2,
+        };
+
+        let header = mavlink::MavHeader {
+            system_id: 0,
+            component_id: 0,
+            sequence: 0,
+        };
+
+        self.link
+            .send(&header, &uorocketry::MavMessage::HEARTBEAT(msg))?;
+
+        trace!("Sent heartbeat");
+        Ok(())
+    }
+
+    fn read_message(&self, send: &Sender<InputData>) -> Result<()> {
+        let (header, recv_msg): (mavlink::MavHeader, uorocketry::MavMessage) = self.link.recv()?;
 
         let msg = match recv_msg {
             uorocketry::MavMessage::POSTCARD_MESSAGE(data) => {
+                // Only send header if this is data from the rocket
+                send.send(InputData::MavlinkHeader(header)).unwrap();
+
                 let msg: Message = from_bytes(data.message.as_slice())?;
-                debug!("Received rocket message: {:#?}", msg);
+                trace!("Received rocket message: {:#?}", msg);
                 InputData::RocketData(msg)
             }
             uorocketry::MavMessage::RADIO_STATUS(data) => {
-                debug!("Received radio status: {:?}", data);
-                InputData::RadioStatus(data)
+                trace!("Received radio status: {:?}", data);
+                InputData::MavlinkRadioStatus(data)
+            }
+            uorocketry::MavMessage::HEARTBEAT(_) => {
+                trace!("Received heartbeat");
+                InputData::MavlinkHeartbeat()
             }
             _ => Err(anyhow::anyhow!("error: {:#?}", "wrong message type"))?,
         };

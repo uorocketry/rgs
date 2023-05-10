@@ -1,13 +1,14 @@
 mod input;
-mod message_types;
 mod processing;
 mod zeromq_server;
 
+use crate::input::RandomInput;
 use crate::input::SerialInput;
-use crate::input::{HydraInput, RandomInput};
-use crate::processing::{InputData, ProcessedMessage, RadioData, RadioStatus, RocketProcessing};
+use crate::processing::{
+    InputData, LinkData, LinkStatusProcessing, ProcessedMessage, RocketProcessing,
+};
 use crate::zeromq_server::ZeroMQServer;
-use anyhow::Context;
+
 use anyhow::Result;
 use clap::ArgGroup;
 use clap::Parser;
@@ -78,30 +79,31 @@ fn start_input(args: Args, send: Sender<InputData>) -> JoinHandle<()> {
     thread::Builder::new()
         .name("Input".to_string())
         .spawn(move || {
-            let mut reader: Box<dyn HydraInput> = if !args.random_input {
+            if !args.random_input {
                 info!("Using serial input");
-                Box::new(
-                    SerialInput::new(&args.serial_port, args.baud_rate)
-                        .expect("Could not start serial input"),
-                )
+                SerialInput::new(&args.serial_port, args.baud_rate)
+                    .expect("Could not start serial input")
+                    .read_write_loop(send);
             } else {
                 info!("Using random input");
-                Box::new(RandomInput::new())
-            };
-
-            reader.read_loop(send);
+                RandomInput::new().read_loop(send);
+            }
         })
         .unwrap()
 }
 
-fn start_processing(recv: Receiver<InputData>, send: Sender<ProcessedMessage>) -> JoinHandle<()> {
-    let (radio_send, radio_recv) = mpsc::channel();
-    let send2 = send.clone();
+fn start_processing(
+    recv: Receiver<InputData>,
+    server_send: Sender<ProcessedMessage>,
+) -> JoinHandle<()> {
+    let (link_send, link_recv) = mpsc::channel();
+    let send2 = server_send.clone();
     thread::Builder::new()
         .name("Radio Status Processing".to_string())
         .spawn(move || {
-            let mut radio_status = RadioStatus::new();
-            radio_status.process_loop(radio_recv, send2);
+            let mut link_status = LinkStatusProcessing::new();
+
+            link_status.process_loop(link_recv, send2);
         })
         .unwrap();
 
@@ -115,13 +117,16 @@ fn start_processing(recv: Receiver<InputData>, send: Sender<ProcessedMessage>) -
                 trace!("Received data: {:?}", msg);
                 match msg {
                     InputData::RocketData(data) => {
-                        send.send(rocket_processing.process(data)).unwrap();
+                        server_send.send(rocket_processing.process(data)).unwrap();
                     }
-                    InputData::RadioStatus(status) => {
-                        radio_send.send(RadioData::RadioStatus(status)).unwrap()
+                    InputData::MavlinkRadioStatus(status) => {
+                        link_send.send(LinkData::RadioStatus(status)).unwrap()
                     }
                     InputData::MavlinkHeader(header) => {
-                        radio_send.send(RadioData::MavlinkHeader(header)).unwrap()
+                        link_send.send(LinkData::MavlinkHeader(header)).unwrap()
+                    }
+                    InputData::MavlinkHeartbeat() => {
+                        link_send.send(LinkData::MavlinkHeartbeat()).unwrap()
                     }
                 }
             }
