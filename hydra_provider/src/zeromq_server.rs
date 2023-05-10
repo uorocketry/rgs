@@ -1,5 +1,6 @@
 use crate::processing::ProcessedMessage;
 use anyhow::Result;
+
 use zmq::Socket;
 
 pub struct ZeroMQServer {
@@ -18,7 +19,7 @@ impl ZeroMQServer {
     }
 
     pub fn send(&self, msg: &ProcessedMessage) -> Result<()> {
-        // self.socket.send(&serde_json::to_string(msg)?, 0)?;
+        self.socket.send(&serde_json::to_string(msg)?, 0)?;
 
         Ok(())
     }

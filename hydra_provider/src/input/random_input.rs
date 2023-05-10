@@ -1,6 +1,4 @@
-use crate::input::HydraInput;
 use crate::processing::InputData;
-use log::error;
 use mavlink::MavHeader;
 use messages::sender::Sender;
 use messages::sensor::{Sbg, Sensor};
@@ -21,8 +19,8 @@ impl RandomInput {
     }
 }
 
-impl HydraInput for RandomInput {
-    fn read_loop(&mut self, send: std::sync::mpsc::Sender<InputData>) -> ! {
+impl RandomInput {
+    pub fn read_loop(&mut self, send: std::sync::mpsc::Sender<InputData>) -> ! {
         loop {
             std::thread::sleep(Duration::from_secs(1));
 
@@ -30,9 +28,7 @@ impl HydraInput for RandomInput {
             send.send(msg).unwrap();
         }
     }
-}
 
-impl RandomInput {
     fn random_sbg(&mut self) -> Message {
         let sbg = Sbg {
             accel_x: self.rng.gen(),

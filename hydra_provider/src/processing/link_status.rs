@@ -10,14 +10,23 @@ use ts_rs::TS;
 #[derive(Serialize, Deserialize, Clone, Debug, TS)]
 #[ts(export)]
 pub struct LinkStatus {
-    recent_error_rate: f32,
-    missed_messages: u32,
+    pub rssi: Option<u8>,
+    pub remrssi: Option<u8>,
+    pub txbuf: Option<u8>,
+    pub noise: Option<u8>,
+    pub remnoise: Option<u8>,
+    pub rxerrors: Option<u16>,
+    pub fixed: Option<u16>,
+    pub recent_error_rate: f32,
+    pub missed_messages: u32,
+    pub connected: bool,
 }
 
 #[derive(Clone, Debug)]
-pub enum RadioData {
+pub enum LinkData {
     RadioStatus(RADIO_STATUS_DATA),
     MavlinkHeader(MavHeader),
+    MavlinkHeartbeat(),
 }
 
 #[derive(Clone, Debug)]
@@ -27,7 +36,7 @@ struct MessageStats {
 }
 
 #[derive(Clone, Debug)]
-pub struct RadioStatus {
+pub struct LinkStatusProcessing {
     stats_period: Duration,
     stats_window: Duration,
     last_messages: Vec<MessageStats>,
@@ -35,9 +44,10 @@ pub struct RadioStatus {
     last_sequence: Option<u8>,
     last_mav_status: Option<RADIO_STATUS_DATA>,
     last_mav_status_instant: Instant,
+    last_hearbeat: Instant,
 }
 
-impl RadioStatus {
+impl LinkStatusProcessing {
     pub fn new() -> Self {
         Self::new_with_duration(Duration::from_secs(5), Duration::from_secs(60))
     }
@@ -51,20 +61,22 @@ impl RadioStatus {
             stats_window,
             last_mav_status: None,
             last_mav_status_instant: Instant::now(),
+            last_hearbeat: Instant::now(),
         }
     }
 
-    pub fn process_loop(&mut self, rcv: Receiver<RadioData>, send: Sender<ProcessedMessage>) -> ! {
+    pub fn process_loop(&mut self, rcv: Receiver<LinkData>, send: Sender<ProcessedMessage>) -> ! {
         info!("Starting to process radio status");
         let mut previous_update = Instant::now();
 
         loop {
             match rcv.recv_timeout(self.stats_period) {
-                Ok(RadioData::MavlinkHeader(h)) => self.process_header(h),
-                Ok(RadioData::RadioStatus(s)) => {
+                Ok(LinkData::MavlinkHeader(h)) => self.process_header(h),
+                Ok(LinkData::RadioStatus(s)) => {
                     self.last_mav_status = Some(s);
                     self.last_mav_status_instant = Instant::now();
                 }
+                Ok(LinkData::MavlinkHeartbeat()) => self.last_hearbeat = Instant::now(),
                 _ => {}
             };
 
@@ -98,6 +110,9 @@ impl RadioStatus {
         });
         self.last_sequence = Some(header.sequence);
         self.total_missed_messages += missed_messages as u32;
+
+        // TODO: Remove this and use actual heartbeats once they are sent
+        self.last_hearbeat = Instant::now();
     }
 
     fn send_stats(&mut self, send: &Sender<ProcessedMessage>) {
@@ -111,12 +126,38 @@ impl RadioStatus {
             .sum();
         let total_msg_count = self.last_messages.len() as u32 + missed_count;
 
-        let msg = ProcessedMessage::LinkStatus(LinkStatus {
-            missed_messages: self.total_missed_messages,
-            recent_error_rate: missed_count as f32 / total_msg_count as f32,
-        });
+        let missed_messages = self.total_missed_messages;
+        let recent_error_rate = missed_count as f32 / total_msg_count as f32;
+        let connected = Instant::now() - self.last_hearbeat < Duration::from_secs(20);
 
-        debug! {"Radio Status: {:?}", msg}
+        let msg = match &self.last_mav_status {
+            None => ProcessedMessage::LinkStatus(LinkStatus {
+                rssi: None,
+                remrssi: None,
+                txbuf: None,
+                noise: None,
+                remnoise: None,
+                rxerrors: None,
+                fixed: None,
+                missed_messages,
+                recent_error_rate,
+                connected,
+            }),
+            Some(status) => ProcessedMessage::LinkStatus(LinkStatus {
+                rssi: Some(status.rssi),
+                remrssi: Some(status.remrssi),
+                txbuf: Some(status.txbuf),
+                noise: Some(status.noise),
+                remnoise: Some(status.remnoise),
+                rxerrors: Some(status.rxerrors),
+                fixed: Some(status.fixed),
+                missed_messages,
+                recent_error_rate,
+                connected,
+            }),
+        };
+
+        debug!("Link Status: {:?}", msg);
 
         send.send(msg).unwrap();
     }
@@ -124,15 +165,16 @@ impl RadioStatus {
 
 #[cfg(test)]
 mod test {
+    use crate::processing::link_status::LinkStatusProcessing;
     use crate::processing::ProcessedMessage;
-    use crate::processing::{RadioData, RadioStatus};
+    use crate::processing::{LinkData};
     use mavlink::MavHeader;
     use std::sync::mpsc;
     use std::thread;
     use std::time::Duration;
 
-    fn create_mavheader(sequence: u8) -> RadioData {
-        RadioData::MavlinkHeader(MavHeader {
+    fn create_mavheader(sequence: u8) -> LinkData {
+        LinkData::MavlinkHeader(MavHeader {
             system_id: 0,
             component_id: 0,
             sequence,
@@ -141,8 +183,10 @@ mod test {
 
     #[test]
     fn radio_status_missed_message() -> anyhow::Result<()> {
-        let mut radio_status =
-            RadioStatus::new_with_duration(Duration::from_millis(500), Duration::from_secs(5));
+        let mut radio_status = LinkStatusProcessing::new_with_duration(
+            Duration::from_millis(500),
+            Duration::from_secs(5),
+        );
         let (data_send, data_rcv) = mpsc::channel();
         let (processed_send, processed_receive) = mpsc::channel();
 
@@ -163,8 +207,10 @@ mod test {
 
     #[test]
     fn radio_status_window() -> anyhow::Result<()> {
-        let mut radio_status =
-            RadioStatus::new_with_duration(Duration::from_millis(500), Duration::from_secs(2));
+        let mut radio_status = LinkStatusProcessing::new_with_duration(
+            Duration::from_millis(500),
+            Duration::from_secs(2),
+        );
         let (data_send, data_rcv) = mpsc::channel();
         let (processed_send, processed_receive) = mpsc::channel();
 
