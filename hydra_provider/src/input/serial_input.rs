@@ -12,7 +12,7 @@ use serialport::available_ports;
 use std::sync::mpsc::Sender;
 
 use std::thread;
-
+use std::time::Duration;
 
 pub struct SerialInput {
     link: Box<dyn MavConnection<uorocketry::MavMessage> + Send + Sync>,
@@ -54,6 +54,7 @@ impl SerialInput {
                 if let Err(e) = self.send_heartbeat() {
                     error!("Error sending heartbeat: {:?}", e);
                 }
+                thread::sleep(Duration::from_secs(1));
             });
         });
 
