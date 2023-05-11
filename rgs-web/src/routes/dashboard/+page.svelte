@@ -3,20 +3,19 @@
   import NavBall from "$lib/components/NavBall.svelte";
   import * as THREE from "three";
   import { Euler } from "three";
+  import type { Message } from "../../../../hydra_provider/bindings/Message";
+  import type { Data } from "../../../../hydra_provider/bindings/Data";
+  import type { State } from "../../../../hydra_provider/bindings/State";
+  import type { Sensor } from "../../../../hydra_provider/bindings/Sensor";
 
   let rotation: THREE.Quaternion = new THREE.Quaternion();
 
-  onSocket("RocketData", (packet) => {
-    // smh smh smh
-    if (packet.RocketData?.data?.sensor?.data?.Sbg == null) return;
-    console.log("Updating NavBall Rotation", packet);
-    rotation.setFromEuler(
-      new Euler(
-        packet.RocketData.data.sensor.data.Sbg?.quant_x,
-        packet.RocketData.data.sensor.data.Sbg?.quant_y,
-        packet.RocketData.data.sensor.data.Sbg?.quant_z
-      )
-    );
+  onSocket("RocketMessage", (msg: Message) => {
+    const data: Data = msg.data as { sensor: Sensor };
+    if (data.sensor?.data?.Sbg == null) return;
+    const sbg = data.sensor.data.Sbg;
+    console.log("Updating NavBall Rotation", msg);
+    rotation.setFromEuler(new Euler(sbg.quant_x, sbg.quant_y, sbg.quant_z));
   });
 </script>
 

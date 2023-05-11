@@ -2,7 +2,12 @@ import zmq from "zeromq";
 import type { Server as HTTPServer } from "http";
 import fs from "fs";
 import { Server } from "socket.io";
-import type { ClientToServerEvents, ServerToClientEvents, ZMQMessage } from "$lib/common/Message";
+import type {
+  ChatMessage,
+  ClientToServerEvents,
+  ProcessedMessage,
+  ServerToClientEvents,
+} from "$lib/common/Bindings";
 
 const randomId = () => {
   return Math.random().toString(36);
@@ -55,7 +60,7 @@ export const setupServer = (http: HTTPServer) => {
   }
 
   // expect zmq sub socket to run on port 3002
-  const zmqSock = new zmq.Subscriber;
+  const zmqSock = new zmq.Subscriber();
   console.log("Connecting to ZMQ socket");
   zmqSock.connect("tcp://localhost:3002");
   console.log("Connected to ZMQ socket");
@@ -73,7 +78,7 @@ export const setupServer = (http: HTTPServer) => {
     });
 
     // We shouldn't trust the client to send anything correct
-    socket.on("chat", (msg: Message) => {
+    socket.on("chat", (msg: ChatMessage) => {
       msg.sender = serverData.loggedUsers.get(socket.id)?.id || "Unknown";
       serverData.chat.push(msg);
       io.emit("chat", msg);
@@ -112,18 +117,18 @@ export const setupServer = (http: HTTPServer) => {
   });
 
   const onMessage = async () => {
-    console.log("Listening for ZMQ messages")
+    console.log("Listening for ZMQ messages");
     for await (const [msg] of zmqSock) {
-      const obj = JSON.parse(msg.toString()) as ZMQMessage;
-      console.log(obj.RocketData.data.sensor?.data.Sbg)
-      const timeStamp = new Date().getTime();
-      obj.serverTimestamp = timeStamp;
-      // const keys = Object.keys(obj);
-      io.emit("RocketData", obj);
-      // for (let key of keys) {
-      // }
+      const obj = JSON.parse(msg.toString()) as ProcessedMessage;
+      if ("RocketMessage" in obj) {
+        io.emit("RocketMessage", obj.RocketMessage);
+      } else if ("LinkStatus" in obj) {
+        io.emit("LinkStatus", obj.LinkStatus);
+      } else {
+        console.error("Unknown message type", obj);
+      }
     }
-  }
+  };
 
   onMessage();
 };
