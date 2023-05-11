@@ -19,6 +19,10 @@
   const mockRocketPos: L.LatLngTuple = [48.48598684581202, -81.31160217615952];
   let mockRocketMarker: L.Marker<any>;
 
+  const MAX_ZOOM = 14;
+  const MIN_ZOOM = 5;
+  const INITIAL_ZOOM = 10;
+
   let target: L.LatLngTuple = mockRocketPos;
   if (browser) {
     mockRocketMarker = L.marker(mockRocketPos, {
@@ -28,12 +32,6 @@
         className: "bg-transparent text-3xl ",
       }),
     });
-
-    // onInterval(() => {
-    //   let randLat = blBound[0] + Math.random() * (tlBound[0] - blBound[0]);
-    //   let randLng = blBound[1] + Math.random() * (tlBound[1] - blBound[1]);
-    //   target = [randLat, randLng];
-    // }, 2000);
 
     onSocket("RocketMessage", (msg: Message) => {
       const data: Data = msg.data as { sensor: Sensor };
@@ -55,19 +53,19 @@
     }, 10);
   }
 
-  const bounds: L.LatLngBounds = new LatLngBounds(blBound, tlBound);
+  // const bounds: L.LatLngBounds = new LatLngBounds(blBound, tlBound);
 
   function createMap(container: string | HTMLElement) {
     let m = L.map(container, {
       preferCanvas: true,
       worldCopyJump: true,
-      minZoom: 10,
-      maxBounds: bounds,
-    }).setView(initialView, 10);
+      minZoom: MIN_ZOOM,
+      // maxBounds: bounds,
+    }).setView(initialView, INITIAL_ZOOM);
 
     L.tileLayer(urlTemplate, {
-      maxNativeZoom: 14,
-      minNativeZoom: 10,
+      maxNativeZoom: MAX_ZOOM,
+      minNativeZoom: MIN_ZOOM,
     }).addTo(m); // The actual satellite imagery
 
     return m;
