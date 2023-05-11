@@ -1,13 +1,13 @@
 <script lang="ts">
   import { browser } from "$app/environment";
-  import type { ZMQMessage } from "$lib/common/Message";
   import { onSocket, socket } from "$lib/common/socket";
   import { onInterval } from "$lib/common/utils";
   import GenericLogCard from "$lib/components/GenericLogCard.svelte";
   import VirtualList from "$lib/components/VirtualList.svelte";
+  import type { Message } from "../../../../hydra_provider/bindings/Message";
 
   let reverseLogs: boolean = false;
-  let logs: ZMQMessage[] = [];
+  let logs: Message[] = [];
   let sizes: number[] = [];
   let start: number;
   let end: number;
@@ -22,11 +22,11 @@
 
   let avgKbps = 0;
   if (browser) {
-    onSocket("RocketData", (obj) => {
-      console.log("Received RocketData", obj);
-      logs = [...logs, obj];
+    onSocket("RocketMessage", (msg: Message) => {
+      console.log("Received RocketMessage", msg);
+      logs = [...logs, msg];
       // Get size of object in bytes
-      let objSize = new Blob([JSON.stringify(obj)]).size;
+      let objSize = new Blob([JSON.stringify(msg)]).size;
       sizes = [...sizes, objSize];
       // Limit to 1000 logs
       if (logs.length > MAX_ROWS) {
