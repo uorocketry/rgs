@@ -3,6 +3,10 @@
   import { LatLngBounds } from "leaflet";
   import { onInterval } from "$lib/common/utils";
   import { browser } from "$app/environment";
+  import { onSocket } from "$lib/common/socket";
+  import type { Message } from "../../../../hydra_provider/bindings/Message";
+  import type { Sensor } from "../../../../hydra_provider/bindings/Sensor";
+  import type { Data } from "../../../../hydra_provider/bindings/Data";
 
   let map: L.Map | null;
 
@@ -25,12 +29,21 @@
       }),
     });
 
-    onInterval(() => {
-      let randLat = blBound[0] + Math.random() * (tlBound[0] - blBound[0]);
-      let randLng = blBound[1] + Math.random() * (tlBound[1] - blBound[1]);
-      target = [randLat, randLng];
-    }, 2000);
+    // onInterval(() => {
+    //   let randLat = blBound[0] + Math.random() * (tlBound[0] - blBound[0]);
+    //   let randLng = blBound[1] + Math.random() * (tlBound[1] - blBound[1]);
+    //   target = [randLat, randLng];
+    // }, 2000);
 
+    onSocket("RocketMessage", (msg: Message) => {
+      const data: Data = msg.data as { sensor: Sensor };
+      if (data.sensor?.data?.Sbg == null) return;
+      const sbg = data.sensor.data.Sbg;
+      target = [sbg.latitude, sbg.longitude];
+      console.log("Updating Rocket Position", target);
+    });
+
+    // Lerp the rocket marker to the target
     onInterval(() => {
       let curPos: L.LatLng = mockRocketMarker.getLatLng();
       const lerpFactor = 0.01;
@@ -90,6 +103,6 @@
 </script>
 
 <!-- See https://svelte.dev/repl/62271e8fda854e828f26d75625286bc3?version=3.50.1 -->
-<svelte:window on:resize="{resizeMap}" />
+<svelte:window on:resize={resizeMap} />
 
-<div class="map" style="height:100%;width:100%" use:mapAction></div>
+<div class="map" style="height:100%;width:100%" use:mapAction />
