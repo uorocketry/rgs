@@ -12,19 +12,23 @@
 
   const urlTemplate = "/api/tiles/{z}/{x}/{y}.png";
 
+  // Bottom left and top right bounds of the map
   const blBound: L.LatLngTuple = [45.36126613049103, -75.7866211272455];
   const tlBound: L.LatLngTuple = [45.46758335970629, -75.6263392346481];
 
+  // Initial view of the map (center of the map)
   const initialView: L.LatLngTuple = [
     (blBound[0] + tlBound[0]) / 2,
     (blBound[1] + tlBound[1]) / 2,
   ];
 
+  // Initial position of the rocket
   const mockRocketStartPos: L.LatLngTuple = [
     45.415210720923476, -75.7511577908654,
   ];
   let mockRocketMarker: L.Marker<any>;
 
+  // Zoom levels
   const MAX_ZOOM = 14;
   const MIN_ZOOM = 5;
   const INITIAL_ZOOM = 10;
@@ -33,7 +37,6 @@
   if (browser) {
     mockRocketMarker = L.marker(mockRocketStartPos, {
       icon: L.divIcon({
-        // Maybe some custom checkpoints?
         html: "🚀",
         className: "bg-transparent text-3xl ",
       }),
@@ -47,27 +50,25 @@
       console.log("Updating Rocket Position", target);
     });
 
-    // Lerp the rocket marker to the target
+    // Linear Interpolate the rocket marker to the target
     onInterval(() => {
       let curPos: L.LatLng = mockRocketMarker.getLatLng();
-      const lerpFactor = 0.01;
-      let lerpedPos: L.LatLngTuple = [
-        curPos.lat + lerpFactor * (target[0] - curPos.lat),
-        curPos.lng + lerpFactor * (target[1] - curPos.lng),
+      const interpolationFac = 0.01;
+      let interpolatedPos: L.LatLngTuple = [
+        curPos.lat + interpolationFac * (target[0] - curPos.lat),
+        curPos.lng + interpolationFac * (target[1] - curPos.lng),
       ];
-      mockRocketMarker.setLatLng(lerpedPos);
+      mockRocketMarker.setLatLng(interpolatedPos);
     }, 10);
   }
-
-  const bounds: L.LatLngBounds = new LatLngBounds(blBound, tlBound);
 
   function createMap(container: string | HTMLElement) {
     let m = L.map(container, {
       preferCanvas: true,
       worldCopyJump: true,
       minZoom: MIN_ZOOM,
-      // Uncomment to restrict the map to the bounds
-      // maxBounds: bounds,
+      // Uncomment this to restrict the map to the bounds
+      // maxBounds: new LatLngBounds(blBound, tlBound),
     }).setView(initialView, INITIAL_ZOOM);
 
     L.tileLayer(urlTemplate, {
@@ -107,7 +108,7 @@
   }
 </script>
 
-<!-- See https://svelte.dev/repl/62271e8fda854e828f26d75625286bc3?version=3.50.1 -->
+<!-- See an example at https://svelte.dev/repl/62271e8fda854e828f26d75625286bc3?version=3.50.1 -->
 <svelte:window on:resize={resizeMap} />
 
 <div class="map" style="height:100%;width:100%" use:mapAction />
