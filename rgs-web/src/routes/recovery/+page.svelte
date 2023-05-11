@@ -12,9 +12,13 @@
 
   const urlTemplate = "/api/tiles/{z}/{x}/{y}.png";
 
-  const initialView: L.LatLngTuple = [48.8236, -81.1547];
   const blBound: L.LatLngTuple = [45.36126613049103, -75.7866211272455];
   const tlBound: L.LatLngTuple = [45.46758335970629, -75.6263392346481];
+
+  const initialView: L.LatLngTuple = [
+    (blBound[0] + tlBound[0]) / 2,
+    (blBound[1] + tlBound[1]) / 2,
+  ];
 
   const mockRocketStartPos: L.LatLngTuple = [
     45.415210720923476, -75.7511577908654,
@@ -62,7 +66,8 @@
       preferCanvas: true,
       worldCopyJump: true,
       minZoom: MIN_ZOOM,
-      maxBounds: bounds,
+      // Uncomment to restrict the map to the bounds
+      // maxBounds: bounds,
     }).setView(initialView, INITIAL_ZOOM);
 
     L.tileLayer(urlTemplate, {
