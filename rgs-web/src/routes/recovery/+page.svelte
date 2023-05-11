@@ -13,19 +13,21 @@
   const urlTemplate = "/api/tiles/{z}/{x}/{y}.png";
 
   const initialView: L.LatLngTuple = [48.8236, -81.1547];
-  const blBound: L.LatLngTuple = [48.25185234761422, -81.83239949136214];
-  const tlBound: L.LatLngTuple = [49.11214456878958, -80.82574599219527];
+  const blBound: L.LatLngTuple = [45.36126613049103, -75.7866211272455];
+  const tlBound: L.LatLngTuple = [45.46758335970629, -75.6263392346481];
 
-  const mockRocketPos: L.LatLngTuple = [48.48598684581202, -81.31160217615952];
+  const mockRocketStartPos: L.LatLngTuple = [
+    45.415210720923476, -75.7511577908654,
+  ];
   let mockRocketMarker: L.Marker<any>;
 
   const MAX_ZOOM = 14;
   const MIN_ZOOM = 5;
   const INITIAL_ZOOM = 10;
 
-  let target: L.LatLngTuple = mockRocketPos;
+  let target: L.LatLngTuple = mockRocketStartPos;
   if (browser) {
-    mockRocketMarker = L.marker(mockRocketPos, {
+    mockRocketMarker = L.marker(mockRocketStartPos, {
       icon: L.divIcon({
         // Maybe some custom checkpoints?
         html: "🚀",
@@ -53,14 +55,14 @@
     }, 10);
   }
 
-  // const bounds: L.LatLngBounds = new LatLngBounds(blBound, tlBound);
+  const bounds: L.LatLngBounds = new LatLngBounds(blBound, tlBound);
 
   function createMap(container: string | HTMLElement) {
     let m = L.map(container, {
       preferCanvas: true,
       worldCopyJump: true,
       minZoom: MIN_ZOOM,
-      // maxBounds: bounds,
+      maxBounds: bounds,
     }).setView(initialView, INITIAL_ZOOM);
 
     L.tileLayer(urlTemplate, {
