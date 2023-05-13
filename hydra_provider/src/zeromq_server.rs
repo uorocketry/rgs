@@ -1,6 +1,5 @@
 use crate::processing::ProcessedMessage;
 use anyhow::Result;
-
 use zmq::Socket;
 
 pub struct ZeroMQServer {
