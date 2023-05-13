@@ -111,7 +111,6 @@ fn start_processing(
         .name("Processing".to_string())
         .spawn(move || {
             let rocket_processing = RocketProcessing::new();
-
             loop {
                 let msg = recv.recv().unwrap();
                 trace!("Received data: {:?}", msg);

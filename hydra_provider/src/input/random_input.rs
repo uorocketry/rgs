@@ -73,5 +73,6 @@ impl RandomInput {
             0 => InputData::RocketData(self.random_sbg()),
             _ => InputData::MavlinkHeader(self.random_mavheader()),
         }
+
     }
 }
