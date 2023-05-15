@@ -1,7 +1,5 @@
 <script lang="ts">
   import "svelte-golden-layout/css/themes/goldenlayout-light-theme.css";
-  import Bonjour from "$lib/components/Panels/Bonjour.svelte";
-  import Hello from "$lib/components/Panels/Hello.svelte";
   import GoldenLayout from "svelte-golden-layout";
   import NavBall from "$lib/components/NavBall.svelte";
   import PressureGraph from "$lib/components/Panels/PressureGraph.svelte";
@@ -12,8 +10,6 @@
   import type { LayoutConfig } from "golden-layout";
 
   const components = {
-    Hello,
-    Bonjour,
     NavBall,
     PressureGraph,
     HeightGraph,
@@ -57,7 +53,7 @@
 </script>
 
 <div class="w-full h-full">
-  <GoldenLayout config="{layout}" let:componentType let:componentState>
-    <svelte:component this="{components[componentType]}" {...componentState} />
+  <GoldenLayout config={layout} let:componentType let:componentState>
+    <svelte:component this={components[componentType]} {...componentState} />
   </GoldenLayout>
 </div>
