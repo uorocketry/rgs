@@ -4,6 +4,8 @@
   import Hello from "$lib/components/Panels/Hello.svelte";
   import GoldenLayout from "svelte-golden-layout";
   import NavBall from "$lib/components/NavBall.svelte";
+  import PressureGraph from "$lib/components/Panels/PressureGraph.svelte";
+  import HeightGraph from "$lib/components/Panels/HeightGraph.svelte";
   import "golden-layout/dist/css/themes/goldenlayout-dark-theme.css";
   import { rotation } from "$lib/stores";
   import { get } from "svelte/store";
@@ -13,6 +15,8 @@
     Hello,
     Bonjour,
     NavBall,
+    PressureGraph,
+    HeightGraph,
   } as const;
 
   // LayoutConfig where componentType is keyof components
@@ -41,19 +45,11 @@
         },
         {
           type: "component",
-          title: "NavBall 2",
-          componentType: "NavBall",
-          componentState: {
-            targetRotation: get(rotation),
-          },
+          componentType: "PressureGraph",
         },
         {
           type: "component",
-          componentType: "Hello",
-        },
-        {
-          type: "component",
-          componentType: "Bonjour",
+          componentType: "HeightGraph",
         },
       ],
     },

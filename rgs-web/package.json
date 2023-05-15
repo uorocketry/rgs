@@ -21,8 +21,6 @@
     "@types/zeromq": "^5.2.1",
     "@vitejs/plugin-basic-ssl": "^1.0.1",
     "autoprefixer": "^10.4.14",
-    "billboard.js": "^3.7.5",
-    "chart.js": "^4.2.1",
     "daisyui": "^2.51.3",
     "golden-layout": "^2.6.0",
     "leaflet": "^1.9.3",
@@ -40,6 +38,8 @@
     "zeromq": "^6.0.0-beta.16"
   },
   "dependencies": {
+    "chart.js": "^4.3.0",
+    "svelte-chartjs": "^1.1.4",
     "svelte-golden-layout": "^0.1.1"
   }
 }
