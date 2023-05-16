@@ -2,7 +2,7 @@
   import "svelte-golden-layout/css/themes/goldenlayout-light-theme.css";
   import GoldenLayout from "svelte-golden-layout";
   import NavBall from "$lib/components/NavBall.svelte";
-  import PressureGraph from "$lib/components/Panels/PressureGraph.svelte";
+  import GenericSbgGraph from "$lib/components/Panels/GenericSbgGraph.svelte";
   import HeightGraph from "$lib/components/Panels/HeightGraph.svelte";
   import "golden-layout/dist/css/themes/goldenlayout-dark-theme.css";
   import { rotation } from "$lib/stores";
@@ -11,7 +11,7 @@
 
   const components = {
     NavBall,
-    PressureGraph,
+    GenericSbgGraph,
     HeightGraph,
   } as const;
 
@@ -41,7 +41,7 @@
         },
         {
           type: "component",
-          componentType: "PressureGraph",
+          componentType: "GenericSbgGraph",
         },
         {
           type: "component",
