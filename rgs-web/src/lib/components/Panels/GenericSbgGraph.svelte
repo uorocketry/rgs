@@ -9,7 +9,7 @@
   import CheckboxSelect from "../CheckboxSelect.svelte";
 
   let timestamp: bigint[] = [];
-  let selected: string[] = ["height"];
+  export let selected: string[] = [];
   // String to tuple array (timestamp, value)
   let dataSet = new Map<string, [bigint, number][]>();
   let chartRef: Scatter;
@@ -37,7 +37,6 @@
     const sbg = data.sensor.data.Sbg;
 
     // For all selected fields, add the data to the dataset
-    console.log(selected);
     let newFieldCreated = false;
     fields.forEach((field) => {
       if (dataSet.has(field)) {
@@ -71,15 +70,14 @@
   }
 
   function refreshChart() {
-    console.log("refreshing chart");
     let ds: any[] = [];
     // Populate the datasets array with the data from the dataset map
-    console.log(dataSet);
     dataSet.forEach((value, key) => {
       if (!selected.includes(key)) return;
       ds.push({
         label: formatVariableName(key),
         lineTension: 0.3,
+        // Funny enough, if you resize the window, the colors change
         borderColor: randomCol(),
         pointBorderWidth: 10,
         pointHoverRadius: 10,
@@ -94,8 +92,6 @@
     };
     if (chartRef) {
       chartRef.$set({ data: dataline });
-    } else {
-      console.log("chartRef is null");
     }
   }
 </script>
