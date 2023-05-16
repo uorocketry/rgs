@@ -7,14 +7,22 @@
   import type { Sensor } from "../../../../../hydra_provider/bindings/Sensor";
   import Line from "svelte-chartjs/src/Line.svelte";
   import type { Sbg } from "../../../../../hydra_provider/bindings/Sbg";
+  import CheckboxSelect from "../CheckboxSelect.svelte";
 
   let timestamp: bigint[] = [];
   let pressure: number[] = [];
+  let selected: string[] = [];
   let chartRef: Line;
 
   //   set of strings representing the sbg data fields
   export let y_field: keyof Sbg = "height";
   let fields = new Set<string>([y_field]);
+
+  $: {
+    if (selected.length > 0) {
+      onLabelChange();
+    }
+  }
 
   function onLabelChange() {
     pressure = [];
@@ -99,15 +107,11 @@
   }
 </script>
 
-<!-- Drop down with fields -->
-<!-- <label>
-  X Axis:
-  <select bind:value={x_field}>
-    {#each Array.from(fields) as field}
-      <option value={field}>{field}</option>
-    {/each}
-  </select>
-</label> -->
+<CheckboxSelect
+  dropdownLabel={"Y-Axis"}
+  options={Array.from(fields)}
+  bind:selected
+/>
 
 <label>
   Y Axis:
@@ -121,5 +125,8 @@
 <Line
   bind:this={chartRef}
   data={dataline}
-  options={{ responsive: true, maintainAspectRatio: false }}
+  options={{
+    responsive: true,
+    maintainAspectRatio: false,
+  }}
 />
