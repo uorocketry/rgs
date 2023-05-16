@@ -1,18 +1,14 @@
 <script lang="ts">
   import "svelte-golden-layout/css/themes/goldenlayout-light-theme.css";
   import GoldenLayout from "svelte-golden-layout";
-  import NavBall from "$lib/components/NavBall.svelte";
+  import SmartNavBall from "$lib/components/smart/SmartNavBall.svelte";
   import GenericSbgGraph from "$lib/components/Panels/GenericSbgGraph.svelte";
-  import HeightGraph from "$lib/components/Panels/HeightGraph.svelte";
   import "golden-layout/dist/css/themes/goldenlayout-dark-theme.css";
-  import { rotation } from "$lib/stores";
-  import { get } from "svelte/store";
   import type { LayoutConfig } from "golden-layout";
 
   const components = {
-    NavBall,
+    SmartNavBall,
     GenericSbgGraph,
-    HeightGraph,
   } as const;
 
   // LayoutConfig where componentType is keyof components
@@ -33,19 +29,24 @@
       content: [
         {
           type: "component",
-          title: "NavBall 1",
-          componentType: "NavBall",
+          title: "SmartNavBall",
+          componentType: "SmartNavBall",
+        },
+        {
+          title: "Pressure Chart",
+          type: "component",
+          componentType: "GenericSbgGraph",
           componentState: {
-            targetRotation: get(rotation),
+            y_field: "pressure",
           },
         },
         {
+          title: "Height Chart",
           type: "component",
           componentType: "GenericSbgGraph",
-        },
-        {
-          type: "component",
-          componentType: "HeightGraph",
+          componentState: {
+            y_field: "height",
+          },
         },
       ],
     },
