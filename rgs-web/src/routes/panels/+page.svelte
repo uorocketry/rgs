@@ -1,18 +1,14 @@
 <script lang="ts">
   import "svelte-golden-layout/css/themes/goldenlayout-light-theme.css";
-  import Bonjour from "$lib/components/Panels/Bonjour.svelte";
-  import Hello from "$lib/components/Panels/Hello.svelte";
   import GoldenLayout from "svelte-golden-layout";
-  import NavBall from "$lib/components/NavBall.svelte";
+  import SmartNavBall from "$lib/components/smart/SmartNavBall.svelte";
+  import GenericSbgGraph from "$lib/components/Panels/GenericSbgGraph.svelte";
   import "golden-layout/dist/css/themes/goldenlayout-dark-theme.css";
-  import { rotation } from "$lib/stores";
-  import { get } from "svelte/store";
   import type { LayoutConfig } from "golden-layout";
 
   const components = {
-    Hello,
-    Bonjour,
-    NavBall,
+    SmartNavBall,
+    GenericSbgGraph,
   } as const;
 
   // LayoutConfig where componentType is keyof components
@@ -33,27 +29,24 @@
       content: [
         {
           type: "component",
-          title: "NavBall 1",
-          componentType: "NavBall",
+          title: "SmartNavBall",
+          componentType: "SmartNavBall",
+        },
+        {
+          title: "Pressure Chart",
+          type: "component",
+          componentType: "GenericSbgGraph",
           componentState: {
-            targetRotation: get(rotation),
+            selected: ["pressure"],
           },
         },
         {
+          title: "Height Chart",
           type: "component",
-          title: "NavBall 2",
-          componentType: "NavBall",
+          componentType: "GenericSbgGraph",
           componentState: {
-            targetRotation: get(rotation),
+            selected: ["height"],
           },
-        },
-        {
-          type: "component",
-          componentType: "Hello",
-        },
-        {
-          type: "component",
-          componentType: "Bonjour",
         },
       ],
     },
@@ -61,7 +54,7 @@
 </script>
 
 <div class="w-full h-full">
-  <GoldenLayout config="{layout}" let:componentType let:componentState>
-    <svelte:component this="{components[componentType]}" {...componentState} />
+  <GoldenLayout config={layout} let:componentType let:componentState>
+    <svelte:component this={components[componentType]} {...componentState} />
   </GoldenLayout>
 </div>

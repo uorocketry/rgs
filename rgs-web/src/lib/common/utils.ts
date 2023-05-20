@@ -26,3 +26,10 @@ export function onInterval(callback: () => void, milliseconds: number) {
   };
   return unsubscriber;
 }
+
+export function formatVariableName(name: string): string {
+  return name
+    .split("_")
+    .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
+    .join(" ");
+}

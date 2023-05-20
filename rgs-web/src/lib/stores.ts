@@ -1,16 +1,35 @@
 import { browser } from "$app/environment";
-import { get, writable } from "svelte/store";
-import { Euler, Quaternion } from "three";
+import { writable, type Writable } from "svelte/store";
+import type { Message, Sbg, Sensor, State } from "./common/Bindings";
+import { socket } from "./common/socket";
 
-export const rotation = writable(new Quaternion());
+export const state: Writable<State> = writable({
+  status: "Uninitialized",
+  has_error: false,
+  voltage: 0,
+});
+
+const initSensor: Sensor = {
+  component_id: -1,
+  data: {
+    Sbg: {},
+  },
+} as Sensor;
+export const sensorProxy = new Proxy(initSensor.data.Sbg, {
+  get: function (obj: Sbg, prop: string) {
+    return 0;
+  },
+});
+initSensor.data.Sbg = sensorProxy;
+
+export let sensor: Writable<Sensor> = writable(initSensor);
 
 if (browser) {
-  // Instead of doing this here, we should probably have a separate file to handle SBG events
-  setInterval(() => {
-    rotation.set(
-      get(rotation).setFromEuler(
-        new Euler(Math.random() * 7, Math.random() * 7, Math.random() * 7)
-      )
-    );
-  }, 1000);
+  socket?.on("RocketMessage", (msg: Message) => {
+    if ("state" in msg.data) {
+      state.set(msg.data.state);
+    } else {
+      sensor.set(msg.data.sensor);
+    }
+  });
 }
