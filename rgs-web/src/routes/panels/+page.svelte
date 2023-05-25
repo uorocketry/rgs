@@ -8,11 +8,15 @@
   import { rotation } from "$lib/stores";
   import { get } from "svelte/store";
   import type { LayoutConfig } from "golden-layout";
+  import RadioStatus from "$lib/components/radio/RadioStatus.svelte";
+  import ErrorRate from "$lib/components/radio/ErrorRate.svelte";
+  import MissedMessage from "$lib/components/radio/MissedMessage.svelte";
 
   const components = {
-    Hello,
-    Bonjour,
     NavBall,
+    ErrorRate,
+    MissedMessage,
+    RadioStatus,
   } as const;
 
   // LayoutConfig where componentType is keyof components
@@ -41,19 +45,15 @@
         },
         {
           type: "component",
-          title: "NavBall 2",
-          componentType: "NavBall",
-          componentState: {
-            targetRotation: get(rotation),
-          },
+          componentType: "RadioStatus",
         },
         {
           type: "component",
-          componentType: "Hello",
+          componentType: "MissedMessage",
         },
         {
           type: "component",
-          componentType: "Bonjour",
+          componentType: "ErrorRate",
         },
       ],
     },
