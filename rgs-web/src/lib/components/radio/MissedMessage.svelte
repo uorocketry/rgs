@@ -6,11 +6,13 @@
     let timestamp: bigint[] = [];
     let missed_msgs: number[] = [];
     let chartRef: Bar;
+    let totalMessages: number = 0;
 
     onSocket("LinkStatus", (msg: LinkStatus) => {
         timestamp.push(msg.timestamp);
         missed_msgs.push(msg.missed_messages);
         chartRef.$set({ data: dataline });
+        totalMessages = missed_msgs[missed_msgs.length - 1];
     });
 
     function randomCol(): string {
@@ -36,5 +38,5 @@ let dataline = {
 
 <div class="w-full h-full grid place-items-center">
     <Bar bind:this={chartRef} bind:data={dataline} options={{ responsive: true }} />
-    <p class="gap-4 "> Total Messages: {missed_msgs[missed_msgs.length]}</p>
+    <p class="gap-0 "> Total Messages: {totalMessages}</p>
 </div>  
