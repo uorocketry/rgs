@@ -5,15 +5,24 @@
 
     let timestamp: bigint[] = [];
     let missed_msgs: number[] = [];
+    let messages: LinkStatus[] = [];
     let chartRef: Bar;
     let totalMessages: number = 0;
 
     onSocket("LinkStatus", (msg: LinkStatus) => {
+        messages = [...messages, msg];
         timestamp.push(msg.timestamp);
-        missed_msgs.push(msg.missed_messages);
+        if (messages.length > 1) {
+            let diff = messages[messages.length - 1].missed_messages - messages[messages.length - 2].missed_messages;
+            console.log(diff);
+            missed_msgs.push(diff);
+        }
         chartRef.$set({ data: dataline });
-        totalMessages = missed_msgs[missed_msgs.length - 1];
+        totalMessages = msg.missed_messages;
+
     });
+
+    
 
     function randomCol(): string {
         return `rgb(${Math.random() * 255}, ${Math.random() * 255}, ${
