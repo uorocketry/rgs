@@ -61,9 +61,7 @@ export const setupServer = (http: HTTPServer) => {
 
   // expect zmq sub socket to run on port 3002
   const zmqSock = new zmq.Subscriber();
-  console.log("Connecting to ZMQ socket");
   zmqSock.connect("tcp://localhost:3002");
-  console.log("Connected to ZMQ socket");
   zmqSock.subscribe();
 
   const io = new Server<ClientToServerEvents, ServerToClientEvents>(http);
@@ -117,7 +115,6 @@ export const setupServer = (http: HTTPServer) => {
   });
 
   const onMessage = async () => {
-    console.log("Listening for ZMQ messages");
     for await (const [msg] of zmqSock) {
       const obj = JSON.parse(msg.toString()) as ProcessedMessage;
       if ("RocketMessage" in obj) {

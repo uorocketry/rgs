@@ -8,11 +8,12 @@ import cp from "child_process";
 export const setupServer = async (http: HTTPServer) => {
   console.log("#### Setting up PocketBase Server ####");
 
-  // Run ""./pocketbase serve" as subprocess using node's child_process
-  // Redirect stdout and stderr to parent process
-  const pocketbase = cp.spawn("./db/pocketbase", ["serve"], {
+  cp.spawn("./db/pocketbase", ["serve"], {
     stdio: ["inherit", "inherit", "inherit", "ipc"],
   });
+
+  // Wait 0.5 seconds for PocketBase to start
+  await new Promise((resolve) => setTimeout(resolve, 500));
 
   const pb = new PocketBase("http://127.0.0.1:8090");
   const auth = await pb.admins.authWithPassword(
@@ -22,9 +23,7 @@ export const setupServer = async (http: HTTPServer) => {
 
   // expect zmq sub socket to run on port 3002
   const zmqSock = new zmq.Subscriber();
-  console.log("Connecting to ZMQ socket");
   zmqSock.connect("tcp://localhost:3002");
-  console.log("Connected to ZMQ socket");
   zmqSock.subscribe();
 
   const onMessage = async () => {
@@ -33,10 +32,6 @@ export const setupServer = async (http: HTTPServer) => {
       const obj = JSON.parse(msg.toString()) as ProcessedMessage;
       if ("RocketMessage" in obj) {
         const rocketMsg = obj.RocketMessage;
-        console.log("RocketMessage", rocketMsg);
-        // state or sensor
-        // rocketMsg.data
-
         if ("state" in rocketMsg.data) {
           pb.collection("state").create(rocketMsg.data.state);
         } else {
