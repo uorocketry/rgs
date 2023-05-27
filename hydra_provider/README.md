@@ -1,10 +1,5 @@
 # Hydra Provider
 
-## Requirements
-
-- Rust nightly
-- libudev
-
 ## Build and run
 
 ```
