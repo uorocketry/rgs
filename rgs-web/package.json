@@ -39,6 +39,7 @@
   },
   "dependencies": {
     "chart.js": "^4.3.0",
+    "pocketbase": "^0.15.0",
     "svelte-chartjs": "^1.1.4",
     "svelte-golden-layout": "^0.1.1"
   }
