@@ -1,11 +1,7 @@
 import { onDestroy } from "svelte";
-import { get, writable, type Unsubscriber, type Writable } from "svelte/store";
+import { writable, type Unsubscriber, type Writable } from "svelte/store";
 
 export let theme: Writable<string> = writable();
-
-export function isDarkTheme(): boolean {
-  return get(theme) === "dark";
-}
 
 export function onThemeChange(callback: () => void) {
   let unsubscribe = theme.subscribe(callback);

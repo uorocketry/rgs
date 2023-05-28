@@ -1,7 +1,7 @@
 import type { Message } from "$lib/../../../hydra_provider/bindings/Message";
 import type { ProcessedMessage } from "$lib/../../../hydra_provider/bindings/ProcessedMessage";
 import type { Sender } from "$lib/../../../hydra_provider/bindings/Sender";
-import type { LinkStatus } from "./Bindings";
+import type { LinkStatus } from "./bindings";
 
 export type { Data } from "$lib/../../../hydra_provider/bindings/Data";
 export type { LinkStatus } from "$lib/../../../hydra_provider/bindings/LinkStatus";

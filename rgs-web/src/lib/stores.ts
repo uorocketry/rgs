@@ -1,6 +1,6 @@
 import { browser } from "$app/environment";
 import { writable, type Writable } from "svelte/store";
-import type { Message, Sbg, Sensor, State } from "./common/Bindings";
+import type { Message, Sbg, Sensor, State } from "./common/bindings";
 import { socket } from "./common/socket";
 
 export const state: Writable<State> = writable({

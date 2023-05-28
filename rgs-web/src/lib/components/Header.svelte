@@ -15,23 +15,6 @@
   onSocket("disconnect", () => {
     socketOK.set(false);
   });
-
-  onMount(() => {
-    let initialTheme = "light";
-    if (browser && localStorage.getItem("theme")) {
-      initialTheme = localStorage.getItem("theme") || initialTheme;
-    }
-    themeState = initialTheme !== "dark";
-    theme.set(initialTheme);
-
-    theme.subscribe((newTheme) => {
-      if (browser) {
-        localStorage.setItem("theme", newTheme);
-        document.documentElement.setAttribute("data-theme", newTheme);
-        themeState = newTheme !== "dark";
-      }
-    });
-  });
 </script>
 
 <div class="navbar">
@@ -85,17 +68,5 @@
   </div>
   <div class="navbar-end">
     <TimeCounter />
-    <div class="tooltip tooltip-bottom" data-tip="Theme">
-      <label class="btn btn-ghost text-xl swap swap-rotate">
-        <input
-          type="checkbox"
-          bind:checked="{themeState}"
-          on:change="{() =>
-            theme.set(get(theme) === 'light' ? 'dark' : 'light')}"
-        />
-        <i class="swap-on fa-solid fa-sun text-yellow-500"></i>
-        <i class="swap-off fa-solid fa-moon text-current"></i>
-      </label>
-    </div>
   </div>
 </div>

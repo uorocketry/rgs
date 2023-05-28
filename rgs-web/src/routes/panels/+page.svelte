@@ -1,9 +1,9 @@
 <script lang="ts">
-  import "svelte-golden-layout/css/themes/goldenlayout-light-theme.css";
+  import "../../goldenlayout.css";
+  // import "golden-layout/dist/css/themes/goldenlayout-dark-theme.css";
   import GoldenLayout from "svelte-golden-layout";
   import SmartNavBall from "$lib/components/smart/SmartNavBall.svelte";
   import GenericSbgGraph from "$lib/components/Panels/GenericSbgGraph.svelte";
-  import "golden-layout/dist/css/themes/goldenlayout-dark-theme.css";
   import type { LayoutConfig } from "golden-layout";
 
   const components = {
@@ -24,6 +24,9 @@
   };
 
   const layout: LayoutCfg = {
+    settings: {
+      showPopoutIcon: false,
+    },
     root: {
       type: "row",
       content: [
@@ -53,8 +56,11 @@
   };
 </script>
 
-<div class="w-full h-full">
-  <GoldenLayout config={layout} let:componentType let:componentState>
-    <svelte:component this={components[componentType]} {...componentState} />
+<!--  background: hsl(var(--a));
+  opacity: 0.25; -->
+
+<div class="w-full h-full p-1 bg-accent/25">
+  <GoldenLayout config="{layout}" let:componentType let:componentState>
+    <svelte:component this="{components[componentType]}" {...componentState} />
   </GoldenLayout>
 </div>

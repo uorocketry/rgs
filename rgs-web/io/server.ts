@@ -9,6 +9,9 @@ import type {
   ServerToClientEvents,
 } from "$lib/common/Bindings";
 
+import { loggerFactory } from "../logger";
+export const logger = loggerFactory("io");
+
 const randomId = () => {
   return Math.random().toString(36);
 };
@@ -47,32 +50,33 @@ const serverData: ServerData = new ServerData();
 
 export const setupServer = (http: HTTPServer) => {
   // If data folder is not present, create it
-  if (!fs.existsSync("data")) {
-    console.log("Created data folder");
-    fs.mkdirSync("data");
+  if (!fs.existsSync("io/data")) {
+    logger.info("Created data folder");
+    fs.mkdirSync("io/data");
   }
 
   // If server.json is not present, create it
-  if (!fs.existsSync("data/server.json")) {
-    console.log("Created server.json");
+  if (!fs.existsSync("io/data/server.json")) {
+    logger.info("Created server.json");
     // We will use this file to store the state of the server
-    fs.writeFileSync("data/server.json", JSON.stringify({}));
+    fs.writeFileSync("io/data/server.json", JSON.stringify({}));
   }
 
   // expect zmq sub socket to run on port 3002
   const zmqSock = new zmq.Subscriber();
-  zmqSock.connect("tcp://localhost:3002");
+  // get env ZMQ_PORT
+  zmqSock.connect(`tcp://127.0.0.1:${process.env.ZMQ_PORT ?? "3002"}`);
   zmqSock.subscribe();
 
   const io = new Server<ClientToServerEvents, ServerToClientEvents>(http);
-  console.log("Socket.io server started");
+  logger.info("Socket.io server started");
   io.on("connection", (socket) => {
     socket.on("disconnect", () => {
       if (serverData.loggedUsers.has(socket.id)) {
         serverData.loggedUsers.delete(socket.id);
         io.emit("loggedUsers", getUserIDs());
       }
-      console.log("Client disconnected");
+      logger.info("Client disconnected");
     });
 
     // We shouldn't trust the client to send anything correct
@@ -96,7 +100,7 @@ export const setupServer = (http: HTTPServer) => {
             id: uuid,
             secret: secret,
           });
-          console.log("Logged in user:", uuid);
+          logger.info("Logged in user:", uuid);
           io.emit("loggedUsers", getUserIDs());
         } else {
           console.error("Login failed for user:", uuid);
@@ -104,7 +108,7 @@ export const setupServer = (http: HTTPServer) => {
       } else {
         // We are trying to register
         serverData.userCreds.set(uuid, secret);
-        console.log("Registered user:", uuid);
+        logger.info("Registered user:", uuid);
         serverData.loggedUsers.set(socket.id, {
           id: uuid,
           secret: secret,

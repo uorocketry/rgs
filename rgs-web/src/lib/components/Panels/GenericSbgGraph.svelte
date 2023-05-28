@@ -94,20 +94,51 @@
       chartRef.$set({ data: dataline });
     }
   }
+
+  let clientWidth = 0;
+  let clientHeight = 0;
+
+  // HACK To force restart of the chart component
+  let restart = [{}];
+  let restartCount = 0;
+
+  $: if (chartRef) {
+    clientHeight;
+    clientWidth;
+    restartCount += 1;
+    if (restartCount % 2 == 0) {
+      console.log("Resizing");
+      restart = [{}];
+    }
+  }
 </script>
 
-<CheckboxSelect
-  dropdownLabel={"Y-Axis"}
-  options={Array.from(fields)}
-  bind:selected
-/>
+<div
+  class="w-full h-full flex flex-col"
+  bind:clientHeight="{clientHeight}"
+  bind:clientWidth="{clientWidth}"
+>
+  <div class="">
+    <CheckboxSelect
+      dropdownLabel="{'Y-Axis'}"
+      options="{Array.from(fields)}"
+      bind:selected="{selected}"
+    />
+  </div>
 
-<Scatter
-  bind:this={chartRef}
-  bind:data={dataline}
-  options={{
-    responsive: true,
-    maintainAspectRatio: false,
-    showLine: true,
-  }}
-/>
+  <div class="flex-1">
+    {#each restart as key (key)}
+      <Scatter
+        bind:this="{chartRef}"
+        bind:data="{dataline}"
+        width="{100}"
+        height="{50}"
+        options="{{
+          responsive: true,
+          maintainAspectRatio: false,
+          showLine: true,
+        }}"
+      />
+    {/each}
+  </div>
+</div>
