@@ -4,46 +4,61 @@ import type { ProcessedMessage } from "$lib/common/Bindings";
 import PocketBase from "pocketbase";
 // Ayo? 🤨
 import cp from "child_process";
+import { loggerFactory } from "../logger";
+export const logger = loggerFactory("db");
 
 export const setupServer = async (http: HTTPServer) => {
-  console.log("#### Setting up PocketBase Server ####");
+  // Check if PocketBase is already running
+  let pbServer: cp.ChildProcess;
+  let pb: PocketBase;
 
-  cp.spawn("./db/pocketbase", ["serve"], {
+  logger.info("Started DB server");
+  try {
+    // Kill any existing PocketBase instances
+    cp.execSync("killall pocketbase");
+    logger.info("Killed PocketBase instances");
+  } catch (e) {
+    // Ignore
+  }
+
+  logger.warn("No PocketBase instances found (Starting PocketBase server)");
+  logger.info("Starting PocketBase Server");
+  pbServer = cp.spawn("./db/pocketbase", ["serve"], {
     stdio: ["inherit", "inherit", "inherit", "ipc"],
   });
+  // Kill PocketBase server on exit
+  http.addListener("close", async () => {
+    logger.warn("Killing PocketBase Server");
+    pbServer?.kill();
+  });
 
-  // Wait 0.5 seconds for PocketBase to start
-  await new Promise((resolve) => setTimeout(resolve, 500));
+  await new Promise((resolve) => setTimeout(resolve, 250));
+  logger.info("Started PocketBase Server");
 
-  const pb = new PocketBase("http://127.0.0.1:8090");
-  const auth = await pb.admins.authWithPassword(
-    "admin@admin.com",
-    "adminadmin"
-  );
+  // Connect to PocketBase server
+  console.log("Connecting to PocketBase server");
+  pb = new PocketBase("http://127.0.0.1:8090");
+  const auth = await pb.admins.authWithPassword("admin@db.com", "adminadmin");
 
-  // expect zmq sub socket to run on port 3002
+  // Setup ZMQ subscriber
   const zmqSock = new zmq.Subscriber();
   zmqSock.connect("tcp://localhost:3002");
   zmqSock.subscribe();
 
-  const onMessage = async () => {
-    console.log("Listening for ZMQ messages");
-    for await (const [msg] of zmqSock) {
-      const obj = JSON.parse(msg.toString()) as ProcessedMessage;
-      if ("RocketMessage" in obj) {
-        const rocketMsg = obj.RocketMessage;
-        if ("state" in rocketMsg.data) {
-          pb.collection("state").create(rocketMsg.data.state);
-        } else {
-          pb.collection("sbg").create(rocketMsg.data.sensor.data.Sbg);
-        }
-      } else if ("LinkStatus" in obj) {
-        pb.collection("link_status").create(obj.LinkStatus);
+  // Listen and store messages
+  for await (const [msg] of zmqSock) {
+    const obj = JSON.parse(msg.toString()) as ProcessedMessage;
+    if ("RocketMessage" in obj) {
+      const rocketMsg = obj.RocketMessage;
+      if ("state" in rocketMsg.data) {
+        pb.collection("state").create(rocketMsg.data.state);
       } else {
-        console.error("Unknown message type", obj);
+        pb.collection("sbg").create(rocketMsg.data.sensor.data.Sbg);
       }
+    } else if ("LinkStatus" in obj) {
+      pb.collection("link_status").create(obj.LinkStatus);
+    } else {
+      console.error("Unknown message type", obj);
     }
-  };
-
-  onMessage();
+  }
 };
