@@ -1,10 +1,10 @@
 import zmq from "zeromq";
 import type { Server as HTTPServer } from "http";
-import type { ProcessedMessage } from "$lib/common/Bindings";
 import PocketBase from "pocketbase";
 // Ayo? 🤨
 import cp from "child_process";
 import { loggerFactory } from "../logger";
+import type { ProcessedMessage } from "$lib/common/bindings";
 export const logger = loggerFactory("db");
 
 export const setupServer = async (http: HTTPServer) => {
@@ -73,7 +73,7 @@ export const setupServer = async (http: HTTPServer) => {
   }
 
   logger.info("Connecting to PocketBase server");
-  pb = new PocketBase(`http://127.0.0.1:${process.env.DB_REST_PORT ?? ""}`);
+  pb = new PocketBase(`http://127.0.0.1:${process.env.DB_REST_PORT ?? "8090"}`);
   const auth = await pb.admins.authWithPassword(
     process.env.DB_ADMIN,
     process.env.DB_ADMIN_PASSWORD
@@ -81,7 +81,7 @@ export const setupServer = async (http: HTTPServer) => {
 
   // Setup ZMQ subscriber
   const zmqSock = new zmq.Subscriber();
-  zmqSock.connect("tcp://localhost:3002");
+  zmqSock.connect(`tcp://localhost:${process.env.ZMQ_PORT ?? "3002"}`);
   zmqSock.subscribe();
 
   // Listen and store messages
@@ -91,11 +91,14 @@ export const setupServer = async (http: HTTPServer) => {
       const rocketMsg = obj.RocketMessage;
       if ("state" in rocketMsg.data) {
         pb.collection("state").create(rocketMsg.data.state);
+        // logger.info("Adding State");
       } else {
         pb.collection("sbg").create(rocketMsg.data.sensor.data.Sbg);
+        // logger.info("Adding SBG");
       }
     } else if ("LinkStatus" in obj) {
       pb.collection("link_status").create(obj.LinkStatus);
+      // logger.info("Adding Link Status");
     } else {
       logger.error("Unknown message type", obj);
     }

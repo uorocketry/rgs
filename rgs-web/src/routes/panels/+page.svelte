@@ -40,7 +40,9 @@
           type: "component",
           componentType: "GenericSbgGraph",
           componentState: {
-            selected: ["pressure"],
+            selected: {
+              sbg: ["pressure"],
+            },
           },
         },
         {
@@ -48,7 +50,9 @@
           type: "component",
           componentType: "GenericSbgGraph",
           componentState: {
-            selected: ["height"],
+            selected: {
+              sbg: ["height"],
+            },
           },
         },
       ],

@@ -1,66 +1,34 @@
 <script lang="ts" type="module">
   import { onSocket } from "$lib/common/socket";
-  import { formatVariableName, onInterval } from "$lib/common/utils";
+  import { formatVariableName } from "$lib/common/utils";
 
-  import type { Message } from "../../../../../hydra_provider/bindings/Message";
-  import type { Data } from "../../../../../hydra_provider/bindings/Data";
-  import type { Sensor } from "../../../../../hydra_provider/bindings/Sensor";
   import Scatter from "svelte-chartjs/src/Scatter.svelte";
   import CheckboxSelect from "../CheckboxSelect.svelte";
+  import { collectionFields } from "$lib/common/dao";
+  import { pb } from "$lib/stores";
+  import type { ListResult } from "pocketbase";
 
-  let timestamp: bigint[] = [];
-  export let selected: string[] = [];
-  // String to tuple array (timestamp, value)
-  let dataSet = new Map<string, [bigint, number][]>();
+  export let selected: { [key: string]: string[] } = {};
   let chartRef: Scatter;
 
-  // All possible fields (generated from the first message)
-  let fields = new Set<string>(selected);
+  const options = {
+    responsive: true,
+    maintainAspectRatio: false,
+    showLine: true,
+    // Update x axis to convert timestamp to date
+    scales: {
+      x: {
+        ticks: {
+          callback: function (value: number) {
+            let date = new Date(Number(value));
+            return date.toLocaleTimeString();
+          },
+        },
+      },
+    },
+  };
 
-  $: {
-    if (selected.length > 0) {
-      onLabelChange();
-    }
-  }
-
-  function onLabelChange() {
-    timestamp = [];
-
-    if (chartRef) {
-      refreshChart();
-    }
-  }
-
-  onSocket("RocketMessage", (msg: Message) => {
-    const data: Data = msg.data as { sensor: Sensor };
-    if (data.sensor?.data?.Sbg == null) return;
-    const sbg = data.sensor.data.Sbg;
-
-    // For all selected fields, add the data to the dataset
-    let newFieldCreated = false;
-    fields.forEach((field) => {
-      if (dataSet.has(field)) {
-        dataSet.get(field)?.push([msg.timestamp, (sbg as any)[field]]);
-      } else {
-        dataSet.set(field, [[msg.timestamp, (sbg as any)[field]]]);
-        newFieldCreated = true;
-      }
-    });
-    if (newFieldCreated) {
-      refreshChart();
-    }
-
-    timestamp.push(msg.timestamp);
-
-    const sbgFields = Object.keys(sbg);
-    fields = new Set([...fields, ...sbgFields]);
-
-    if (chartRef) {
-      chartRef.$set({ data: dataline });
-    }
-  });
-
-  let dataline = {};
+  let data = {};
   refreshChart();
 
   function randomCol(): string {
@@ -69,29 +37,54 @@
     })`;
   }
 
-  function refreshChart() {
-    let ds: any[] = [];
-    // Populate the datasets array with the data from the dataset map
-    dataSet.forEach((value, key) => {
-      if (!selected.includes(key)) return;
-      ds.push({
-        label: formatVariableName(key),
-        lineTension: 0.3,
-        // Funny enough, if you resize the window, the colors change
-        borderColor: randomCol(),
-        pointBorderWidth: 10,
-        pointHoverRadius: 10,
-        pointHoverBorderWidth: 2,
-        data: value,
-      });
-    });
+  async function refreshChart() {
+    let dataValues: Map<string, ListResult<any>> = new Map();
+    let dataSets = [];
 
-    dataline = {
-      labels: timestamp,
-      datasets: ds,
+    // Populate the datasets array with the data from the dataset map
+    console.log("Refreshing chart");
+
+    for (const entry of Object.entries(selected)) {
+      if (entry[1].length > 0) {
+        // Download the data
+        const collection = pb.collection(entry[0]);
+        const data = await collection.getList(3, 20, {
+          sort: "created",
+          $cancelKey: entry + "chart",
+        });
+        dataValues.set(entry[0], data);
+
+        // Crete line datasets
+        const fields = entry[1];
+
+        for (const key of fields) {
+          const values = data.items.map((item) => {
+            return {
+              x: Date.parse(item.created),
+              y: item[key],
+            };
+          });
+          dataSets.push({
+            label: formatVariableName(key),
+            lineTension: 0.0,
+            // FIXME: If you resize the window, the colors change
+            borderColor: randomCol(),
+            pointBorderWidth: 10,
+            pointHoverRadius: 10,
+            pointHoverBorderWidth: 2,
+            data: values,
+          });
+        }
+      }
+    }
+
+    data = {
+      datasets: dataSets,
     };
+    console.log(data);
     if (chartRef) {
-      chartRef.$set({ data: dataline });
+      chartRef.$set({ data: data });
+      console.log("Chart refreshed");
     }
   }
 
@@ -111,6 +104,20 @@
       restart = [{}];
     }
   }
+
+  $: {
+    console.log(Object.entries(selected));
+    refreshChart();
+  }
+
+  // Update collection entries
+  let collectionsEntries: { key: string; value: string[] }[] = [];
+  collectionFields.subscribe((fields) => {
+    collectionsEntries = [];
+    for (const [key, value] of fields.entries()) {
+      collectionsEntries.push({ key, value });
+    }
+  });
 </script>
 
 <div
@@ -119,26 +126,18 @@
   bind:clientWidth="{clientWidth}"
 >
   <div class="">
-    <CheckboxSelect
-      dropdownLabel="{'Y-Axis'}"
-      options="{Array.from(fields)}"
-      bind:selected="{selected}"
-    />
+    {#each collectionsEntries as collection}
+      <CheckboxSelect
+        dropdownLabel="{formatVariableName(collection.key)}"
+        options="{collection.value ?? []}"
+        bind:selected="{selected[collection.key]}"
+      />
+    {/each}
   </div>
 
   <div class="flex-1">
     {#each restart as key (key)}
-      <Scatter
-        bind:this="{chartRef}"
-        bind:data="{dataline}"
-        width="{100}"
-        height="{50}"
-        options="{{
-          responsive: true,
-          maintainAspectRatio: false,
-          showLine: true,
-        }}"
-      />
+      <Scatter bind:this="{chartRef}" bind:data="{data}" options="{options}" />
     {/each}
   </div>
 </div>
