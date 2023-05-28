@@ -12,16 +12,15 @@ export const setupServer = async (http: HTTPServer) => {
   let pbServer: cp.ChildProcess;
   let pb: PocketBase;
 
-  logger.info("Started DB server");
+  logger.info("Started DB Service");
   try {
     // Kill any existing PocketBase instances
     cp.execSync("killall pocketbase");
-    logger.info("Killed PocketBase instances");
+    logger.info("Killed all pocketBase instances");
   } catch (e) {
     // Ignore
   }
 
-  logger.warn("No PocketBase instances found (Starting PocketBase server)");
   logger.info("Starting PocketBase Server");
   pbServer = cp.spawn("./db/pocketbase", ["serve"], {
     stdio: ["inherit", "inherit", "inherit", "ipc"],
@@ -32,13 +31,53 @@ export const setupServer = async (http: HTTPServer) => {
     pbServer?.kill();
   });
 
-  await new Promise((resolve) => setTimeout(resolve, 250));
-  logger.info("Started PocketBase Server");
+  // Keep calling http://127.0.0.1:8090/api/health until it responds
+  const TIMEOUT = 5000;
+  const start = Date.now();
+  while (true) {
+    try {
+      const res = await fetch("http://127.0.0.1:8090/api/health", {
+        method: "GET",
+      });
+      if (res.status === 200) {
+        logger.info("PocketBase server started successfully");
+        break;
+      }
+    } catch (e) {
+      // Ignore
+    }
+    if (Date.now() - start > TIMEOUT) {
+      logger.error("PocketBase server did not start in time");
+      throw new Error("PocketBase server did not start in time");
+    }
+  }
 
   // Connect to PocketBase server
-  console.log("Connecting to PocketBase server");
-  pb = new PocketBase("http://127.0.0.1:8090");
-  const auth = await pb.admins.authWithPassword("admin@db.com", "adminadmin");
+  if (process.env.DB_ADMIN === undefined || process.env.DB_ADMIN === "") {
+    logger.error("DB_ADMIN is not set");
+    throw new Error("DB_ADMIN is not set");
+  }
+  if (
+    process.env.DB_ADMIN_PASSWORD === undefined ||
+    process.env.DB_ADMIN_PASSWORD === ""
+  ) {
+    logger.error("DB_ADMIN_PASSWORD is not set");
+    throw new Error("DB_ADMIN_PASSWORD is not set");
+  }
+  if (
+    process.env.DB_REST_PORT === undefined ||
+    process.env.DB_REST_PORT === ""
+  ) {
+    logger.error("DB_REST_PORT is not set");
+    throw new Error("DB_REST_PORT is not set");
+  }
+
+  logger.info("Connecting to PocketBase server");
+  pb = new PocketBase(`http://127.0.0.1:${process.env.DB_REST_PORT ?? ""}`);
+  const auth = await pb.admins.authWithPassword(
+    process.env.DB_ADMIN,
+    process.env.DB_ADMIN_PASSWORD
+  );
 
   // Setup ZMQ subscriber
   const zmqSock = new zmq.Subscriber();
@@ -58,7 +97,7 @@ export const setupServer = async (http: HTTPServer) => {
     } else if ("LinkStatus" in obj) {
       pb.collection("link_status").create(obj.LinkStatus);
     } else {
-      console.error("Unknown message type", obj);
+      logger.error("Unknown message type", obj);
     }
   }
 };

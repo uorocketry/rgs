@@ -5,7 +5,7 @@ import { dbMiddleware } from "./db/middleware";
 
 const config = (mode: string) => {
   // Make environment variables available from .env available
-  process.env = { ...process.env, ...loadEnv(mode, "../", "") };
+  process.env = { ...process.env, ...loadEnv(mode, "../environments", "") };
 
   return defineConfig({
     server: {
