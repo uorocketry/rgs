@@ -14,7 +14,6 @@
         timestamp.push(msg.timestamp);
         if (messages.length > 1) {
             let diff = messages[messages.length - 1].missed_messages - messages[messages.length - 2].missed_messages;
-            console.log(diff);
             missed_msgs.push(diff);
         }
         chartRef.$set({ data: dataline });
