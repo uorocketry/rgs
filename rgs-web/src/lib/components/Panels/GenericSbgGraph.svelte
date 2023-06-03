@@ -50,7 +50,7 @@
         const collection = pb.collection(entry[0]);
         const data = await collection.getList(3, 20, {
           sort: "created",
-          $cancelKey: entry + "chart",
+          $autoCancel: false,
         });
         dataValues.set(entry[0], data);
 
@@ -81,7 +81,6 @@
     data = {
       datasets: dataSets,
     };
-    console.log(data);
     if (chartRef) {
       chartRef.$set({ data: data });
       console.log("Chart refreshed");
@@ -105,8 +104,7 @@
     }
   }
 
-  $: {
-    console.log(Object.entries(selected));
+  $: if (selected) {
     refreshChart();
   }
 

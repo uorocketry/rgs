@@ -15,6 +15,7 @@ export const minMaxCreated = writable<Map<Collection, [number, number]>>(
     collections.map((collection) =>
       pb.collection(collection).getFirstListItem("", {
         sort: "created",
+        $autoCancel: false,
       })
     )
   );
@@ -23,6 +24,7 @@ export const minMaxCreated = writable<Map<Collection, [number, number]>>(
     collections.map((collection) =>
       pb.collection(collection).getFirstListItem("", {
         sort: "-created",
+        $autoCancel: false,
       })
     )
   );

@@ -22,9 +22,9 @@
             <span class="label-text">{option}</span>
             <input
               type="checkbox"
-              bind:group="{selected}"
-              checked="{selected.includes(option)}"
-              value="{option}"
+              bind:group={selected}
+              checked={selected.includes(option)}
+              value={option}
               class="checkbox"
             />
           </label>
