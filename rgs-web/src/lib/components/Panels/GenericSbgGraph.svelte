@@ -113,31 +113,30 @@
   // Update collection entries
   let collectionsEntries: { key: string; value: string[] }[] = [];
   collectionFields.subscribe((fields) => {
+    console.log("Updating collections entries");
     collectionsEntries = [];
     for (const [key, value] of fields.entries()) {
       collectionsEntries.push({ key, value });
     }
+    collectionsEntries = [...collectionsEntries];
   });
 </script>
 
-<div
-  class="w-full h-full flex flex-col"
-  bind:clientHeight="{clientHeight}"
-  bind:clientWidth="{clientWidth}"
->
+<div class="w-full h-full flex flex-col" bind:clientHeight bind:clientWidth>
   <div class="">
+    <!-- TODO: Checkbox not working(???) -->
     {#each collectionsEntries as collection}
       <CheckboxSelect
-        dropdownLabel="{formatVariableName(collection.key)}"
-        options="{collection.value ?? []}"
-        bind:selected="{selected[collection.key]}"
+        dropdownLabel={formatVariableName(collection.key)}
+        options={collection.value ?? []}
+        bind:selected={selected[collection.key]}
       />
     {/each}
   </div>
 
   <div class="flex-1">
     {#each restart as key (key)}
-      <Scatter bind:this="{chartRef}" bind:data="{data}" options="{options}" />
+      <Scatter bind:this={chartRef} bind:data {options} />
     {/each}
   </div>
 </div>
