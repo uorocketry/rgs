@@ -6,6 +6,7 @@ use serde::{Deserialize, Serialize};
 use std::sync::mpsc::{Receiver, Sender};
 use std::time::{Duration, Instant};
 use ts_rs::TS;
+use std::time::{SystemTime, UNIX_EPOCH};
 
 #[derive(Serialize, Deserialize, Clone, Debug, TS)]
 #[ts(export)]
@@ -20,6 +21,7 @@ pub struct LinkStatus {
     pub recent_error_rate: f32,
     pub missed_messages: u32,
     pub connected: bool,
+    pub timestamp: u64,
 }
 
 #[derive(Clone, Debug)]
@@ -125,6 +127,8 @@ impl LinkStatusProcessing {
         let missed_messages = self.total_missed_messages;
         let recent_error_rate = missed_count as f32 / total_msg_count as f32;
         let connected = Instant::now() - self.last_hearbeat < Duration::from_secs(20);
+        let timestamp = SystemTime::now().duration_since(UNIX_EPOCH).unwrap().as_secs()*1000 +
+         SystemTime::now().duration_since(UNIX_EPOCH).unwrap().subsec_millis() as u64 / 1_000_000;
 
         let msg = match &self.last_mav_status {
             None => ProcessedMessage::LinkStatus(LinkStatus {
@@ -138,6 +142,7 @@ impl LinkStatusProcessing {
                 missed_messages,
                 recent_error_rate,
                 connected,
+                timestamp,
             }),
             Some(status) => ProcessedMessage::LinkStatus(LinkStatus {
                 rssi: Some(status.rssi),
@@ -150,10 +155,9 @@ impl LinkStatusProcessing {
                 missed_messages,
                 recent_error_rate,
                 connected,
+                timestamp,
             }),
         };
-
-        debug!("Link Status: {:?}", msg);
 
         send.send(msg).unwrap();
     }
