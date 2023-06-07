@@ -6,7 +6,7 @@
   import CheckboxSelect from "../CheckboxSelect.svelte";
   import { collectionFields } from "$lib/common/dao";
   import { pb } from "$lib/stores";
-  import type { ListResult } from "pocketbase";
+  import type { ListResult, UnsubscribeFunc } from "pocketbase";
 
   export let selected: { [key: string]: string[] } = {};
   let chartRef: Scatter;
@@ -28,6 +28,7 @@
     },
   };
 
+  let subscriptions: UnsubscribeFunc[] = [];
   let data = {};
   refreshChart();
 
@@ -38,7 +39,13 @@
   }
 
   async function refreshChart() {
-    let dataValues: Map<string, ListResult<any>> = new Map();
+    // Unsubscribe from previous collections
+    for (const unsub of subscriptions) {
+      unsub();
+    }
+    subscriptions = [];
+
+    let dataValues: Map<string, Record<any, any>[]> = new Map();
     let dataSets = [];
 
     // Populate the datasets array with the data from the dataset map
@@ -48,6 +55,15 @@
       if (entry[1].length > 0) {
         // Download the data
         const collection = pb.collection(entry[0]);
+
+        let unsub = await collection.subscribe("*", (data) => {
+          let val = dataValues.get(entry[0]) ?? { items: [] };
+          dataValues.set(entry[0], data.record);
+          refreshChart();
+        });
+
+        subscriptions.push(unsub);
+
         const data = await collection.getList(3, 20, {
           sort: "created",
           $autoCancel: false,
