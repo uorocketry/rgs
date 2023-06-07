@@ -3,10 +3,11 @@
   import { LatLngBounds } from "leaflet";
   import { onInterval } from "$lib/common/utils";
   import { browser } from "$app/environment";
-  import { onSocket } from "$lib/common/socket";
-  import type { Message } from "../../../../hydra_provider/bindings/Message";
-  import type { Sensor } from "../../../../hydra_provider/bindings/Sensor";
-  import type { Data } from "../../../../hydra_provider/bindings/Data";
+  import { get } from "svelte/store";
+  import { sensor } from "$lib/stores";
+  import { onDestroy, onMount } from "svelte";
+
+  // FIXME: The mock rocket position reports the rocket as being in the middle of the Gulf of Guinea (northwest of South Africa)
 
   let map: L.Map | null;
 
@@ -20,18 +21,21 @@
     (blBound[1] + tlBound[1]) / 2,
   ];
 
-  const mockRocketStartPos: L.LatLngTuple = [
-    45.415210720923476, -75.7511577908654,
-  ];
-  let mockRocketMarker: L.Marker<any>;
+  const mockRocketStartPos: L.LatLngLiteral = {
+    lat: 45.415210720923476,
+    lng: -75.7511577908654,
+  };
+
+  let rocketMarker: L.Marker<any>;
 
   const MAX_ZOOM = 14;
   const MIN_ZOOM = 5;
   const INITIAL_ZOOM = 10;
 
-  let target: L.LatLngTuple = mockRocketStartPos;
+  let target: L.LatLngLiteral = mockRocketStartPos;
+
   if (browser) {
-    mockRocketMarker = L.marker(mockRocketStartPos, {
+    rocketMarker = L.marker(mockRocketStartPos, {
       icon: L.divIcon({
         // Maybe some custom checkpoints?
         html: "🚀",
@@ -39,23 +43,21 @@
       }),
     });
 
-    onSocket("RocketMessage", (msg: Message) => {
-      const data: Data = msg.data as { sensor: Sensor };
-      if (data.sensor?.data?.Sbg == null) return;
-      const sbg = data.sensor.data.Sbg;
-      target = [sbg.latitude, sbg.longitude];
-      console.log("Updating Rocket Position", target);
+    const unsub = sensor.subscribe((sens) => {
+      target = {
+        lat: sens.data.Sbg.latitude,
+        lng: sens.data.Sbg.longitude,
+      };
     });
-
-    // Lerp the rocket marker to the target
+    onDestroy(unsub);
     onInterval(() => {
-      let curPos: L.LatLng = mockRocketMarker.getLatLng();
+      let curPos: L.LatLng = rocketMarker.getLatLng();
       const lerpFactor = 0.01;
-      let lerpedPos: L.LatLngTuple = [
-        curPos.lat + lerpFactor * (target[0] - curPos.lat),
-        curPos.lng + lerpFactor * (target[1] - curPos.lng),
+      let interpolatedPos: L.LatLngTuple = [
+        curPos.lat + lerpFactor * (target.lat - curPos.lat),
+        curPos.lng + lerpFactor * (target.lng - curPos.lng),
       ];
-      mockRocketMarker.setLatLng(lerpedPos);
+      rocketMarker.setLatLng(interpolatedPos);
     }, 10);
   }
 
@@ -90,7 +92,7 @@
     map = createMap(container);
     toolbar.addTo(map);
 
-    mockRocketMarker.addTo(map);
+    rocketMarker.addTo(map);
     return {
       destroy: () => {
         toolbar.remove();
