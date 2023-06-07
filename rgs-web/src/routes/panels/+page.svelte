@@ -5,10 +5,15 @@
   import GenericSbgGraph from "$lib/components/Panels/GenericSbgGraph.svelte";
   import "golden-layout/dist/css/themes/goldenlayout-dark-theme.css";
   import type { LayoutConfig } from "golden-layout";
+  import RadioStatus from "$lib/components/radio/RadioStatus.svelte";
+  import ErrorRate from "$lib/components/radio/ErrorRate.svelte";
+  import MissedMessage from "$lib/components/radio/MissedMessage.svelte";
 
   const components = {
-    SmartNavBall,
-    GenericSbgGraph,
+    NavBall,
+    ErrorRate,
+    MissedMessage,
+    RadioStatus,
   } as const;
 
   // LayoutConfig where componentType is keyof components
@@ -35,18 +40,16 @@
         {
           title: "Pressure Chart",
           type: "component",
-          componentType: "GenericSbgGraph",
-          componentState: {
-            selected: ["pressure"],
-          },
+          componentType: "RadioStatus",
         },
         {
           title: "Height Chart",
           type: "component",
-          componentType: "GenericSbgGraph",
-          componentState: {
-            selected: ["height"],
-          },
+          componentType: "MissedMessage",
+        },
+        {
+          type: "component",
+          componentType: "ErrorRate",
         },
       ],
     },
