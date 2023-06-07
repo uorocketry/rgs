@@ -45,7 +45,6 @@
     }
     subscriptions = [];
 
-    let dataValues: Map<string, Record<any, any>[]> = new Map();
     let dataSets = [];
 
     // Populate the datasets array with the data from the dataset map
@@ -56,31 +55,18 @@
         // Download the data
         const collection = pb.collection(entry[0]);
 
-        let unsub = await collection.subscribe("*", (data) => {
-          let val = dataValues.get(entry[0]) ?? { items: [] };
-          dataValues.set(entry[0], data.record);
-          refreshChart();
-        });
-
-        subscriptions.push(unsub);
+        // subscriptions.push(unsub);
 
         const data = await collection.getList(3, 20, {
           sort: "created",
           $autoCancel: false,
         });
-        dataValues.set(entry[0], data);
+        // dataValues.set(entry[0], data);
 
         // Crete line datasets
         const fields = entry[1];
-
         for (const key of fields) {
-          const values = data.items.map((item) => {
-            return {
-              x: Date.parse(item.created),
-              y: item[key],
-            };
-          });
-          dataSets.push({
+          let dataset = {
             label: formatVariableName(key),
             lineTension: 0.0,
             // FIXME: If you resize the window, the colors change
@@ -88,7 +74,17 @@
             pointBorderWidth: 10,
             pointHoverRadius: 10,
             pointHoverBorderWidth: 2,
-            data: values,
+            data: [], // x, y pairs
+          };
+          dataSets.push(dataset);
+
+          // Create subscriber
+          let unsub = await collection.subscribe("*", (data) => {
+            // Add the new data to the dataset
+            dataset.data.push({
+              x: Date.parse(data.record.created),
+              y: data.record[key],
+            });
           });
         }
       }
