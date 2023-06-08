@@ -1,19 +1,19 @@
 <script lang="ts">
-  import "svelte-golden-layout/css/themes/goldenlayout-light-theme.css";
+  import "../../goldenlayout.css";
   import GoldenLayout from "svelte-golden-layout";
   import SmartNavBall from "$lib/components/smart/SmartNavBall.svelte";
   import GenericSbgGraph from "$lib/components/Panels/GenericSbgGraph.svelte";
-  import "golden-layout/dist/css/themes/goldenlayout-dark-theme.css";
   import type { LayoutConfig } from "golden-layout";
   import RadioStatus from "$lib/components/radio/RadioStatus.svelte";
   import ErrorRate from "$lib/components/radio/ErrorRate.svelte";
   import MissedMessage from "$lib/components/radio/MissedMessage.svelte";
 
   const components = {
-    NavBall,
+    SmartNavBall,
     ErrorRate,
     MissedMessage,
     RadioStatus,
+    GenericSbgGraph,
   } as const;
 
   // LayoutConfig where componentType is keyof components
@@ -29,26 +29,50 @@
   };
 
   const layout: LayoutCfg = {
+    settings: {
+      showPopoutIcon: false,
+    },
     root: {
       type: "row",
       content: [
         {
           type: "component",
-          title: "SmartNavBall",
+          title: "Nav Ball",
           componentType: "SmartNavBall",
         },
+        // {
+        //   title: "Pressure Chart",
+        //   type: "component",
+        //   componentType: "GenericSbgGraph",
+        //   componentState: {
+        //     selected: {
+        //       sbg: ["pressure"],
+        //     },
+        //   },
+        // },
         {
-          title: "Pressure Chart",
           type: "component",
+          title: "Radio Status",
           componentType: "RadioStatus",
+        },
+        {
+          type: "component",
+          title: "Missed Messages",
+          componentType: "MissedMessage",
         },
         {
           title: "Height Chart",
           type: "component",
-          componentType: "MissedMessage",
+          componentType: "GenericSbgGraph",
+          componentState: {
+            selected: {
+              sbg: ["height"],
+            },
+          },
         },
         {
           type: "component",
+          title: "Error Rate",
           componentType: "ErrorRate",
         },
       ],
@@ -56,7 +80,10 @@
   };
 </script>
 
-<div class="w-full h-full">
+<!--  background: hsl(var(--a));
+  opacity: 0.25; -->
+
+<div class="w-full h-full p-1 bg-accent/25">
   <GoldenLayout config={layout} let:componentType let:componentState>
     <svelte:component this={components[componentType]} {...componentState} />
   </GoldenLayout>

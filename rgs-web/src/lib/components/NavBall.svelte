@@ -91,7 +91,7 @@
 
 <div
   class="w-full h-full grid place-items-center"
-  bind:this={container}
-  bind:clientHeight
-  bind:clientWidth
-/>
+  bind:this="{container}"
+  bind:clientHeight="{clientHeight}"
+  bind:clientWidth="{clientWidth}"
+></div>

@@ -1,13 +1,8 @@
 import Chart, { type ChartOptions } from "chart.js/auto";
-import { isDarkTheme } from "./utils";
 
 export function defaultChartOptions(): ChartOptions {
-  let color = "black";
+  let color = "white";
   Chart.defaults.borderColor = "black";
-  if (isDarkTheme()) {
-    Chart.defaults.borderColor = "white";
-    color = "white";
-  }
 
   return {
     responsive: true,

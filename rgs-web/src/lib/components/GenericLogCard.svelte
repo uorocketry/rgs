@@ -1,7 +1,7 @@
 <script lang="ts">
-  import type { ZMQMessage } from "$lib/common/Message";
+  import type { Message } from "$lib/common/bindings";
 
-  export let msg: ZMQMessage;
+  export let msg: Message;
   let t = Date.now();
 
   function formatData(data: any) {
@@ -39,7 +39,7 @@
       {msg.sender}
       <div class="flex-1 text-end">
         <p class="text-sm">
-          {timeFormat.format(msg.timestamp)}
+          {timeFormat.format(1)}
         </p>
       </div>
     </div>

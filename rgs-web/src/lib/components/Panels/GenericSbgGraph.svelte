@@ -1,113 +1,180 @@
 <script lang="ts" type="module">
-  import { onSocket } from "$lib/common/socket";
-  import { formatVariableName, onInterval } from "$lib/common/utils";
+  import {
+    formatVariableName,
+    getRandomHexColorFromString,
+  } from "$lib/common/utils";
 
-  import type { Message } from "../../../../../hydra_provider/bindings/Message";
-  import type { Data } from "../../../../../hydra_provider/bindings/Data";
-  import type { Sensor } from "../../../../../hydra_provider/bindings/Sensor";
-  import Scatter from "svelte-chartjs/src/Scatter.svelte";
+  import { Scatter } from "svelte-chartjs";
   import CheckboxSelect from "../CheckboxSelect.svelte";
+  import { collectionFields } from "$lib/common/dao";
+  import { pb } from "$lib/stores";
+  import type { UnsubscribeFunc } from "pocketbase";
 
-  let timestamp: bigint[] = [];
-  export let selected: string[] = [];
-  // String to tuple array (timestamp, value)
-  let dataSet = new Map<string, [bigint, number][]>();
-  let chartRef: Scatter;
+  export let selected: { [key: string]: string[] } = {};
 
-  // All possible fields (generated from the first message)
-  let fields = new Set<string>(selected);
-
-  $: {
-    if (selected.length > 0) {
-      onLabelChange();
-    }
-  }
-
-  function onLabelChange() {
-    timestamp = [];
-
-    if (chartRef) {
-      refreshChart();
-    }
-  }
-
-  onSocket("RocketMessage", (msg: Message) => {
-    const data: Data = msg.data as { sensor: Sensor };
-    if (data.sensor?.data?.Sbg == null) return;
-    const sbg = data.sensor.data.Sbg;
-
-    // For all selected fields, add the data to the dataset
-    let newFieldCreated = false;
-    fields.forEach((field) => {
-      if (dataSet.has(field)) {
-        dataSet.get(field)?.push([msg.timestamp, (sbg as any)[field]]);
-      } else {
-        dataSet.set(field, [[msg.timestamp, (sbg as any)[field]]]);
-        newFieldCreated = true;
-      }
-    });
-    if (newFieldCreated) {
-      refreshChart();
-    }
-
-    timestamp.push(msg.timestamp);
-
-    const sbgFields = Object.keys(sbg);
-    fields = new Set([...fields, ...sbgFields]);
-
-    if (chartRef) {
-      chartRef.$set({ data: dataline });
-    }
-  });
-
-  let dataline = {};
-  refreshChart();
-
-  function randomCol(): string {
-    return `rgb(${Math.random() * 255}, ${Math.random() * 255}, ${
-      Math.random() * 255
-    })`;
-  }
-
-  function refreshChart() {
-    let ds: any[] = [];
-    // Populate the datasets array with the data from the dataset map
-    dataSet.forEach((value, key) => {
-      if (!selected.includes(key)) return;
-      ds.push({
-        label: formatVariableName(key),
-        lineTension: 0.3,
-        // Funny enough, if you resize the window, the colors change
-        borderColor: randomCol(),
-        pointBorderWidth: 10,
-        pointHoverRadius: 10,
-        pointHoverBorderWidth: 2,
-        data: value,
-      });
-    });
-
-    dataline = {
-      labels: timestamp,
-      datasets: ds,
-    };
-    if (chartRef) {
-      chartRef.$set({ data: dataline });
-    }
-  }
-</script>
-
-<CheckboxSelect
-  dropdownLabel={"Y-Axis"}
-  options={Array.from(fields)}
-  bind:selected
-/>
-
-<Scatter
-  bind:this={chartRef}
-  bind:data={dataline}
-  options={{
-    responsive: true,
+  const options = {
     maintainAspectRatio: false,
     showLine: true,
-  }}
-/>
+    // Update x axis to convert timestamp to date
+    scales: {
+      x: {
+        ticks: {
+          callback: function (tickValue: string | number) {
+            let date = new Date(Number(tickValue));
+            return date.toLocaleTimeString();
+          },
+        },
+      },
+    },
+  };
+
+  let subscriptions: UnsubscribeFunc[] = [];
+
+  let datasetsRef: any[] = [];
+
+  refreshChart();
+
+  function createDataset(name: string, colorSeed: string) {
+    return {
+      label: formatVariableName(name),
+      lineTension: 0.0,
+      borderColor: getRandomHexColorFromString(colorSeed),
+      pointBorderWidth: 10,
+      pointHoverRadius: 10,
+      pointHoverBorderWidth: 2,
+      data: [{ x: 0, y: 0 }],
+    };
+  }
+
+  const POINT_LIMIT = 10;
+  let dataRecords: Map<string, { x: number; y: number }[]> = new Map();
+
+  let debounceTimeout: ReturnType<typeof setTimeout> | null = null;
+  async function setChart(datasets: any[]) {
+    if (debounceTimeout) {
+      console.log("Clearing timeout");
+      clearTimeout(debounceTimeout);
+    }
+
+    debounceTimeout = setTimeout(() => {
+      console.log("Setting chart");
+      datasetsRef = datasets;
+      debounceTimeout = null;
+    }, 5);
+  }
+
+  async function refreshChart() {
+    // Unsubscribe from previous collections
+    for (const unsub of subscriptions) {
+      unsub();
+    }
+    subscriptions = [];
+
+    let datasets: any[] = [];
+
+    // Populate the datasets array with the data from the dataset map
+    let canUpdate = false;
+    for (const entry of Object.entries(selected)) {
+      if (entry[1].length > 0) {
+        // Download the data
+        const collection = pb.collection(entry[0]);
+
+        // Crete line datasets
+        const fields = entry[1];
+        4;
+        for (const key of fields) {
+          const recordKey = entry[0] + key;
+
+          let dataset: any = createDataset(key, entry[0] + key);
+
+          datasets.push(dataset);
+
+          // Create subscriber
+          let unsub = await collection.subscribe("*", (data) => {
+            // Add the new data to the dataset
+            if (!canUpdate) {
+              return;
+            }
+
+            if (!dataRecords.has(recordKey)) {
+              dataRecords.set(recordKey, []);
+            }
+            let dataPoints = dataRecords.get(recordKey) ?? [];
+            dataset.data = dataPoints;
+
+            // Add the new data point
+            if (data.action === "create") {
+              dataPoints.push({
+                x: Date.parse(data.record.created),
+                y: data.record[key],
+              });
+
+              if (dataPoints.length > POINT_LIMIT * 2) {
+                dataPoints.splice(0, POINT_LIMIT / 2);
+              }
+
+              datasetsRef = datasets;
+            }
+          });
+          subscriptions.push(unsub);
+        }
+      }
+    }
+
+    canUpdate = true;
+  }
+
+  let clientWidth = 0;
+  let clientHeight = 0;
+
+  // HACK To force restart of the chart component
+  let restart = 0;
+  let restartCount = 0;
+
+  $: {
+    clientHeight;
+    clientWidth;
+    restartCount += 1;
+    if (restartCount % 2 == 0) {
+      restart += 1;
+    }
+  }
+
+  $: if (selected) {
+    refreshChart();
+  }
+
+  // Update collection entries
+  let collectionsEntries: { key: string; value: string[] }[] = [];
+  collectionFields.subscribe((fields) => {
+    collectionsEntries = [];
+    for (const [key, value] of fields.entries()) {
+      collectionsEntries.push({ key, value });
+    }
+    collectionsEntries = [...collectionsEntries];
+  });
+</script>
+
+<div class="w-full h-full flex flex-col" bind:clientHeight bind:clientWidth>
+  <div>
+    <!-- TODO: Checkbox not working(???) -->
+    {#each collectionsEntries as collection}
+      <CheckboxSelect
+        dropdownLabel={formatVariableName(collection.key)}
+        options={collection.value ?? []}
+        bind:selected={selected[collection.key]}
+      />
+    {/each}
+  </div>
+
+  <div class="flex-1 p-2">
+    {#key restart}
+      <Scatter
+        {options}
+        data={{
+          datasets: datasetsRef,
+        }}
+      />
+    {/key}
+  </div>
+</div>
