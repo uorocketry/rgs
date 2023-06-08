@@ -41,26 +41,26 @@
           title: "SmartNavBall",
           componentType: "SmartNavBall",
         },
-        {
-          title: "Pressure Chart",
-          type: "component",
-          componentType: "GenericSbgGraph",
-          componentState: {
-            selected: {
-              sbg: ["pressure"],
-            },
-          },
-        },
+        // {
+        //   title: "Pressure Chart",
+        //   type: "component",
+        //   componentType: "GenericSbgGraph",
+        //   componentState: {
+        //     selected: {
+        //       sbg: ["pressure"],
+        //     },
+        //   },
+        // },
         {
           type: "component",
           title: "Radio Status",
           componentType: "RadioStatus",
         },
-        // {
-        //   type: "component",
-        //   title: "Missed Messages",
-        //   componentType: "MissedMessage",
-        // },
+        {
+          type: "component",
+          title: "Missed Messages",
+          componentType: "MissedMessage",
+        },
         {
           title: "Height Chart",
           type: "component",
@@ -71,11 +71,11 @@
             },
           },
         },
-        // {
-        //   type: "component",
-        //   title: "Error Rate",
-        //   componentType: "ErrorRate",
-        // },
+        {
+          type: "component",
+          title: "Error Rate",
+          componentType: "ErrorRate",
+        },
       ],
     },
   };

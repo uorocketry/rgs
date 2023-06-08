@@ -167,7 +167,7 @@
     {/each}
   </div>
 
-  <div class="flex-1">
+  <div class="flex-1 p-2">
     {#key restart}
       <Scatter
         {options}
