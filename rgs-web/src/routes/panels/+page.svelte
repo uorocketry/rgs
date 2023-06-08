@@ -1,6 +1,5 @@
 <script lang="ts">
   import "../../goldenlayout.css";
-  // import "golden-layout/dist/css/themes/goldenlayout-dark-theme.css";
   import GoldenLayout from "svelte-golden-layout";
   import SmartNavBall from "$lib/components/smart/SmartNavBall.svelte";
   import GenericSbgGraph from "$lib/components/Panels/GenericSbgGraph.svelte";
