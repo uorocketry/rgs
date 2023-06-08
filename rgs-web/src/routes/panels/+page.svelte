@@ -38,7 +38,7 @@
       content: [
         {
           type: "component",
-          title: "SmartNavBall",
+          title: "Nav Ball",
           componentType: "SmartNavBall",
         },
         // {
