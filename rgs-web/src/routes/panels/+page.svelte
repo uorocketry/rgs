@@ -5,10 +5,15 @@
   import SmartNavBall from "$lib/components/smart/SmartNavBall.svelte";
   import GenericSbgGraph from "$lib/components/Panels/GenericSbgGraph.svelte";
   import type { LayoutConfig } from "golden-layout";
+  import RadioStatus from "$lib/components/radio/RadioStatus.svelte";
+  import ErrorRate from "$lib/components/radio/ErrorRate.svelte";
+  import MissedMessage from "$lib/components/radio/MissedMessage.svelte";
 
   const components = {
-    SmartNavBall,
-    GenericSbgGraph,
+    NavBall,
+    ErrorRate,
+    MissedMessage,
+    RadioStatus,
   } as const;
 
   // LayoutConfig where componentType is keyof components
@@ -44,6 +49,7 @@
               sbg: ["pressure"],
             },
           },
+          componentType: "RadioStatus",
         },
         {
           title: "Height Chart",
@@ -54,6 +60,11 @@
               sbg: ["height"],
             },
           },
+          componentType: "MissedMessage",
+        },
+        {
+          type: "component",
+          componentType: "ErrorRate",
         },
       ],
     },
@@ -64,7 +75,7 @@
   opacity: 0.25; -->
 
 <div class="w-full h-full p-1 bg-accent/25">
-  <GoldenLayout config="{layout}" let:componentType let:componentState>
-    <svelte:component this="{components[componentType]}" {...componentState} />
+  <GoldenLayout config={layout} let:componentType let:componentState>
+    <svelte:component this={components[componentType]} {...componentState} />
   </GoldenLayout>
 </div>
