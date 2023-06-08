@@ -15,8 +15,6 @@
 
   let textInput: HTMLInputElement;
   function submitMessage(event: Event) {
-    console.log("submitting message");
-    console.log(event);
     const input = event.target as HTMLInputElement;
     const message = textInput.value;
     socket?.emit("chat", {
@@ -34,7 +32,7 @@
 </script>
 
 <div class="h-full grid grid-cols-2">
-  <div class="flex  flex-col p-4 gap-2">
+  <div class="flex flex-col p-4 gap-2">
     <p>TODO: Check-In with your peers and connection status</p>
     <div class="flex-1 card bg-base-200 rounded-xl overflow-auto">
       {#each messages as message}
@@ -53,10 +51,10 @@
 
     <!-- Text input -->
 
-    <form on:submit|preventDefault="{submitMessage}">
+    <form on:submit|preventDefault={submitMessage}>
       <input
         name="message"
-        bind:this="{textInput}"
+        bind:this={textInput}
         type="text"
         placeholder="Type your message here..."
         class="input input-accent w-full"

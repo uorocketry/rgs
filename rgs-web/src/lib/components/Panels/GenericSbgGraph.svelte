@@ -50,18 +50,6 @@
   let dataRecords: Map<string, { x: number; y: number }[]> = new Map();
 
   let debounceTimeout: ReturnType<typeof setTimeout> | null = null;
-  async function setChart(datasets: any[]) {
-    if (debounceTimeout) {
-      console.log("Clearing timeout");
-      clearTimeout(debounceTimeout);
-    }
-
-    debounceTimeout = setTimeout(() => {
-      console.log("Setting chart");
-      datasetsRef = datasets;
-      debounceTimeout = null;
-    }, 5);
-  }
 
   async function refreshChart() {
     // Unsubscribe from previous collections
