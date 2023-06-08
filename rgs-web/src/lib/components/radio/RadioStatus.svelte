@@ -12,19 +12,23 @@
 </script>
 
 <div class="w-full h-full overflow-x-auto">
-  <table class="table w-full">
+  <table class="table table-sm table-pin-rows w-full">
     <thead>
       <tr>
-        <th class="rounded-none">Field</th>
-        <th class="rounded-none">Value</th>
+        <th>Field</th>
+        <th>Value</th>
       </tr>
     </thead>
     <tbody>
       <!-- Iterate over the entries of the current_msg object -->
       {#if current_msg}
         {#each Object.entries(current_msg) as [key, val]}
-          <tr class="hover">
-            <th class="text-left">{key}</th>
+          <!-- On click, copy the value to the clipboard and add a visual effect -->
+          <tr
+            on:click={() => navigator.clipboard.writeText(`${key},${val}`)}
+            class="hover clicky cursor-pointer"
+          >
+            <td class="text-left">{key}</td>
             <td class="text-right">{val}</td>
           </tr>
         {/each}

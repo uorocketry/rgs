@@ -57,3 +57,32 @@ html {
 ::-webkit-scrollbar-corner {
   background: rgba(0, 0, 0, 0);
 }
+
+/* Clicky */
+
+.clicky {
+  cursor: pointer;
+  position: relative;
+  transition-duration: 200ms;
+  transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+  animation: button-pop var(--animation-btn, 0.25s) ease-out;
+}
+
+.clicky:active:hover,
+.clicky:active:focus {
+  animation: button-pop 0s ease-out;
+  transform: scale(var(--btn-focus-scale, 0.97));
+}
+.clicky:hover {
+  border-color: hsl(var(--b3) / var(--tw-border-opacity));
+  background-color: hsl(var(--b3) / var(--tw-bg-opacity));
+}
+
+/* Clickboard */
+
+/* Add a clipboard emoji absolutely positioned before the text */
+.clipboard-left::before {
+  position: absolute;
+  content: "📋";
+  left: 0.5rem;
+}
