@@ -16,7 +16,6 @@
       if (s?.data?.Sbg == null) return;
       const sbg = s.data.Sbg;
       targetRotation.set(sbg.quant_x, sbg.quant_y, sbg.quant_z, sbg.quant_w);
-      console.log(targetRotation);
       targetRotation = targetRotation;
       eulerRepr.setFromQuaternion(targetRotation);
       eulerRepr = eulerRepr;

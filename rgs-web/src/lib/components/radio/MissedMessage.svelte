@@ -57,7 +57,6 @@
     restartCount += 1;
     if (restartCount % 2 == 0) {
       restart += 1;
-      console.log("restart");
     }
   }
 </script>
