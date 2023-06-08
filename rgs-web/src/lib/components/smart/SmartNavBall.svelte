@@ -25,45 +25,51 @@
 </script>
 
 <div class="w-full h-full p-2 flex flex-col">
-  <!-- On clip copy quat to clipboard -->
-  <div class="w-full flex flex-wrap">
-    <button
-      class="btn btn-sm flex-1"
-      on:click={() =>
-        navigator.clipboard.writeText(JSON.stringify(targetRotation))}
-    >
-      Copy Quat
-    </button>
+  <div>
+    <div class=" flex flex-wrap">
+      <button
+        class="btn btn-sm flex-1"
+        on:click={() =>
+          navigator.clipboard.writeText(JSON.stringify(targetRotation))}
+      >
+        Copy Quat
+      </button>
 
-    <button
-      class="btn btn-sm flex-1"
-      on:click={() =>
-        navigator.clipboard.writeText(JSON.stringify(eulerRepr.toArray()))}
-    >
-      Copy Euler
-    </button>
+      <button
+        class="btn btn-sm flex-1"
+        on:click={() =>
+          navigator.clipboard.writeText(JSON.stringify(eulerRepr.toArray()))}
+      >
+        Copy Euler
+      </button>
+    </div>
+
+    <div class="flex">
+      <span class="flex-1">Quat</span>
+      <span class="flex-1">{targetRotation.x.toFixed(2)}</span>
+      <span class="flex-1">{targetRotation.y.toFixed(2)}</span>
+      <span class="flex-1">{targetRotation.z.toFixed(2)}</span>
+      <span class="flex-1">{targetRotation.w.toFixed(2)}</span>
+    </div>
+
+    <!-- Pitch yaw row -->
+    <div class="grid grid-cols-2">
+      <span>Pitch</span>
+      <span class="text-right"
+        >{MathUtils.radToDeg(eulerRepr.x).toFixed(2)}°</span
+      >
+      <span>Yaw</span>
+      <span class="text-right"
+        >{MathUtils.radToDeg(eulerRepr.y).toFixed(2)}°</span
+      >
+      <span>Roll</span>
+      <span class="text-right"
+        >{MathUtils.radToDeg(eulerRepr.z).toFixed(2)}°</span
+      >
+    </div>
   </div>
 
-  <div class="flex w-full">
-    <span class="flex-1">Quat</span>
-    <span class="flex-1">{targetRotation.x.toFixed(2)}</span>
-    <span class="flex-1">{targetRotation.y.toFixed(2)}</span>
-    <span class="flex-1">{targetRotation.z.toFixed(2)}</span>
-    <span class="flex-1">{targetRotation.w.toFixed(2)}</span>
+  <div class="flex-1 overflow-hidden">
+    <NavBall bind:targetRotation />
   </div>
-
-  <!-- Pitch yaw row -->
-  <div class="grid grid-cols-2">
-    <span>Pitch</span>
-    <span class="text-right">{MathUtils.radToDeg(eulerRepr.x).toFixed(2)}°</span
-    >
-    <span>Yaw</span>
-    <span class="text-right">{MathUtils.radToDeg(eulerRepr.y).toFixed(2)}°</span
-    >
-    <span>Roll</span>
-    <span class="text-right">{MathUtils.radToDeg(eulerRepr.z).toFixed(2)}°</span
-    >
-  </div>
-
-  <NavBall bind:targetRotation />
 </div>

@@ -26,9 +26,20 @@
   let clientWidth: number;
   let clientHeight: number;
   $: if (renderer) {
+    clientWidth;
+    clientHeight;
     // Keep aspect ratio (1/1) with black bars
     let size = Math.min(clientWidth, clientHeight);
     renderer.setSize(size, size);
+    console.log("Resized renderer to", size, size);
+  } else {
+    console.log("Renderer not yet initialized");
+  }
+
+  $: {
+    clientWidth;
+    clientHeight;
+    console.log("Resized");
   }
 
   onMount(() => {
@@ -91,7 +102,7 @@
 
 <div
   class="w-full h-full grid place-items-center"
-  bind:this="{container}"
-  bind:clientHeight="{clientHeight}"
-  bind:clientWidth="{clientWidth}"
-></div>
+  bind:this={container}
+  bind:clientHeight
+  bind:clientWidth
+/>
