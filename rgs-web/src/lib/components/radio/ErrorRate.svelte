@@ -3,7 +3,6 @@
   import type { LinkStatus } from "../../../../../hydra_provider/bindings/LinkStatus";
   import { onSocket, socket } from "$lib/common/socket";
   import Speedometer from "svelte-speedometer";
-  import { isDarkTheme } from "../../common/utils";
 
   let radio_msg: LinkStatus[] = [];
   let text_color: string;
@@ -16,11 +15,7 @@
     radio_msg = [...radio_msg, msg];
   });
 
-  if (isDarkTheme()) {
-    text_color = "white";
-  } else {
-    text_color = "black";
-  }
+  text_color = "black";
 
   $: if (clientHeight && clientWidth) {
     let minDim = Math.min(clientHeight, clientWidth);

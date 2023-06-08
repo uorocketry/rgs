@@ -12,7 +12,6 @@
 
   export let selected: { [key: string]: string[] } = {};
 
-  console.log("Initializing graph");
   const options = {
     maintainAspectRatio: false,
     showLine: true,
@@ -112,9 +111,7 @@
 
               if (dataPoints.length > POINT_LIMIT * 2) {
                 dataPoints.splice(0, POINT_LIMIT / 2);
-                console.log("Removing points");
               }
-              console.log("Datapoints size: " + dataPoints.length);
 
               datasetsRef = datasets;
             }

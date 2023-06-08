@@ -10,10 +10,11 @@
   import MissedMessage from "$lib/components/radio/MissedMessage.svelte";
 
   const components = {
-    NavBall,
+    SmartNavBall,
     ErrorRate,
     MissedMessage,
     RadioStatus,
+    GenericSbgGraph,
   } as const;
 
   // LayoutConfig where componentType is keyof components
@@ -49,8 +50,17 @@
               sbg: ["pressure"],
             },
           },
+        },
+        {
+          type: "component",
+          title: "Radio Status",
           componentType: "RadioStatus",
         },
+        // {
+        //   type: "component",
+        //   title: "Missed Messages",
+        //   componentType: "MissedMessage",
+        // },
         {
           title: "Height Chart",
           type: "component",
@@ -60,12 +70,12 @@
               sbg: ["height"],
             },
           },
-          componentType: "MissedMessage",
         },
-        {
-          type: "component",
-          componentType: "ErrorRate",
-        },
+        // {
+        //   type: "component",
+        //   title: "Error Rate",
+        //   componentType: "ErrorRate",
+        // },
       ],
     },
   };
