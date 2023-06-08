@@ -13,7 +13,6 @@
 
 <div class="w-full h-full overflow-x-auto">
   <table class="table w-full">
-    <!-- head -->
     <thead>
       <tr>
         <th class="rounded-none">Field</th>
@@ -21,7 +20,7 @@
       </tr>
     </thead>
     <tbody>
-      <!-- For each key val of current msg -->
+      <!-- Iterate over the entries of the current_msg object -->
       {#if current_msg}
         {#each Object.entries(current_msg) as [key, val]}
           <tr class="hover">
