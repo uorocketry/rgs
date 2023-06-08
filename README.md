@@ -6,28 +6,30 @@ In this repository you may find the:
   - hydra_provider: The ZeroMQ proxy server
 - Rocket Ground Station Web Application
   - rgs-web: The web application
-  - ws-server: The websocket server
+    - io: Socket.IO proxy server
+    - db: Persistent storage backend
 
 ## How to run
 
-The application can be run locally by using the following commands:
+### hydra_provider
+
+Check the **Build and run** section in this [README](https://github.com/uorocketry/rgs/blob/24ee2dd0feac205fe080345babce9c57cf63626b/hydra_provider/README.md)
+
 
 ### rgs-web
 
+Make sure to read the database's [README](https://github.com/uorocketry/rgs/blob/main/rgs-web/db/README.Md)
+
 ```bash
 cd rgs-web
+# Create databse admin
+cd db
+./pocketbase admin create admin@db.com adminadmin
+../
+# Now on rgs-web folder
 pnpm install
 pnpm dev
 ```
-
-### hydra_provider
-
-```bash
-cargo build
-cargo run -- -r -z 3002
-```
-
-As of now the hydra provider port is [hardcored in rgs-web]([https://](https://github.com/uorocketry/rgs/blob/a4d3ed4c31c5a392d4cf58b708f6f9fba854fed7/rgs-web/src-server/server.ts#L60))
 
 ## Troubleshooting
 
