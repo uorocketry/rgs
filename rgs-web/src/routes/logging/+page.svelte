@@ -63,7 +63,7 @@
       <p>Showing {start}-{end} of {logs.length} rows</p>
       <p>
         Ping:
-        <span class={ping > RUNNING_SLOW_THRESHOLD ? "text-error" : ""}>
+        <span class="{ping > RUNNING_SLOW_THRESHOLD ? 'text-error' : ''}">
           ~{ping} ms
         </span>
       </p>
@@ -77,32 +77,32 @@
       <!-- Filter reverse -->
       <div
         class="tooltip tooltip-right"
-        data-tip={!reverseLogs
-          ? "Showing oldest first"
-          : "Showing newest first"}
+        data-tip="{!reverseLogs
+          ? 'Showing oldest first'
+          : 'Showing newest first'}"
       >
         <label class="btn btn-square swap">
           <!-- this hidden checkbox controls the state -->
-          <input type="checkbox" bind:checked={reverseLogs} />
+          <input type="checkbox" bind:checked="{reverseLogs}" />
 
           <!-- volume on icon -->
-          <i class="swap-on fill-current fa-solid fa-arrow-down-a-z" />
+          <i class="swap-on fill-current fa-solid fa-arrow-down-a-z"></i>
           <!-- volume off icon -->
           <!-- <i class="swap-off fill-current fa-duotone fa-sort-up"></i> -->
-          <i class="swap-off fa-solid fa-arrow-up-z-a" />
+          <i class="swap-off fa-solid fa-arrow-up-z-a"></i>
         </label>
       </div>
     </div>
   </div>
 
   <VirtualList
-    items={reverseLogs ? logs.slice().reverse() : logs}
+    items="{reverseLogs ? logs.slice().reverse() : logs}"
     let:item
-    bind:start
-    bind:end
+    bind:start="{start}"
+    bind:end="{end}"
   >
     <div class="my-2">
-      <GenericLogCard msg={item} />
+      <GenericLogCard msg="{item}" />
     </div>
   </VirtualList>
 </div>
