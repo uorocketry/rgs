@@ -53,11 +53,11 @@
 	}
 </script>
 
-<div class="w-full h-full flex flex-col items-center p-2" bind:clientHeight bind:clientWidth>
+<div class="w-full h-full flex flex-col p-2" bind:clientHeight bind:clientWidth>
 	<div class="flex-1">
 		{#key restart}
 			<Bar bind:data options={{ responsive: true, maintainAspectRatio: false }} />
 		{/key}
 	</div>
-	<p>Total Messages: {totalMessages}</p>
+  <p class="text-center">Total Messages: {totalMessages}</p>
 </div>
