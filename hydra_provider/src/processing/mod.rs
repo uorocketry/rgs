@@ -17,8 +17,8 @@ pub enum InputData {
     MavlinkHeartbeat(),
 }
 
-#[derive(Serialize, Deserialize, Clone, Debug, From, TS)]
-#[ts(export)]
+#[derive(Serialize, Deserialize, Clone, Debug, From)]
+// #[ts(export)]
 pub enum ProcessedMessage {
     RocketMessage(messages::Message),
     LinkStatus(LinkStatus),
