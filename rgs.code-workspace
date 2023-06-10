@@ -1,0 +1,14 @@
+{
+	"folders": [
+		{
+			"path": "."
+		},
+		{
+			"path": "./rgs-web"
+		},
+		{
+			"path": "./hydra_provider"
+		}
+	],
+	"settings": {}
+}

@@ -32,7 +32,7 @@ The RECDIR will:
 
 - Communicate with the FIDO and RECFO to determine the landing location
 - Track flight path of the vehicle more specifically the expected landing location
-  
+
 ### (EEMAN) Electrical & Environmental Monitoring and Analysis Manager
 
 Responsible for the monitoring analysis of the electrical and environmental systems.
