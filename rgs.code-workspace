@@ -4,10 +4,10 @@
 			"path": "."
 		},
 		{
-			"path": "../rgs-web"
+			"path": "./rgs-web"
 		},
 		{
-			"path": "../rust-mavlink"
+			"path": "./hydra_provider"
 		}
 	],
 	"settings": {}
