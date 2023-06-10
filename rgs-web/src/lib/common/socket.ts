@@ -1,11 +1,11 @@
-import { browser } from "$app/environment";
-import { onDestroy } from "svelte";
-import io from "socket.io-client";
-import type { Socket } from "socket.io";
-import type { Unsubscriber } from "svelte/store";
-import type { ReservedOrUserEventNames, ReservedOrUserListener } from "socket.io/dist/typed-events";
-import type { ClientToServerEvents, ServerToClientEvents } from "./Message";
-import type { SocketReservedEventsMap } from "socket.io/dist/socket";
+import { browser } from '$app/environment';
+import { onDestroy } from 'svelte';
+import io from 'socket.io-client';
+import type { Socket } from 'socket.io';
+import type { Unsubscriber } from 'svelte/store';
+import type { ReservedOrUserEventNames, ReservedOrUserListener } from 'socket.io/dist/typed-events';
+import type { ClientToServerEvents, ServerToClientEvents } from './Message';
+import type { SocketReservedEventsMap } from 'socket.io/dist/socket';
 
 /**
  * The client's socket connection to the server. Value is null on the server.
@@ -13,37 +13,37 @@ import type { SocketReservedEventsMap } from "socket.io/dist/socket";
  */
 export let socket: Socket<ServerToClientEvents, ClientToServerEvents> | null = null;
 
-export let uuid = "";
-export let secret = "";
+export let uuid = '';
+export let secret = '';
 
 const initSocket = () => {
-  console.log("Initializing socket");
+	console.log('Initializing socket');
 
-  // Check if we have a uuid in local storage
-  uuid = localStorage.getItem("uuid") || "";
-  secret = localStorage.getItem("secret") || "";
-  if (!uuid || !secret) {
-    // If not, generate one
-    uuid = self.crypto.randomUUID();
-    secret = self.crypto.randomUUID();
-    localStorage.setItem("uuid", uuid);
-    localStorage.setItem("secret", secret);
-  }
+	// Check if we have a uuid in local storage
+	uuid = localStorage.getItem('uuid') || '';
+	secret = localStorage.getItem('secret') || '';
+	if (!uuid || !secret) {
+		// If not, generate one
+		uuid = self.crypto.randomUUID();
+		secret = self.crypto.randomUUID();
+		localStorage.setItem('uuid', uuid);
+		localStorage.setItem('secret', secret);
+	}
 
-  socket = io() as unknown as Socket;
-  socket.on("connect", () => {
-    console.log("Connected to server");
-  });
-  socket.on("disconnect", () => {
-    console.error("Lost connection to server");
-  });
+	socket = io() as unknown as Socket;
+	socket.on('connect', () => {
+		console.log('Connected to server');
+	});
+	socket.on('disconnect', () => {
+		console.error('Lost connection to server');
+	});
 
-  socket.on("message", (data: string) => {
-    console.log("Received message from server: ", data);
-  });
+	socket.on('message', (data: string) => {
+		console.log('Received message from server: ', data);
+	});
 
-  // Emit a login message to the server with our uuid
-  socket.emit("login", uuid, secret);
+	// Emit a login message to the server with our uuid
+	socket.emit('login', uuid, secret);
 };
 
 // TODO: improve typings
@@ -55,28 +55,20 @@ const initSocket = () => {
  * @param data The data to send.
  */
 export function onSocket<
-  Ev extends ReservedOrUserEventNames<
-    SocketReservedEventsMap,
-    ServerToClientEvents
-  >,
-  Cb extends ReservedOrUserListener<
-    SocketReservedEventsMap,
-    ServerToClientEvents,
-    Ev
-  >
+	Ev extends ReservedOrUserEventNames<SocketReservedEventsMap, ServerToClientEvents>,
+	Cb extends ReservedOrUserListener<SocketReservedEventsMap, ServerToClientEvents, Ev>
 >(event: Ev, callback: Cb) {
-  //@ts-ignore FIXME: why does this not work?
-  socket?.on(event, callback);
+	socket?.on(event, callback);
 
-  onDestroy(() => {
-    socket?.off(event, callback);
-  });
-  let unsubscriber: Unsubscriber = () => {
-    socket?.off(event, callback);
-  };
-  return unsubscriber;
+	onDestroy(() => {
+		socket?.off(event, callback);
+	});
+	const unsubscriber: Unsubscriber = () => {
+		socket?.off(event, callback);
+	};
+	return unsubscriber;
 }
 
 if (browser) {
-  initSocket();
+	initSocket();
 }
