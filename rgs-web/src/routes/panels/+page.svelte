@@ -7,7 +7,6 @@
     layoutConfig,
     virtualLayout,
   } from "$lib/common/layoutStore";
-  import CommandPallete from "$lib/components/CommandPallete.svelte";
 
   let goldenLayout: VirtualLayout;
 

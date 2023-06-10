@@ -5,11 +5,11 @@
   import "@fortawesome/fontawesome-free/css/all.min.css";
 
   import Header from "$lib/components/Header.svelte";
-  import CommandPallete from "$lib/components/CommandPallete.svelte";
+  import MasterCommandBox from "$lib/components/commandPallete/MasterCommandBox.svelte";
 </script>
 
 <div id="wrapper" class="wrapper">
-  <CommandPallete />
+  <MasterCommandBox />
   <header>
     <Header />
   </header>

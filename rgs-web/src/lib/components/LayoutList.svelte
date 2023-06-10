@@ -10,7 +10,7 @@
   import { layoutConfig, virtualLayout } from "$lib/common/layoutStore";
   import { get } from "svelte/store";
 
-  let layouts = new Map<string, ResolvedLayoutConfig>();
+  let layouts = new Map<string, { name: string; data: ResolvedLayoutConfig }>();
 
   let unsubscribeF: UnsubscribeFunc | undefined = undefined;
   onMount(async () => {
@@ -18,12 +18,15 @@
       $autoCancel: false,
     });
     layouts = new Map(
-      allLayouts.map((l) => [l.id, l.export().data as ResolvedLayoutConfig])
+      allLayouts.map((l) => [l.id, { name: l.name, data: l.export().data }])
     );
     unsubscribeF = await pb.collection("layouts").subscribe("*", (data) => {
       // data.action is create, update, delete
       if (data.action === "create" || data.action === "update") {
-        layouts.set(data.record.id, data.record.data);
+        layouts.set(data.record.id, {
+          name: data.record.name,
+          data: data.record.data,
+        });
       } else if (data.action === "delete") {
         layouts.delete(data.record.id);
       }
@@ -54,9 +57,9 @@
   // }
 
   function loadLayout(layoutId: string) {
-    let resolvedConfig = layouts.get(layoutId);
-    if (!resolvedConfig) return;
-    layoutConfig.set(LayoutConfig.fromResolved(resolvedConfig));
+    let layout = layouts.get(layoutId);
+    if (!layout) return;
+    layoutConfig.set(LayoutConfig.fromResolved(layout.data));
   }
 
   let toDelete: string | undefined = undefined;
@@ -113,7 +116,7 @@
                 {/if}
               </button>
             </td>
-            <td class="text-left">{key}</td>
+            <td class="text-left">{val.name}</td>
             <td class="text-right">{val}</td>
           </tr>
         {/each}
