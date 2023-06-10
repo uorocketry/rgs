@@ -38,21 +38,11 @@ export let layoutConfig: Writable<LayoutConfig> = writable({
         title: "Layouts",
         componentType: "LayoutList",
       },
-      // {
-      //   title: "Pressure Chart",
-      //   type: "component",
-      //   componentType: "GenericSbgGraph",
-      //   componentState: {
-      //     selected: {
-      //       sbg: ["pressure"],
-      //     },
-      //   },
-      // },
-      // {
-      //   type: "component",
-      //   title: "RadioStatus",
-      //   componentType: "RadioStatus",
-      // },
+      {
+        type: "component",
+        title: "RadioStatus",
+        componentType: "RadioStatus",
+      },
       {
         type: "component",
         title: "MissedMessages",

@@ -1,14 +1,9 @@
 <script lang="ts">
-  import { pb } from "../stores";
-  import { getContext, onDestroy, onMount } from "svelte";
+  import { layoutConfig } from "$lib/common/layoutStore";
+  import { LayoutConfig, type ResolvedLayoutConfig } from "golden-layout";
   import type { UnsubscribeFunc } from "pocketbase";
-  import {
-    LayoutConfig,
-    type ResolvedLayoutConfig,
-    type VirtualLayout,
-  } from "golden-layout";
-  import { layoutConfig, virtualLayout } from "$lib/common/layoutStore";
-  import { get } from "svelte/store";
+  import { onDestroy, onMount } from "svelte";
+  import { pb } from "../stores";
 
   let layouts = new Map<string, { name: string; data: ResolvedLayoutConfig }>();
 
@@ -38,24 +33,6 @@
     unsubscribeF?.();
   });
 
-  function savePanels() {
-    let vLayout = get(virtualLayout);
-    if (!vLayout) return;
-    let saved = vLayout.saveLayout();
-
-    pb.collection("layouts").create({
-      name: "test",
-      data: JSON.stringify(saved),
-    });
-  }
-
-  // function restorePanels() {
-  //   const str = localStorage.getItem("panels");
-  //   if (!str) return;
-  //   const saved = JSON.parse(str) as ResolvedLayoutConfig;
-  //   layout = LayoutConfig.fromResolved(saved);
-  // }
-
   function loadLayout(layoutId: string) {
     let layout = layouts.get(layoutId);
     if (!layout) return;
@@ -80,10 +57,6 @@
 </script>
 
 <div class="w-full h-full overflow-x-auto">
-  <div class="w-full flex p-2 gap-2">
-    <button class="btn flex-1" on:click={savePanels}> Save Panels </button>
-    <!-- <button class="btn flex-1" on:click={loadLayout}> Restore Panels </button> -->
-  </div>
   <table class="table table-sm table-pin-rows w-full">
     <thead>
       <tr>
