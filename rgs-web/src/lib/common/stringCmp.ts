@@ -7,32 +7,32 @@
  * @returns a number between 0 and 1, where 1 is a perfect match
  */
 export function getStringDifference(first: string, second: string) {
-  first = first.replace(/\s+/g, "");
-  second = second.replace(/\s+/g, "");
+	first = first.replace(/\s+/g, '');
+	second = second.replace(/\s+/g, '');
 
-  if (first === second) return 1; // identical or empty
-  if (first.length < 2 || second.length < 2) return 0; // if either is a 0-letter or 1-letter string
+	if (first === second) return 1; // identical or empty
+	if (first.length < 2 || second.length < 2) return 0; // if either is a 0-letter or 1-letter string
 
-  let firstBigrams = new Map();
-  for (let i = 0; i < first.length - 1; i++) {
-    const bigram = first.substring(i, i + 2);
-    const count = firstBigrams.has(bigram) ? firstBigrams.get(bigram) + 1 : 1;
+	let firstBigrams = new Map();
+	for (let i = 0; i < first.length - 1; i++) {
+		const bigram = first.substring(i, i + 2);
+		const count = firstBigrams.has(bigram) ? firstBigrams.get(bigram) + 1 : 1;
 
-    firstBigrams.set(bigram, count);
-  }
+		firstBigrams.set(bigram, count);
+	}
 
-  let intersectionSize = 0;
-  for (let i = 0; i < second.length - 1; i++) {
-    const bigram = second.substring(i, i + 2);
-    const count = firstBigrams.has(bigram) ? firstBigrams.get(bigram) : 0;
+	let intersectionSize = 0;
+	for (let i = 0; i < second.length - 1; i++) {
+		const bigram = second.substring(i, i + 2);
+		const count = firstBigrams.has(bigram) ? firstBigrams.get(bigram) : 0;
 
-    if (count > 0) {
-      firstBigrams.set(bigram, count - 1);
-      intersectionSize++;
-    }
-  }
+		if (count > 0) {
+			firstBigrams.set(bigram, count - 1);
+			intersectionSize++;
+		}
+	}
 
-  return (2.0 * intersectionSize) / (first.length + second.length - 2);
+	return (2.0 * intersectionSize) / (first.length + second.length - 2);
 }
 
 /**
@@ -42,32 +42,29 @@ export function getStringDifference(first: string, second: string) {
  * @param targetStrings
  * @returns an array with the score of each string in the array
  */
-export function getStringScores(
-  baseString: string,
-  stringLst: string[]
-): number[] {
-  baseString = baseString.toLowerCase();
-  // Calculate starts with score
-  let scores: number[] = stringLst.map((curStr) => {
-    curStr = curStr.toLocaleLowerCase().replace("-", " ");
-    if (curStr === baseString) {
-      return 4;
-    }
-    // Starting or ending with gets priority over including
-    if (curStr.startsWith(baseString)) {
-      return 3;
-    }
+export function getStringScores(baseString: string, stringLst: string[]): number[] {
+	baseString = baseString.toLowerCase();
+	// Calculate starts with score
+	let scores: number[] = stringLst.map((curStr) => {
+		curStr = curStr.toLocaleLowerCase().replace('-', ' ');
+		if (curStr === baseString) {
+			return 4;
+		}
+		// Starting or ending with gets priority over including
+		if (curStr.startsWith(baseString)) {
+			return 3;
+		}
 
-    // Starting or ending with gets priority over including
-    if (curStr.endsWith(baseString)) {
-      return 2;
-    }
+		// Starting or ending with gets priority over including
+		if (curStr.endsWith(baseString)) {
+			return 2;
+		}
 
-    if (curStr.includes(baseString)) {
-      return 1;
-    }
-    return getStringDifference(baseString, curStr);
-  });
+		if (curStr.includes(baseString)) {
+			return 1;
+		}
+		return getStringDifference(baseString, curStr);
+	});
 
-  return scores;
+	return scores;
 }
