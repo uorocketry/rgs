@@ -70,7 +70,6 @@
       return;
     }
     let action = get(commandActions)[choice];
-    console.log("Action chosen:", action);
     action.do();
   }
 

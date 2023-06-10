@@ -89,7 +89,7 @@
       <tr>
         <th />
         <th>Layout Name</th>
-        <th>Key binds</th>
+        <th>Layout ID</th>
       </tr>
     </thead>
     <tbody>
@@ -117,7 +117,7 @@
               </button>
             </td>
             <td class="text-left">{val.name}</td>
-            <td class="text-right">{val}</td>
+            <td class="text-right">{key}</td>
           </tr>
         {/each}
       {:else}

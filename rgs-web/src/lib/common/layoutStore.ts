@@ -18,6 +18,8 @@ export const layoutComponents = {
   LayoutList,
 } as const;
 
+export const layoutComponentsString = Object.keys(layoutComponents);
+
 export let virtualLayout: Writable<VirtualLayout | undefined> = writable();
 export let layoutConfig: Writable<LayoutConfig> = writable({
   settings: {

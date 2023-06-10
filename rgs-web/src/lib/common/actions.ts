@@ -1,5 +1,10 @@
 import { get, writable, type Writable } from "svelte/store";
-import { virtualLayout } from "./layoutStore";
+import {
+  layoutComponentsString,
+  layoutConfig,
+  virtualLayout,
+} from "./layoutStore";
+import { LayoutConfig } from "golden-layout";
 import { pb } from "$lib/stores";
 
 export interface CommandAction {
@@ -33,6 +38,7 @@ export let commandActions: Writable<CommandAction[]> = writable([
       alert(alertMsg);
     },
   },
+  // Layout Actions
   {
     name: "Layout: Save Layout",
     do: async () => {
@@ -49,6 +55,39 @@ export let commandActions: Writable<CommandAction[]> = writable([
         name: layoutName,
         data: JSON.stringify(saved),
       });
+    },
+  },
+  {
+    name: "Layout: Load Layout",
+    do: async () => {
+      let cmd = get(commandReqAdaptor);
+      if (!cmd) return;
+
+      // Load layouts from server
+      let layouts = await pb.collection("layouts").getFullList();
+      let layoutNames = layouts.map((l) => l.name);
+
+      let layoutIndex = await cmd.select("Layout name?", layoutNames);
+      if (layoutIndex === undefined) return;
+      let layout = layouts[layoutIndex];
+      layoutConfig.set(LayoutConfig.fromResolved(layout.data));
+    },
+  },
+  {
+    name: "Layout: Add Component",
+    do: async () => {
+      let cmd = get(commandReqAdaptor);
+      if (!cmd) return;
+
+      let toAdd = await cmd.select("Component to add?", layoutComponentsString);
+      if (toAdd === undefined) return;
+      let vLayout = get(virtualLayout);
+      if (!vLayout) return;
+      vLayout.addComponent(
+        layoutComponentsString[toAdd],
+        undefined,
+        layoutComponentsString[toAdd]
+      );
     },
   },
   {

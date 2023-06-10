@@ -4,6 +4,7 @@
   import type { VirtualLayout } from "golden-layout";
   import {
     layoutComponents,
+    layoutComponentsString,
     layoutConfig,
     virtualLayout,
   } from "$lib/common/layoutStore";
