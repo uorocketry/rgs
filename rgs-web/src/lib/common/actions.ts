@@ -17,19 +17,19 @@ const defaultAdapterResponse = async () => {
 	console.log('No command request adaptor set');
 	return undefined;
 };
-export let commandReqAdaptor: Writable<CommandRequest> = writable({
+export const commandReqAdaptor: Writable<CommandRequest> = writable({
 	string: defaultAdapterResponse,
 	select: defaultAdapterResponse
 });
 
-export let commandActions: Writable<CommandAction[]> = writable([
+export const commandActions: Writable<CommandAction[]> = writable([
 	{
 		name: 'Developer: Alert Test',
 		do: async () => {
-			let cmd = get(commandReqAdaptor);
+			const cmd = get(commandReqAdaptor);
 			if (!cmd) return;
 
-			let alertMsg = await cmd.string('Alert Message?', 'Hello World');
+			const alertMsg = await cmd.string('Alert Message?', 'Hello World');
 			console.log('Alert Test: ' + alertMsg);
 			alert(alertMsg);
 		}
@@ -38,15 +38,15 @@ export let commandActions: Writable<CommandAction[]> = writable([
 	{
 		name: 'Layout: Save Layout',
 		do: async () => {
-			let cmd = get(commandReqAdaptor);
+			const cmd = get(commandReqAdaptor);
 			if (!cmd) return;
 
-			let layoutName = await cmd.string('Layout name?', 'Recovery Layout');
+			const layoutName = await cmd.string('Layout name?', 'Recovery Layout');
 			if (!layoutName) return;
 			console.log('Saving layout: ' + layoutName);
-			let vLayout = get(virtualLayout);
+			const vLayout = get(virtualLayout);
 			if (!vLayout) return;
-			let saved = vLayout.saveLayout();
+			const saved = vLayout.saveLayout();
 			pb.collection('layouts').create({
 				name: layoutName,
 				data: JSON.stringify(saved)
@@ -56,28 +56,28 @@ export let commandActions: Writable<CommandAction[]> = writable([
 	{
 		name: 'Layout: Load Layout',
 		do: async () => {
-			let cmd = get(commandReqAdaptor);
+			const cmd = get(commandReqAdaptor);
 			if (!cmd) return;
 
 			// Load layouts from server
-			let layouts = await pb.collection('layouts').getFullList();
-			let layoutNames = layouts.map((l) => l.name);
+			const layouts = await pb.collection('layouts').getFullList();
+			const layoutNames = layouts.map((l) => l.name);
 
-			let layoutIndex = await cmd.select('Layout name?', layoutNames);
+			const layoutIndex = await cmd.select('Layout name?', layoutNames);
 			if (layoutIndex === undefined) return;
-			let layout = layouts[layoutIndex];
+			const layout = layouts[layoutIndex];
 			layoutConfig.set(LayoutConfig.fromResolved(layout.data));
 		}
 	},
 	{
 		name: 'Layout: Add Component',
 		do: async () => {
-			let cmd = get(commandReqAdaptor);
+			const cmd = get(commandReqAdaptor);
 			if (!cmd) return;
 
-			let toAdd = await cmd.select('Component to add?', layoutComponentsString);
+			const toAdd = await cmd.select('Component to add?', layoutComponentsString);
 			if (toAdd === undefined) return;
-			let vLayout = get(virtualLayout);
+			const vLayout = get(virtualLayout);
 			if (!vLayout) return;
 			vLayout.addComponent(layoutComponentsString[toAdd], undefined, layoutComponentsString[toAdd]);
 		}

@@ -20,8 +20,8 @@ export const layoutComponents = {
 
 export const layoutComponentsString = Object.keys(layoutComponents);
 
-export let virtualLayout: Writable<VirtualLayout | undefined> = writable();
-export let layoutConfig: Writable<LayoutConfig> = writable({
+export const virtualLayout: Writable<VirtualLayout | undefined> = writable();
+export const layoutConfig: Writable<LayoutConfig> = writable({
 	settings: {
 		showPopoutIcon: false
 	},

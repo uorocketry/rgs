@@ -9,7 +9,7 @@ export const minMaxCreated = writable<Map<Collection, [number, number]>>(new Map
 
 (async () => {
 	const map = new Map<Collection, string[]>();
-	let firstItems = await Promise.all(
+	const firstItems = await Promise.all(
 		collections.map((collection) =>
 			pb.collection(collection).getFirstListItem('', {
 				sort: 'created',
@@ -18,7 +18,7 @@ export const minMaxCreated = writable<Map<Collection, [number, number]>>(new Map
 		)
 	);
 
-	let lastItems = await Promise.all(
+	const lastItems = await Promise.all(
 		collections.map((collection) =>
 			pb.collection(collection).getFirstListItem('', {
 				sort: '-created',

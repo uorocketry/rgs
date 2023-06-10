@@ -1,6 +1,6 @@
 <!-- Checkbox group -->
 <script lang="ts">
-	export let dropdownLabel: string = 'Options';
+	export let dropdownLabel = 'Options';
 	export let options: string[] = [];
 	export let selected: string[] = [];
 </script>

@@ -6,7 +6,7 @@
 	import { onSocket } from '$lib/common/socket';
 	import TimeCounter from './TimeCounter.svelte';
 
-	let themeState: boolean = false;
+	let themeState = false;
 	let socketOK = writable(false);
 	onSocket('connect', () => {
 		socketOK.set(true);

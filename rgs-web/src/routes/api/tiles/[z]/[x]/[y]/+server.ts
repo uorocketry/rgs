@@ -13,8 +13,8 @@ if (!existsSync(tilesDir)) {
 }
 
 console.log('Reading tiles cached files from: ', tilesDir);
-let downloadedTiles = new Set(readdirSync(tilesDir));
-let cache = new LRUCache<string, ArrayBufferLike>(4000); // Save up to 4_000 tiles in memory
+const downloadedTiles = new Set(readdirSync(tilesDir));
+const cache = new LRUCache<string, ArrayBufferLike>(4000); // Save up to 4_000 tiles in memory
 console.log('Cache has tiles: ', downloadedTiles.size);
 function getTileFileName(z: string, x: string, y: string) {
 	const f = `${z}-${x}-${y}`;
@@ -26,7 +26,7 @@ function getTileFileName(z: string, x: string, y: string) {
 
 async function getTileImage(z: string, x: string, y: string): Promise<ArrayBufferLike> {
 	const fileName = getTileFileName(z, x, y);
-	let cached = cache.get(fileName);
+	const cached = cache.get(fileName);
 	// Image is in memory
 	if (cached) {
 		return cached;
@@ -43,9 +43,9 @@ async function getTileImage(z: string, x: string, y: string): Promise<ArrayBuffe
 	// const urlTemplate = "https://tile.openstreetmap.org/{z}/{y}/{x}.png";
 	const urlTemplate = 'http://mt2.google.com/vt/lyrs=s,h&x={y}&y={x}&z={z}';
 	const url = urlTemplate.replace('{z}', z).replace('{x}', x).replace('{y}', y);
-	let res = await fetch(url);
+	const res = await fetch(url);
 	console.log('Downloading TILE from: ', url);
-	let buffer = Buffer.from(await res.arrayBuffer());
+	const buffer = Buffer.from(await res.arrayBuffer());
 	cache.put(fileName, buffer);
 	writeFile(`${tilesDir}/${fileName}`, buffer, (err) => {
 		if (err) {

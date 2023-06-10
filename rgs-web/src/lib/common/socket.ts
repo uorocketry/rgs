@@ -64,7 +64,7 @@ export function onSocket<
 	onDestroy(() => {
 		socket?.off(event, callback);
 	});
-	let unsubscriber: Unsubscriber = () => {
+	const unsubscriber: Unsubscriber = () => {
 		socket?.off(event, callback);
 	};
 	return unsubscriber;

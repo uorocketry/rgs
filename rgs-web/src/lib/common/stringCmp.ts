@@ -13,7 +13,7 @@ export function getStringDifference(first: string, second: string) {
 	if (first === second) return 1; // identical or empty
 	if (first.length < 2 || second.length < 2) return 0; // if either is a 0-letter or 1-letter string
 
-	let firstBigrams = new Map();
+	const firstBigrams = new Map();
 	for (let i = 0; i < first.length - 1; i++) {
 		const bigram = first.substring(i, i + 2);
 		const count = firstBigrams.has(bigram) ? firstBigrams.get(bigram) + 1 : 1;
@@ -45,7 +45,7 @@ export function getStringDifference(first: string, second: string) {
 export function getStringScores(baseString: string, stringLst: string[]): number[] {
 	baseString = baseString.toLowerCase();
 	// Calculate starts with score
-	let scores: number[] = stringLst.map((curStr) => {
+	const scores: number[] = stringLst.map((curStr) => {
 		curStr = curStr.toLocaleLowerCase().replace('-', ' ');
 		if (curStr === baseString) {
 			return 4;

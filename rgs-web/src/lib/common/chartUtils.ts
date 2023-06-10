@@ -1,7 +1,7 @@
 import Chart, { type ChartOptions } from 'chart.js/auto';
 
 export function defaultChartOptions(): ChartOptions {
-	let color = 'white';
+	const color = 'white';
 	Chart.defaults.borderColor = 'black';
 
 	return {

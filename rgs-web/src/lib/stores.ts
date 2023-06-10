@@ -26,7 +26,7 @@ export const sensorProxy = new Proxy(initSensor.data.Sbg, {
 });
 initSensor.data.Sbg = sensorProxy;
 
-export let sensor: Writable<Sensor> = writable(initSensor);
+export const sensor: Writable<Sensor> = writable(initSensor);
 
 if (browser) {
 	socket?.on('RocketMessage', (msg: Message) => {

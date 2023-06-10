@@ -16,7 +16,7 @@
 	let currentRotation: THREE.Quaternion = new THREE.Quaternion();
 	export let targetRotation: THREE.Quaternion = new THREE.Quaternion();
 
-	export let usePerspective: boolean = false;
+	export let usePerspective = false;
 	let perspectiveCamera = new THREE.PerspectiveCamera(60, 1, 0.1, 2);
 	perspectiveCamera.position.z = 2;
 
@@ -69,7 +69,7 @@
 		render();
 	});
 
-	let done: boolean = false;
+	let done = false;
 	onDestroy(() => {
 		done = true;
 		if (browser) {

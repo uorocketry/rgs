@@ -6,14 +6,14 @@
 	import VirtualList from '$lib/components/VirtualList.svelte';
 	import type { Message } from '../../../../hydra_provider/bindings/Message';
 
-	let reverseLogs: boolean = false;
+	let reverseLogs = false;
 	let logs: Message[] = [];
 	let sizes: number[] = [];
 	let start: number;
 	let end: number;
 
-	let clientToServerPing: number = 0;
-	let serverToClientPing: number = 0;
+	let clientToServerPing = 0;
+	let serverToClientPing = 0;
 	$: ping = clientToServerPing + serverToClientPing;
 
 	const MAX_ROWS = 1000;

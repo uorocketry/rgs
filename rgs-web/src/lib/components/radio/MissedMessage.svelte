@@ -7,7 +7,7 @@
 	let missed_msgs: number[] = [];
 	let messages: LinkStatus[] = [];
 	let chartRef: Bar;
-	let totalMessages: number = 0;
+	let totalMessages = 0;
 
 	let data = {
 		labels: timestamp,

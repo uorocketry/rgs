@@ -31,8 +31,8 @@ type Message = {
 };
 
 class User {
-	id: string = '';
-	secret: string = '';
+	id = '';
+	secret = '';
 }
 
 class ServerData {
