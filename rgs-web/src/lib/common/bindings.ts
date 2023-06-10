@@ -1,33 +1,21 @@
-import type { Message } from '$lib/../../../hydra_provider/bindings/Message';
-import type { LinkStatus } from './bindings';
-
+export type { Air } from '$lib/../../../hydra_provider/bindings/Air';
 export type { Data } from '$lib/../../../hydra_provider/bindings/Data';
-export type { LinkStatus } from '$lib/../../../hydra_provider/bindings/LinkStatus';
+export type { EkfNav1 } from '$lib/../../../hydra_provider/bindings/EkfNav1';
+export type { EkfNav2 } from '$lib/../../../hydra_provider/bindings/EkfNav2';
+export type { EkfQuat } from '$lib/../../../hydra_provider/bindings/EkfQuat';
+export type { ErrorContext } from '$lib/../../../hydra_provider/bindings/ErrorContext';
+export type { Event } from '$lib/../../../hydra_provider/bindings/Event';
+export type { GpsVel } from '$lib/../../../hydra_provider/bindings/GpsVel';
+export type { Imu1 } from '$lib/../../../hydra_provider/bindings/Imu1';
+export type { Imu2 } from '$lib/../../../hydra_provider/bindings/Imu2';
+export type { Log } from '$lib/../../../hydra_provider/bindings/Log';
+export type { LogLevel } from '$lib/../../../hydra_provider/bindings/LogLevel';
 export type { Message } from '$lib/../../../hydra_provider/bindings/Message';
-export type { ProcessedMessage } from '$lib/../../../hydra_provider/bindings/ProcessedMessage';
-export type { Sbg } from '$lib/../../../hydra_provider/bindings/Sbg';
 export type { Sender } from '$lib/../../../hydra_provider/bindings/Sender';
-export type { Sensor } from '$lib/../../../hydra_provider/bindings/Sensor';
+export type { SensorData } from '$lib/../../../hydra_provider/bindings/SensorData';
 export type { State } from '$lib/../../../hydra_provider/bindings/State';
 export type { Status } from '$lib/../../../hydra_provider/bindings/Status';
+export type { UtcTime } from '$lib/../../../hydra_provider/bindings/UtcTime';
 
-export interface ChatMessage {
-	timestamp: number;
-	message: string;
-	sender: string;
-}
-export interface ServerToClientEvents {
-	RocketMessage: (message: Message) => void;
-	LinkStatus: (status: LinkStatus) => void;
-	connect: () => void;
-	disconnect: () => void;
-	message: (data: unknown) => void;
-	chat: (data: ChatMessage) => void;
-	loggedUsers: (data: string[]) => void; // List of logged users
-}
 
-export interface ClientToServerEvents {
-	chat: (data: ChatMessage) => void;
-	login: (uuid: string, secret: string) => void;
-	ping: (cb: (n: number) => void) => void;
-}
+

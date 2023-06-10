@@ -1,14 +1,16 @@
 {
-	"folders": [
-		{
-			"path": "."
-		},
-		{
-			"path": "./rgs-web"
-		},
-		{
-			"path": "./hydra_provider"
-		}
-	],
-	"settings": {}
+  "folders": [
+    {
+      "path": "."
+    },
+    {
+      "path": "./rgs-web"
+    },
+    {
+      "path": "./hydra_provider"
+    }
+  ],
+  "settings": {
+    "typescript.tsdk": "rgs-web/node_modules/typescript/lib"
+  }
 }

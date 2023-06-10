@@ -4,7 +4,7 @@ import PocketBase from 'pocketbase';
 // Ayo? 🤨
 import cp from 'child_process';
 import { loggerFactory } from '../logger';
-import type { ProcessedMessage } from '$lib/common/bindings';
+import type { Message } from '../../hydra_provider/bindings/Message';
 export const logger = loggerFactory('db');
 
 export const setupServer = async (http: HTTPServer) => {
@@ -74,21 +74,23 @@ export const setupServer = async (http: HTTPServer) => {
 
 	// Listen and store messages
 	for await (const [msg] of zmqSock) {
-		const obj = JSON.parse(msg.toString()) as ProcessedMessage;
-		if ('RocketMessage' in obj) {
-			const rocketMsg = obj.RocketMessage;
-			if ('state' in rocketMsg.data) {
-				pb.collection('state').create(rocketMsg.data.state);
-				// logger.info("Adding State");
-			} else {
-				pb.collection('sbg').create(rocketMsg.data.sensor.data.Sbg);
-				// logger.info("Adding SBG");
-			}
-		} else if ('LinkStatus' in obj) {
-			pb.collection('link_status').create(obj.LinkStatus);
-			// logger.info("Adding Link Status");
-		} else {
-			logger.error('Unknown message type', obj);
-		}
+		const obj = JSON.parse(msg.toString()) as Message;
+		console.log(obj);
+		pb.collection('raw').create(obj);
+		// if ('RocketMessage' in obj) {
+		// 	const rocketMsg = obj.RocketMessage;
+		// 	if ('state' in rocketMsg.data) {
+		// 		pb.collection('state').create(rocketMsg.data.state);
+		// 		// logger.info("Adding State");
+		// 	} else {
+		// 		pb.collection('sbg').create(rocketMsg.data.sensor.data.Sbg);
+		// 		// logger.info("Adding SBG");
+		// 	}
+		// } else if ('LinkStatus' in obj) {
+		// 	pb.collection('link_status').create(obj.LinkStatus);
+		// 	// logger.info("Adding Link Status");
+		// } else {
+		// 	logger.error('Unknown message type', obj);
+		// }
 	}
 };

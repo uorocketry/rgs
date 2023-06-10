@@ -7,7 +7,7 @@ edition = "2021"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-messages = { path = "/home/jonapap/git/hydra/libraries/messages", features = ["std"], default-features=false }
+messages = { git = "https://github.com/uorocketry/hydra", features = ["std", "ts"], default-features=false }
 serialport = "4.2.0"
 postcard = "1.0.2"
 serde_json = "1.0.91"

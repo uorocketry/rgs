@@ -2,7 +2,6 @@ mod input;
 mod processing;
 mod zeromq_server;
 
-use crate::input::RandomInput;
 use crate::input::SerialInput;
 use crate::processing::{
     InputData, LinkData, LinkStatusProcessing, ProcessedMessage, RocketProcessing,
@@ -85,8 +84,7 @@ fn start_input(args: Args, send: Sender<InputData>) -> JoinHandle<()> {
                     .expect("Could not start serial input")
                     .read_write_loop(send);
             } else {
-                info!("Using random input");
-                RandomInput::new().read_loop(send);
+                info!("Using random input | BROKEN");
             }
         })
         .unwrap()
