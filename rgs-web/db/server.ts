@@ -5,6 +5,10 @@ import PocketBase from 'pocketbase';
 import cp from 'child_process';
 import { loggerFactory } from '../logger';
 import type { Message } from '../../hydra_provider/bindings/Message';
+import type { Data } from '../../hydra_provider/bindings/Data';
+import type { State } from '../../hydra_provider/bindings/State';
+import type { Sensor } from '../../hydra_provider/bindings/Sensor';
+import type { Log } from '../../hydra_provider/bindings/Log';
 export const logger = loggerFactory('db');
 
 export const setupServer = async (http: HTTPServer) => {
@@ -74,23 +78,60 @@ export const setupServer = async (http: HTTPServer) => {
 
 	// Listen and store messages
 	for await (const [msg] of zmqSock) {
-		const obj = JSON.parse(msg.toString()) as Message;
-		console.log(obj);
-		pb.collection('raw').create(obj);
-		// if ('RocketMessage' in obj) {
-		// 	const rocketMsg = obj.RocketMessage;
-		// 	if ('state' in rocketMsg.data) {
-		// 		pb.collection('state').create(rocketMsg.data.state);
-		// 		// logger.info("Adding State");
-		// 	} else {
-		// 		pb.collection('sbg').create(rocketMsg.data.sensor.data.Sbg);
-		// 		// logger.info("Adding SBG");
-		// 	}
-		// } else if ('LinkStatus' in obj) {
-		// 	pb.collection('link_status').create(obj.LinkStatus);
-		// 	// logger.info("Adding Link Status");
-		// } else {
-		// 	logger.error('Unknown message type', obj);
-		// }
+		const obj = JSON.parse(msg.toString());
+		if ('RocketMessage' in obj) {
+			const rocketMsg = obj.RocketMessage;
+			const rocketData = rocketMsg.data as Data;
+			// { state: State } | { sensor: Sensor } | { log: Log };
+			if ('state' in rocketData) {
+				const dataState = rocketData.state as State;
+				console.log("state");
+			} else if ('sensor' in rocketData) {
+				const dataSensor = rocketData.sensor as Sensor;
+				const sensorData = dataSensor.data;
+				if ('UtcTime' in sensorData) {
+					// logger.info('Adding UtcTime');
+				} else if ('Air' in sensorData) {
+					// logger.info('Adding Air');
+				} else if ('EkfQuat' in sensorData) {
+					logger.info("Sending quats");
+					pb.collection("EkfQuat").create({
+						"timestamp": sensorData.EkfQuat.time_stamp,
+						"q0": sensorData.EkfQuat.quaternion[0],
+						"q1": sensorData.EkfQuat.quaternion[1],
+						"q2": sensorData.EkfQuat.quaternion[2],
+						"q3": sensorData.EkfQuat.quaternion[3],
+						"roll": sensorData.EkfQuat.euler_std_dev[0],
+						"pitch": sensorData.EkfQuat.euler_std_dev[1],
+						"yaw": sensorData.EkfQuat.euler_std_dev[2],
+						"status": sensorData.EkfQuat.status,
+					}, {
+						$autoCancel: false
+					});
+					// logger.info('Adding EkfQuat');
+				} else if ('EkfNav1' in sensorData) {
+					// logger.info('Adding EkfNav1');
+				} else if ('EkfNav2' in sensorData) {
+					// logger.info('Adding EkfNav2');
+				} else if ('Imu1' in sensorData) {
+					// console.log(sensorData.Imu1);
+					// logger.info('Adding Imu1');
+				} else if ('Imu2' in sensorData) {
+					// console.log(sensorData.Imu2);
+					// logger.info('Adding Imu2');
+				} else if ('GpsVel' in sensorData) {
+					// logger.info('Adding GpsVel');
+				}
+
+
+			} else if ('log' in rocketData) {
+				const dataLog = rocketData.log as Log;
+				console.log("log");
+			}
+		} else if ('LinkStatus' in obj) {
+			// logger.info('Adding Link Status');
+		} else {
+			// logger.error('Unknown message type', obj);
+		}
 	}
 };

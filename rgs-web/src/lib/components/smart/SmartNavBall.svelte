@@ -2,6 +2,7 @@
 	import { Euler, Quaternion } from 'three';
 	import NavBall from '../NavBall.svelte';
 	import { onMount } from 'svelte';
+	import { pb } from '$lib/stores';
 	import { MathUtils } from 'three';
 	// import type { Sbg } from '$lib/common/bindings';
 
@@ -12,22 +13,32 @@
 	let eulerRepr = new Euler(0, 0, 0, 'XYZ');
 	eulerRepr.setFromQuaternion(targetRotation);
 
-	// onMount(() => {
-	// 	let s = sensor.subscribe((s) => {
-	// 		if (s?.data?.Sbg == null) return;
-	// 		latestSbg = s.data.Sbg;
-	// 		targetRotation.set(
-	// 			latestSbg.quant_x,
-	// 			latestSbg.quant_y,
-	// 			latestSbg.quant_z,
-	// 			latestSbg.quant_w
-	// 		);
-	// 		targetRotation = targetRotation;
-	// 		eulerRepr.setFromQuaternion(targetRotation);
-	// 		eulerRepr = eulerRepr;
-	// 	});
-	// 	return () => s();
-	// });
+	onMount(() => {
+		pb.collection('EkfQuat').subscribe('*', (record) => {
+			if (record.action == 'create') {
+				let data = record.record;
+				targetRotation.set(data.q0, data.q1, data.q2, data.q3);
+				targetRotation = targetRotation;
+				eulerRepr.setFromQuaternion(targetRotation);
+				eulerRepr = eulerRepr;
+			}
+		});
+		// 	let s = sensor.subscribe((s) => {
+		// 		if (s?.data?.Sbg == null) return;
+		// 		latestSbg = s.data.Sbg;
+		// 		targetRotation.set(
+		// 			latestSbg.quant_x,
+		// 			latestSbg.quant_y,
+		// 			latestSbg.quant_z,
+		// 			latestSbg.quant_w
+		// 		);
+		// 		targetRotation = targetRotation;
+		// 		eulerRepr.setFromQuaternion(targetRotation);
+		// 		eulerRepr = eulerRepr;
+		// 	});
+		// 	return () => s();
+		// });
+	});
 </script>
 
 <div class="w-full h-full p-2 flex flex-col">
@@ -59,11 +70,11 @@
 		<!-- Pitch yaw row -->
 		<div class="grid grid-cols-2">
 			<span>Pitch</span>
-			<!-- <span class="text-right">{MathUtils.radToDeg(latestSbg?.pitch ?? 0).toFixed(2)}°</span> -->
+			<span class="text-right">{MathUtils.radToDeg(eulerRepr?.x ?? 0).toFixed(2)}°</span>
 			<span>Yaw</span>
-			<!-- <span class="text-right">{MathUtils.radToDeg(latestSbg?.yaw ?? 0).toFixed(2)}°</span> -->
+			<span class="text-right">{MathUtils.radToDeg(eulerRepr?.y ?? 0).toFixed(2)}°</span>
 			<span>Roll</span>
-			<!-- <span class="text-right">{MathUtils.radToDeg(latestSbg?.roll ?? 0).toFixed(2)}°</span> -->
+			<span class="text-right">{MathUtils.radToDeg(eulerRepr?.z ?? 0).toFixed(2)}°</span>
 		</div>
 	</div>
 
