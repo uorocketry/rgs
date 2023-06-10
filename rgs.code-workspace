@@ -1,0 +1,14 @@
+{
+	"folders": [
+		{
+			"path": "."
+		},
+		{
+			"path": "../rgs-web"
+		},
+		{
+			"path": "../rust-mavlink"
+		}
+	],
+	"settings": {}
+}

@@ -1,6 +1,4 @@
 import type { Message } from '$lib/../../../hydra_provider/bindings/Message';
-import type { ProcessedMessage } from '$lib/../../../hydra_provider/bindings/ProcessedMessage';
-import type { Sender } from '$lib/../../../hydra_provider/bindings/Sender';
 import type { LinkStatus } from './bindings';
 
 export type { Data } from '$lib/../../../hydra_provider/bindings/Data';
@@ -23,7 +21,7 @@ export interface ServerToClientEvents {
 	LinkStatus: (status: LinkStatus) => void;
 	connect: () => void;
 	disconnect: () => void;
-	message: (data: any) => void;
+	message: (data: unknown) => void;
 	chat: (data: ChatMessage) => void;
 	loggedUsers: (data: string[]) => void; // List of logged users
 }

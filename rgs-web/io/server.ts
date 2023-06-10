@@ -12,18 +12,6 @@ import type {
 import { loggerFactory } from '../logger';
 export const logger = loggerFactory('io');
 
-const randomId = () => {
-	return Math.random().toString(36);
-};
-
-enum Role {
-	Spectator = 'spectator',
-	FIDO = 'fido', // Flight Dynamics Officer
-	ASD = 'asd', // Assistant Flight Director
-	INCO = 'inco', // Instrumentation and Communications Officer
-	RECOVERY = 'recovery' // Recovery Officer
-}
-
 type Message = {
 	timestamp: number;
 	message: string;

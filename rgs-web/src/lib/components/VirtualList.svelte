@@ -1,20 +1,21 @@
+<!-- Virtual viewport for infinite scrolling -->
+
 <script lang="ts">
 	import { onMount, tick } from 'svelte';
 
 	// props
-	export let items: any;
+	export let items: unknown[];
 
 	// read-only, but visible to consumers via bind:start
 	export let start = 0;
 	export let end = 0;
 
 	// local state
-	let height_map: any[] = [];
-	let rows: string | any[];
+	let height_map: number[] = [];
+	let rows: HTMLCollectionOf<HTMLElement>;
 	let viewport: any;
-	let contents: any;
+	let contents: HTMLElement;
 	let viewport_height = 0;
-	let visible: any[];
 	let mounted: boolean;
 
 	let top = 0;
@@ -44,7 +45,6 @@
 				await tick(); // render the newly visible row
 				row = rows[i - start];
 			}
-
 			height_map[i] = row.offsetHeight;
 			content_height += height_map[i];
 			i += 1;
@@ -120,43 +120,44 @@
 
 	// trigger initial refresh
 	onMount(() => {
-		rows = contents.getElementsByTagName('svelte-virtual-list-row');
+		rows = contents.getElementsByClassName('viewport-row') as HTMLCollectionOf<HTMLElement>;
 		mounted = true;
 	});
 </script>
 
-<svelte-virtual-list-viewport
+<div
 	bind:this={viewport}
 	bind:offsetHeight={viewport_height}
 	on:scroll={handle_scroll}
-	class="h-full"
+	class="virtual-viewport h-full"
 >
-	<svelte-virtual-list-contents
+	<div
+		class="virtual-contents"
 		bind:this={contents}
 		style="padding-top: {top}px; padding-bottom: {bottom}px;"
 	>
 		{#each visible as row (row.index)}
-			<svelte-virtual-list-row>
+			<div class="viewport-row">
 				<slot item={row.data}>Missing template</slot>
-			</svelte-virtual-list-row>
+			</div>
 		{/each}
-	</svelte-virtual-list-contents>
-</svelte-virtual-list-viewport>
+	</div>
+</div>
 
 <style>
-	svelte-virtual-list-viewport {
+	.virtual-viewport {
 		position: relative;
 		overflow-y: auto;
 		-webkit-overflow-scrolling: touch;
 		display: block;
 	}
 
-	svelte-virtual-list-contents,
-	svelte-virtual-list-row {
+	.virtual-contents,
+	.viewport-row {
 		display: block;
 	}
 
-	svelte-virtual-list-row {
+	.viewport-row {
 		overflow: hidden;
 	}
 </style>

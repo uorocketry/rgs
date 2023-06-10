@@ -2,7 +2,7 @@
 	import { getStringScores } from '$lib/common/stringCmp';
 	import { onDestroy, onMount } from 'svelte/internal';
 
-	const UNDEF_FUN = () => {};
+	const UNDEF_FUN = () => undefined;
 	export let prompt = '';
 	export let placeholder = 'Search';
 	export let list: string[] = [];

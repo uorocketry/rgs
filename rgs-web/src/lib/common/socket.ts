@@ -58,7 +58,6 @@ export function onSocket<
 	Ev extends ReservedOrUserEventNames<SocketReservedEventsMap, ServerToClientEvents>,
 	Cb extends ReservedOrUserListener<SocketReservedEventsMap, ServerToClientEvents, Ev>
 >(event: Ev, callback: Cb) {
-	//@ts-ignore FIXME: why does this not work?
 	socket?.on(event, callback);
 
 	onDestroy(() => {

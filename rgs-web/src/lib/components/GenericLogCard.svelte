@@ -7,16 +7,14 @@
 	function formatData(data: any) {
 		// let canBeNumber = parseFloat(data);
 
-		if (1) {
-			// If not integer, return as float with fixed 8 decimal places
-			if (data % 1 !== 0) {
-				let dataString = data.toString();
-				let decimalIndex = dataString.indexOf('.');
-				let decimalPlaces = dataString.length - decimalIndex - 1;
-				// return `${data.toFixed(8)}`;
-				// TODO: Fix me
-				return data;
-			}
+		// If not integer, return as float with fixed 8 decimal places
+		if (data % 1 !== 0) {
+			let dataString = data.toString();
+			let decimalIndex = dataString.indexOf('.');
+			let decimalPlaces = dataString.length - decimalIndex - 1;
+			// return `${data.toFixed(8)}`;
+			// TODO: Fix me
+			return data;
 		}
 		return data;
 	}

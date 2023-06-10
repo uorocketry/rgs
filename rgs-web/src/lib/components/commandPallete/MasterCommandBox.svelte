@@ -1,13 +1,10 @@
 <script lang="ts">
-	import { browser } from '$app/environment';
-	// import { commandActions, type CommandAction } from "$lib/common/actions";
-	import { getStringScores } from '$lib/common/stringCmp';
 	import { onDestroy, onMount, tick } from 'svelte';
 	import CommandBox from './CommandBox.svelte';
 	import { commandActions, commandReqAdaptor, type CommandRequest } from '$lib/common/actions';
 	import { get } from 'svelte/store';
 
-	let visible = true;
+	let visible = false;
 	let inputElement: HTMLInputElement;
 	let inputValue = '';
 	let list: string[] = [];

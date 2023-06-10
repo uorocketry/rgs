@@ -8,10 +8,6 @@ import type { ProcessedMessage } from '$lib/common/bindings';
 export const logger = loggerFactory('db');
 
 export const setupServer = async (http: HTTPServer) => {
-	// Check if PocketBase is already running
-	let pbServer: cp.ChildProcess;
-	let pb: PocketBase;
-
 	logger.info('Started DB Service');
 	try {
 		// Kill any existing PocketBase instances
@@ -22,7 +18,7 @@ export const setupServer = async (http: HTTPServer) => {
 	}
 
 	logger.info('Starting PocketBase Server');
-	pbServer = cp.spawn('./db/pocketbase', ['serve'], {
+	const pbServer = cp.spawn('./db/pocketbase', ['serve'], {
 		stdio: ['inherit', 'inherit', 'inherit', 'ipc']
 	});
 	// Kill PocketBase server on exit
@@ -34,14 +30,15 @@ export const setupServer = async (http: HTTPServer) => {
 	// Keep calling http://127.0.0.1:8090/api/health until it responds
 	const TIMEOUT = 5000;
 	const start = Date.now();
-	while (true) {
+	let started = false;
+	while (!started) {
 		try {
 			const res = await fetch('http://127.0.0.1:8090/api/health', {
 				method: 'GET'
 			});
 			if (res.status === 200) {
 				logger.info('PocketBase server started successfully');
-				break;
+				started = true;
 			}
 		} catch (e) {
 			// Ignore
@@ -67,11 +64,8 @@ export const setupServer = async (http: HTTPServer) => {
 	}
 
 	logger.info('Connecting to PocketBase server');
-	pb = new PocketBase(`http://127.0.0.1:${process.env.DB_REST_PORT ?? '8090'}`);
-	const auth = await pb.admins.authWithPassword(
-		process.env.DB_ADMIN,
-		process.env.DB_ADMIN_PASSWORD
-	);
+	const pb = new PocketBase(`http://127.0.0.1:${process.env.DB_REST_PORT ?? '8090'}`);
+	await pb.admins.authWithPassword(process.env.DB_ADMIN, process.env.DB_ADMIN_PASSWORD);
 
 	// Setup ZMQ subscriber
 	const zmqSock = new zmq.Subscriber();

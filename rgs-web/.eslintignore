@@ -2,6 +2,8 @@
 node_modules
 /build
 /.svelte-kit
+svelte.config.js
+/db/pb_migrations
 /package
 .env
 .env.*

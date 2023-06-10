@@ -9,7 +9,6 @@
 	<!-- svelte-ignore a11y-label-has-associated-control -->
 	<!-- svelte-ignore a11y-no-noninteractive-tabindex -->
 	<label tabindex="0" class="btn btn-sm m-1">{dropdownLabel}</label>
-	<!-- svelte-ignore a11y-missing-attribute -->
 	<!-- svelte-ignore a11y-no-noninteractive-tabindex -->
 	<div class="dropdown-content">
 		<ul
