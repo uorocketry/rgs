@@ -85,18 +85,8 @@
 	let mapEl: HTMLElement;
 	onMount(() => {
 		map = createMap(mapEl);
-		let mapEl: HTMLElement;
-		onMount(() => {
-			map = createMap(mapEl);
-			toolbar.addTo(map);
-			rocketMarker.addTo(map);
-		});
-
-		onDestroy(() => {
-			toolbar.remove();
-			map?.remove();
-			map = null;
-		});
+		toolbar.addTo(map);
+		rocketMarker.addTo(map);
 	});
 
 	onDestroy(() => {
@@ -116,4 +106,4 @@
 	}
 </script>
 
-<div class="z-auto h-full w-full isolate" bind:this={mapEl} bind:clientHeight bind:clientWidth />
+<div class="h-full w-full isolate" bind:this={mapEl} bind:clientHeight bind:clientWidth />
