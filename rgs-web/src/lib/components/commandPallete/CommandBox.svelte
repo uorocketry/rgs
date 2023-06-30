@@ -1,13 +1,22 @@
 <script lang="ts">
 	import { getStringScores } from '$lib/common/stringCmp';
-	import { onDestroy, onMount } from 'svelte/internal';
+	import { onDestroy, onMount } from 'svelte';
 
 	const UNDEF_FUN = () => undefined;
 	export let prompt = '';
+	export let selectedIndex = 0;
 	export let placeholder = 'Search';
 	export let list: string[] = [];
 	export let inputValue = '';
 	export let inputElement: HTMLInputElement | null = null;
+
+	$: {
+		// Wrap selectedIndex around the list
+		let wrappedVal = (selectedIndex + list.length) % list.length;
+		if (wrappedVal !== selectedIndex) {
+			selectedIndex = wrappedVal;
+		}
+	}
 
 	let _onEnter: (err: boolean) => void = UNDEF_FUN;
 	/**
@@ -46,10 +55,18 @@
 	// Use enter to select the first item (if there is one)
 	let implOnEnter = (e: KeyboardEvent) => {
 		if (e.key === 'Enter') {
-			if (displayedList.length > 0) _onClick(displayedList[0], false);
+			if (displayedList.length > 0) {
+				_onClick(displayedList[selectedIndex], false);
+			}
 			_onEnter(false);
 			_onEnter = UNDEF_FUN;
 			_onClick = UNDEF_FUN;
+		}
+		// Arrow down and up to changed selected index
+		else if (e.key === 'ArrowDown') {
+			selectedIndex++;
+		} else if (e.key === 'ArrowUp') {
+			selectedIndex--;
 		}
 	};
 
@@ -83,7 +100,7 @@
 			{#each displayedList as listIndex, i}
 				<li>
 					<button
-						class:active={i === 0}
+						class:active={i === selectedIndex}
 						on:click={() => {
 							_onClick(listIndex, false);
 							_onClick = UNDEF_FUN;

@@ -1,3 +1,4 @@
+<!-- TODO: Refactor needed,  -->
 <script lang="ts">
 	import type { Message } from '$lib/common/bindings';
 
@@ -5,16 +6,9 @@
 	let t = Date.now();
 
 	function formatData(data: any) {
-		// let canBeNumber = parseFloat(data);
-
-		// If not integer, return as float with fixed 8 decimal places
-		if (data % 1 !== 0) {
-			let dataString = data.toString();
-			let decimalIndex = dataString.indexOf('.');
-			let decimalPlaces = dataString.length - decimalIndex - 1;
-			// return `${data.toFixed(8)}`;
-			// TODO: Fix me
-			return data;
+		// Fixed decimal places for floats
+		if (typeof data === 'number' && data % 1 !== 0) {
+			return data.toFixed(4);
 		}
 		return data;
 	}
