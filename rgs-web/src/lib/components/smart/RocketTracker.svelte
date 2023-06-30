@@ -1,21 +1,16 @@
 <script defer lang="ts" type="module">
 	import L from 'leaflet';
-	import { LatLngBounds } from 'leaflet';
 	import { onInterval } from '$lib/common/utils';
 	import { browser } from '$app/environment';
 	import { sensor } from '$lib/stores';
 	import { onDestroy, onMount } from 'svelte';
+	import { spring } from 'svelte/motion';
 
 	// FIXME: The mock rocket position reports the rocket as being in the middle of the Gulf of Guinea (northwest of South Africa)
 
 	let map: L.Map | null;
 
 	const urlTemplate = '/api/tiles/{z}/{x}/{y}.png';
-
-	const blBound: L.LatLngTuple = [45.36126613049103, -75.7866211272455];
-	const tlBound: L.LatLngTuple = [45.46758335970629, -75.6263392346481];
-
-	const initialView: L.LatLngTuple = [(blBound[0] + tlBound[0]) / 2, (blBound[1] + tlBound[1]) / 2];
 
 	const mockRocketStartPos: L.LatLngLiteral = {
 		lat: 45.415210720923476,
@@ -28,7 +23,21 @@
 	const MIN_ZOOM = 5;
 	const INITIAL_ZOOM = 10;
 
-	let target: L.LatLngLiteral = mockRocketStartPos;
+	let rocketCoords: L.LatLngLiteral = mockRocketStartPos;
+
+	let sprintCoords = spring(
+		{ x: mockRocketStartPos.lat, y: mockRocketStartPos.lng },
+		{
+			stiffness: 0.1,
+			damping: 0.25
+		}
+	);
+	sprintCoords.subscribe((val) => {
+		rocketMarker?.setLatLng({
+			lat: val.x,
+			lng: val.y
+		});
+	});
 
 	if (browser) {
 		rocketMarker = L.marker(mockRocketStartPos, {
@@ -40,33 +49,25 @@
 		});
 
 		const unsub = sensor.subscribe((sens) => {
-			target = {
+			rocketCoords = {
 				lat: sens.data.Sbg.latitude,
 				lng: sens.data.Sbg.longitude
 			};
+			sprintCoords.set({ x: rocketCoords.lat, y: rocketCoords.lng });
+
+			if (map) {
+				map.setView(rocketCoords, map.getZoom());
+			}
 		});
 		onDestroy(unsub);
-		onInterval(() => {
-			let curPos: L.LatLng = rocketMarker.getLatLng();
-			const lerpFactor = 0.01;
-			let interpolatedPos: L.LatLngTuple = [
-				curPos.lat + lerpFactor * (target.lat - curPos.lat),
-				curPos.lng + lerpFactor * (target.lng - curPos.lng)
-			];
-			rocketMarker.setLatLng(interpolatedPos);
-		}, 10);
 	}
-
-	const bounds: L.LatLngBounds = new LatLngBounds(blBound, tlBound);
 
 	function createMap(container: string | HTMLElement) {
 		let m = L.map(container, {
 			preferCanvas: true,
 			worldCopyJump: true,
 			minZoom: MIN_ZOOM
-			// Uncomment to restrict the map to the bounds
-			// maxBounds: bounds,
-		}).setView(initialView, INITIAL_ZOOM);
+		}).setView(mockRocketStartPos, INITIAL_ZOOM);
 
 		L.tileLayer(urlTemplate, {
 			maxNativeZoom: MAX_ZOOM,
@@ -82,7 +83,7 @@
 		return div;
 	};
 
-	let mapEl: HTMLElement;
+	let mapEl: HTMLDivElement;
 	onMount(() => {
 		map = createMap(mapEl);
 		toolbar.addTo(map);
@@ -106,4 +107,27 @@
 	}
 </script>
 
-<div class="h-full w-full" bind:this={mapEl} bind:clientHeight bind:clientWidth />
+<div class="w-full h-full" bind:this={mapEl} bind:clientHeight bind:clientWidth />
+<div class="overlay">
+	<ul class="menu menu-xs bg-base-100 !p-0">
+		<li>
+			<button on:click={() => navigator.clipboard.writeText(`${rocketCoords.lat}`)}
+				>Lat: {rocketCoords.lat.toFixed(5)}</button
+			>
+		</li>
+		<li>
+			<button on:click={() => navigator.clipboard.writeText(`${rocketCoords.lng}`)}
+				>Lng: {rocketCoords.lng.toFixed(5)}</button
+			>
+		</li>
+	</ul>
+</div>
+
+<style>
+	.overlay {
+		position: absolute;
+		top: 0;
+		right: 0;
+		z-index: 1000;
+	}
+</style>

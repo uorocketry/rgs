@@ -11,10 +11,12 @@ import MissedMessage from '$lib/components/radio/MissedMessage.svelte';
 import Map from '$lib/components/Map.svelte';
 import LogViewer from '$lib/components/LogViewer.svelte';
 import Settings from '$lib/components/Settings.svelte';
+import RocketTracker from '$lib/components/smart/RocketTracker.svelte';
 import { browser } from '$app/environment';
 
 export const layoutComponents = {
 	SmartNavBall,
+	RocketTracker,
 	Settings,
 	Map,
 	LogViewer,
