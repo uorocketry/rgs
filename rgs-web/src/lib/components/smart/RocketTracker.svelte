@@ -1,6 +1,5 @@
 <script defer lang="ts" type="module">
 	import L from 'leaflet';
-	import { onInterval } from '$lib/common/utils';
 	import { browser } from '$app/environment';
 	import { sensor } from '$lib/stores';
 	import { onDestroy, onMount } from 'svelte';
@@ -17,7 +16,7 @@
 		lng: -75.7511577908654
 	};
 
-	let rocketMarker: L.Marker<any>;
+	let rocketMarker: L.Marker<unknown>;
 
 	const MAX_ZOOM = 14;
 	const MIN_ZOOM = 5;
@@ -107,20 +106,22 @@
 	}
 </script>
 
-<div class="w-full h-full" bind:this={mapEl} bind:clientHeight bind:clientWidth />
-<div class="overlay">
-	<ul class="menu menu-xs bg-base-100 !p-0">
-		<li>
-			<button on:click={() => navigator.clipboard.writeText(`${rocketCoords.lat}`)}
-				>Lat: {rocketCoords.lat.toFixed(5)}</button
-			>
-		</li>
-		<li>
-			<button on:click={() => navigator.clipboard.writeText(`${rocketCoords.lng}`)}
-				>Lng: {rocketCoords.lng.toFixed(5)}</button
-			>
-		</li>
-	</ul>
+<div class="isolate w-full h-full">
+	<div class="w-full h-full" bind:this={mapEl} bind:clientHeight bind:clientWidth />
+	<div class="overlay">
+		<ul class="menu menu-xs bg-base-100 !p-0">
+			<li>
+				<button on:click={() => navigator.clipboard.writeText(`${rocketCoords.lat}`)}>
+					Lat: {rocketCoords.lat.toFixed(5)}
+				</button>
+			</li>
+			<li>
+				<button on:click={() => navigator.clipboard.writeText(`${rocketCoords.lng}`)}>
+					Lng: {rocketCoords.lng.toFixed(5)}
+				</button>
+			</li>
+		</ul>
+	</div>
 </div>
 
 <style>

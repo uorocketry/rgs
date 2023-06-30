@@ -22,15 +22,15 @@
 	let bottom = 0;
 	let average_height: number;
 
-	$: visible = items.slice(start, end).map((data: any, i: number) => {
+	$: visible = items.slice(start, end).map((data: unknown, i: number) => {
 		return { index: i + start, data };
 	});
 
 	// whenever `items` changes, invalidate the current heightmap
 	$: if (mounted) refresh(items, viewport_height);
 
-	async function refresh(items: string | any[], viewport_height: number) {
-		const { scrollTop } = viewport;
+	async function refresh(items: string | unknown[], viewport_height: number) {
+		const scrollTop = viewport.scrollTop as number;
 
 		await tick(); // wait until the DOM is up to date
 

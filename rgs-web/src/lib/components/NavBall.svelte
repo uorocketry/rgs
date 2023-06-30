@@ -1,6 +1,5 @@
 <script lang="ts" type="module">
 	import { browser } from '$app/environment';
-	import { onInterval } from '$lib/common/utils';
 	import { onDestroy, onMount } from 'svelte';
 	import * as THREE from 'three';
 

@@ -1,6 +1,6 @@
 import { browser } from '$app/environment';
 import { writable, type Writable } from 'svelte/store';
-import type { Message, Sbg, Sensor, State } from './common/bindings';
+import type { Message, Sensor, State } from './common/bindings';
 import { socket } from './common/socket';
 import PocketBase from 'pocketbase';
 
@@ -20,7 +20,7 @@ const initSensor: Sensor = {
 	}
 } as Sensor;
 export const sensorProxy = new Proxy(initSensor.data.Sbg, {
-	get: function (obj: Sbg, prop: string) {
+	get: function (/*obj: Sbg, prop: string*/) {
 		return 0;
 	}
 });

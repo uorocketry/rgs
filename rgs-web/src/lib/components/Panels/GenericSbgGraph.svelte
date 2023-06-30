@@ -6,6 +6,7 @@
 	import { collectionFields } from '$lib/common/dao';
 	import { pb } from '$lib/stores';
 	import type { UnsubscribeFunc } from 'pocketbase';
+	import type { ChartDataset, Point } from 'chart.js/auto';
 
 	export let selected: { [key: string]: string[] } = {};
 
@@ -27,7 +28,7 @@
 
 	let subscriptions: UnsubscribeFunc[] = [];
 
-	let datasetsRef: any[] = [];
+	let datasetsRef: ChartDataset<'scatter', (number | Point)[]>[] = [];
 
 	refreshChart();
 
@@ -46,8 +47,6 @@
 	const POINT_LIMIT = 10;
 	let dataRecords: Map<string, { x: number; y: number }[]> = new Map();
 
-	let debounceTimeout: ReturnType<typeof setTimeout> | null = null;
-
 	async function refreshChart() {
 		// Unsubscribe from previous collections
 		for (const unsub of subscriptions) {
@@ -55,7 +54,7 @@
 		}
 		subscriptions = [];
 
-		let datasets: any[] = [];
+		let datasets: ChartDataset<'scatter', (number | Point)[]>[] = [];
 
 		// Populate the datasets array with the data from the dataset map
 		let canUpdate = false;
@@ -70,7 +69,7 @@
 				for (const key of fields) {
 					const recordKey = entry[0] + key;
 
-					let dataset: any = createDataset(key, entry[0] + key);
+					let dataset = createDataset(key, entry[0] + key);
 
 					datasets.push(dataset);
 
