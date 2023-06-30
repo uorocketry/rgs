@@ -85,8 +85,18 @@
 	let mapEl: HTMLElement;
 	onMount(() => {
 		map = createMap(mapEl);
-		toolbar.addTo(map);
-		rocketMarker.addTo(map);
+		let mapEl: HTMLElement;
+		onMount(() => {
+			map = createMap(mapEl);
+			toolbar.addTo(map);
+			rocketMarker.addTo(map);
+		});
+
+		onDestroy(() => {
+			toolbar.remove();
+			map?.remove();
+			map = null;
+		});
 	});
 
 	onDestroy(() => {
