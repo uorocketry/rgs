@@ -1,10 +1,10 @@
 <script lang="ts">
 	import '../../goldenlayout.css';
 	import GoldenLayout from 'svelte-golden-layout';
-	import { LayoutManager, type VirtualLayout } from 'golden-layout';
 	import { layoutComponents, layoutConfig, virtualLayout } from '$lib/common/layoutStore';
 	import { onMount } from 'svelte';
 	import { get } from 'svelte/store';
+	import type { VirtualLayout } from 'golden-layout';
 
 	let goldenLayout: VirtualLayout;
 
