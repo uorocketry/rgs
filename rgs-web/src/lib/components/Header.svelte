@@ -26,33 +26,9 @@
 			</a>
 		</div>
 
-		<div class="tooltip tooltip-bottom" data-tip="Recovery">
-			<a href="/recovery" class="btn btn-ghost normal-case text-xl">
-				<i class="fa-solid fa-parachute-box" />
-			</a>
-		</div>
-
 		<div class="tooltip tooltip-bottom" data-tip="Settings">
 			<a href="/settings" class="btn btn-ghost normal-case text-xl">
 				<i class="fa-solid fa-gear" />
-			</a>
-		</div>
-
-		<div class="tooltip tooltip-bottom" data-tip="Logging">
-			<a href="/logging" class="btn btn-ghost normal-case text-xl">
-				<i class="fa-solid fa-file-lines" />
-			</a>
-		</div>
-
-		<div class="tooltip tooltip-bottom" data-tip="Team">
-			<a href="/team" class="btn btn-ghost normal-case text-xl">
-				<i class="fa-solid fa-user" />
-			</a>
-		</div>
-
-		<div class="tooltip tooltip-bottom" data-tip="TODO: Panels">
-			<a href="/panels" class="btn btn-ghost normal-case text-xl">
-				<i class="fa-solid fa-table" />
 			</a>
 		</div>
 

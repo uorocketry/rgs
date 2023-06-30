@@ -8,9 +8,13 @@ import RadioStatus from '$lib/components/radio/RadioStatus.svelte';
 import ErrorRate from '$lib/components/radio/ErrorRate.svelte';
 import LayoutList from '$lib/components/LayoutList.svelte';
 import MissedMessage from '$lib/components/radio/MissedMessage.svelte';
+import Map from '$lib/components/Map.svelte';
+import LogViewer from '$lib/components/LogViewer.svelte';
 
 export const layoutComponents = {
 	SmartNavBall,
+	Map,
+	LogViewer,
 	ErrorRate,
 	MissedMessage,
 	RadioStatus,

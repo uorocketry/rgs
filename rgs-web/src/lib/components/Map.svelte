@@ -3,7 +3,6 @@
 	import { LatLngBounds } from 'leaflet';
 	import { onInterval } from '$lib/common/utils';
 	import { browser } from '$app/environment';
-	import { get } from 'svelte/store';
 	import { sensor } from '$lib/stores';
 	import { onDestroy, onMount } from 'svelte';
 
@@ -99,14 +98,15 @@
 		};
 	}
 
-	function resizeMap() {
+	let clientHeight = 0;
+	let clientWidth = 0;
+	$: if (browser) {
+		clientHeight;
+		clientWidth;
 		if (map) {
 			map.invalidateSize();
 		}
 	}
 </script>
 
-<!-- See https://svelte.dev/repl/62271e8fda854e828f26d75625286bc3?version=3.50.1 -->
-<svelte:window on:resize={resizeMap} />
-
-<div class="map" style="height:100%;width:100%" use:mapAction />
+<div class="map" style="height:100%;width:100%" use:mapAction bind:clientHeight bind:clientWidth />

@@ -1,9 +1,25 @@
-<script lang="ts" type="module">
-	import SmartNavBall from '$lib/components/smart/SmartNavBall.svelte';
+<script lang="ts">
+	import '../../goldenlayout.css';
+	import GoldenLayout from 'svelte-golden-layout';
+	import type { VirtualLayout } from 'golden-layout';
+	import {
+		layoutComponents,
+		layoutComponentsString,
+		layoutConfig,
+		virtualLayout
+	} from '$lib/common/layoutStore';
+
+	let goldenLayout: VirtualLayout;
+
+	$: {
+		virtualLayout.set(goldenLayout);
+	}
 </script>
 
-<div class="flex h-full items-center place-content-center">
-	<div class="w-[48rem] h-[48rem]">
-		<SmartNavBall />
+<div class="w-full h-full flex flex-col p-1 bg-accent/25">
+	<div class="flex-1">
+		<GoldenLayout config={$layoutConfig} let:componentType let:componentState bind:goldenLayout>
+			<svelte:component this={layoutComponents[componentType]} {...componentState} />
+		</GoldenLayout>
 	</div>
 </div>
