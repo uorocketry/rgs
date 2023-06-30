@@ -107,20 +107,22 @@
 	}
 </script>
 
-<div class="w-full h-full" bind:this={mapEl} bind:clientHeight bind:clientWidth />
-<div class="overlay">
-	<ul class="menu menu-xs bg-base-100 !p-0">
-		<li>
-			<button on:click={() => navigator.clipboard.writeText(`${rocketCoords.lat}`)}
-				>Lat: {rocketCoords.lat.toFixed(5)}</button
-			>
-		</li>
-		<li>
-			<button on:click={() => navigator.clipboard.writeText(`${rocketCoords.lng}`)}
-				>Lng: {rocketCoords.lng.toFixed(5)}</button
-			>
-		</li>
-	</ul>
+<div class="isolate w-full h-full">
+	<div class="w-full h-full" bind:this={mapEl} bind:clientHeight bind:clientWidth />
+	<div class="overlay">
+		<ul class="menu menu-xs bg-base-100 !p-0">
+			<li>
+				<button on:click={() => navigator.clipboard.writeText(`${rocketCoords.lat}`)}
+					>Lat: {rocketCoords.lat.toFixed(5)}</button
+				>
+			</li>
+			<li>
+				<button on:click={() => navigator.clipboard.writeText(`${rocketCoords.lng}`)}
+					>Lng: {rocketCoords.lng.toFixed(5)}</button
+				>
+			</li>
+		</ul>
+	</div>
 </div>
 
 <style>

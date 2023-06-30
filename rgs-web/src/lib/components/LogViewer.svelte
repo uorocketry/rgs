@@ -57,7 +57,7 @@
 	}
 </script>
 
-<div class="p-2 h-full">
+<div class="p-2 h-full overflow-clip">
 	<div class="flex gap-4 pb-2">
 		<div class="card-compact card bg-base-200 text-base-content p-2">
 			<p>Showing {start}-{end} of {logs.length} rows</p>

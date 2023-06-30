@@ -106,4 +106,4 @@
 	}
 </script>
 
-<div class="h-full w-full" bind:this={mapEl} bind:clientHeight bind:clientWidth />
+<div class="z-auto h-full w-full isolate" bind:this={mapEl} bind:clientHeight bind:clientWidth />
