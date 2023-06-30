@@ -3,20 +3,14 @@
 	import type { Message } from '$lib/common/bindings';
 
 	export let msg: Message;
-	let t = Date.now();
 
-	function formatData(data: any) {
+	function formatData(data: unknown) {
 		// Fixed decimal places for floats
 		if (typeof data === 'number' && data % 1 !== 0) {
 			return data.toFixed(4);
 		}
 		return data;
 	}
-
-	let timeDtFormat = new Intl.RelativeTimeFormat('en', {
-		numeric: 'auto',
-		style: 'long'
-	});
 
 	let timeFormat = new Intl.DateTimeFormat('en', {
 		hour: 'numeric',

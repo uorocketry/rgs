@@ -45,6 +45,5 @@
 		position: relative;
 		bottom: 0;
 		flex: 1 1 auto;
-		z-index: 0;
 	}
 </style>

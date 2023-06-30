@@ -1,12 +1,11 @@
 <script lang="ts">
 	import type { LinkStatus } from '../../../../../hydra_provider/bindings/LinkStatus';
-	import { onSocket, socket } from '$lib/common/socket';
+	import { onSocket } from '$lib/common/socket';
 	import { Bar } from 'svelte-chartjs';
 
 	let timestamp: bigint[] = [];
 	let missed_msgs: number[] = [];
 	let messages: LinkStatus[] = [];
-	let chartRef: Bar;
 	let totalMessages = 0;
 
 	let data = {
@@ -59,5 +58,5 @@
 			<Bar bind:data options={{ responsive: true, maintainAspectRatio: false }} />
 		{/key}
 	</div>
-  <p class="text-center">Total Messages: {totalMessages}</p>
+	<p class="text-center">Total Messages: {totalMessages}</p>
 </div>
