@@ -2,7 +2,7 @@ import { browser } from '$app/environment';
 import { onDestroy } from 'svelte';
 import io from 'socket.io-client';
 import type { Socket } from 'socket.io';
-import type { Unsubscriber } from 'svelte/store';
+import { writable, type Unsubscriber } from 'svelte/store';
 import type { ReservedOrUserEventNames, ReservedOrUserListener } from 'socket.io/dist/typed-events';
 import type { ClientToServerEvents, ServerToClientEvents } from './Message';
 import type { SocketReservedEventsMap } from 'socket.io/dist/socket';
@@ -72,3 +72,25 @@ export function onSocket<
 if (browser) {
 	initSocket();
 }
+
+// Socket status
+export const socketConnected = writable(false, (set) => {
+	const connect = () => {
+		set(true);
+	};
+
+	const disconnect = () => {
+		set(false);
+	};
+
+	if (socket) {
+		set(socket.connected);
+		socket.on('connect', connect);
+		socket.on('disconnect', disconnect);
+	}
+
+	return () => {
+		socket?.removeListener('connect', connect);
+		socket?.removeListener('disconnect', disconnect);
+	};
+});

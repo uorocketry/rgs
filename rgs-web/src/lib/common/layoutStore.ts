@@ -1,4 +1,4 @@
-import type { LayoutConfig, VirtualLayout } from 'golden-layout';
+import { LayoutConfig, type VirtualLayout } from 'golden-layout';
 import { writable, type Writable } from 'svelte/store';
 
 // Components
@@ -8,9 +8,18 @@ import RadioStatus from '$lib/components/radio/RadioStatus.svelte';
 import ErrorRate from '$lib/components/radio/ErrorRate.svelte';
 import LayoutList from '$lib/components/LayoutList.svelte';
 import MissedMessage from '$lib/components/radio/MissedMessage.svelte';
+import Map from '$lib/components/Map.svelte';
+import LogViewer from '$lib/components/LogViewer.svelte';
+import Settings from '$lib/components/Settings.svelte';
+import RocketTracker from '$lib/components/smart/RocketTracker.svelte';
+import { browser } from '$app/environment';
 
 export const layoutComponents = {
 	SmartNavBall,
+	RocketTracker,
+	Settings,
+	Map,
+	LogViewer,
 	ErrorRate,
 	MissedMessage,
 	RadioStatus,
@@ -66,3 +75,22 @@ export const layoutConfig: Writable<LayoutConfig> = writable({
 		]
 	}
 });
+
+if (browser) {
+	const layoutConfigStr = localStorage.getItem('layoutConfig');
+	if (layoutConfigStr) {
+		try {
+			console.info('Loading layoutConfig from localStorage');
+			const resolved = JSON.parse(layoutConfigStr);
+			layoutConfig.set(LayoutConfig.fromResolved(resolved));
+		} catch (error) {
+			console.error("Failed to parse layoutConfig from localStorage. It's probably corrupted.");
+			localStorage.removeItem('layoutConfig');
+		}
+	}
+
+	layoutConfig.subscribe((config) => {
+		localStorage.setItem('layoutConfig', JSON.stringify(config));
+		console.info('Saved layoutConfig to localStorage');
+	});
+}

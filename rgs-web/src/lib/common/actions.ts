@@ -23,17 +23,17 @@ export const commandReqAdaptor: Writable<CommandRequest> = writable({
 });
 
 export const commandActions: Writable<CommandAction[]> = writable([
-	{
-		name: 'Developer: Alert Test',
-		do: async () => {
-			const cmd = get(commandReqAdaptor);
-			if (!cmd) return;
+	// {
+	// 	name: 'Developer: Alert Test',
+	// 	do: async () => {
+	// 		const cmd = get(commandReqAdaptor);
+	// 		if (!cmd) return;
 
-			const alertMsg = await cmd.string('Alert Message?', 'Hello World');
-			console.log('Alert Test: ' + alertMsg);
-			alert(alertMsg);
-		}
-	},
+	// 		const alertMsg = await cmd.string('Alert Message?', 'Hello World');
+	// 		console.log('Alert Test: ' + alertMsg);
+	// 		alert(alertMsg);
+	// 	}
+	// },
 	// Layout Actions
 	{
 		name: 'Layout: Save Layout',
@@ -80,12 +80,6 @@ export const commandActions: Writable<CommandAction[]> = writable([
 			const vLayout = get(virtualLayout);
 			if (!vLayout) return;
 			vLayout.addComponent(layoutComponentsString[toAdd], undefined, layoutComponentsString[toAdd]);
-		}
-	},
-	{
-		name: 'Developer: Bar',
-		do: () => {
-			console.log('Alert Test');
 		}
 	}
 ]);

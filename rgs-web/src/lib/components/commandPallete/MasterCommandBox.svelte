@@ -10,6 +10,7 @@
 	let list: string[] = [];
 	let placeholder = 'Search';
 	let prompt = '';
+	let selectedIndex = 0;
 
 	let cmdAdaptor: CommandRequest = {
 		string: async (reqPrompt, reqPlaceholder) => {
@@ -74,6 +75,7 @@
 			visible = !visible;
 			await tick();
 			if (visible) {
+				selectedIndex = 0;
 				inputElement.focus();
 				chooseAction();
 			}
@@ -96,5 +98,13 @@
 </script>
 
 {#if visible}
-	<CommandBox bind:this={cmdBox} {placeholder} {prompt} {list} bind:inputElement bind:inputValue />
+	<CommandBox
+		bind:this={cmdBox}
+		bind:selectedIndex
+		{placeholder}
+		{prompt}
+		{list}
+		bind:inputElement
+		bind:inputValue
+	/>
 {/if}

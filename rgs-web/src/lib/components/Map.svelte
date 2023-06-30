@@ -3,7 +3,6 @@
 	import { LatLngBounds } from 'leaflet';
 	import { onInterval } from '$lib/common/utils';
 	import { browser } from '$app/environment';
-	import { get } from 'svelte/store';
 	import { sensor } from '$lib/stores';
 	import { onDestroy, onMount } from 'svelte';
 
@@ -83,30 +82,28 @@
 		return div;
 	};
 
-	let markerLayers;
-	let lineLayers;
-	function mapAction(container: string | HTMLElement) {
-		map = createMap(container);
+	let mapEl: HTMLElement;
+	onMount(() => {
+		map = createMap(mapEl);
 		toolbar.addTo(map);
-
 		rocketMarker.addTo(map);
-		return {
-			destroy: () => {
-				toolbar.remove();
-				map?.remove();
-				map = null;
-			}
-		};
-	}
+	});
 
-	function resizeMap() {
+	onDestroy(() => {
+		toolbar.remove();
+		map?.remove();
+		map = null;
+	});
+
+	let clientHeight = 0;
+	let clientWidth = 0;
+	$: if (browser) {
+		clientHeight;
+		clientWidth;
 		if (map) {
 			map.invalidateSize();
 		}
 	}
 </script>
 
-<!-- See https://svelte.dev/repl/62271e8fda854e828f26d75625286bc3?version=3.50.1 -->
-<svelte:window on:resize={resizeMap} />
-
-<div class="map" style="height:100%;width:100%" use:mapAction />
+<div class="h-full w-full" bind:this={mapEl} bind:clientHeight bind:clientWidth />
