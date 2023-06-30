@@ -1,6 +1,5 @@
 <script defer lang="ts" type="module">
 	import L from 'leaflet';
-	import { onInterval } from '$lib/common/utils';
 	import { browser } from '$app/environment';
 	import { sensor } from '$lib/stores';
 	import { onDestroy, onMount } from 'svelte';
@@ -17,7 +16,7 @@
 		lng: -75.7511577908654
 	};
 
-	let rocketMarker: L.Marker<any>;
+	let rocketMarker: L.Marker<unknown>;
 
 	const MAX_ZOOM = 14;
 	const MIN_ZOOM = 5;

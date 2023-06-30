@@ -58,7 +58,7 @@ async function getTileImage(z: string, x: string, y: string): Promise<ArrayBuffe
 	return buffer;
 }
 
-export async function GET(req: any) {
+export async function GET(req) {
 	const z = req.params.z;
 	const x = req.params.x;
 	const y = req.params.y.replace('.png', '').replace('.pbf', '');

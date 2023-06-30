@@ -1,6 +1,6 @@
 <script lang="ts">
 	import type { LinkStatus } from '../../../../../hydra_provider/bindings/LinkStatus';
-	import { onSocket, socket } from '$lib/common/socket';
+	import { onSocket } from '$lib/common/socket';
 
 	let radio_msg: LinkStatus[] = [];
 
