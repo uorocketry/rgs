@@ -1,15 +1,4 @@
-import type { Message } from '$lib/../../../hydra_provider/bindings/Message';
-import type { LinkStatus } from './bindings';
-
-export type { Data } from '$lib/../../../hydra_provider/bindings/Data';
-export type { LinkStatus } from '$lib/../../../hydra_provider/bindings/LinkStatus';
-export type { Message } from '$lib/../../../hydra_provider/bindings/Message';
-export type { ProcessedMessage } from '$lib/../../../hydra_provider/bindings/ProcessedMessage';
-export type { Sbg } from '$lib/../../../hydra_provider/bindings/Sbg';
-export type { Sender } from '$lib/../../../hydra_provider/bindings/Sender';
-export type { Sensor } from '$lib/../../../hydra_provider/bindings/Sensor';
-export type { State } from '$lib/../../../hydra_provider/bindings/State';
-export type { Status } from '$lib/../../../hydra_provider/bindings/Status';
+import { Air } from "rgs-bindings";
 
 export interface ChatMessage {
 	timestamp: number;
