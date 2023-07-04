@@ -73,6 +73,9 @@ devDependencies:
   prettier-plugin-svelte:
     specifier: ^2.10.1
     version: 2.10.1(prettier@2.8.8)(svelte@4.0.1)
+  rgs-bindings:
+    specifier: file:../rgs-bindings
+    version: file:../rgs-bindings
   socket.io:
     specifier: ^4.7.1
     version: 4.7.1
@@ -3276,4 +3279,10 @@ packages:
       node-addon-api: 6.1.0
       shelljs: 0.8.5
       shx: 0.3.4
+    dev: true
+
+  file:../rgs-bindings:
+    resolution: {directory: ../rgs-bindings, type: directory}
+    name: rgs-bindings
+    version: 0.0.0
     dev: true
