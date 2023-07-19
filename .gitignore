@@ -41,4 +41,4 @@ data
 vite.config.ts.*.mjs
 
 # database
-rgs-web/db/pb_data/*
+db/pb_data/*
