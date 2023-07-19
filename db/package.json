@@ -2,8 +2,9 @@
   "name": "@rgs/db",
   "version": "0.0.1",
   "type": "module",
+  "main": "dist/index.cjs",
   "scripts": {
-    "dev": "tsup --watch src/index.ts -d ./  --onSuccess \"node index.cjs\"",
+    "dev": "tsup --watch src/index.ts",
     "build": "tsup --clean --dts src/index.ts",
     "preview": "vite preview",
     "lint": "prettier --plugin-search-dir . --check . && eslint .",
@@ -13,7 +14,6 @@
   "devDependencies": {
     "@rgs/bindings": "file:../bindings",
     "@types/cookie": "^0.5.1",
-    "@types/leaflet": "^1.9.3",
     "@types/three": "^0.154.0",
     "@types/zeromq": "^5.2.2",
     "@typescript-eslint/eslint-plugin": "^6.1.0",
@@ -24,10 +24,7 @@
     "pocketbase": "^0.15.3",
     "prettier": "^3.0.0",
     "tslib": "^2.6.0",
-    "tsup": "^7.1.0",
     "typescript": "^5.1.6",
-    "vite": "^4.4.4",
-    "winston": "^3.10.0",
     "zeromq": "^6.0.0-beta.17"
   }
 }

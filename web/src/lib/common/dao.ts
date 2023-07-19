@@ -10,11 +10,16 @@ export const minMaxCreated = writable<Map<Collection, [number, number]>>(new Map
 (async () => {
 	const map = new Map<Collection, string[]>();
 	const firstItems = await Promise.all(
-		collections.map((collection) =>
-			pb.collection(collection).getFirstListItem('', {
-				sort: 'created',
-				$autoCancel: false
-			})
+		collections.map((collection) => {
+			try {
+				return pb.collection(collection).getFirstListItem('', {
+					sort: 'created',
+					$autoCancel: false
+				})
+			} catch (error) {
+				return [];
+			}
+		}
 		)
 	);
 

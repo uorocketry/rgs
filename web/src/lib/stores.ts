@@ -1,6 +1,6 @@
 import { browser } from '$app/environment';
 import { writable, type Writable } from 'svelte/store';
-import type { Message, Sensor, State } from './common/bindings';
+import type { Message, Sensor, State } from '@rgs/bindings';
 import { socket } from './common/socket';
 import PocketBase from 'pocketbase';
 
