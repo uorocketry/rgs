@@ -4,6 +4,9 @@ devDependencies:
   '@fortawesome/fontawesome-free':
     specifier: 6.4.0
     version: 6.4.0
+  '@rgs/bindings':
+    specifier: file:../bindings
+    version: file:../bindings
   '@sveltejs/adapter-node':
     specifier: ^1.2.4
     version: 1.2.4(@sveltejs/kit@1.21.0)
@@ -73,9 +76,6 @@ devDependencies:
   prettier-plugin-svelte:
     specifier: ^2.10.1
     version: 2.10.1(prettier@2.8.8)(svelte@4.0.1)
-  rgs-bindings:
-    specifier: file:../rgs-bindings
-    version: file:../rgs-bindings
   socket.io:
     specifier: ^4.7.1
     version: 4.7.1
@@ -3281,8 +3281,8 @@ packages:
       shx: 0.3.4
     dev: true
 
-  file:../rgs-bindings:
-    resolution: {directory: ../rgs-bindings, type: directory}
-    name: rgs-bindings
+  file:../bindings:
+    resolution: {directory: ../bindings, type: directory}
+    name: '@rgs/bindings'
     version: 0.0.0
     dev: true

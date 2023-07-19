@@ -1,5 +1,4 @@
 import Chart, { type ChartOptions } from 'chart.js/auto';
-
 export function defaultChartOptions(): ChartOptions {
 	const color = 'white';
 	Chart.defaults.borderColor = 'black';
