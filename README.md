@@ -24,6 +24,9 @@ Make sure to read the database's [README](https://github.com/uorocketry/rgs/blob
 cd rgs-web
 # Create databse admin
 cd db
+# Run the server for 5 seconds and stop it 
+./pocketbase serve
+# Now create the base admin
 ./pocketbase admin create admin@db.com adminadmin
 ../
 # Now on rgs-web folder
