@@ -53,7 +53,7 @@ export const layoutConfig: Writable<LayoutConfig> = writable({
 				componentType: 'MissedMessage'
 			},
 			{
-				title: 'Height Chart',
+				title: 'Chart',
 				type: 'component',
 				componentType: 'GenericSbgGraph',
 			},
