@@ -1,9 +1,10 @@
 <script lang="ts">
-	import type { LinkStatus } from '../../../../../hydra_provider/bindings/LinkStatus';
-	import { onSocket } from '$lib/common/socket';
+	import { onCollection, onCollectionCreated } from '$lib/common/utils';
+	import type { LinkStatus } from '@rgs/bindings';
+	import type { RecordSubscription } from 'pocketbase';
 	import { Bar } from 'svelte-chartjs';
 
-	let timestamp: bigint[] = [];
+	let timestamp: number[] = [];
 	let missed_msgs: number[] = [];
 	let messages: LinkStatus[] = [];
 	let totalMessages = 0;
@@ -21,7 +22,7 @@
 		]
 	};
 
-	onSocket('LinkStatus', (msg: LinkStatus) => {
+	onCollectionCreated('LinkStatus', (msg: LinkStatus) => {
 		messages = [...messages, msg];
 		timestamp.push(msg.timestamp);
 		if (messages.length > 1) {

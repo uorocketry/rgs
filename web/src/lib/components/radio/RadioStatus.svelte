@@ -1,10 +1,10 @@
 <script lang="ts">
-	import type { LinkStatus } from '../../../../../hydra_provider/bindings/LinkStatus';
-	import { onSocket } from '$lib/common/socket';
+	import { onCollectionCreated } from '$lib/common/utils';
+	import type { LinkStatus } from '@rgs/bindings';
 
 	let radio_msg: LinkStatus[] = [];
 
-	onSocket('LinkStatus', (msg: LinkStatus) => {
+	onCollectionCreated('LinkStatus', (msg: LinkStatus) => {
 		radio_msg = [...radio_msg, msg];
 	});
 

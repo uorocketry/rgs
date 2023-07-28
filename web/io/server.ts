@@ -18,7 +18,7 @@ export const setupServer = (http: HTTPServer) => {
 	let sockState: 'bound' | 'unbound' | 'binding' = 'unbound';
 	// zmqSock.subscribe();
 
-	const io = new Server<ClientToServerEvents, ServerToClientEvents>(http);
+	const io = new Server(http);
 	logger.info('Socket.io server started');
 	io.on('connection', (socket) => {
 		logger.info('Client connected: ', socket.handshake.address);

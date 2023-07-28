@@ -1,13 +1,21 @@
 <script lang="ts">
-	import type { LinkStatus } from '../../../../../hydra_provider/bindings/LinkStatus';
-	import { onSocket } from '$lib/common/socket';
+	import type { LinkStatus } from '@rgs/bindings';
 	import Speedometer from 'svelte-speedometer';
+	import type { RecordSubscription } from 'pocketbase';
+	import { onDestroy, onMount } from 'svelte';
+	import { onCollectionCreated } from '$lib/common/utils';
 
 	let radio_msg: LinkStatus[] = [];
 	let text_color: string;
+	let sub = () => {};
 
-	onSocket('LinkStatus', (msg: LinkStatus) => {
+	onCollectionCreated('LinkStatus', async (msg: LinkStatus) => {
 		radio_msg = [...radio_msg, msg];
+	});
+
+	onDestroy(() => {
+		radio_msg = [];
+		sub();
 	});
 
 	let clientHeight = 0;

@@ -10,10 +10,10 @@
 	<!-- svelte-ignore a11y-no-noninteractive-tabindex -->
 	<label tabindex="0" class="btn btn-sm m-1">{dropdownLabel}</label>
 	<!-- svelte-ignore a11y-no-noninteractive-tabindex -->
-	<div class="dropdown-content">
+	<div class="dropdown-content z-10">
 		<ul
 			tabindex="0"
-			class="menu p-2 shadow bg-base-100 rounded-box max-h-96 overflow-scroll flex-row"
+			class=" menu p-2 shadow bg-base-100 rounded-box max-h-96 overflow-scroll flex-row"
 		>
 			{#each options as option}
 				<li class="form-control flex-1">

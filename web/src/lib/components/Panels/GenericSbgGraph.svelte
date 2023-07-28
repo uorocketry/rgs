@@ -133,7 +133,9 @@
 	collectionFields.subscribe((fields) => {
 		collectionsEntries = [];
 		for (const [key, value] of fields.entries()) {
-			collectionsEntries.push({ key, value });
+			// const keys = value.schema[0].name
+			const keys = value.schema.map((schema) => schema.name);
+			collectionsEntries.push({ key, value: keys });
 		}
 		collectionsEntries = [...collectionsEntries];
 	});

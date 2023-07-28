@@ -107,7 +107,7 @@ for await (const [msg] of zmqSock) {
           });
 
       } else if ("EkfQuat" in sensorData) {
-        pb.collection("EkfQuat").create(
+        await pb.collection("EkfQuat").create(
           {
             time_stamp: sensorData.EkfQuat.time_stamp,
             quaternion_0: sensorData.EkfQuat.quaternion[0],

@@ -1,9 +1,9 @@
 <script defer lang="ts" type="module">
 	import L from 'leaflet';
-	import { onInterval } from '$lib/common/utils';
+	import { onCollection, onCollectionCreated, onInterval } from '$lib/common/utils';
 	import { browser } from '$app/environment';
-	import { sensor } from '$lib/stores';
 	import { onDestroy, onMount } from 'svelte';
+	import type { EkfNav2 } from '@rgs/bindings';
 
 	// FIXME: The mock rocket position reports the rocket as being in the middle of the Gulf of Guinea (northwest of South Africa)
 
@@ -38,13 +38,12 @@
 			})
 		});
 
-		const unsub = sensor.subscribe((sens) => {
+		onCollectionCreated('EkfNav2', (msg: EkfNav2) => {
 			target = {
-				lat: sens.data.Sbg.latitude,
-				lng: sens.data.Sbg.longitude
+				lat: msg.position[0],
+				lng: msg.position[1]
 			};
 		});
-		onDestroy(unsub);
 		onInterval(() => {
 			let curPos: L.LatLng = rocketMarker.getLatLng();
 			const lerpFactor = 0.01;

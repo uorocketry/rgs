@@ -1,48 +1,20 @@
 import { pb } from '$lib/stores';
+import type { Collection } from 'pocketbase';
 import { writable } from 'svelte/store';
 
-const collections = ['link_status', 'sbg', 'state'] as const;
-type Collection = (typeof collections)[number];
+const collections = ['LinkStatus', 'Air', 'EkfNav1', 'EkfNav2', 'EkfQuat', 'GpsVel', 'Imu1', 'Imu2', 'Log', 'State'] as const;
+type CollectionNames = (typeof collections)[number];
 
-export const collectionFields = writable<Map<Collection, string[]>>(new Map());
-export const minMaxCreated = writable<Map<Collection, [number, number]>>(new Map());
+export const collectionFields = writable<Map<CollectionNames, Collection>>(new Map());
 
-(async () => {
-	const map = new Map<Collection, string[]>();
-	const firstItems = await Promise.all(
-		collections.map((collection) => {
-			try {
-				return pb.collection(collection).getFirstListItem('', {
-					sort: 'created',
-					$autoCancel: false
-				})
-			} catch (error) {
-				return [];
-			}
-		}
-		)
-	);
+fetch('/api/pb/schema').then(async (res) => {
+	if (res.ok) {
+		const collectionList: Collection[] = await res.json();
 
-	const lastItems = await Promise.all(
-		collections.map((collection) =>
-			pb.collection(collection).getFirstListItem('', {
-				sort: '-created',
-				$autoCancel: false
-			})
-		)
-	);
-
-	// Get collection fields
-	for (let i = 0; i < collections.length; i++) {
-		map.set(collections[i], Object.keys(firstItems[i]));
+		const collectionMap = new Map<CollectionNames, Collection>();
+		collectionList.forEach((collection) => {
+			collectionMap.set(collection.name as CollectionNames, collection);
+		});
+		collectionFields.set(collectionMap);
 	}
-	collectionFields.set(map);
-
-	// Get min and max created
-	const minMaxMap = new Map<Collection, [number, number]>();
-	for (let i = 0; i < collections.length; i++) {
-		minMaxMap.set(collections[i], [Number(firstItems[i].created), Number(lastItems[i].created)]);
-	}
-
-	minMaxCreated.set(minMaxMap);
-})();
+});

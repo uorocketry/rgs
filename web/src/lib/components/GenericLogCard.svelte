@@ -1,6 +1,6 @@
 <!-- TODO: Refactor needed,  -->
 <script lang="ts">
-	import type { Message } from '$lib/common/bindings';
+	import type { Message } from '@rgs/bindings';
 
 	export let msg: Message;
 

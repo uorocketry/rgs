@@ -4,7 +4,7 @@
 	import { onInterval } from '$lib/common/utils';
 	import GenericLogCard from '$lib/components/GenericLogCard.svelte';
 	import VirtualList from '$lib/components/VirtualList.svelte';
-	import type { Message } from '../../../../hydra_provider/bindings/Message';
+	import type { Message } from '@rgs/bindings';
 
 	let reverseLogs = false;
 	let logs: Message[] = [];
@@ -22,6 +22,7 @@
 
 	let avgKbps = 0;
 	if (browser) {
+		// NOTE: Replace this by pb
 		onSocket('RocketMessage', (msg: Message) => {
 			console.log('Received RocketMessage', msg);
 			logs = [...logs, msg];

@@ -22,12 +22,20 @@
 			console.info('Saved layoutConfig to localStorage');
 		});
 	});
+
+	const fixSpreadType = (x: any) => x;
+	const fixSvelteComponentType = (componentType: string) => {
+		return layoutComponents[componentType as keyof typeof layoutComponents];
+	};
 </script>
 
 <div class="w-full h-full flex flex-col p-1 bg-accent/25">
 	<div class="flex-1">
 		<GoldenLayout config={$layoutConfig} let:componentType let:componentState bind:goldenLayout>
-			<svelte:component this={layoutComponents[componentType]} {...componentState} />
+			<svelte:component
+				this={fixSvelteComponentType(componentType)}
+				{...fixSpreadType(componentState)}
+			/>
 		</GoldenLayout>
 	</div>
 </div>

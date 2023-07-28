@@ -1,10 +1,10 @@
 <!-- Virtual viewport for infinite scrolling -->
 
-<script lang="ts">
+<script lang="ts" generics="T">
 	import { onMount, tick } from 'svelte';
 
 	// props
-	export let items: unknown[];
+	export let items: T[];
 
 	// read-only, but visible to consumers via bind:start
 	export let start = 0;
@@ -22,7 +22,7 @@
 	let bottom = 0;
 	let average_height: number;
 
-	$: visible = items.slice(start, end).map((data: unknown, i: number) => {
+	$: visible = items.slice(start, end).map((data: T, i: number) => {
 		return { index: i + start, data };
 	});
 

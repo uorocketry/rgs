@@ -1,33 +1,25 @@
 <script lang="ts">
-	import { sensor } from '$lib/stores';
 	import { Euler, Quaternion } from 'three';
 	import NavBall from '../NavBall.svelte';
-	import { onMount } from 'svelte';
 	import { MathUtils } from 'three';
-	import type { Sbg } from '$lib/common/bindings';
+	import { onCollectionCreated } from '$lib/common/utils';
+	import type { EkfQuat } from '@rgs/bindings';
 
 	let targetRotation = new Quaternion();
-	let latestSbg: Sbg | undefined = undefined;
+	let latestQuat: EkfQuat | undefined = undefined;
 	targetRotation.set(0, 0, 0, 1);
 
 	let eulerRepr = new Euler(0, 0, 0, 'XYZ');
 	eulerRepr.setFromQuaternion(targetRotation);
 
-	onMount(() => {
-		let s = sensor.subscribe((s) => {
-			if (s?.data?.Sbg == null) return;
-			latestSbg = s.data.Sbg;
-			targetRotation.set(
-				latestSbg.quant_x,
-				latestSbg.quant_y,
-				latestSbg.quant_z,
-				latestSbg.quant_w
-			);
-			targetRotation = targetRotation;
-			eulerRepr.setFromQuaternion(targetRotation);
-			eulerRepr = eulerRepr;
-		});
-		return () => s();
+	onCollectionCreated('EkfQuat', (msg: EkfQuat) => {
+		const quat = msg.quaternion;
+		latestQuat = msg;
+
+		targetRotation.set(quat[1], quat[2], quat[3], quat[0]);
+		targetRotation = targetRotation;
+		eulerRepr.setFromQuaternion(targetRotation);
+		eulerRepr = eulerRepr;
 	});
 </script>
 
@@ -59,12 +51,18 @@
 
 		<!-- Pitch yaw row -->
 		<div class="grid grid-cols-2">
-			<span>Pitch</span>
-			<span class="text-right">{MathUtils.radToDeg(latestSbg?.pitch ?? 0).toFixed(2)}°</span>
-			<span>Yaw</span>
-			<span class="text-right">{MathUtils.radToDeg(latestSbg?.yaw ?? 0).toFixed(2)}°</span>
 			<span>Roll</span>
-			<span class="text-right">{MathUtils.radToDeg(latestSbg?.roll ?? 0).toFixed(2)}°</span>
+			<span class="text-right"
+				>{MathUtils.radToDeg(latestQuat?.euler_std_dev[0] ?? 0).toFixed(2)}°</span
+			>
+			<span>Pitch</span>
+			<span class="text-right"
+				>{MathUtils.radToDeg(latestQuat?.euler_std_dev[1] ?? 0).toFixed(2)}°</span
+			>
+			<span>Yaw</span>
+			<span class="text-right"
+				>{MathUtils.radToDeg(latestQuat?.euler_std_dev[2] ?? 0).toFixed(2)}°</span
+			>
 		</div>
 	</div>
 
