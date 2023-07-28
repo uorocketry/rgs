@@ -1,16 +1,16 @@
 migrate((db) => {
   const collection = new Collection({
-    "id": "dhuf6p5q665h2hb",
-    "created": "2023-07-28 06:29:27.155Z",
-    "updated": "2023-07-28 06:29:27.155Z",
-    "name": "Imu1",
+    "id": "x5iq701b4uba5gq",
+    "created": "2023-07-28 09:31:17.988Z",
+    "updated": "2023-07-28 09:31:17.988Z",
+    "name": "Imu2",
     "type": "base",
     "system": false,
     "schema": [
       {
         "system": false,
-        "id": "fi169toc",
-        "name": "time_stamp",
+        "id": "fthl7sjj",
+        "name": "delta_velocity_0",
         "type": "number",
         "required": false,
         "unique": false,
@@ -21,8 +21,8 @@ migrate((db) => {
       },
       {
         "system": false,
-        "id": "6zbalzgl",
-        "name": "status",
+        "id": "bslqj7r0",
+        "name": "delta_velocity_1",
         "type": "number",
         "required": false,
         "unique": false,
@@ -33,8 +33,8 @@ migrate((db) => {
       },
       {
         "system": false,
-        "id": "wru5xota",
-        "name": "accelerometers_0",
+        "id": "tihbxxhu",
+        "name": "delta_velocity_2",
         "type": "number",
         "required": false,
         "unique": false,
@@ -45,8 +45,8 @@ migrate((db) => {
       },
       {
         "system": false,
-        "id": "dknmm0yt",
-        "name": "accelerometers_1",
+        "id": "0xttqp3n",
+        "name": "delta_angle_0",
         "type": "number",
         "required": false,
         "unique": false,
@@ -57,8 +57,8 @@ migrate((db) => {
       },
       {
         "system": false,
-        "id": "p4wgephp",
-        "name": "accelerometers_2",
+        "id": "zebwqm0m",
+        "name": "delta_angle_1",
         "type": "number",
         "required": false,
         "unique": false,
@@ -69,32 +69,8 @@ migrate((db) => {
       },
       {
         "system": false,
-        "id": "eqyjkbm4",
-        "name": "gyroscopes_0",
-        "type": "number",
-        "required": false,
-        "unique": false,
-        "options": {
-          "min": null,
-          "max": null
-        }
-      },
-      {
-        "system": false,
-        "id": "pywxxd1s",
-        "name": "gyroscopes_1",
-        "type": "number",
-        "required": false,
-        "unique": false,
-        "options": {
-          "min": null,
-          "max": null
-        }
-      },
-      {
-        "system": false,
-        "id": "g1pv19vg",
-        "name": "gyroscopes_2",
+        "id": "cfu7cyc5",
+        "name": "delta_angle_2",
         "type": "number",
         "required": false,
         "unique": false,
@@ -105,8 +81,8 @@ migrate((db) => {
       }
     ],
     "indexes": [],
-    "listRule": null,
-    "viewRule": null,
+    "listRule": "",
+    "viewRule": "",
     "createRule": null,
     "updateRule": null,
     "deleteRule": null,
@@ -116,7 +92,7 @@ migrate((db) => {
   return Dao(db).saveCollection(collection);
 }, (db) => {
   const dao = new Dao(db);
-  const collection = dao.findCollectionByNameOrId("dhuf6p5q665h2hb");
+  const collection = dao.findCollectionByNameOrId("x5iq701b4uba5gq");
 
   return dao.deleteCollection(collection);
 })

@@ -1,15 +1,15 @@
 migrate((db) => {
   const collection = new Collection({
-    "id": "x88qi9uwtsb6nbj",
-    "created": "2023-07-28 05:45:35.309Z",
-    "updated": "2023-07-28 05:45:35.309Z",
-    "name": "EkfQuat",
+    "id": "elkbn6mwol6ws9l",
+    "created": "2023-07-28 09:31:17.989Z",
+    "updated": "2023-07-28 09:31:17.989Z",
+    "name": "EkfNav1",
     "type": "base",
     "system": false,
     "schema": [
       {
         "system": false,
-        "id": "tjtgzegc",
+        "id": "b6nzcao4",
         "name": "time_stamp",
         "type": "number",
         "required": false,
@@ -21,8 +21,8 @@ migrate((db) => {
       },
       {
         "system": false,
-        "id": "lwuic6d9",
-        "name": "q0",
+        "id": "scx2dpmy",
+        "name": "velocity_0",
         "type": "number",
         "required": false,
         "unique": false,
@@ -33,8 +33,8 @@ migrate((db) => {
       },
       {
         "system": false,
-        "id": "aqflkf6u",
-        "name": "q1",
+        "id": "saogbqqy",
+        "name": "velocity_1",
         "type": "number",
         "required": false,
         "unique": false,
@@ -45,8 +45,8 @@ migrate((db) => {
       },
       {
         "system": false,
-        "id": "qsoajx65",
-        "name": "q2",
+        "id": "pd6mygcf",
+        "name": "velocity_2",
         "type": "number",
         "required": false,
         "unique": false,
@@ -57,8 +57,8 @@ migrate((db) => {
       },
       {
         "system": false,
-        "id": "5rsyji0v",
-        "name": "q3",
+        "id": "t4rc8tyi",
+        "name": "velocity_std_dev_0",
         "type": "number",
         "required": false,
         "unique": false,
@@ -69,8 +69,8 @@ migrate((db) => {
       },
       {
         "system": false,
-        "id": "inzrkvbk",
-        "name": "roll",
+        "id": "g6zsdc3d",
+        "name": "velocity_std_dev_1",
         "type": "number",
         "required": false,
         "unique": false,
@@ -81,32 +81,8 @@ migrate((db) => {
       },
       {
         "system": false,
-        "id": "uzlx5yv6",
-        "name": "pitch",
-        "type": "number",
-        "required": false,
-        "unique": false,
-        "options": {
-          "min": null,
-          "max": null
-        }
-      },
-      {
-        "system": false,
-        "id": "bdzy64m4",
-        "name": "yaw",
-        "type": "number",
-        "required": false,
-        "unique": false,
-        "options": {
-          "min": null,
-          "max": null
-        }
-      },
-      {
-        "system": false,
-        "id": "e9rgewrm",
-        "name": "status",
+        "id": "aja2zyqz",
+        "name": "velocity_std_dev_2",
         "type": "number",
         "required": false,
         "unique": false,
@@ -117,8 +93,8 @@ migrate((db) => {
       }
     ],
     "indexes": [],
-    "listRule": null,
-    "viewRule": null,
+    "listRule": "",
+    "viewRule": "",
     "createRule": null,
     "updateRule": null,
     "deleteRule": null,
@@ -128,7 +104,7 @@ migrate((db) => {
   return Dao(db).saveCollection(collection);
 }, (db) => {
   const dao = new Dao(db);
-  const collection = dao.findCollectionByNameOrId("x88qi9uwtsb6nbj");
+  const collection = dao.findCollectionByNameOrId("elkbn6mwol6ws9l");
 
   return dao.deleteCollection(collection);
 })

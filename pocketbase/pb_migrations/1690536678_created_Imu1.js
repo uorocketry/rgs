@@ -1,15 +1,15 @@
 migrate((db) => {
   const collection = new Collection({
-    "id": "2x3hs336exfcjj3",
-    "created": "2023-07-28 06:31:50.302Z",
-    "updated": "2023-07-28 06:31:50.302Z",
-    "name": "GpsVel",
+    "id": "dhuf6p5q665h2hb",
+    "created": "2023-07-28 09:31:17.988Z",
+    "updated": "2023-07-28 09:31:17.988Z",
+    "name": "Imu1",
     "type": "base",
     "system": false,
     "schema": [
       {
         "system": false,
-        "id": "kkato7yl",
+        "id": "fi169toc",
         "name": "time_stamp",
         "type": "number",
         "required": false,
@@ -21,7 +21,7 @@ migrate((db) => {
       },
       {
         "system": false,
-        "id": "bdpu6knj",
+        "id": "6zbalzgl",
         "name": "status",
         "type": "number",
         "required": false,
@@ -33,8 +33,8 @@ migrate((db) => {
       },
       {
         "system": false,
-        "id": "ttcvp9t1",
-        "name": "velocity_0",
+        "id": "wru5xota",
+        "name": "accelerometers_0",
         "type": "number",
         "required": false,
         "unique": false,
@@ -45,8 +45,8 @@ migrate((db) => {
       },
       {
         "system": false,
-        "id": "zlxlkgzk",
-        "name": "velocity_1",
+        "id": "dknmm0yt",
+        "name": "accelerometers_1",
         "type": "number",
         "required": false,
         "unique": false,
@@ -57,8 +57,8 @@ migrate((db) => {
       },
       {
         "system": false,
-        "id": "lq1gg9u9",
-        "name": "velocity_2",
+        "id": "p4wgephp",
+        "name": "accelerometers_2",
         "type": "number",
         "required": false,
         "unique": false,
@@ -69,8 +69,8 @@ migrate((db) => {
       },
       {
         "system": false,
-        "id": "qgc5wiur",
-        "name": "velocity_acc_0",
+        "id": "eqyjkbm4",
+        "name": "gyroscopes_0",
         "type": "number",
         "required": false,
         "unique": false,
@@ -81,8 +81,8 @@ migrate((db) => {
       },
       {
         "system": false,
-        "id": "n6rddczt",
-        "name": "velocity_acc_1",
+        "id": "pywxxd1s",
+        "name": "gyroscopes_1",
         "type": "number",
         "required": false,
         "unique": false,
@@ -93,32 +93,8 @@ migrate((db) => {
       },
       {
         "system": false,
-        "id": "9ajqoeqy",
-        "name": "velocity_acc_2",
-        "type": "number",
-        "required": false,
-        "unique": false,
-        "options": {
-          "min": null,
-          "max": null
-        }
-      },
-      {
-        "system": false,
-        "id": "9gckw1f4",
-        "name": "course",
-        "type": "number",
-        "required": false,
-        "unique": false,
-        "options": {
-          "min": null,
-          "max": null
-        }
-      },
-      {
-        "system": false,
-        "id": "msvhzccv",
-        "name": "course_acc",
+        "id": "g1pv19vg",
+        "name": "gyroscopes_2",
         "type": "number",
         "required": false,
         "unique": false,
@@ -129,8 +105,8 @@ migrate((db) => {
       }
     ],
     "indexes": [],
-    "listRule": null,
-    "viewRule": null,
+    "listRule": "",
+    "viewRule": "",
     "createRule": null,
     "updateRule": null,
     "deleteRule": null,
@@ -140,7 +116,7 @@ migrate((db) => {
   return Dao(db).saveCollection(collection);
 }, (db) => {
   const dao = new Dao(db);
-  const collection = dao.findCollectionByNameOrId("2x3hs336exfcjj3");
+  const collection = dao.findCollectionByNameOrId("dhuf6p5q665h2hb");
 
   return dao.deleteCollection(collection);
 })

@@ -1,8 +1,8 @@
 migrate((db) => {
   const collection = new Collection({
     "id": "cj4yfkrqsd6ryti",
-    "created": "2023-07-28 06:26:56.632Z",
-    "updated": "2023-07-28 06:26:56.632Z",
+    "created": "2023-07-28 09:31:17.989Z",
+    "updated": "2023-07-28 09:31:17.989Z",
     "name": "EkfNav2",
     "type": "base",
     "system": false,
@@ -93,8 +93,8 @@ migrate((db) => {
       }
     ],
     "indexes": [],
-    "listRule": null,
-    "viewRule": null,
+    "listRule": "",
+    "viewRule": "",
     "createRule": null,
     "updateRule": null,
     "deleteRule": null,

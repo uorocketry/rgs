@@ -1,16 +1,16 @@
 migrate((db) => {
   const collection = new Collection({
-    "id": "8j5nqj2yxvfllzr",
-    "created": "2023-07-28 05:44:33.989Z",
-    "updated": "2023-07-28 05:44:33.989Z",
-    "name": "air",
+    "id": "5sg3q0j3a6ny2xf",
+    "created": "2023-07-28 09:31:17.987Z",
+    "updated": "2023-07-28 09:31:17.987Z",
+    "name": "LinkStatus",
     "type": "base",
     "system": false,
     "schema": [
       {
         "system": false,
-        "id": "9s0edfvw",
-        "name": "timestamp",
+        "id": "1aepgbab",
+        "name": "rssi",
         "type": "number",
         "required": false,
         "unique": false,
@@ -21,8 +21,8 @@ migrate((db) => {
       },
       {
         "system": false,
-        "id": "dkkzwm2g",
-        "name": "status",
+        "id": "ho68ycln",
+        "name": "remrssi",
         "type": "number",
         "required": false,
         "unique": false,
@@ -33,8 +33,8 @@ migrate((db) => {
       },
       {
         "system": false,
-        "id": "oqhv8air",
-        "name": "pressure_abs",
+        "id": "spqykofm",
+        "name": "txbuf",
         "type": "number",
         "required": false,
         "unique": false,
@@ -45,8 +45,8 @@ migrate((db) => {
       },
       {
         "system": false,
-        "id": "jokv616m",
-        "name": "altitude",
+        "id": "re1lecfi",
+        "name": "noise",
         "type": "number",
         "required": false,
         "unique": false,
@@ -57,8 +57,8 @@ migrate((db) => {
       },
       {
         "system": false,
-        "id": "v37is6en",
-        "name": "pressure_diff",
+        "id": "dcgwg0vs",
+        "name": "remnoise",
         "type": "number",
         "required": false,
         "unique": false,
@@ -69,8 +69,8 @@ migrate((db) => {
       },
       {
         "system": false,
-        "id": "t1obxgpk",
-        "name": "true_airspeed",
+        "id": "mfcyy0q0",
+        "name": "rxerrors",
         "type": "number",
         "required": false,
         "unique": false,
@@ -81,8 +81,44 @@ migrate((db) => {
       },
       {
         "system": false,
-        "id": "kbtb1s2o",
-        "name": "air_temperature",
+        "id": "snhrelre",
+        "name": "fixed",
+        "type": "number",
+        "required": false,
+        "unique": false,
+        "options": {
+          "min": null,
+          "max": null
+        }
+      },
+      {
+        "system": false,
+        "id": "hbz4kemz",
+        "name": "recent_error_rate",
+        "type": "number",
+        "required": false,
+        "unique": false,
+        "options": {
+          "min": null,
+          "max": null
+        }
+      },
+      {
+        "system": false,
+        "id": "gnthzanc",
+        "name": "missed_messages",
+        "type": "number",
+        "required": false,
+        "unique": false,
+        "options": {
+          "min": null,
+          "max": null
+        }
+      },
+      {
+        "system": false,
+        "id": "edje9rcg",
+        "name": "connected",
         "type": "number",
         "required": false,
         "unique": false,
@@ -93,8 +129,8 @@ migrate((db) => {
       }
     ],
     "indexes": [],
-    "listRule": null,
-    "viewRule": null,
+    "listRule": "",
+    "viewRule": "",
     "createRule": null,
     "updateRule": null,
     "deleteRule": null,
@@ -104,7 +140,7 @@ migrate((db) => {
   return Dao(db).saveCollection(collection);
 }, (db) => {
   const dao = new Dao(db);
-  const collection = dao.findCollectionByNameOrId("8j5nqj2yxvfllzr");
+  const collection = dao.findCollectionByNameOrId("5sg3q0j3a6ny2xf");
 
   return dao.deleteCollection(collection);
 })

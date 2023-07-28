@@ -1,15 +1,15 @@
 migrate((db) => {
   const collection = new Collection({
-    "id": "elkbn6mwol6ws9l",
-    "created": "2023-07-28 06:23:06.336Z",
-    "updated": "2023-07-28 06:23:06.336Z",
-    "name": "EkfNav1",
+    "id": "2x3hs336exfcjj3",
+    "created": "2023-07-28 09:31:17.989Z",
+    "updated": "2023-07-28 09:31:17.989Z",
+    "name": "GpsVel",
     "type": "base",
     "system": false,
     "schema": [
       {
         "system": false,
-        "id": "b6nzcao4",
+        "id": "kkato7yl",
         "name": "time_stamp",
         "type": "number",
         "required": false,
@@ -21,7 +21,19 @@ migrate((db) => {
       },
       {
         "system": false,
-        "id": "scx2dpmy",
+        "id": "bdpu6knj",
+        "name": "status",
+        "type": "number",
+        "required": false,
+        "unique": false,
+        "options": {
+          "min": null,
+          "max": null
+        }
+      },
+      {
+        "system": false,
+        "id": "ttcvp9t1",
         "name": "velocity_0",
         "type": "number",
         "required": false,
@@ -33,7 +45,7 @@ migrate((db) => {
       },
       {
         "system": false,
-        "id": "saogbqqy",
+        "id": "zlxlkgzk",
         "name": "velocity_1",
         "type": "number",
         "required": false,
@@ -45,7 +57,7 @@ migrate((db) => {
       },
       {
         "system": false,
-        "id": "pd6mygcf",
+        "id": "lq1gg9u9",
         "name": "velocity_2",
         "type": "number",
         "required": false,
@@ -57,8 +69,8 @@ migrate((db) => {
       },
       {
         "system": false,
-        "id": "t4rc8tyi",
-        "name": "velocity_std_dev_0",
+        "id": "qgc5wiur",
+        "name": "velocity_acc_0",
         "type": "number",
         "required": false,
         "unique": false,
@@ -69,8 +81,8 @@ migrate((db) => {
       },
       {
         "system": false,
-        "id": "g6zsdc3d",
-        "name": "velocity_std_dev_1",
+        "id": "n6rddczt",
+        "name": "velocity_acc_1",
         "type": "number",
         "required": false,
         "unique": false,
@@ -81,8 +93,32 @@ migrate((db) => {
       },
       {
         "system": false,
-        "id": "aja2zyqz",
-        "name": "velocity_std_dev_2",
+        "id": "9ajqoeqy",
+        "name": "velocity_acc_2",
+        "type": "number",
+        "required": false,
+        "unique": false,
+        "options": {
+          "min": null,
+          "max": null
+        }
+      },
+      {
+        "system": false,
+        "id": "9gckw1f4",
+        "name": "course",
+        "type": "number",
+        "required": false,
+        "unique": false,
+        "options": {
+          "min": null,
+          "max": null
+        }
+      },
+      {
+        "system": false,
+        "id": "msvhzccv",
+        "name": "course_acc",
         "type": "number",
         "required": false,
         "unique": false,
@@ -93,8 +129,8 @@ migrate((db) => {
       }
     ],
     "indexes": [],
-    "listRule": null,
-    "viewRule": null,
+    "listRule": "",
+    "viewRule": "",
     "createRule": null,
     "updateRule": null,
     "deleteRule": null,
@@ -104,7 +140,7 @@ migrate((db) => {
   return Dao(db).saveCollection(collection);
 }, (db) => {
   const dao = new Dao(db);
-  const collection = dao.findCollectionByNameOrId("elkbn6mwol6ws9l");
+  const collection = dao.findCollectionByNameOrId("2x3hs336exfcjj3");
 
   return dao.deleteCollection(collection);
 })

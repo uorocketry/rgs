@@ -1,29 +1,28 @@
 migrate((db) => {
   const collection = new Collection({
-    "id": "3hycgu9t9vc6s5p",
-    "created": "2023-07-28 05:39:36.922Z",
-    "updated": "2023-07-28 05:39:36.922Z",
-    "name": "rocket_log",
+    "id": "4nf3p6xbmml2c83",
+    "created": "2023-07-28 09:31:17.988Z",
+    "updated": "2023-07-28 09:31:17.988Z",
+    "name": "raw",
     "type": "base",
     "system": false,
     "schema": [
       {
         "system": false,
-        "id": "0rlqixfx",
-        "name": "level",
-        "type": "text",
+        "id": "ai2vkl0x",
+        "name": "timestamp",
+        "type": "number",
         "required": false,
         "unique": false,
         "options": {
           "min": null,
-          "max": null,
-          "pattern": ""
+          "max": null
         }
       },
       {
         "system": false,
-        "id": "vslzjnqx",
-        "name": "event",
+        "id": "z4fb30hj",
+        "name": "data",
         "type": "json",
         "required": false,
         "unique": false,
@@ -31,8 +30,8 @@ migrate((db) => {
       }
     ],
     "indexes": [],
-    "listRule": null,
-    "viewRule": null,
+    "listRule": "",
+    "viewRule": "",
     "createRule": null,
     "updateRule": null,
     "deleteRule": null,
@@ -42,7 +41,7 @@ migrate((db) => {
   return Dao(db).saveCollection(collection);
 }, (db) => {
   const dao = new Dao(db);
-  const collection = dao.findCollectionByNameOrId("3hycgu9t9vc6s5p");
+  const collection = dao.findCollectionByNameOrId("4nf3p6xbmml2c83");
 
   return dao.deleteCollection(collection);
 })
