@@ -3,11 +3,12 @@ module.exports = {
   apps: [
     {
       name: "db",
-      script: "cd db && pnpm install && node index.js",
-      watch: true,
+      script: "cd db && pnpm dev",
       env: {
-        DB_ADMIN: "admin@db.com",
-        DB_ADMIN_PASSWORD: "adminadmin",
+        // If you ever change these, you'll also need to change the ones in
+        // pocketbase/pb_migrations/xxxxxxxxxxxxx_create_admin.js
+        DB_ADMIN: "admin@admin.com",
+        DB_ADMIN_PASSWORD: "admin",
         DB_REST_PORT: 8090,
         ZMQ_PORT: 3002,
       },
@@ -19,6 +20,10 @@ module.exports = {
         VITE_DB_REST_PORT: 8090,
         VITE_ZMQ_PORT: 3002,
       },
+    },
+    {
+      name: "pocketbase",
+      script: "cd pocketbase && ./pocketbase serve",
     },
   ],
 

@@ -1,5 +1,5 @@
 use crate::processing::ProcessedMessage;
-use log::{debug, info};
+use log::info;
 use messages::mavlink::uorocketry::RADIO_STATUS_DATA;
 use messages::mavlink::MavHeader;
 use serde::{Deserialize, Serialize};

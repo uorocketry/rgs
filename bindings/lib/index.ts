@@ -17,3 +17,5 @@ export type { SensorData } from "./SensorData";
 export type { State } from "./State";
 export type { Status } from "./Status";
 export type { UtcTime } from "./UtcTime";
+export type { ProcessedMessage } from "./ProcessedMessage";
+export type { LinkStatus } from "./LinkStatus";

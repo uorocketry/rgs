@@ -4,7 +4,7 @@
   "type": "module",
   "main": "dist/index.cjs",
   "scripts": {
-    "dev": "tsup --watch src/index.ts",
+    "dev": "tsup --watch  --onSuccess 'node dist/index.js'",
     "build": "tsup --clean --dts src/index.ts",
     "preview": "vite preview",
     "lint": "prettier --plugin-search-dir . --check . && eslint .",
@@ -24,6 +24,7 @@
     "pocketbase": "^0.15.3",
     "prettier": "^3.0.0",
     "tslib": "^2.6.0",
+    "tsup": "^7.1.0",
     "typescript": "^5.1.6",
     "zeromq": "^6.0.0-beta.17"
   }
