@@ -42,3 +42,6 @@ vite.config.ts.*.mjs
 
 # database
 pocketbase/pb_data/*
+
+
+db/dist/
