@@ -17,6 +17,7 @@ module.exports = {
       script: "cd web && pnpm install && pnpm dev",
       env: {
         VITE_DB_REST_PORT: 8090,
+        VITE_ZMQ_PORT: 3002,
       },
     },
   ],

@@ -3,32 +3,18 @@ import { onDestroy } from 'svelte';
 import io from 'socket.io-client';
 import type { Socket } from 'socket.io';
 import { writable, type Unsubscriber } from 'svelte/store';
-import type { ReservedOrUserEventNames, ReservedOrUserListener } from 'socket.io/dist/typed-events';
-import type { ClientToServerEvents, ServerToClientEvents } from './Message';
-import type { SocketReservedEventsMap } from 'socket.io/dist/socket';
 
 /**
  * The client's socket connection to the server. Value is null on the server.
  * Prefer using onSocket() instead of socket.on() directly.
  */
-export let socket: Socket<ServerToClientEvents, ClientToServerEvents> | null = null;
+export let socket: Socket | null = null;
 
 export let uuid = '';
 export let secret = '';
 
 const initSocket = () => {
 	console.log('Initializing socket');
-
-	// Check if we have a uuid in local storage
-	uuid = localStorage.getItem('uuid') || '';
-	secret = localStorage.getItem('secret') || '';
-	if (!uuid || !secret) {
-		// If not, generate one
-		uuid = self.crypto.randomUUID();
-		secret = self.crypto.randomUUID();
-		localStorage.setItem('uuid', uuid);
-		localStorage.setItem('secret', secret);
-	}
 
 	socket = io() as unknown as Socket;
 	socket.on('connect', () => {
@@ -54,10 +40,7 @@ const initSocket = () => {
  * @param event The event name.
  * @param data The data to send.
  */
-export function onSocket<
-	Ev extends ReservedOrUserEventNames<SocketReservedEventsMap, ServerToClientEvents>,
-	Cb extends ReservedOrUserListener<SocketReservedEventsMap, ServerToClientEvents, Ev>
->(event: Ev, callback: Cb) {
+export function onSocket(event: string, callback: (...args: any[]) => void) {
 	socket?.on(event, callback);
 
 	onDestroy(() => {

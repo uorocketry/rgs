@@ -3,6 +3,7 @@ import path from "path";
 import PocketBase from "pocketbase";
 // Ayo? 🤨
 import cp from "child_process";
+import { Console } from "console";
 
 console.info("Started DB Service");
 try {
@@ -79,13 +80,28 @@ await pb.admins.authWithPassword(
 );
 
 // Setup ZMQ subscriber
+/**
+ * @type {zmq.Subscriber}
+ */
 const zmqSock = new zmq.Subscriber();
+zmqSock.connectTimeout = 1000;
 zmqSock.connect(`tcp://localhost:${process.env.ZMQ_PORT ?? "3002"}`);
 zmqSock.subscribe();
 
+console.log(
+  "Connected to ZMQ on address",
+  `tcp://localhost:${process.env.ZMQ_PORT ?? "3002"}`
+);
+
+zmqSock.events.on("handshake", (fd, ep) => {
+  console.log("handshake", fd, ep);
+});
+
 // Listen and store messages
 for await (const [msg] of zmqSock) {
+  console.log("aaaaa");
   const obj = JSON.parse(msg.toString());
+  console.info("Received message", obj);
   if ("RocketMessage" in obj) {
     const rocketMsg = obj.RocketMessage;
     const rocketData = rocketMsg.data; // Data
@@ -144,3 +160,5 @@ for await (const [msg] of zmqSock) {
     console.error("Unknown message type", obj);
   }
 }
+
+console.info("DB Service exited");
