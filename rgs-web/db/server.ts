@@ -4,7 +4,11 @@ import PocketBase from 'pocketbase';
 // Ayo? 🤨
 import cp from 'child_process';
 import { loggerFactory } from '../logger';
-import type { ProcessedMessage } from '$lib/common/bindings';
+import type { Message } from '../../rgs-bindings/lib/Message';
+import type { Data } from '../../rgs-bindings/lib/Data';
+import type { State } from '../../rgs-bindings/lib/State';
+import type { Sensor } from '../../rgs-bindings/lib/Sensor';
+import type { Log } from '../../rgs-bindings/lib/Log';
 export const logger = loggerFactory('db');
 
 export const setupServer = async (http: HTTPServer) => {
@@ -74,21 +78,26 @@ export const setupServer = async (http: HTTPServer) => {
 
 	// Listen and store messages
 	for await (const [msg] of zmqSock) {
-		const obj = JSON.parse(msg.toString()) as ProcessedMessage;
+		const obj = JSON.parse(msg.toString());
 		if ('RocketMessage' in obj) {
 			const rocketMsg = obj.RocketMessage;
-			if ('state' in rocketMsg.data) {
-				pb.collection('state').create(rocketMsg.data.state);
-				// logger.info("Adding State");
-			} else {
-				pb.collection('sbg').create(rocketMsg.data.sensor.data.Sbg);
-				// logger.info("Adding SBG");
+			const rocketData = rocketMsg.data as Data;
+			// { state: State } | { sensor: Sensor } | { log: Log };
+			if ('state' in rocketData) {
+				const dataState = rocketData.state as State;
+				console.log(dataState);
+			} else if ('sensor' in rocketData) {
+				const dataSensor = rocketData.sensor as Sensor;
+				const sensorData = dataSensor.data;
+				console.log(sensorData);
+
+			} else if ('log' in rocketData) {
+				const dataLog = rocketData.log as Log;
 			}
 		} else if ('LinkStatus' in obj) {
-			pb.collection('link_status').create(obj.LinkStatus);
-			// logger.info("Adding Link Status");
+			// logger.info('Adding Link Status');
 		} else {
-			logger.error('Unknown message type', obj);
+			// logger.error('Unknown message type', obj);
 		}
 	}
 };
