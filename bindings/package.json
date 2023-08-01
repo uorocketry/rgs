@@ -1,0 +1,13 @@
+{
+  "name": "@rgs/bindings",
+  "private": true,
+  "version": "0.0.0",
+  "type": "module",
+  "main": "./lib/index.ts",
+  "scripts": {
+    "build": "tsc"
+  },
+  "devDependencies": {
+    "typescript": "^5.1.6"
+  }
+}

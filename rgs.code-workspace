@@ -1,14 +1,21 @@
 {
-	"folders": [
-		{
-			"path": "."
-		},
-		{
-			"path": "./rgs-web"
-		},
-		{
-			"path": "./hydra_provider"
-		}
-	],
-	"settings": {}
+  "folders": [
+    {
+      "name": "root",
+      "path": "."
+    },
+    {
+      "path": "./web"
+    },
+    {
+      "path": "./bindings"
+    },
+    {
+      "path": "./db"
+    },
+    {
+      "path": "./hydra_provider"
+    }
+  ],
+  "settings": {}
 }

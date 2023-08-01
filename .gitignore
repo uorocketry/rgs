@@ -41,4 +41,7 @@ data
 vite.config.ts.*.mjs
 
 # database
-rgs-web/db/pb_data/*
+pocketbase/pb_data/*
+
+
+db/dist/

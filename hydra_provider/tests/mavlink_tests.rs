@@ -7,7 +7,7 @@ mod test_mavlink {
     use messages::mavlink;
     use messages::mavlink::uorocketry;
     use messages::sender::Sender;
-    use messages::sensor::{Sbg, Sensor};
+    use messages::sensor::{Sensor, EkfQuat};
     use messages::Message;
     use postcard::{from_bytes, to_vec};
     use rand::Rng;
@@ -21,24 +21,16 @@ mod test_mavlink {
     fn create_message() -> Message {
         let mut rng = rand::thread_rng();
 
-        let sbg = Sbg {
-            accel_x: rng.gen(),
-            accel_y: rng.gen(),
-            accel_z: rng.gen(),
-            velocity_n: rng.gen(),
-            velocity_e: rng.gen(),
-            pressure: rng.gen(),
-            height: rng.gen(),
-            roll: rng.gen(),
-            yaw: rng.gen(),
-            pitch: rng.gen(),
-            latitude: rng.gen(),
-            longitude: rng.gen(),
-            quant_w: rng.gen(),
-            quant_x: rng.gen(),
-            quant_y: rng.gen(),
-            velocity_d: rng.gen(),
-            quant_z: rng.gen(),
+         let ekf_quat = EkfQuat {
+            euler_std_dev: [rng.gen(), rng.gen(), rng.gen()],
+            quaternion: [
+                rng.gen(),
+                rng.gen(),
+                rng.gen(),
+                rng.gen(),
+            ],
+            status: rng.gen(),
+            time_stamp: rng.gen(),
         };
 
         let time = fugit::Instant::<u64, 1, 1000>::from_ticks(
@@ -48,7 +40,7 @@ mod test_mavlink {
                 .as_millis() as u64,
         );
 
-        Message::new(&time, Sender::MainBoard, Sensor::new(0, sbg))
+        Message::new(&time, Sender::CommunicationBoard, Sensor::new(ekf_quat))
     }
 
     #[test]
