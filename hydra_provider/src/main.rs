@@ -37,7 +37,7 @@ struct Args {
     baud_rate: u32,
 
     /// Port of the ZeroMQ server
-    #[arg(short, long, env, default_value = "2223")]
+    #[arg(short, long, env, default_value = "3002")]
     zeromq_port: u32,
 
     /// Simulate a source with random data for testing

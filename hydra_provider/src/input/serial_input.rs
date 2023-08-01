@@ -88,7 +88,6 @@ impl SerialInput {
 
     fn read_message(&self, send: &Sender<InputData>) -> Result<()> {
         let (header, recv_msg): (mavlink::MavHeader, uorocketry::MavMessage) = self.link.recv()?;
-
         let msg = match recv_msg {
             uorocketry::MavMessage::POSTCARD_MESSAGE(data) => {
                 // Only send header if this is data from the rocket
