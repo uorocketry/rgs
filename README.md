@@ -1,20 +1,34 @@
 # RGS
 
-In this repository you may find the:
+In this repository you may find the following folders:
 
-- Rocket Proxy Server
-  - hydra_provider: The ZeroMQ proxy server
-- Rocket Ground Station Web Application
-  - rgs-web: The web application
-    - io: Socket.IO proxy server
-    - db: Persistent storage backend
+- bindings: Typescript type bindings for the rocket messages backend
+- pocketbase: Pocketbase backend
+- db: ZMQ data recorder
+- web: Web interface application
+  - io: Socket.IO server
+- hydra_provider: Rocket data receiver and broadcaster
 
 ## How to run
 
+Make sure you have installed the following installed:
+
+- Rust
+- NodeJS
+  - pm2 (process manager)
+  - pnpm (package manager)
+
+To run the nodejs you can run:
+
+> pm2 start ./ecosystem.config.js
+
+See the pm2 documentation for more information.
+
 ### hydra_provider
 
-Check the **Build and run** section in this [README](https://github.com/uorocketry/rgs/blob/24ee2dd0feac205fe080345babce9c57cf63626b/hydra_provider/README.md)
+To actually receive data you will also have to run the hydra_provider.
 
+Check the **Build and run** section in this [README](https://github.com/uorocketry/rgs/blob/24ee2dd0feac205fe080345babce9c57cf63626b/hydra_provider/README.md)
 
 ### rgs-web
 
@@ -24,7 +38,7 @@ Make sure to read the database's [README](https://github.com/uorocketry/rgs/blob
 cd rgs-web
 # Create databse admin
 cd db
-# Run the server for 5 seconds and stop it 
+# Run the server for 5 seconds and stop it
 ./pocketbase serve
 # Now create the base admin
 ./pocketbase admin create admin@db.com adminadmin
