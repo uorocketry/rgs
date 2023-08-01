@@ -106,7 +106,6 @@ impl SerialInput {
                 trace!("Received heartbeat");
                 InputData::MavlinkHeartbeat()
             }
-            _ => Err(anyhow::anyhow!("error: {:#?}", "wrong message type"))?,
         };
 
         send.send(msg).unwrap();
