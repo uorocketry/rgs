@@ -1,6 +1,11 @@
 <script lang="ts">
 	import { socketConnected } from '$lib/common/socket';
+	import { commandBoxToggle as commandBoxToggle } from '$lib/stores';
 	import TimeCounter from './TimeCounter.svelte';
+
+	function cmdBoxOpen() {
+		commandBoxToggle.set({});
+	}
 </script>
 
 <div class="navbar">
@@ -10,6 +15,12 @@
 			<a href="/dashboard" class="btn btn-ghost normal-case text-xl">
 				<i class="fa-solid fa-chart-line" />
 			</a>
+		</div>
+
+		<div class="tooltip tooltip-bottom" data-tip="Commands">
+			<button class="btn btn-ghost normal-case text-xl" on:click={cmdBoxOpen}>
+				<i class="fa-solid fa-search" />
+			</button>
 		</div>
 
 		<div class="tooltip tooltip-bottom" data-tip="Status">

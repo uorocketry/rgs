@@ -3,6 +3,7 @@
 	import CommandBox from './CommandBox.svelte';
 	import { commandActions, commandReqAdaptor, type CommandRequest } from '$lib/common/actions';
 	import { get } from 'svelte/store';
+	import { commandBoxToggle } from '$lib/stores';
 
 	let visible = false;
 	let inputElement: HTMLInputElement;
@@ -88,6 +89,14 @@
 
 	onMount(() => {
 		window.addEventListener('keydown', listenToToggle);
+		commandBoxToggle.subscribe(() => {
+			visible = !visible;
+			if (visible) {
+				selectedIndex = 0;
+				inputElement?.focus();
+				chooseAction();
+			}
+		});
 	});
 
 	onDestroy(() => {

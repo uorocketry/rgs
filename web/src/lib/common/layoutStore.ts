@@ -41,32 +41,12 @@ export const layoutConfig: Writable<LayoutConfig> = writable({
 				type: 'component',
 				title: 'Layouts',
 				componentType: 'LayoutList'
-			},
-			{
-				type: 'component',
-				title: 'RadioStatus',
-				componentType: 'RadioStatus'
-			},
-			{
-				type: 'component',
-				title: 'MissedMessages',
-				componentType: 'MissedMessage'
-			},
-			{
-				title: 'Chart',
-				type: 'component',
-				componentType: 'GenericSbgGraph',
-			},
-			{
-				type: 'component',
-				title: 'ErrorRate',
-				componentType: 'ErrorRate'
 			}
 		]
 	}
 });
 
-if (browser) {
+export function startLayout() {
 	const layoutConfigStr = localStorage.getItem('layoutConfig');
 	if (layoutConfigStr) {
 		try {

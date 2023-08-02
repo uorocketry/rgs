@@ -86,3 +86,13 @@ html {
 	content: '📋';
 	left: 0.5rem;
 }
+
+/* Prevent IOS zoom */
+
+@media screen and (-webkit-min-device-pixel-ratio: 0) {
+	select,
+	textarea,
+	input {
+		font-size: 16px !important;
+	}
+}
