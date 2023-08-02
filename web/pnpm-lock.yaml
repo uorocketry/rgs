@@ -16,6 +16,12 @@ devDependencies:
   '@tailwindcss/typography':
     specifier: ^0.5.9
     version: 0.5.9(tailwindcss@3.3.3)
+  '@threlte/core':
+    specifier: ^6.0.0
+    version: 6.0.0
+  '@threlte/extras':
+    specifier: ^5.0.1
+    version: 5.0.1
   '@types/cookie':
     specifier: ^0.5.1
     version: 0.5.1
@@ -639,6 +645,22 @@ packages:
       tailwindcss: 3.3.3
     dev: true
 
+  /@threlte/core@6.0.0:
+    resolution: {integrity: sha512-CS8aXTUvJh+fGmcIR3DRfUlOdaI6YOCiszfVuP6IKJMCDemEC0tBFgrZRYU76Dt70a5CMS6PpJLAUq0ZsUezZA==}
+    dependencies:
+      svelte: 4.1.1
+      three: 0.153.0
+    dev: true
+
+  /@threlte/extras@5.0.1:
+    resolution: {integrity: sha512-bRmkkBGXuiDXQWhG8RBN3EKLw0vjwd3LpfQzZrAiPqfo/d61bw5Zrkq4SSv/iH7XVXiZjKdmlJFqWnwaL0ngNw==}
+    dependencies:
+      lodash: 4.17.21
+      svelte: 4.1.1
+      three: 0.153.0
+      troika-three-text: 0.47.2(three@0.153.0)
+    dev: true
+
   /@tweenjs/tween.js@18.6.4:
     resolution: {integrity: sha512-lB9lMjuqjtuJrx7/kOkqQBtllspPIN+96OvTCeJ2j5FEzinoAXTdAMFnDAQT1KVPRlnYfBrqxtqP66vDM40xxQ==}
     dev: true
@@ -968,6 +990,12 @@ packages:
   /base64id@2.0.0:
     resolution: {integrity: sha512-lGe34o6EHj9y3Kts9R4ZYs/Gr+6N7MCaMlIFA3F1R2O5/m7K06AxfSeO5530PEERE6/WyEg3lsuyw4GHlPZHog==}
     engines: {node: ^4.5.0 || >= 5.9}
+    dev: true
+
+  /bidi-js@1.0.3:
+    resolution: {integrity: sha512-RKshQI1R3YQ+n9YJz2QQ147P66ELpa1FQEg20Dk8oW9t2KgLbpDLLp9aGZ7y8WHSshDknG0bknqGw5/tyCs5tw==}
+    dependencies:
+      require-from-string: 2.0.2
     dev: true
 
   /binary-extensions@2.2.0:
@@ -2112,6 +2140,10 @@ packages:
     resolution: {integrity: sha512-0KpjqXRVvrYyCsX1swR/XTK0va6VQkQM6MNo7PqW77ByjAhoARA8EfrP1N4+KlKj8YS0ZUCtRT/YUuhyYDujIQ==}
     dev: true
 
+  /lodash@4.17.21:
+    resolution: {integrity: sha512-v2kDEe57lecTulaDIuNTPy3Ry4gLGJ6Z1O3vE1krgXZNrsQ+LFTGHVxVjcXPs17LhbZVGedAJv8XZ1tvj5FvSg==}
+    dev: true
+
   /logform@2.5.1:
     resolution: {integrity: sha512-9FyqAm9o9NKKfiAKfZoYo9bGXXuwMkxQiQttkT4YjjVtQVIQtK6LmVtlxmCaFswo6N4AfEkHqZTV0taDtPotNg==}
     dependencies:
@@ -2555,6 +2587,11 @@ packages:
     engines: {node: '>= 0.10'}
     dependencies:
       resolve: 1.22.2
+    dev: true
+
+  /require-from-string@2.0.2:
+    resolution: {integrity: sha512-Xf0nWe6RseziFMu+Ap9biiUbmplq6S9/p+7w7YXP/JBHhrUDDUhwa+vANyubuqfZWTveU//DYVGsDG7RKL/vEw==}
+    engines: {node: '>=0.10.0'}
     dev: true
 
   /resolve-from@4.0.0:
@@ -3031,6 +3068,10 @@ packages:
       any-promise: 1.3.0
     dev: true
 
+  /three@0.153.0:
+    resolution: {integrity: sha512-OCP2/uQR6GcDpSLnJt/3a4mdS0kNWcbfUXIwLoEMgLzEUIVIYsSDwskpmOii/AkDM+BBwrl6+CKgrjX9+E2aWg==}
+    dev: true
+
   /three@0.155.0:
     resolution: {integrity: sha512-sNgCYmDijnIqkD/bMfk+1pHg3YzsxW7V2ChpuP6HCQ8NiZr3RufsXQr8M3SSUMjW4hG+sUk7YbyuY0DncaDTJQ==}
     dev: true
@@ -3049,6 +3090,30 @@ packages:
 
   /triple-beam@1.3.0:
     resolution: {integrity: sha512-XrHUvV5HpdLmIj4uVMxHggLbFSZYIn7HEWsqePZcI50pco+MPqJ50wMGY794X7AOOhxOBAjbkqfAbEe/QMp2Lw==}
+    dev: true
+
+  /troika-three-text@0.47.2(three@0.153.0):
+    resolution: {integrity: sha512-qylT0F+U7xGs+/PEf3ujBdJMYWbn0Qci0kLqI5BJG2kW1wdg4T1XSxneypnF05DxFqJhEzuaOR9S2SjiyknMng==}
+    peerDependencies:
+      three: '>=0.125.0'
+    dependencies:
+      bidi-js: 1.0.3
+      three: 0.153.0
+      troika-three-utils: 0.47.2(three@0.153.0)
+      troika-worker-utils: 0.47.2
+      webgl-sdf-generator: 1.1.1
+    dev: true
+
+  /troika-three-utils@0.47.2(three@0.153.0):
+    resolution: {integrity: sha512-/28plhCxfKtH7MSxEGx8e3b/OXU5A0xlwl+Sbdp0H8FXUHKZDoksduEKmjQayXYtxAyuUiCRunYIv/8Vi7aiyg==}
+    peerDependencies:
+      three: '>=0.125.0'
+    dependencies:
+      three: 0.153.0
+    dev: true
+
+  /troika-worker-utils@0.47.2:
+    resolution: {integrity: sha512-mzss4MeyzUkYBppn4x5cdAqrhBHFEuVmMMgLMTyFV23x6GvQMyo+/R5E5Lsbrt7WSt5RfvewjcwD1DChRTA9lA==}
     dev: true
 
   /ts-api-utils@1.0.1(typescript@5.1.6):
@@ -3163,6 +3228,10 @@ packages:
         optional: true
     dependencies:
       vite: 4.4.7
+    dev: true
+
+  /webgl-sdf-generator@1.1.1:
+    resolution: {integrity: sha512-9Z0JcMTFxeE+b2x1LJTdnaT8rT8aEp7MVxkNwoycNmJWwPdzoXzMh0BjJSh/AEFP+KPYZUli814h8bJZFIZ2jA==}
     dev: true
 
   /which@2.0.2:

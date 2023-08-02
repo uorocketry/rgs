@@ -13,13 +13,14 @@
 	}
 
 	onMount(() => {
+		let nStates = 0;
 		goldenLayout.on('stateChanged', () => {
 			let config = get(virtualLayout);
 			if (config === undefined) {
 				return;
 			}
 			localStorage.setItem('layoutConfig', JSON.stringify(config.saveLayout()));
-			console.info('Saved layoutConfig to localStorage');
+			console.info('Layout state saved');
 		});
 	});
 

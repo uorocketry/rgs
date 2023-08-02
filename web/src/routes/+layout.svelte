@@ -7,6 +7,12 @@
 	import 'chart.js/auto'; // Import everything from chart.js
 	import Header from '$lib/components/Header.svelte';
 	import MasterCommandBox from '$lib/components/commandPallete/MasterCommandBox.svelte';
+	import { onMount } from 'svelte';
+	import { startLayout } from '$lib/common/layoutStore';
+
+	onMount(() => {
+		startLayout();
+	});
 </script>
 
 <div id="wrapper" class="wrapper">
