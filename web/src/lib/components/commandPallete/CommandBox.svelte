@@ -1,5 +1,6 @@
 <script lang="ts">
 	import { getStringScores } from '$lib/common/stringCmp';
+	import { commandBoxToggle } from '$lib/stores';
 	import { onDestroy, onMount } from 'svelte';
 
 	const UNDEF_FUN = () => undefined;
@@ -77,6 +78,10 @@
 	onDestroy(() => {
 		window.removeEventListener('keydown', implOnEnter);
 	});
+
+	function closePrompt() {
+		commandBoxToggle.set({});
+	}
 </script>
 
 <div
@@ -88,12 +93,15 @@
 	{/if}
 
 	<!-- Header -->
-	<input
-		bind:this={inputElement}
-		bind:value={inputValue}
-		class="input input-sm input-bordered"
-		{placeholder}
-	/>
+	<div class="flex flex-row">
+		<input
+			bind:this={inputElement}
+			bind:value={inputValue}
+			class="flex-1 input input-sm input-bordered"
+			{placeholder}
+		/>
+		<button class="btn btn-sm" on:click={closePrompt}>✕</button>
+	</div>
 	<!-- Results -->
 	{#if list.length > 0}
 		<ul class="menu menu-xs w-full bg-base-200 rounded">
