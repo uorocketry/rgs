@@ -75,6 +75,9 @@ for await (const [msg] of zmqSock) {
     const rocketData: Data = rocketMsg.data;
     pb.collection("raw").create({
       data: rocketData
+    },
+    {
+        $autoCancel: false,
     });
 
     console.info("Adding raw data", rocketData);
@@ -84,6 +87,9 @@ for await (const [msg] of zmqSock) {
       pb.collection("State").create({
         status: dataState.status,
         has_error: dataState.has_error,
+      },
+      {
+          $autoCancel: false,
       });
     } else if ("sensor" in rocketData) {
       const dataSensor = rocketData.sensor; // Sensor
@@ -214,6 +220,9 @@ for await (const [msg] of zmqSock) {
       pb.collection("Log").create({
         level: dataLog.level,
         event: dataLog.event,
+      },
+      {
+          $autoCancel: false,
       });
     }
   } else if ("LinkStatus" in obj) {
@@ -229,6 +238,9 @@ for await (const [msg] of zmqSock) {
       recent_error_rate: linkStatus.recent_error_rate,
       missed_messages: linkStatus.missed_messages,
       connected: linkStatus.connected,
+    },
+    {
+        $autoCancel: false,
     });
   } else {
     console.error("Unknown message type", obj);
