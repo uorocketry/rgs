@@ -84,12 +84,13 @@ for await (const [msg] of zmqSock) {
     // { state: State } | { sensor: Sensor } | { log: Log };
     if ("state" in rocketData) {
       const dataState = rocketData.state; // State
+      console.log("State", dataState);
       pb.collection("State").create({
         status: dataState.status,
         has_error: dataState.has_error,
-      },
-      {
-          $autoCancel: false,
+      // },
+      // {
+      //     $autoCancel: false,
       });
     } else if ("sensor" in rocketData) {
       const dataSensor = rocketData.sensor; // Sensor
