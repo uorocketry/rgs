@@ -7,6 +7,7 @@
 
 	let connection = false;
 	let state = '';
+	let state_error = false;
 	let missed_messages = 0;
 	let pressure_abs = 0;
 	let altitude = 0;
@@ -22,6 +23,7 @@
 
 	onCollectionCreated('State', (msg: State) => {
 		state = msg.status;
+		state_error = msg.has_error;
 	});
 
 	onCollectionCreated('Air', (msg: Air) => {
@@ -67,6 +69,14 @@
 				</td>
 				<td>
 					<span class="text-right">{state}</span>
+				</td>
+			</tr>
+			<tr class="hover clicky cursor-pointer">
+				<td>
+					<span class="text-left">State Error</span>
+				</td>
+				<td>
+					<span class="text-right">{state_error}</span>
 				</td>
 			</tr>
 			<tr class="hover clicky cursor-pointer">
