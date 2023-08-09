@@ -88,9 +88,9 @@ for await (const [msg] of zmqSock) {
       pb.collection("State").create({
         status: dataState.status,
         has_error: dataState.has_error,
-      // },
-      // {
-      //     $autoCancel: false,
+      },
+      {
+          $autoCancel: false,
       });
     } else if ("sensor" in rocketData) {
       const dataSensor = rocketData.sensor; // Sensor
