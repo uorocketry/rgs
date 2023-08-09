@@ -1,7 +1,6 @@
 use crate::processing::InputData;
 use messages::mavlink::MavHeader;
 use messages::sender::Sender;
-use messages::Message;
 use messages::sensor::Air;
 use messages::sensor::EkfNav1;
 use messages::sensor::EkfNav2;
@@ -11,6 +10,10 @@ use messages::sensor::Imu1;
 use messages::sensor::Imu2;
 use messages::sensor::Sensor;
 use messages::sensor::UtcTime;
+use messages::Data;
+use messages::Message;
+use messages::State;
+use messages::Status;
 use rand::rngs::ThreadRng;
 use rand::Rng;
 use std::time::Duration;
@@ -49,8 +52,8 @@ impl RandomInput {
 
         let utc_time = UtcTime {
             time_stamp: time.ticks() as u32,
-            day: (time.ticks()/86400000) as i8,
-            year: (1970 + (time.ticks()/86400000) / 365) as u16,
+            day: (time.ticks() / 86400000) as i8,
+            year: (1970 + (time.ticks() / 86400000) / 365) as u16,
             hour: ((time.ticks() % 86400000) / 3600000) as i8,
             minute: ((time.ticks() % 3600000) / 60000) as i8,
             month: ((time.ticks() % 31536000000) / 2592000000) as i8,
@@ -70,8 +73,6 @@ impl RandomInput {
             true_airspeed: self.rng.gen(),
         };
 
-
-
         let ekf_quat = EkfQuat {
             euler_std_dev: [self.rng.gen(), self.rng.gen(), self.rng.gen()],
             quaternion: [
@@ -84,8 +85,8 @@ impl RandomInput {
             time_stamp: time.ticks() as u32,
         };
 
-        let ekf_nav1  = EkfNav1 {
-            time_stamp:  time.ticks() as u32,
+        let ekf_nav1 = EkfNav1 {
+            time_stamp: time.ticks() as u32,
             velocity: [self.rng.gen(), self.rng.gen(), self.rng.gen()],
             velocity_std_dev: [self.rng.gen(), self.rng.gen(), self.rng.gen()],
         };
@@ -132,10 +133,29 @@ impl RandomInput {
             Sensor::new(gps_vel),
         ];
 
+        let status = match self.rng.gen_range(0..=5) {
+            0 => Status::Initializing,
+            1 => Status::WaitForTakeoff,
+            2 => Status::Ascent,
+            3 => Status::Apogee,
+            4 => Status::Landed,
+            _ => Status::Abort,
+        };
+
         // Return a random sensor message
         let sensor = sensors[self.rng.gen_range(0..sensors.len())].to_owned();
 
-        Message::new(&time, Sender::GroundStation, sensor)
+        let state = State {
+            status: status,
+            has_error: self.rng.gen(),
+        };
+
+        let data = match self.rng.gen_range(0..=1) {
+            0 => Data::State(state),
+            _ => Data::Sensor(sensor),
+        };
+
+        Message::new(&time, Sender::GroundStation, data)
     }
 
     fn random_mavheader(&mut self) -> MavHeader {
@@ -151,6 +171,5 @@ impl RandomInput {
             0 => InputData::RocketData(self.random_sensor()),
             _ => InputData::MavlinkHeader(self.random_mavheader()),
         }
-
     }
 }
