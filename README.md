@@ -35,15 +35,16 @@ Check the **Build and run** section in this [README](https://github.com/uorocket
 Make sure to read the database's [README](https://github.com/uorocketry/rgs/blob/main/rgs-web/db/README.Md)
 
 ```bash
-cd rgs-web
 # Create databse admin
 cd db
 # Run the server for 5 seconds and stop it
 ./pocketbase serve
+# ctrl + c to close the server
 # Now create the base admin
 ./pocketbase admin create admin@db.com adminadmin
 ../
-# Now on rgs-web folder
+# Now on web folder
+cd web
 pnpm install
 pnpm dev
 ```
