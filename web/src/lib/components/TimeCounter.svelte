@@ -1,9 +1,10 @@
 <script lang="ts">
 	import { onInterval } from '$lib/common/utils';
 
-	// In 2 minutes, the timeRemaining will be 0
-	let targetTime = Date.now() + 5 * 1000;
-	let countDown = targetTime - Date.now();
+	let startTimer = false;
+	let initialCountDown = 0;
+	let countDown = 0;
+	let startTime: number;
 	let timeString = '';
 
 	const padWithLeadingZero = (num: number) => num.toString().padStart(2, '0');
@@ -32,13 +33,57 @@
 	};
 
 	onInterval(() => {
-		countDown = targetTime - Date.now();
-		timeString = formatTime(countDown);
+		if (startTimer) {
+			const elapsed = Date.now() - startTime;
+			countDown = initialCountDown - elapsed;
+			timeString = formatTime(countDown);
+		} else {
+			timeString = formatTime(initialCountDown);
+		}
 	}, 10);
 </script>
 
 <div>
 	<div class="tooltip tooltip-left" data-tip="Time Remaining">
-		<span class="{countDown > 0 ? 'text-red-500' : 'text-green-500'} btn">{timeString}</span>
+		<label for="my-modal-4" class="{countDown > 0 ? 'text-red-500' : 'text-green-500'} btn">
+			{timeString}
+		</label>
+
+		<input type="checkbox" id="my-modal-4" class="modal-toggle" />
+		<label for="my-modal-4" class="modal cursor-pointer">
+			<div class="modal-box">
+				<h3 class="text-lg font-bold">Count Down Timer</h3>
+				<p class="py-4">Timer:</p>
+				<input
+					type="number"
+					class="input input-bordered bg-gray-100 p-2 rounded mb-2"
+					placeholder="Enter time in seconds"
+					on:change={(e) => {
+						if (e.target.value !== '') {
+							initialCountDown = parseInt(e.target.value) * 1000;
+							countDown = initialCountDown;
+						}
+					}}
+				/>
+
+				<div class="mb-2">
+					<label class="btn bg-black">
+						<input
+							type="checkbox"
+							class="sr-only"
+							bind:checked={startTimer}
+							on:change={() => {
+								if (startTimer) {
+									startTime = Date.now();
+								} else {
+									countDown = initialCountDown;
+								}
+							}}
+						/>
+						<span class="text-white">{startTimer ? 'Stop Timer' : 'Start Timer'}</span>
+					</label>
+				</div>
+			</div>
+		</label>
 	</div>
 </div>
