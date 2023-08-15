@@ -152,17 +152,17 @@
 					if (collection.key == 'Air') {
 						tooltipDesc = 'Air Sensor Metrics';
 					} else if (collection.key == 'EkfNav1') {
-						tooltipDesc = 'Navigation Velocity and Position 1';
+						tooltipDesc = 'Navigation Velocity';
 					} else if (collection.key == 'EkfNav2') {
-						tooltipDesc = 'Navigation Velocity and Position 2';
+						tooltipDesc = 'Navigation Position';
 					} else if (collection.key == 'EkfQuat') {
 						tooltipDesc = 'Quaternion Orientation Metrics';
 					} else if (collection.key == 'GpsVel') {
 						tooltipDesc = 'GPS Velocity Metrics';
 					} else if (collection.key == 'Imu1') {
-						tooltipDesc = 'IMU Delta Metrics 1';
+						tooltipDesc = 'IMU Accelerometer and Gyroscope Metrics';
 					} else if (collection.key == 'Imu2') {
-						tooltipDesc = 'IMU Other Metrics 2';
+						tooltipDesc = 'IMU Delta Velocity and Angle Metrics';
 					} else if (collection.key == 'LinkStatus') {
 						tooltipDesc = 'Link Status';
 					} else if (collection.key == 'Log') {
