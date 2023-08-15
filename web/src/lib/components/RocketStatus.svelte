@@ -4,6 +4,7 @@
 	import type { EkfNav1 } from '@rgs/bindings';
 	import type { Imu1 } from '@rgs/bindings';
 	import { onCollectionCreated } from '$lib/common/utils';
+	import { pb } from '$lib/stores';
 
 	let connection = false;
 	let state = '';
@@ -63,6 +64,16 @@
 		max(max_velocity[2], velocity[2])
 	];
 	$: max_altitude = max(max_altitude, altitude);
+
+	$: pb.collection('CalculatedMetrics').create({
+		max_altitude: max_altitude,
+		max_true_air_speed: max_true_air_speed,
+		max_velocity_1: max_velocity[0],
+		max_velocity_2: max_velocity[1],
+		max_velocity_3: max_velocity[2],
+		g_force: g_force,
+		max_g_force: max_g_force
+	});
 </script>
 
 <div class="w-full h-full overflow-x-auto">
