@@ -5,10 +5,11 @@
 	import CheckboxSelect from '../CheckboxSelect.svelte';
 	import { collectionFields } from '$lib/common/dao';
 	import { pb } from '$lib/stores';
-	import type { UnsubscribeFunc } from 'pocketbase';
+	import type { Collection, UnsubscribeFunc } from 'pocketbase';
 	import type { ChartDataset, Point } from 'chart.js/auto';
 
 	export let selected: { [key: string]: string[] } = {};
+	let tooltipDesc: String;
 
 	const options = {
 		maintainAspectRatio: false,
@@ -65,7 +66,6 @@
 
 				// Crete line datasets
 				const fields = entry[1];
-				4;
 				for (const key of fields) {
 					const recordKey = entry[0] + key;
 
@@ -142,14 +142,48 @@
 </script>
 
 <div class="w-full h-full flex flex-col" bind:clientHeight bind:clientWidth>
-	<div>
+	<div class="flex flex-wrap justify-center">
 		<!-- TODO: Checkbox not working(???) -->
 		{#each collectionsEntries as collection}
-			<CheckboxSelect
-				dropdownLabel={formatVariableName(collection.key)}
-				options={collection.value ?? []}
-				bind:selected={selected[collection.key]}
-			/>
+			<div
+				class="tooltip tooltip-bottom"
+				data-tip={tooltipDesc}
+				on:mouseenter={() => {
+					if (collection.key == 'Air') {
+						tooltipDesc = 'Air Sensor Metrics';
+					} else if (collection.key == 'EkfNav1') {
+						tooltipDesc = 'Navigation Velocity and Position 1';
+					} else if (collection.key == 'EkfNav2') {
+						tooltipDesc = 'Navigation Velocity and Position 2';
+					} else if (collection.key == 'EkfQuat') {
+						tooltipDesc = 'Quaternion Orientation Metrics';
+					} else if (collection.key == 'GpsVel') {
+						tooltipDesc = 'GPS Velocity Metrics';
+					} else if (collection.key == 'Imu1') {
+						tooltipDesc = 'IMU Delta Metrics 1';
+					} else if (collection.key == 'Imu2') {
+						tooltipDesc = 'IMU Other Metrics 2';
+					} else if (collection.key == 'LinkStatus') {
+						tooltipDesc = 'Link Status';
+					} else if (collection.key == 'Log') {
+						tooltipDesc = 'Log';
+					} else if (collection.key == 'State') {
+						tooltipDesc = 'State';
+					} else {
+						tooltipDesc = '';
+					}
+				}}
+				on:mouseleave={() => {
+					tooltipDesc = '';
+				}}
+				aria-hidden="true"
+			>
+				<CheckboxSelect
+					dropdownLabel={formatVariableName(collection.key)}
+					options={collection.value ?? []}
+					bind:selected={selected[collection.key]}
+				/>
+			</div>
 		{/each}
 	</div>
 
