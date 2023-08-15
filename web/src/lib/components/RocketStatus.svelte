@@ -18,6 +18,8 @@
 	let velocity = [0, 0, 0];
 	let max_velocity = [0, 0, 0];
 	let acc = [0, 0, 0];
+	let g_force = 0;
+	let max_g_force = 0;
 
 	onCollectionCreated('LinkStatus', (msg: LinkStatus) => {
 		connection = msg.connected;
@@ -48,6 +50,12 @@
 		return a > b ? a : b;
 	}
 
+	function calcGForce(vf: number, t: number) {
+		return vf / (t * 9.81);
+	}
+
+	$: g_force = calcGForce(velocity[1], 1);
+	$: max_g_force = max(max_g_force, g_force);
 	$: max_true_air_speed = max(max_true_air_speed, true_airspeed);
 	$: max_velocity = [
 		max(max_velocity[0], velocity[0]),
@@ -176,7 +184,22 @@
 					<span class="text-right">{acc[2]}</span>
 				</td>
 			</tr>
-			<!-- {/if} -->
+			<tr class="hover clicky cursor-pointer">
+				<td>
+					<span class="text-left">G Force</span>
+				</td>
+				<td>
+					<span class="text-right">{g_force}</span>
+				</td>
+			</tr>
+			<tr class="hover clicky cursor-pointer">
+				<td>
+					<span class="text-left">Max G Force</span>
+				</td>
+				<td>
+					<span class="text-right">{max_g_force}</span>
+				</td>
+			</tr>
 		</tbody>
 	</table>
 </div>
