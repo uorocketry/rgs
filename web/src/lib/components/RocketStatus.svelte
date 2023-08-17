@@ -1,9 +1,10 @@
 <script lang="ts">
-	import type { LinkStatus, State } from '@rgs/bindings';
+	import type { EkfNav2, LinkStatus, State } from '@rgs/bindings';
 	import type { Air } from '@rgs/bindings';
 	import type { EkfNav1 } from '@rgs/bindings';
 	import type { Imu1 } from '@rgs/bindings';
 	import { onCollectionCreated } from '$lib/common/utils';
+	import { pb } from '$lib/stores';
 
 	let connection = false;
 	let state = '';
@@ -16,6 +17,12 @@
 	let velocity = [0, 0, 0];
 	let acc = [0, 0, 0];
 	let target_altitude = 0;
+	let relative_altitude = 0;
+	let ground_altitude = 0;
+	let total_traveled_distance = 0;
+	let distance_from_target = 0;
+	let launch_point = [0, 0];
+	let current_position = [0, 0, 0];
 
 	onCollectionCreated('LinkStatus', (msg: LinkStatus) => {
 		connection = msg.connected;
@@ -43,12 +50,48 @@
 	});
 
 	onCollectionCreated('FlightDirector', (msg: any) => {
-		console.log(msg);
-		target_altitude = msg.targetAltitude;
+		if (msg.targetAltitude !== 0) {
+			target_altitude = msg.targetAltitude;
+		} else if (msg.relativeAltitude !== 0) {
+			relative_altitude = msg.relativeAltitude;
+		} else if (msg.latitude !== 0) {
+			launch_point[0] = msg.latitude;
+		} else if (msg.longitude !== 0) {
+			launch_point[1] = msg.longitude;
+		} else {
+			console.log('msg recieved, variable is not defined currently', msg);
+		}
 	});
 
-	// $: current_radio_msg = radio_msg[radio_msg.length - 1];
-	// $: current_rocket_msg = rocket_msg[rocket_msg.length - 1];
+	onCollectionCreated('EkfNav2', (msg: EkfNav2) => {
+		current_position = [msg.position[0], msg.position[1], msg.position[2]];
+		console.log('current_point', current_position);
+	});
+
+	function convertToRadians(degrees: number): number {
+		return (degrees * Math.PI) / 180;
+	}
+
+	$: ground_altitude = altitude - relative_altitude;
+	$: distance_from_target = target_altitude - ground_altitude;
+	$: {
+		let traveled_distance = 0;
+		let dlon = convertToRadians(current_position[0] - launch_point[0]);
+		let dlat = convertToRadians(current_position[1] - launch_point[1]);
+		let a =
+			Math.sin(dlat / 2) ** 2 +
+			Math.cos(launch_point[1]) * Math.cos(current_position[1]) * Math.sin(dlon / 2) ** 2;
+		console.log('A', a);
+		let c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+		traveled_distance = 6371 * c;
+		total_traveled_distance = traveled_distance;
+	}
+
+	pb.collection('CalculatedMetrics').create({
+		ground_altitude: ground_altitude,
+		distance_from_target: distance_from_target,
+		total_traveled_distance: total_traveled_distance
+	});
 </script>
 
 <div class="w-full h-full overflow-x-auto">
@@ -60,7 +103,6 @@
 			</tr>
 		</thead>
 		<tbody>
-			<!-- {#if current_radio_msg && current_rocket_msg} -->
 			<tr class="hover clicky cursor-pointer">
 				<td>
 					<span class="text-left">Connection</span>
@@ -119,6 +161,22 @@
 			</tr>
 			<tr class="hover clicky cursor-pointer">
 				<td>
+					<span class="text-left">Relative Altitude</span>
+				</td>
+				<td>
+					<span class="text-right">{relative_altitude}</span>
+				</td>
+			</tr>
+			<tr class="hover clicky cursor-pointer">
+				<td>
+					<span class="text-left">Ground Altitude</span>
+				</td>
+				<td>
+					<span class="text-right">{ground_altitude}</span>
+				</td>
+			</tr>
+			<tr class="hover clicky cursor-pointer">
+				<td>
 					<span class="text-left">airspeed</span>
 				</td>
 				<td>
@@ -153,7 +211,22 @@
 					<span class="text-right">{acc[2]}</span>
 				</td>
 			</tr>
-			<!-- {/if} -->
+			<tr class="hover clicky cursor-pointer">
+				<td>
+					<span class="text-left">Distance from Target Altitude</span>
+				</td>
+				<td>
+					<span class="text-right">{distance_from_target}</span>
+				</td>
+			</tr>
+			<tr class="hover clicky cursor-pointer">
+				<td>
+					<span class="text-left">Total Traveled Distance</span>
+				</td>
+				<td>
+					<span class="text-right">{total_traveled_distance}</span>
+				</td>
+			</tr>
 		</tbody>
 	</table>
 </div>

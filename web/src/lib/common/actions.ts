@@ -2,7 +2,7 @@ import { get, writable, type Writable } from 'svelte/store';
 import { layoutComponentsString, layoutConfig, virtualLayout } from './layoutStore';
 import { LayoutConfig } from 'golden-layout';
 import { pb } from '$lib/stores';
-import { initialLaunchPosition, latestLaunchPoint } from './director';
+import { latestLaunchPoint } from './director';
 
 export interface CommandAction {
 	name: string;
@@ -84,7 +84,7 @@ export const commandActions: Writable<CommandAction[]> = writable([
 		}
 	},
 	{
-		name: 'Director: Set Launch Point ',
+		name: 'FlightPlan: Set Launch Point ',
 		do: async () => {
 		  const cmd = get(commandReqAdaptor);
 		  if (!cmd) return;
@@ -96,7 +96,6 @@ export const commandActions: Writable<CommandAction[]> = writable([
 		  const lat = parseFloat(launchPointSplit[0]);
 		  const lng = parseFloat(launchPointSplit[1]);
 		  if (isNaN(lng) || isNaN(lat)) return;
-		  initialLaunchPosition.set({ lat, lng });
 		  pb.collection('FlightDirector').create({
 			latitude: lat,
 			longitude: lng
@@ -107,17 +106,32 @@ export const commandActions: Writable<CommandAction[]> = writable([
 		}
 	  },
 	{
-		name: 'Director: Set Target Altitude',
+		name: 'FlightPlan: Set Target Altitude',
 		do: async () => {
 			const cmd = get(commandReqAdaptor);
 			if (!cmd) return;
 
-			const targetAlt = await cmd.string('Target Altitude?', 'Target Altitude in feet: 1000');
+			const targetAlt = await cmd.string('Target Altitude?', 'Target Altitude: 1000');
 			if (!targetAlt) return;
 			const targetAltNum = parseFloat(targetAlt);
 			if (isNaN(targetAltNum)) return;
 			pb.collection('FlightDirector').create({
 				targetAltitude: targetAltNum
+			});
+		}
+	},
+	{
+		name: 'FlightPlan: Set Relative Altitude',
+		do: async () => {
+			const cmd = get(commandReqAdaptor);
+			if (!cmd) return;
+
+			const relativeAlt = await cmd.string('Relative Altitude?', 'Relative Altitude: 10');
+			if (!relativeAlt) return;
+			const targetAltNum = parseFloat(relativeAlt);
+			if (isNaN(targetAltNum)) return;
+			pb.collection('FlightDirector').create({
+				relativeAltitude: targetAltNum
 			});
 		}
 	},
