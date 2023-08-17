@@ -24,18 +24,6 @@ export const commandReqAdaptor: Writable<CommandRequest> = writable({
 });
 
 export const commandActions: Writable<CommandAction[]> = writable([
-	// {
-	// 	name: 'Developer: Alert Test',
-	// 	do: async () => {
-	// 		const cmd = get(commandReqAdaptor);
-	// 		if (!cmd) return;
-
-	// 		const alertMsg = await cmd.string('Alert Message?', 'Hello World');
-	// 		console.log('Alert Test: ' + alertMsg);
-	// 		alert(alertMsg);
-	// 	}
-	// },
-	// Layout Actions
 	{
 		name: 'Layout: Save Layout',
 		do: async () => {
@@ -111,7 +99,7 @@ export const commandActions: Writable<CommandAction[]> = writable([
 			const cmd = get(commandReqAdaptor);
 			if (!cmd) return;
 
-			const targetAlt = await cmd.string('Target Altitude?', 'Target Altitude: 1000');
+			const targetAlt = await cmd.string('Target Altitude?', 'Target Altitude: 1000m');
 			if (!targetAlt) return;
 			const targetAltNum = parseFloat(targetAlt);
 			if (isNaN(targetAltNum)) return;
@@ -126,7 +114,7 @@ export const commandActions: Writable<CommandAction[]> = writable([
 			const cmd = get(commandReqAdaptor);
 			if (!cmd) return;
 
-			const relativeAlt = await cmd.string('Relative Altitude?', 'Relative Altitude: 10');
+			const relativeAlt = await cmd.string('Relative Altitude?', 'Relative Altitude: 10m');
 			if (!relativeAlt) return;
 			const targetAltNum = parseFloat(relativeAlt);
 			if (isNaN(targetAltNum)) return;
