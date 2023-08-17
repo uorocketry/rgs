@@ -2,6 +2,7 @@ import { get, writable, type Writable } from 'svelte/store';
 import { layoutComponentsString, layoutConfig, virtualLayout } from './layoutStore';
 import { LayoutConfig } from 'golden-layout';
 import { pb } from '$lib/stores';
+import { initialLaunchPosition, latestLaunchPoint } from './director';
 
 export interface CommandAction {
 	name: string;
@@ -81,5 +82,44 @@ export const commandActions: Writable<CommandAction[]> = writable([
 			if (!vLayout) return;
 			vLayout.addComponent(layoutComponentsString[toAdd], undefined, layoutComponentsString[toAdd]);
 		}
-	}
+	},
+	{
+		name: 'Director: Set Launch Point ',
+		do: async () => {
+		  const cmd = get(commandReqAdaptor);
+		  if (!cmd) return;
+	  
+		  const launchPoint = await cmd.string('Launch Point?', 'Latitude, Longitude');
+		  if (!launchPoint) return;
+		  const launchPointSplit = launchPoint.split(',');
+		  if (launchPointSplit.length !== 2) return;
+		  const lat = parseFloat(launchPointSplit[0]);
+		  const lng = parseFloat(launchPointSplit[1]);
+		  if (isNaN(lng) || isNaN(lat)) return;
+		  initialLaunchPosition.set({ lat, lng });
+		  pb.collection('FlightDirector').create({
+			latitude: lat,
+			longitude: lng
+		  });
+		  
+		  // Update the store with the new values
+		  latestLaunchPoint.set({ lat, lng });
+		}
+	  },
+	{
+		name: 'Director: Set Target Altitude',
+		do: async () => {
+			const cmd = get(commandReqAdaptor);
+			if (!cmd) return;
+
+			const targetAlt = await cmd.string('Target Altitude?', 'Target Altitude in feet: 1000');
+			if (!targetAlt) return;
+			const targetAltNum = parseFloat(targetAlt);
+			if (isNaN(targetAltNum)) return;
+			pb.collection('FlightDirector').create({
+				targetAltitude: targetAltNum
+			});
+		}
+	},
+
 ]);

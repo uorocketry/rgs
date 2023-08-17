@@ -15,6 +15,7 @@
 	let air_temp = 0;
 	let velocity = [0, 0, 0];
 	let acc = [0, 0, 0];
+	let target_altitude = 0;
 
 	onCollectionCreated('LinkStatus', (msg: LinkStatus) => {
 		connection = msg.connected;
@@ -39,6 +40,11 @@
 
 	onCollectionCreated('Imu1', (msg: Imu1) => {
 		acc = [msg.accelerometers[0], msg.accelerometers[1], msg.accelerometers[2]];
+	});
+
+	onCollectionCreated('FlightDirector', (msg: any) => {
+		console.log(msg);
+		target_altitude = msg.targetAltitude;
 	});
 
 	// $: current_radio_msg = radio_msg[radio_msg.length - 1];
@@ -101,6 +107,14 @@
 				</td>
 				<td>
 					<span class="text-right">{altitude}</span>
+				</td>
+			</tr>
+			<tr class="hover clicky cursor-pointer">
+				<td>
+					<span class="text-left">Target Altitude</span>
+				</td>
+				<td>
+					<span class="text-right">{target_altitude}</span>
 				</td>
 			</tr>
 			<tr class="hover clicky cursor-pointer">
