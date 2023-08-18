@@ -65,7 +65,6 @@
 
 	onCollectionCreated('EkfNav2', (msg: EkfNav2) => {
 		current_position = [msg.position[0], msg.position[1], msg.position[2]];
-		console.log('current_point', current_position);
 	});
 
 	function convertToRadians(degrees: number): number {
@@ -81,7 +80,6 @@
 		let a =
 			Math.sin(dlat / 2) ** 2 +
 			Math.cos(launch_point[1]) * Math.cos(current_position[1]) * Math.sin(dlon / 2) ** 2;
-		console.log('A', a);
 		let c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
 		traveled_distance = 6371 * c;
 		total_traveled_distance = traveled_distance;
@@ -105,7 +103,7 @@
 		<tbody>
 			<tr class="hover clicky cursor-pointer">
 				<td>
-					<span class="text-left">Connection</span>
+					<span class="text-left">Radio Connection</span>
 				</td>
 				<td>
 					<span class="text-right">{connection ? 'Connected' : 'Disconnected'}</span>
@@ -129,7 +127,7 @@
 			</tr>
 			<tr class="hover clicky cursor-pointer">
 				<td>
-					<span class="text-left">missed messages</span>
+					<span class="text-left">Missed Messages</span>
 				</td>
 				<td>
 					<span class="text-right">{missed_messages}</span>
@@ -137,7 +135,7 @@
 			</tr>
 			<tr class="hover clicky cursor-pointer">
 				<td>
-					<span class="text-left">pressure</span>
+					<span class="text-left">Pressure</span>
 				</td>
 				<td>
 					<span class="text-right">{pressure_abs}</span>
@@ -145,7 +143,7 @@
 			</tr>
 			<tr class="hover clicky cursor-pointer">
 				<td>
-					<span class="text-left">altitude</span>
+					<span class="text-left">Altitude</span>
 				</td>
 				<td>
 					<span class="text-right">{altitude}</span>
@@ -177,7 +175,7 @@
 			</tr>
 			<tr class="hover clicky cursor-pointer">
 				<td>
-					<span class="text-left">airspeed</span>
+					<span class="text-left">Airspeed</span>
 				</td>
 				<td>
 					<span class="text-right">{true_airspeed}</span>
