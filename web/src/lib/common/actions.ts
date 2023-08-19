@@ -2,6 +2,7 @@ import { get, writable, type Writable } from 'svelte/store';
 import { layoutComponentsString, layoutConfig, virtualLayout } from './layoutStore';
 import { LayoutConfig } from 'golden-layout';
 import { pb } from '$lib/stores';
+import { latestLaunchPoint } from './director';
 
 export interface CommandAction {
 	name: string;
@@ -23,18 +24,6 @@ export const commandReqAdaptor: Writable<CommandRequest> = writable({
 });
 
 export const commandActions: Writable<CommandAction[]> = writable([
-	// {
-	// 	name: 'Developer: Alert Test',
-	// 	do: async () => {
-	// 		const cmd = get(commandReqAdaptor);
-	// 		if (!cmd) return;
-
-	// 		const alertMsg = await cmd.string('Alert Message?', 'Hello World');
-	// 		console.log('Alert Test: ' + alertMsg);
-	// 		alert(alertMsg);
-	// 	}
-	// },
-	// Layout Actions
 	{
 		name: 'Layout: Save Layout',
 		do: async () => {
@@ -81,5 +70,58 @@ export const commandActions: Writable<CommandAction[]> = writable([
 			if (!vLayout) return;
 			vLayout.addComponent(layoutComponentsString[toAdd], undefined, layoutComponentsString[toAdd]);
 		}
-	}
+	},
+	{
+		name: 'FlightPlan: Set Launch Point ',
+		do: async () => {
+		  const cmd = get(commandReqAdaptor);
+		  if (!cmd) return;
+	  
+		  const launchPoint = await cmd.string('Launch Point?', 'Latitude, Longitude');
+		  if (!launchPoint) return;
+		  const launchPointSplit = launchPoint.split(',');
+		  if (launchPointSplit.length !== 2) return;
+		  const lat = parseFloat(launchPointSplit[0]);
+		  const lng = parseFloat(launchPointSplit[1]);
+		  if (isNaN(lng) || isNaN(lat)) return;
+		  pb.collection('FlightDirector').create({
+			latitude: lat,
+			longitude: lng
+		  });
+		  
+		  // Update the store with the new values
+		  latestLaunchPoint.set({ lat, lng });
+		}
+	  },
+	{
+		name: 'FlightPlan: Set Target Altitude',
+		do: async () => {
+			const cmd = get(commandReqAdaptor);
+			if (!cmd) return;
+
+			const targetAlt = await cmd.string('Target Altitude?', 'Target Altitude: 1000m');
+			if (!targetAlt) return;
+			const targetAltNum = parseFloat(targetAlt);
+			if (isNaN(targetAltNum)) return;
+			pb.collection('FlightDirector').create({
+				targetAltitude: targetAltNum
+			});
+		}
+	},
+	{
+		name: 'FlightPlan: Set Relative Altitude',
+		do: async () => {
+			const cmd = get(commandReqAdaptor);
+			if (!cmd) return;
+
+			const relativeAlt = await cmd.string('Relative Altitude?', 'Relative Altitude: 10m');
+			if (!relativeAlt) return;
+			const targetAltNum = parseFloat(relativeAlt);
+			if (isNaN(targetAltNum)) return;
+			pb.collection('FlightDirector').create({
+				relativeAltitude: targetAltNum
+			});
+		}
+	},
+
 ]);

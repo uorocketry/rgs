@@ -2,8 +2,9 @@
 	import L from 'leaflet';
 	import { onCollection, onCollectionCreated, onInterval } from '$lib/common/utils';
 	import { browser } from '$app/environment';
-	import { onDestroy, onMount } from 'svelte';
+	import { onDestroy, onMount, tick } from 'svelte';
 	import type { EkfNav2 } from '@rgs/bindings';
+	import { latestLaunchPoint } from '../common/director';
 
 	// FIXME: The mock rocket position reports the rocket as being in the middle of the Gulf of Guinea (northwest of South Africa)
 
@@ -11,12 +12,12 @@
 
 	const urlTemplate = '/api/tiles/{z}/{x}/{y}.png';
 
-	const blBound: L.LatLngTuple = [45.36126613049103, -75.7866211272455];
-	const tlBound: L.LatLngTuple = [45.46758335970629, -75.6263392346481];
+	// const blBound: L.LatLngTuple = [45.36126613049103, -75.7866211272455];
+	// const tlBound: L.LatLngTuple = [45.46758335970629, -75.6263392346481];
 
-	const initialView: L.LatLngTuple = [(blBound[0] + tlBound[0]) / 2, (blBound[1] + tlBound[1]) / 2];
+	// const initialView: L.LatLngTuple = [(blBound[0] + tlBound[0]) / 2, (blBound[1] + tlBound[1]) / 2];
 
-	const mockRocketStartPos: L.LatLngLiteral = {
+	let mockRocketStartPos: L.LatLngLiteral = {
 		lat: 45.415210720923476,
 		lng: -75.7511577908654
 	};
@@ -27,9 +28,30 @@
 	const MIN_ZOOM = 5;
 	const INITIAL_ZOOM = 10;
 
+	const blBound: L.LatLngTuple = [mockRocketStartPos.lat - 0.15, mockRocketStartPos.lng - 0.15];
+	const tlBound: L.LatLngTuple = [mockRocketStartPos.lat + 0.2, mockRocketStartPos.lng + 0.2];
+
+	const initialView: L.LatLngTuple = [(blBound[0] + tlBound[0]) / 2, (blBound[1] + tlBound[1]) / 2];
+
 	let target: L.LatLngLiteral = mockRocketStartPos;
 
 	if (browser) {
+		// Fix: Setting launch point only works at the beggingin after that the marker isn't updated
+		latestLaunchPoint.subscribe(({ lat, lng }) => {
+			if (lat !== undefined && lng !== undefined) {
+				mockRocketStartPos.lat = lat;
+				mockRocketStartPos.lng = lng;
+				if (map) {
+					map.setView([lat, lng], map.getZoom());
+				}
+				if (rocketMarker) {
+					tick().then(() => {
+						rocketMarker!.setLatLng(mockRocketStartPos);
+						console.log('Set rocket marker position', rocketMarker!.getLatLng());
+					});
+				}
+			}
+		});
 		rocketMarker = L.marker(mockRocketStartPos, {
 			icon: L.divIcon({
 				// Maybe some custom checkpoints?
