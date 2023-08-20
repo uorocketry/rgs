@@ -1,7 +1,7 @@
 import zmq from "zeromq";
 import PocketBase from "pocketbase";
 // Ayo? 🤨
-import { Air, Data, EkfNav1, EkfNav2, GpsVel, Imu1, Imu2, LinkStatus, ProcessedMessage, UtcTime } from "@rgs/bindings"
+import { Air, Data, EkfNav1, EkfNav2, GpsVel, Imu1, Imu2, LinkStatus, ProcessedMessage, UtcTime, StateData } from "@rgs/bindings"
 
 console.info("Started DB Service");
 
@@ -72,6 +72,7 @@ for await (const [msg] of zmqSock) {
   const obj = JSON.parse(msg.toString()) as ProcessedMessage;
   if ("RocketMessage" in obj) {
     const rocketMsg = obj.RocketMessage;
+
     const rocketData: Data = rocketMsg.data;
     pb.collection("raw").create({
       data: rocketData
@@ -84,14 +85,15 @@ for await (const [msg] of zmqSock) {
     // { state: State } | { sensor: Sensor } | { log: Log };
     if ("state" in rocketData) {
       const dataState = rocketData.state; // State
-      console.log("State", dataState);
+      const stateData: StateData = dataState.data;
+      console.log("Adding state data", stateData);
       pb.collection("State").create({
-        status: dataState.status,
-        has_error: dataState.has_error,
+        status: stateData
       },
       {
           $autoCancel: false,
       });
+
     } else if ("sensor" in rocketData) {
       const dataSensor = rocketData.sensor; // Sensor
       const sensorData = dataSensor.data;
