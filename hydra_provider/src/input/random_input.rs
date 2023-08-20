@@ -10,10 +10,10 @@ use messages::sensor::Imu1;
 use messages::sensor::Imu2;
 use messages::sensor::Sensor;
 use messages::sensor::UtcTime;
+use messages::state::State;
+use messages::state::StateData;
 use messages::Data;
 use messages::Message;
-use messages::State;
-use messages::Status;
 use rand::rngs::ThreadRng;
 use rand::Rng;
 use std::time::Duration;
@@ -134,21 +134,18 @@ impl RandomInput {
         ];
 
         let status = match self.rng.gen_range(0..=5) {
-            0 => Status::Initializing,
-            1 => Status::WaitForTakeoff,
-            2 => Status::Ascent,
-            3 => Status::Apogee,
-            4 => Status::Landed,
-            _ => Status::Abort,
+            0 => StateData::Initializing,
+            1 => StateData::WaitForTakeoff,
+            2 => StateData::Ascent,
+            3 => StateData::Descent,
+            4 => StateData::TerminalDescent,
+            _ => StateData::Abort,
         };
 
         // Return a random sensor message
         let sensor = sensors[self.rng.gen_range(0..sensors.len())].to_owned();
 
-        let state = State {
-            status: status,
-            has_error: self.rng.gen(),
-        };
+        let state = State { data: status };
 
         let data = match self.rng.gen_range(0..=1) {
             0 => Data::State(state),
