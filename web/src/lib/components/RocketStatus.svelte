@@ -1,5 +1,5 @@
 <script lang="ts">
-	import type { EkfNav2, LinkStatus, State } from '@rgs/bindings';
+	import type { EkfNav2, Imu2, LinkStatus, State } from '@rgs/bindings';
 	import type { Air } from '@rgs/bindings';
 	import type { EkfNav1 } from '@rgs/bindings';
 	import type { Imu1 } from '@rgs/bindings';
@@ -8,14 +8,13 @@
 
 	let connection = false;
 	let state = '';
-	let state_error = false;
 	let missed_messages = 0;
 	let pressure_abs = 0;
 	let altitude = 0;
 	let max_altitude = 0;
 	let true_airspeed = 0;
 	let max_true_air_speed = 0;
-	let air_temp = 0;
+	let temp = 0;
 	let velocity = [0, 0, 0];
 	let max_velocity = [0, 0, 0];
 	let acc = [0, 0, 0];
@@ -36,14 +35,11 @@
 
 	onCollectionCreated('State', (msg: State) => {
 		state = msg.status;
-		state_error = msg.has_error;
 	});
 
 	onCollectionCreated('Air', (msg: Air) => {
 		pressure_abs = msg.pressure_abs;
 		altitude = msg.altitude;
-		true_airspeed = msg.true_airspeed;
-		air_temp = msg.air_temperature;
 	});
 
 	onCollectionCreated('EkfNav1', (msg: EkfNav1) => {
@@ -52,6 +48,9 @@
 
 	onCollectionCreated('Imu1', (msg: Imu1) => {
 		acc = [msg.accelerometers[0], msg.accelerometers[1], msg.accelerometers[2]];
+	});
+	onCollectionCreated('Imu2', (msg: Imu2) => {
+		temp = msg.temperature;
 	});
 
 	onCollectionCreated('FlightDirector', (msg: any) => {
@@ -76,25 +75,17 @@
 		return (degrees * Math.PI) / 180;
 	}
 
-	$: ground_altitude = altitude - relative_altitude;
-	$: distance_from_target = target_altitude - ground_altitude;
-	$: {
-		let traveled_distance = 0;
-		let dlon = convertToRadians(current_position[0] - launch_point[0]);
-		let dlat = convertToRadians(current_position[1] - launch_point[1]);
-		let a =
-			Math.sin(dlat / 2) ** 2 +
-			Math.cos(launch_point[1]) * Math.cos(current_position[1]) * Math.sin(dlon / 2) ** 2;
-		let c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
-		traveled_distance = 6371 * c;
-		total_traveled_distance = traveled_distance;
-	}
+	pb.collection('CalculatedMetrics').create(
+		{
+			ground_altitude: ground_altitude,
+			distance_from_target: distance_from_target,
+			total_traveled_distance: total_traveled_distance
+		},
+		{
+			$autoCancel: false
+		}
+	);
 
-	pb.collection('CalculatedMetrics').create({
-		ground_altitude: ground_altitude,
-		distance_from_target: distance_from_target,
-		total_traveled_distance: total_traveled_distance
-  
 	function max(a: number, b: number) {
 		return a > b ? a : b;
 	}
@@ -113,9 +104,22 @@
 	];
 	$: max_altitude = max(max_altitude, altitude);
 
+	$: ground_altitude = altitude - relative_altitude;
+	$: distance_from_target = target_altitude - ground_altitude;
+	$: {
+		let traveled_distance = 0;
+		let dlon = convertToRadians(current_position[0] - launch_point[0]);
+		let dlat = convertToRadians(current_position[1] - launch_point[1]);
+		let a =
+			Math.sin(dlat / 2) ** 2 +
+			Math.cos(launch_point[1]) * Math.cos(current_position[1]) * Math.sin(dlon / 2) ** 2;
+		let c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+		traveled_distance = 6371 * c;
+		total_traveled_distance = traveled_distance;
+	}
+
 	$: pb.collection('CalculatedMetrics').create({
 		max_altitude: max_altitude,
-		max_true_air_speed: max_true_air_speed,
 		max_velocity_1: max_velocity[0],
 		max_velocity_2: max_velocity[1],
 		max_velocity_3: max_velocity[2],
@@ -151,14 +155,6 @@
 			</tr>
 			<tr class="hover clicky cursor-pointer">
 				<td>
-					<span class="text-left">State Error</span>
-				</td>
-				<td>
-					<span class="text-right">{state_error}</span>
-				</td>
-			</tr>
-			<tr class="hover clicky cursor-pointer">
-				<td>
 					<span class="text-left">Missed Messages</span>
 				</td>
 				<td>
@@ -171,6 +167,14 @@
 				</td>
 				<td>
 					<span class="text-right">{pressure_abs}</span>
+				</td>
+			</tr>
+			<tr class="hover clicky cursor-pointer">
+				<td>
+					<span class="text-left">Temprature</span>
+				</td>
+				<td>
+					<span class="text-right">{temp}</span>
 				</td>
 			</tr>
 			<tr class="hover clicky cursor-pointer">
@@ -203,10 +207,10 @@
 				</td>
 				<td>
 					<span class="text-right">{ground_altitude}</span>
-        </td>
-      </tr>
-      <tr class="hover clicky cursor-pointer">
-        <td>
+				</td>
+			</tr>
+			<tr class="hover clicky cursor-pointer">
+				<td>
 					<span class="text-left">Max Altitude</span>
 				</td>
 				<td>
@@ -215,55 +219,74 @@
 			</tr>
 			<tr class="hover clicky cursor-pointer">
 				<td>
-					<span class="text-left">Airspeed</span>
-				</td>
-				<td>
-					<span class="text-right">{true_airspeed}</span>
-				</td>
-			</tr>
-			<tr class="hover clicky cursor-pointer">
-				<td>
-					<span class="text-left">Max Airspeed</span>
-				</td>
-				<td>
-					<span class="text-right">{max_true_air_speed}</span>
-				</td>
-			</tr>
-			<tr class="hover clicky cursor-pointer">
-				<td>
-					<span class="text-left">Air Temperature</span>
-				</td>
-				<td>
-					<span class="text-right">{air_temp}</span>
-				</td>
-			</tr>
-			<tr class="hover clicky cursor-pointer">
-				<td>
-					<span class="text-left">Velocity</span>
+					<span class="text-left">Velocity 0</span>
 				</td>
 				<td>
 					<span class="text-right">{velocity[0]}</span>
-					<span class="text-right">{velocity[1]}</span>
-					<span class="text-right">{velocity[2]}</span>
 				</td>
 			</tr>
 			<tr class="hover clicky cursor-pointer">
 				<td>
-					<span class="text-left">Max Velocity</span>
+					<span class="text-left">Velocity 1</span>
+				</td>
+				<td>
+					<span class="text-right">{velocity[1]}</span>
+				</td>
+			</tr>
+			<tr class="hover clicky cursor-pointer">
+				<td>
+					<span class="text-left">Velocity 2</span>
+				</td>
+				<td>
+					<span class="text-right">{velocity[2]}</span>
+				</td>
+			</tr>
+
+			<tr class="hover clicky cursor-pointer">
+				<td>
+					<span class="text-left">Max Velocity 0</span>
 				</td>
 				<td>
 					<span class="text-right">{max_velocity[0]}</span>
+				</td>
+			</tr>
+			<tr class="hover clicky cursor-pointer">
+				<td>
+					<span class="text-left">Max Velocity 1</span>
+				</td>
+				<td>
 					<span class="text-right">{max_velocity[1]}</span>
+				</td>
+			</tr>
+			<tr class="hover clicky cursor-pointer">
+				<td>
+					<span class="text-left">Max Velocity 2</span>
+				</td>
+				<td>
 					<span class="text-right">{max_velocity[2]}</span>
 				</td>
 			</tr>
 			<tr class="hover clicky cursor-pointer">
 				<td>
-					<span class="text-left">Acceleration</span>
+					<span class="text-left">Acceleration x</span>
 				</td>
 				<td>
 					<span class="text-right">{acc[0]}</span>
+				</td>
+			</tr>
+			<tr class="hover clicky cursor-pointer">
+				<td>
+					<span class="text-left">Acceleration y</span>
+				</td>
+				<td>
 					<span class="text-right">{acc[1]}</span>
+				</td>
+			</tr>
+			<tr class="hover clicky cursor-pointer">
+				<td>
+					<span class="text-left">Acceleration z</span>
+				</td>
+				<td>
 					<span class="text-right">{acc[2]}</span>
 				</td>
 			</tr>
@@ -273,26 +296,26 @@
 				</td>
 				<td>
 					<span class="text-right">{distance_from_target}</span>
-        </td>
-      </tr>
-      <tr class="hover clicky cursor-pointer">
+				</td>
+			</tr>
+			<tr class="hover clicky cursor-pointer">
 				<td>
 					<span class="text-left">Total Traveled Distance</span>
 				</td>
 				<td>
 					<span class="text-right">{total_traveled_distance}</span>
-        </td>
-      </tr>
-      <tr class="hover clicky cursor-pointer">
-        <td>
+				</td>
+			</tr>
+			<tr class="hover clicky cursor-pointer">
+				<td>
 					<span class="text-left">G Force</span>
 				</td>
 				<td>
 					<span class="text-right">{g_force}</span>
 				</td>
 			</tr>
-      <tr class="hover clicky cursor-pointer">
-        <td>
+			<tr class="hover clicky cursor-pointer">
+				<td>
 					<span class="text-left">Max G Force</span>
 				</td>
 				<td>

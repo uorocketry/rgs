@@ -15,7 +15,7 @@ export type { Sender } from "./Sender";
 export type { Sensor } from "./Sensor";
 export type { SensorData } from "./SensorData";
 export type { State } from "./State";
-export type { Status } from "./Status";
+export type {StateData} from "./StateData"
 export type { UtcTime } from "./UtcTime";
-export type { ProcessedMessage } from "./ProcessedMessage";
-export type { LinkStatus } from "./LinkStatus";
+export type {LinkStatus} from "./LinkStatus"
+export type {ProcessedMessage} from "./ProcessedMessage"
