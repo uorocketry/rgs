@@ -1,8 +1,7 @@
 <script lang="ts">
 	import type { LinkStatus } from '@rgs/bindings';
 	import Speedometer from 'svelte-speedometer';
-	import type { RecordSubscription } from 'pocketbase';
-	import { onDestroy, onMount } from 'svelte';
+	import { onDestroy } from 'svelte';
 	import { onCollectionCreated } from '$lib/common/utils';
 
 	let radio_msg: LinkStatus[] = [];

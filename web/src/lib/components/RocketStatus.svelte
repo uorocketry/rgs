@@ -1,8 +1,5 @@
 <script lang="ts">
-	import type { EkfNav2, Imu2, LinkStatus, State } from '@rgs/bindings';
-	import type { Air } from '@rgs/bindings';
-	import type { EkfNav1 } from '@rgs/bindings';
-	import type { Imu1 } from '@rgs/bindings';
+	import type { EkfNav1, EkfNav2, Imu1, Imu2, LinkStatus, State, Air } from '@rgs/bindings';
 	import { onCollectionCreated } from '$lib/common/utils';
 	import { pb } from '$lib/stores';
 
