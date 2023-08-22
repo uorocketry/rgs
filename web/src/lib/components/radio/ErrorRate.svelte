@@ -36,7 +36,7 @@
 			textColor={text_color}
 			needleTransitionDuration={750}
 			needleTransition="easeCubicInOut"
-			currentValueText="Error Rate: {(
+			currentValueText="Packet Loss: {(
 				radio_msg[radio_msg.length - 1]?.recent_error_rate * 100
 			).toFixed(2)}%"
 			fluidWidth={true}
