@@ -27,7 +27,7 @@ module.exports = {
     },
     {
       name: "pocketbase",
-      script: "cd pocketbase && ./pocketbase serve",
+      script: "cd pocketbase && ./pocketbase serve --http='0.0.0.0:8090'",
     },
   ],
 
