@@ -81,15 +81,13 @@
 	$: ground_altitude = altitude - relative_altitude;
 	$: distance_from_target = target_altitude - ground_altitude;
 	$: {
-		let traveled_distance = 0;
 		let dlon = convertToRadians(current_position[0] - launch_point[0]);
 		let dlat = convertToRadians(current_position[1] - launch_point[1]);
 		let a =
 			Math.sin(dlat / 2) ** 2 +
 			Math.cos(launch_point[1]) * Math.cos(current_position[1]) * Math.sin(dlon / 2) ** 2;
 		let c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
-		traveled_distance = 6371 * c;
-		total_traveled_distance = traveled_distance;
+		total_traveled_distance = 6371 * c;
 	}
 
 	$: pb.collection('CalculatedMetrics').create({
