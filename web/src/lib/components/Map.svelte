@@ -23,6 +23,13 @@
 	};
 
 	let rocketMarker: L.Marker<unknown>;
+	let launchPointMarker = L.marker($latestLaunchPoint, {
+		icon: L.divIcon({
+			// Maybe some custom checkpoints?
+			html: '🏠',
+			className: 'bg-transparent text-3xl '
+		})
+	});
 
 	const MAX_ZOOM = 14;
 	const MIN_ZOOM = 5;
@@ -39,17 +46,7 @@
 		// Fix: Setting launch point only works at the beggingin after that the marker isn't updated
 		latestLaunchPoint.subscribe(({ lat, lng }) => {
 			if (lat !== undefined && lng !== undefined) {
-				mockRocketStartPos.lat = lat;
-				mockRocketStartPos.lng = lng;
-				if (map) {
-					map.setView([lat, lng], map.getZoom());
-				}
-				if (rocketMarker) {
-					tick().then(() => {
-						rocketMarker!.setLatLng(mockRocketStartPos);
-						console.log('Set rocket marker position', rocketMarker!.getLatLng());
-					});
-				}
+				launchPointMarker.setLatLng({ lat, lng });
 			}
 		});
 		rocketMarker = L.marker(mockRocketStartPos, {
@@ -105,6 +102,7 @@
 		map = createMap(mapEl);
 		toolbar.addTo(map);
 		rocketMarker.addTo(map);
+		launchPointMarker.addTo(map);
 	});
 
 	onDestroy(() => {
