@@ -43,7 +43,7 @@
 	}, 10);
 </script>
 
-<div>
+<div class="font-mono">
 	<div class="tooltip tooltip-left" data-tip="Time Remaining">
 		<label for="my-modal-4" class="{countDown > 0 ? 'text-red-500' : 'text-green-500'} btn">
 			{timeString}
