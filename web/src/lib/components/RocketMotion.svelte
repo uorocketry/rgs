@@ -38,7 +38,7 @@
 		</thead>
 		<tbody>
 			<tr class="hover clicky cursor-pointer">
-				<div class="tooltip tooltip-top" data-tip="Velocity in the x">
+				<div class="tooltip tooltip-right" data-tip="Velocity in the x">
 					<td>
 						<span class="text-left">Velocity 0</span>
 					</td>
@@ -48,7 +48,7 @@
 				</td>
 			</tr>
 			<tr class="hover clicky cursor-pointer">
-				<div class="tooltip tooltip-top" data-tip="Velocity in the y">
+				<div class="tooltip tooltip-right" data-tip="Velocity in the y">
 					<td>
 						<span class="text-left">Velocity 1</span>
 					</td>
@@ -58,7 +58,7 @@
 				</td>
 			</tr>
 			<tr class="hover clicky cursor-pointer">
-				<div class="tooltip tooltip-top" data-tip="Velocity in the z">
+				<div class="tooltip tooltip-right" data-tip="Velocity in the z">
 					<td>
 						<span class="text-left">Velocity 2</span>
 					</td>
@@ -69,7 +69,7 @@
 			</tr>
 
 			<tr class="hover clicky cursor-pointer">
-				<div class="tooltip tooltip-top" data-tip="Maximium Veloctiy reached in the x">
+				<div class="tooltip tooltip-right" data-tip="Maximium Veloctiy reached in the x">
 					<td>
 						<span class="text-left">Max Velocity 0</span>
 					</td>
@@ -79,7 +79,7 @@
 				</td>
 			</tr>
 			<tr class="hover clicky cursor-pointer">
-				<div class="tooltip tooltip-top" data-tip="Maximium Veloctiy reached in the y">
+				<div class="tooltip tooltip-right" data-tip="Maximium Veloctiy reached in the y">
 					<td>
 						<span class="text-left">Max Velocity 1</span>
 					</td>
@@ -89,7 +89,7 @@
 				</td>
 			</tr>
 			<tr class="hover clicky cursor-pointer">
-				<div class="tooltip tooltip-top" data-tip="Maximium Veloctiy reached in the z">
+				<div class="tooltip tooltip-right" data-tip="Maximium Veloctiy reached in the z">
 					<td>
 						<span class="text-left">Max Velocity 2</span>
 					</td>
@@ -99,7 +99,7 @@
 				</td>
 			</tr>
 			<tr class="hover clicky cursor-pointer">
-				<div class="tooltip tooltip-top" data-tip="Acceleration in the x">
+				<div class="tooltip tooltip-right" data-tip="Acceleration in the x">
 					<td>
 						<span class="text-left">Acceleration x</span>
 					</td>
@@ -109,7 +109,7 @@
 				</td>
 			</tr>
 			<tr class="hover clicky cursor-pointer">
-				<div class="tooltip tooltip-top" data-tip="Acceleration in the y">
+				<div class="tooltip tooltip-right" data-tip="Acceleration in the y">
 					<td>
 						<span class="text-left">Acceleration y</span>
 					</td>
@@ -119,7 +119,7 @@
 				</td>
 			</tr>
 			<tr class="hover clicky cursor-pointer">
-				<div class="tooltip tooltip-top" data-tip="Acceleration in the z">
+				<div class="tooltip tooltip-right" data-tip="Acceleration in the z">
 					<td>
 						<span class="text-left">Acceleration z</span>
 					</td>

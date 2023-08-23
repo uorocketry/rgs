@@ -110,7 +110,7 @@
 		</thead>
 		<tbody>
 			<tr class="hover clicky cursor-pointer">
-				<div class="tooltip tooltip-top" data-tip="Radio Connection status with hydra">
+				<div class="tooltip tooltip-right" data-tip="Radio Connection status with hydra">
 					<td>
 						<span class="text-left">Radio Connection</span>
 					</td>
@@ -120,7 +120,7 @@
 				</td>
 			</tr>
 			<tr class="hover clicky cursor-pointer">
-				<div class="tooltip tooltip-top" data-tip="Current state of hydra">
+				<div class="tooltip tooltip-right" data-tip="Current state of hydra">
 					<td>
 						<span class="text-left">State</span>
 					</td>
@@ -130,7 +130,7 @@
 				</td>
 			</tr>
 			<tr class="hover clicky cursor-pointer">
-				<div class="tooltip tooltip-top" data-tip="Number of missed messages from hydra">
+				<div class="tooltip tooltip-right" data-tip="Number of missed messages from hydra">
 					<td>
 						<span class="text-left">Missed Messages</span>
 					</td>
@@ -140,7 +140,7 @@
 				</td>
 			</tr>
 			<tr class="hover clicky cursor-pointer">
-				<div class="tooltip tooltip-top" data-tip="Current Pressure of rocket">
+				<div class="tooltip tooltip-right" data-tip="Current Pressure of rocket">
 					<td>
 						<span class="text-left">Pressure</span>
 					</td>
@@ -150,7 +150,7 @@
 				</td>
 			</tr>
 			<tr class="hover clicky cursor-pointer">
-				<div class="tooltip tooltip-top" data-tip="Current Temprature of rocket">
+				<div class="tooltip tooltip-right" data-tip="Current Temprature of rocket">
 					<td>
 						<span class="text-left">Temprature</span>
 					</td>
@@ -160,7 +160,7 @@
 				</td>
 			</tr>
 			<tr class="hover clicky cursor-pointer">
-				<div class="tooltip tooltio-top" data-tip="Current Altitude of the rocket from sea level">
+				<div class="tooltip tooltip-right" data-tip="Current Altitude of the rocket from sea level">
 					<td>
 						<span class="text-left">Altitude</span>
 					</td>
@@ -170,10 +170,7 @@
 				</td>
 			</tr>
 			<tr class="hover clicky cursor-pointer">
-				<div
-					class="tooltip tooltip-top"
-					data-tip="Defined Target Altitude, use Ctrl + p to get to define it"
-				>
+				<div class="tooltip tooltip-right" data-tip="Defined Target Altitude">
 					<td>
 						<span class="text-left">Target Altitude</span>
 					</td>
@@ -184,7 +181,7 @@
 			</tr>
 			<tr class="hover clicky cursor-pointer">
 				<div
-					class="tooltip tooltip-top"
+					class="tooltip tooltip-right"
 					data-tip="Defined Relative Altitude. How much we are above so level"
 				>
 					<td>
@@ -196,7 +193,10 @@
 				</td>
 			</tr>
 			<tr class="hover clicky cursor-pointer">
-				<div class="tooltip tooltip-top" data-tip="Altitude from where we are from above sea level">
+				<div
+					class="tooltip tooltip-right"
+					data-tip="Altitude from where we are from above sea level"
+				>
 					<td>
 						<span class="text-left">Ground Altitude</span>
 					</td>
@@ -206,7 +206,7 @@
 				</td>
 			</tr>
 			<tr class="hover clicky cursor-pointer">
-				<div class="tooltip tooltip-top" data-tip="The maximium altitude reached by the rocket">
+				<div class="tooltip tooltip-right" data-tip="The maximium altitude reached by the rocket">
 					<td>
 						<span class="text-left">Max Altitude</span>
 					</td>
@@ -216,7 +216,7 @@
 				</td>
 			</tr>
 			<tr class="hover clicky cursor-pointer">
-				<div class="tooltip tooltip-top" data-tip="How far are we from the taraget altitude set">
+				<div class="tooltip tooltip-right" data-tip="How far are we from the taraget altitude set">
 					<td>
 						<span class="text-left">Distance from Target Altitude</span>
 					</td>
@@ -226,7 +226,10 @@
 				</td>
 			</tr>
 			<tr class="hover clicky cursor-pointer">
-				<div class="tooltip tooltip-top" data-tip="How far have we traveled from the launch point">
+				<div
+					class="tooltip tooltip-right"
+					data-tip="How far have we traveled from the launch point"
+				>
 					<td>
 						<span class="text-left">Total Traveled Distance</span>
 					</td>
@@ -236,7 +239,7 @@
 				</td>
 			</tr>
 			<tr class="hover clicky cursor-pointer">
-				<div class="tooltip tooltip-top" data-tip="G force experienced by the rocket">
+				<div class="tooltip tooltip-right" data-tip="G force experienced by the rocket">
 					<td>
 						<span class="text-left">G Force</span>
 					</td>
@@ -246,7 +249,7 @@
 				</td>
 			</tr>
 			<tr class="hover clicky cursor-pointer">
-				<div class="tooltip tooltip-top" data-tip="Max G force experienced by the rocket">
+				<div class="tooltip tooltip-right" data-tip="Max G force experienced by the rocket">
 					<td>
 						<span class="text-left">Max G Force</span>
 					</td>
