@@ -2,7 +2,7 @@
 	import type { EkfNav1, EkfNav2, Imu1, Imu2, LinkStatus, State, Air } from '@rgs/bindings';
 	import { onCollectionCreated } from '$lib/common/utils';
 	import { pb } from '$lib/stores';
-	import { tooltip } from 'leaflet';
+	import { max } from '$lib/common/utils';
 
 	let connection = false;
 	let state = '';
@@ -14,8 +14,6 @@
 	let max_true_air_speed = 0;
 	let temp = 0;
 	let velocity = [0, 0, 0];
-	let max_velocity = [0, 0, 0];
-	let acc = [0, 0, 0];
 	let target_altitude = 0;
 	let relative_altitude = 0;
 	let ground_altitude = 0;
@@ -44,9 +42,6 @@
 		velocity = [msg.velocity[0], msg.velocity[1], msg.velocity[2]];
 	});
 
-	onCollectionCreated('Imu1', (msg: Imu1) => {
-		acc = [msg.accelerometers[0], msg.accelerometers[1], msg.accelerometers[2]];
-	});
 	onCollectionCreated('Imu2', (msg: Imu2) => {
 		temp = msg.temperature;
 	});
@@ -73,21 +68,6 @@
 		return (degrees * Math.PI) / 180;
 	}
 
-	pb.collection('CalculatedMetrics').create(
-		{
-			ground_altitude: ground_altitude,
-			distance_from_target: distance_from_target,
-			total_traveled_distance: total_traveled_distance
-		},
-		{
-			$autoCancel: false
-		}
-	);
-
-	function max(a: number, b: number) {
-		return a > b ? a : b;
-	}
-
 	function calcGForce(vf: number, t: number) {
 		return vf / (t * 9.81);
 	}
@@ -95,11 +75,7 @@
 	$: g_force = calcGForce(velocity[1], 1);
 	$: max_g_force = max(max_g_force, g_force);
 	$: max_true_air_speed = max(max_true_air_speed, true_airspeed);
-	$: max_velocity = [
-		max(max_velocity[0], velocity[0]),
-		max(max_velocity[1], velocity[1]),
-		max(max_velocity[2], velocity[2])
-	];
+
 	$: max_altitude = max(max_altitude, altitude);
 
 	$: ground_altitude = altitude - relative_altitude;
@@ -117,10 +93,10 @@
 	}
 
 	$: pb.collection('CalculatedMetrics').create({
+		ground_altitude: ground_altitude,
+		distance_from_target: distance_from_target,
+		total_traveled_distance: total_traveled_distance,
 		max_altitude: max_altitude,
-		max_velocity_1: max_velocity[0],
-		max_velocity_2: max_velocity[1],
-		max_velocity_3: max_velocity[2],
 		g_force: g_force,
 		max_g_force: max_g_force
 	});
@@ -239,97 +215,6 @@
 				</div>
 				<td>
 					<span class="text-right">{max_altitude}</span>
-				</td>
-			</tr>
-			<tr class="hover clicky cursor-pointer">
-				<div class="tooltip tooltip-top" data-tip="Velocity in the x">
-					<td>
-						<span class="text-left">Velocity 0</span>
-					</td>
-				</div>
-				<td>
-					<span class="text-right">{velocity[0]}</span>
-				</td>
-			</tr>
-			<tr class="hover clicky cursor-pointer">
-				<div class="tooltip tooltip-top" data-tip="Velocity in the y">
-					<td>
-						<span class="text-left">Velocity 1</span>
-					</td>
-				</div>
-				<td>
-					<span class="text-right">{velocity[1]}</span>
-				</td>
-			</tr>
-			<tr class="hover clicky cursor-pointer">
-				<div class="tooltip tooltip-top" data-tip="Velocity in the z">
-					<td>
-						<span class="text-left">Velocity 2</span>
-					</td>
-				</div>
-				<td>
-					<span class="text-right">{velocity[2]}</span>
-				</td>
-			</tr>
-
-			<tr class="hover clicky cursor-pointer">
-				<div class="tooltip tooltip-top" data-tip="Maximium Veloctiy reached in the x">
-					<td>
-						<span class="text-left">Max Velocity 0</span>
-					</td>
-				</div>
-				<td>
-					<span class="text-right">{max_velocity[0]}</span>
-				</td>
-			</tr>
-			<tr class="hover clicky cursor-pointer">
-				<div class="tooltip tooltip-top" data-tip="Maximium Veloctiy reached in the y">
-					<td>
-						<span class="text-left">Max Velocity 1</span>
-					</td>
-				</div>
-				<td>
-					<span class="text-right">{max_velocity[1]}</span>
-				</td>
-			</tr>
-			<tr class="hover clicky cursor-pointer">
-				<div class="tooltip tooltip-top" data-tip="Maximium Veloctiy reached in the z">
-					<td>
-						<span class="text-left">Max Velocity 2</span>
-					</td>
-				</div>
-				<td>
-					<span class="text-right">{max_velocity[2]}</span>
-				</td>
-			</tr>
-			<tr class="hover clicky cursor-pointer">
-				<div class="tooltip tooltip-top" data-tip="Acceleration in the x">
-					<td>
-						<span class="text-left">Acceleration x</span>
-					</td>
-				</div>
-				<td>
-					<span class="text-right">{acc[0]}</span>
-				</td>
-			</tr>
-			<tr class="hover clicky cursor-pointer">
-				<div class="tooltip tooltip-top" data-tip="Acceleration in the y">
-					<td>
-						<span class="text-left">Acceleration y</span>
-					</td>
-				</div>
-				<td>
-					<span class="text-right">{acc[1]}</span>
-				</td>
-			</tr>
-			<tr class="hover clicky cursor-pointer">
-				<div class="tooltip tooltip-top" data-tip="Acceleration in the z">
-					<td>
-						<span class="text-left">Acceleration z</span>
-					</td>
-				</div>
-				<td>
-					<span class="text-right">{acc[2]}</span>
 				</td>
 			</tr>
 			<tr class="hover clicky cursor-pointer">

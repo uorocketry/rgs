@@ -119,3 +119,7 @@ export function unflattenObjectWithArray<T>(obj: any): T {
 	return res;
 
 }
+
+export function max(a: number, b: number) {
+	return a > b ? a : b;
+}
