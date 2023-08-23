@@ -92,15 +92,9 @@
 						// Add the new data point
 						if (data.action === 'create') {
 							let time: any;
-							if (data.record.timestamp !== undefined) {
-								console.log('timestamp', data.record.timestamp);
-								time = new Date(data.record.timestamp);
-							} else {
-								time = Date.parse(data.record.created);
-							}
 							console.log('time', time);
 							dataPoints.push({
-								x: time,
+								x: Date.parse(data.record.created),
 								y: data.record[key]
 							});
 

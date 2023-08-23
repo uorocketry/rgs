@@ -2,6 +2,7 @@
 	import type { EkfNav1, EkfNav2, Imu1, Imu2, LinkStatus, State, Air } from '@rgs/bindings';
 	import { onCollectionCreated } from '$lib/common/utils';
 	import { pb } from '$lib/stores';
+	import { tooltip } from 'leaflet';
 
 	let connection = false;
 	let state = '';
@@ -135,186 +136,238 @@
 		</thead>
 		<tbody>
 			<tr class="hover clicky cursor-pointer">
-				<td>
-					<span class="text-left">Radio Connection</span>
-				</td>
+				<div class="tooltip tooltip-top" data-tip="Radio Connection status with hydra">
+					<td>
+						<span class="text-left">Radio Connection</span>
+					</td>
+				</div>
 				<td>
 					<span class="text-right">{connection ? 'Connected' : 'Disconnected'}</span>
 				</td>
 			</tr>
 			<tr class="hover clicky cursor-pointer">
-				<td>
-					<span class="text-left">State</span>
-				</td>
+				<div class="tooltip tooltip-top" data-tip="Current state of hydra">
+					<td>
+						<span class="text-left">State</span>
+					</td>
+				</div>
 				<td>
 					<span class="text-right">{state}</span>
 				</td>
 			</tr>
 			<tr class="hover clicky cursor-pointer">
-				<td>
-					<span class="text-left">Missed Messages</span>
-				</td>
+				<div class="tooltip tooltip-top" data-tip="Number of missed messages from hydra">
+					<td>
+						<span class="text-left">Missed Messages</span>
+					</td>
+				</div>
 				<td>
 					<span class="text-right">{missed_messages}</span>
 				</td>
 			</tr>
 			<tr class="hover clicky cursor-pointer">
-				<td>
-					<span class="text-left">Pressure</span>
-				</td>
+				<div class="tooltip tooltip-top" data-tip="Current Pressure of rocket">
+					<td>
+						<span class="text-left">Pressure</span>
+					</td>
+				</div>
 				<td>
 					<span class="text-right">{pressure_abs}</span>
 				</td>
 			</tr>
 			<tr class="hover clicky cursor-pointer">
-				<td>
-					<span class="text-left">Temprature</span>
-				</td>
+				<div class="tooltip tooltip-top" data-tip="Current Temprature of rocket">
+					<td>
+						<span class="text-left">Temprature</span>
+					</td>
+				</div>
 				<td>
 					<span class="text-right">{temp}</span>
 				</td>
 			</tr>
 			<tr class="hover clicky cursor-pointer">
-				<td>
-					<span class="text-left">Altitude</span>
-				</td>
+				<div class="tooltip tooltio-top" data-tip="Current Altitude of the rocket from sea level">
+					<td>
+						<span class="text-left">Altitude</span>
+					</td>
+				</div>
 				<td>
 					<span class="text-right">{altitude}</span>
 				</td>
 			</tr>
 			<tr class="hover clicky cursor-pointer">
-				<td>
-					<span class="text-left">Target Altitude</span>
-				</td>
+				<div
+					class="tooltip tooltip-top"
+					data-tip="Defined Target Altitude, use Ctrl + p to get to define it"
+				>
+					<td>
+						<span class="text-left">Target Altitude</span>
+					</td>
+				</div>
 				<td>
 					<span class="text-right">{target_altitude}</span>
 				</td>
 			</tr>
 			<tr class="hover clicky cursor-pointer">
-				<td>
-					<span class="text-left">Relative Altitude</span>
-				</td>
+				<div
+					class="tooltip tooltip-top"
+					data-tip="Defined Relative Altitude. How much we are above so level"
+				>
+					<td>
+						<span class="text-left">Relative Altitude</span>
+					</td>
+				</div>
 				<td>
 					<span class="text-right">{relative_altitude}</span>
 				</td>
 			</tr>
 			<tr class="hover clicky cursor-pointer">
-				<td>
-					<span class="text-left">Ground Altitude</span>
-				</td>
+				<div class="tooltip tooltip-top" data-tip="Altitude from where we are from above sea level">
+					<td>
+						<span class="text-left">Ground Altitude</span>
+					</td>
+				</div>
 				<td>
 					<span class="text-right">{ground_altitude}</span>
 				</td>
 			</tr>
 			<tr class="hover clicky cursor-pointer">
-				<td>
-					<span class="text-left">Max Altitude</span>
-				</td>
+				<div class="tooltip tooltip-top" data-tip="The maximium altitude reached by the rocket">
+					<td>
+						<span class="text-left">Max Altitude</span>
+					</td>
+				</div>
 				<td>
 					<span class="text-right">{max_altitude}</span>
 				</td>
 			</tr>
 			<tr class="hover clicky cursor-pointer">
-				<td>
-					<span class="text-left">Velocity 0</span>
-				</td>
+				<div class="tooltip tooltip-top" data-tip="Velocity in the x">
+					<td>
+						<span class="text-left">Velocity 0</span>
+					</td>
+				</div>
 				<td>
 					<span class="text-right">{velocity[0]}</span>
 				</td>
 			</tr>
 			<tr class="hover clicky cursor-pointer">
-				<td>
-					<span class="text-left">Velocity 1</span>
-				</td>
+				<div class="tooltip tooltip-top" data-tip="Velocity in the y">
+					<td>
+						<span class="text-left">Velocity 1</span>
+					</td>
+				</div>
 				<td>
 					<span class="text-right">{velocity[1]}</span>
 				</td>
 			</tr>
 			<tr class="hover clicky cursor-pointer">
-				<td>
-					<span class="text-left">Velocity 2</span>
-				</td>
+				<div class="tooltip tooltip-top" data-tip="Velocity in the z">
+					<td>
+						<span class="text-left">Velocity 2</span>
+					</td>
+				</div>
 				<td>
 					<span class="text-right">{velocity[2]}</span>
 				</td>
 			</tr>
 
 			<tr class="hover clicky cursor-pointer">
-				<td>
-					<span class="text-left">Max Velocity 0</span>
-				</td>
+				<div class="tooltip tooltip-top" data-tip="Maximium Veloctiy reached in the x">
+					<td>
+						<span class="text-left">Max Velocity 0</span>
+					</td>
+				</div>
 				<td>
 					<span class="text-right">{max_velocity[0]}</span>
 				</td>
 			</tr>
 			<tr class="hover clicky cursor-pointer">
-				<td>
-					<span class="text-left">Max Velocity 1</span>
-				</td>
+				<div class="tooltip tooltip-top" data-tip="Maximium Veloctiy reached in the y">
+					<td>
+						<span class="text-left">Max Velocity 1</span>
+					</td>
+				</div>
 				<td>
 					<span class="text-right">{max_velocity[1]}</span>
 				</td>
 			</tr>
 			<tr class="hover clicky cursor-pointer">
-				<td>
-					<span class="text-left">Max Velocity 2</span>
-				</td>
+				<div class="tooltip tooltip-top" data-tip="Maximium Veloctiy reached in the z">
+					<td>
+						<span class="text-left">Max Velocity 2</span>
+					</td>
+				</div>
 				<td>
 					<span class="text-right">{max_velocity[2]}</span>
 				</td>
 			</tr>
 			<tr class="hover clicky cursor-pointer">
-				<td>
-					<span class="text-left">Acceleration x</span>
-				</td>
+				<div class="tooltip tooltip-top" data-tip="Acceleration in the x">
+					<td>
+						<span class="text-left">Acceleration x</span>
+					</td>
+				</div>
 				<td>
 					<span class="text-right">{acc[0]}</span>
 				</td>
 			</tr>
 			<tr class="hover clicky cursor-pointer">
-				<td>
-					<span class="text-left">Acceleration y</span>
-				</td>
+				<div class="tooltip tooltip-top" data-tip="Acceleration in the y">
+					<td>
+						<span class="text-left">Acceleration y</span>
+					</td>
+				</div>
 				<td>
 					<span class="text-right">{acc[1]}</span>
 				</td>
 			</tr>
 			<tr class="hover clicky cursor-pointer">
-				<td>
-					<span class="text-left">Acceleration z</span>
-				</td>
+				<div class="tooltip tooltip-top" data-tip="Acceleration in the z">
+					<td>
+						<span class="text-left">Acceleration z</span>
+					</td>
+				</div>
 				<td>
 					<span class="text-right">{acc[2]}</span>
 				</td>
 			</tr>
 			<tr class="hover clicky cursor-pointer">
-				<td>
-					<span class="text-left">Distance from Target Altitude</span>
-				</td>
+				<div class="tooltip tooltip-top" data-tip="How far are we from the taraget altitude set">
+					<td>
+						<span class="text-left">Distance from Target Altitude</span>
+					</td>
+				</div>
 				<td>
 					<span class="text-right">{distance_from_target}</span>
 				</td>
 			</tr>
 			<tr class="hover clicky cursor-pointer">
-				<td>
-					<span class="text-left">Total Traveled Distance</span>
-				</td>
+				<div class="tooltip tooltip-top" data-tip="How far have we traveled from the launch point">
+					<td>
+						<span class="text-left">Total Traveled Distance</span>
+					</td>
+				</div>
 				<td>
 					<span class="text-right">{total_traveled_distance}</span>
 				</td>
 			</tr>
 			<tr class="hover clicky cursor-pointer">
-				<td>
-					<span class="text-left">G Force</span>
-				</td>
+				<div class="tooltip tooltip-top" data-tip="G force experienced by the rocket">
+					<td>
+						<span class="text-left">G Force</span>
+					</td>
+				</div>
 				<td>
 					<span class="text-right">{g_force}</span>
 				</td>
 			</tr>
 			<tr class="hover clicky cursor-pointer">
-				<td>
-					<span class="text-left">Max G Force</span>
-				</td>
+				<div class="tooltip tooltip-top" data-tip="Max G force experienced by the rocket">
+					<td>
+						<span class="text-left">Max G Force</span>
+					</td>
+				</div>
 				<td>
 					<span class="text-right">{max_g_force}</span>
 				</td>
