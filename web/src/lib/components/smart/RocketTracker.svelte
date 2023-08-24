@@ -4,17 +4,23 @@
 	import { onDestroy, onMount } from 'svelte';
 	import { spring } from 'svelte/motion';
 	import { onCollectionCreated } from '$lib/common/utils';
-	import type { EkfNav2 } from '@rgs/bindings';
-	import { latestLaunchPoint } from '../../common/director';
+	import type { GpsPos1 } from '@rgs/bindings';
+	import { defaultLaunchCoords, latestLaunchPoint } from '../../common/director';
 	let map: L.Map | null;
 
 	const urlTemplate = '/api/tiles/{z}/{x}/{y}.png';
 
 	let rocketMarker: L.Marker<unknown>;
-	let rocketCoords: L.LatLngLiteral = {
-		lat: 45.415210720923476,
-		lng: -75.7511577908654
-	};
+
+	let launchPointMarker = L.marker($latestLaunchPoint, {
+		icon: L.divIcon({
+			// Maybe some custom checkpoints?
+			html: '🏠',
+			className: 'bg-transparent text-3xl '
+		})
+	});
+
+	let rocketCoords: L.LatLngLiteral = defaultLaunchCoords;
 
 	const MAX_ZOOM = 14;
 	const MIN_ZOOM = 5;
@@ -47,18 +53,14 @@
 	// Subscribe to the store
 	latestLaunchPoint.subscribe(({ lat, lng }) => {
 		if (lat && lng) {
-			rocketCoords = { lat, lng };
-			sprintCoords.set({ x: lat, y: lng });
-			if (map) {
-				map.setView(rocketCoords, map.getZoom());
-			}
+			launchPointMarker.setLatLng({ lat, lng });
 		}
 	});
 
-	onCollectionCreated('EkfNav2', (msg: EkfNav2) => {
+	onCollectionCreated('GpsPos1', (msg: GpsPos1) => {
 		rocketCoords = {
-			lat: msg.position[0],
-			lng: msg.position[1]
+			lat: msg.latitude,
+			lng: msg.longitude
 		};
 		sprintCoords.set({ x: rocketCoords.lat, y: rocketCoords.lng });
 
@@ -93,6 +95,7 @@
 		map = createMap(mapEl);
 		toolbar.addTo(map);
 		rocketMarker.addTo(map);
+		launchPointMarker.addTo(map);
 	});
 
 	onDestroy(() => {

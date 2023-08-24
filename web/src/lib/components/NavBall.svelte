@@ -17,10 +17,10 @@
 
 	export let usePerspective = false;
 	let perspectiveCamera = new THREE.PerspectiveCamera(60, 1, 0.1, 2);
-	perspectiveCamera.position.z = 2;
+	perspectiveCamera.position.y = 2;
 
 	let orthographicCamera = new THREE.OrthographicCamera();
-	orthographicCamera.position.z = 2;
+	orthographicCamera.position.y = 2;
 
 	let clientWidth: number;
 	let clientHeight: number;

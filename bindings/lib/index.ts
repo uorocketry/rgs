@@ -6,6 +6,8 @@ export type { EkfQuat } from "./EkfQuat";
 export type { ErrorContext } from "./ErrorContext";
 export type { Event } from "./Event";
 export type { GpsVel } from "./GpsVel";
+export type { GpsPos1 } from "./GpsPos1";
+export type { GpsPos2 } from "./GpsPos2";
 export type { Imu1 } from "./Imu1";
 export type { Imu2 } from "./Imu2";
 export type { Log } from "./Log";
