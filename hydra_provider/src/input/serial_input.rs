@@ -20,6 +20,8 @@ pub struct SerialInput {
 }
 
 impl SerialInput {
+    /// Creates a new SerialInput
+    /// If port is not specified then it selects a USB port! This assumes we do not chose the wrong port.
     pub fn new(port: &Option<String>, baud_rate: u32) -> Result<Self> {
         let port = if let Some(port) = port {
             port.clone()

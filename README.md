@@ -49,6 +49,8 @@ pnpm install
 pnpm dev
 ```
 
+Double check the ips
+
 ## Troubleshooting
 
 Please refer to each of the following for more information.
