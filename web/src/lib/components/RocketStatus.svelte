@@ -90,14 +90,19 @@
 		total_traveled_distance = 6371 * c;
 	}
 
-	$: pb.collection('CalculatedMetrics').create({
-		ground_altitude: ground_altitude,
-		distance_from_target: distance_from_target,
-		total_traveled_distance: total_traveled_distance,
-		max_altitude: max_altitude,
-		g_force: g_force,
-		max_g_force: max_g_force
-	});
+	$: pb.collection('CalculatedMetrics').create(
+		{
+			ground_altitude: ground_altitude,
+			distance_from_target: distance_from_target,
+			total_traveled_distance: total_traveled_distance,
+			max_altitude: max_altitude,
+			g_force: g_force,
+			max_g_force: max_g_force
+		},
+		{
+			$autoCancel: false
+		}
+	);
 </script>
 
 <div class="w-full h-full overflow-x-auto">
