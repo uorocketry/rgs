@@ -133,12 +133,13 @@ impl RandomInput {
             Sensor::new(gps_vel),
         ];
 
-        let status = match self.rng.gen_range(0..=5) {
+        let status = match self.rng.gen_range(0..=6) {
             0 => StateData::Initializing,
             1 => StateData::WaitForTakeoff,
             2 => StateData::Ascent,
             3 => StateData::Descent,
             4 => StateData::TerminalDescent,
+            5 => StateData::WaitForRecovery,
             _ => StateData::Abort,
         };
 

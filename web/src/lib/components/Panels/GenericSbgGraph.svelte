@@ -14,6 +14,9 @@
 	const options = {
 		maintainAspectRatio: false,
 		showLine: true,
+		animation: {
+			duration: 0
+		},
 		// Update x axis to convert timestamp to date
 		scales: {
 			x: {
@@ -36,7 +39,7 @@
 	function createDataset(name: string, colorSeed: string) {
 		return {
 			label: formatVariableName(name),
-			lineTension: 0.0,
+			lineTension: 0.1,
 			borderColor: getRandomHexColorFromString(colorSeed),
 			pointBorderWidth: 10,
 			pointHoverRadius: 10,
@@ -45,7 +48,7 @@
 		};
 	}
 
-	const POINT_LIMIT = 10;
+	const POINT_LIMIT = 50;
 	let dataRecords: Map<string, { x: number; y: number }[]> = new Map();
 
 	async function refreshChart() {
@@ -88,6 +91,8 @@
 
 						// Add the new data point
 						if (data.action === 'create') {
+							let time: any;
+							console.log('time', time);
 							dataPoints.push({
 								x: Date.parse(data.record.created),
 								y: data.record[key]

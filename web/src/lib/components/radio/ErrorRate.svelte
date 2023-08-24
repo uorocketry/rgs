@@ -1,8 +1,7 @@
 <script lang="ts">
 	import type { LinkStatus } from '@rgs/bindings';
 	import Speedometer from 'svelte-speedometer';
-	import type { RecordSubscription } from 'pocketbase';
-	import { onDestroy, onMount } from 'svelte';
+	import { onDestroy } from 'svelte';
 	import { onCollectionCreated } from '$lib/common/utils';
 
 	let radio_msg: LinkStatus[] = [];
@@ -36,7 +35,7 @@
 			textColor={text_color}
 			needleTransitionDuration={750}
 			needleTransition="easeCubicInOut"
-			currentValueText="Error Rate: {(
+			currentValueText="Packet Loss: {(
 				radio_msg[radio_msg.length - 1]?.recent_error_rate * 100
 			).toFixed(2)}%"
 			fluidWidth={true}

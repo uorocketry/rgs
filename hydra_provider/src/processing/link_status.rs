@@ -5,8 +5,8 @@ use messages::mavlink::MavHeader;
 use serde::{Deserialize, Serialize};
 use std::sync::mpsc::{Receiver, Sender};
 use std::time::{Duration, Instant};
-use ts_rs::TS;
 use std::time::{SystemTime, UNIX_EPOCH};
+use ts_rs::TS;
 
 #[derive(Serialize, Deserialize, Clone, Debug, TS)]
 #[ts(export)]
@@ -97,9 +97,8 @@ impl LinkStatusProcessing {
         // Use modulo arithmetic (rem_euclid) to calculate the missed messages.
         let missed_messages = match self.last_sequence {
             None => 0,
-            Some(last_sequence) => {
-                (header.sequence as i32 - last_sequence as i32 - 1).rem_euclid(u8::MAX as i32) as u8
-            }
+            Some(last_sequence) => (header.sequence as i32 - last_sequence as i32 - 1)
+                .rem_euclid(u8::MAX as i32 + 1) as u8,
         };
 
         self.last_messages.push(MessageStats {
@@ -127,8 +126,16 @@ impl LinkStatusProcessing {
         let missed_messages = self.total_missed_messages;
         let recent_error_rate = missed_count as f32 / total_msg_count as f32;
         let connected = Instant::now() - self.last_hearbeat < Duration::from_secs(20);
-        let timestamp = SystemTime::now().duration_since(UNIX_EPOCH).unwrap().as_secs()*1000 +
-         SystemTime::now().duration_since(UNIX_EPOCH).unwrap().subsec_millis() as u64 / 1_000_000;
+        let timestamp = SystemTime::now()
+            .duration_since(UNIX_EPOCH)
+            .unwrap()
+            .as_secs()
+            * 1000
+            + SystemTime::now()
+                .duration_since(UNIX_EPOCH)
+                .unwrap()
+                .subsec_millis() as u64
+                / 1_000_000;
 
         let msg = match &self.last_mav_status {
             None => ProcessedMessage::LinkStatus(LinkStatus {
@@ -200,7 +207,7 @@ mod test {
 
         assert!(matches!(
             dbg!(processed_receive.recv().unwrap()),
-            ProcessedMessage::LinkStatus(x) if x.missed_messages == 271 && x.recent_error_rate == 271.0/276.0
+            ProcessedMessage::LinkStatus(x) if x.missed_messages == 273 && x.recent_error_rate == 273.0/278.0
         ));
 
         Ok(())
