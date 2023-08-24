@@ -64,7 +64,6 @@
 
 	onCollectionCreated('GpsPos1', (msg: GpsPos1) => {
 		current_position = [msg.latitude, msg.longitude, msg.altitude];
-		console.log('current_position', current_position);
 	});
 
 	function convertToRadians(degrees: number): number {
