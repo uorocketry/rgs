@@ -13,6 +13,7 @@ import LogViewer from '$lib/components/LogViewer.svelte';
 import Settings from '$lib/components/Settings.svelte';
 import RocketTracker from '$lib/components/smart/RocketTracker.svelte';
 import RocketStatus from '$lib/components/RocketStatus.svelte';
+import RocketMotion from '$lib/components/RocketMotion.svelte';
 import { browser } from '$app/environment';
 
 export const layoutComponents = {
@@ -27,6 +28,7 @@ export const layoutComponents = {
 	GenericSbgGraph,
 	LayoutList,
 	RocketStatus,
+	RocketMotion
 } as const;
 
 export const layoutComponentsString = Object.keys(layoutComponents);

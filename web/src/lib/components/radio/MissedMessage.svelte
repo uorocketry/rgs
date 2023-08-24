@@ -1,7 +1,6 @@
 <script lang="ts">
-	import { onCollection, onCollectionCreated } from '$lib/common/utils';
+	import { onCollectionCreated } from '$lib/common/utils';
 	import type { LinkStatus } from '@rgs/bindings';
-	import type { RecordSubscription } from 'pocketbase';
 	import { Bar } from 'svelte-chartjs';
 
 	let timestamp: number[] = [];

@@ -1,6 +1,6 @@
 <script defer lang="ts" type="module">
 	import L from 'leaflet';
-	import { onCollection, onCollectionCreated, onInterval } from '$lib/common/utils';
+	import { onCollectionCreated, onInterval } from '$lib/common/utils';
 	import { browser } from '$app/environment';
 	import { onDestroy, onMount, tick } from 'svelte';
 	import type { EkfNav2 } from '@rgs/bindings';
