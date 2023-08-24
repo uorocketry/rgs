@@ -1,7 +1,7 @@
 import zmq from "zeromq";
 import PocketBase from "pocketbase";
 // Ayo? 🤨
-import { Air, Data, EkfNav1, EkfNav2, GpsVel, Imu1, Imu2, LinkStatus, ProcessedMessage, UtcTime, StateData } from "@rgs/bindings"
+import { Air, Data, EkfNav1, EkfNav2, GpsVel, Imu1, Imu2, LinkStatus, ProcessedMessage, UtcTime, StateData, GpsPos1, GpsPos2 } from "@rgs/bindings"
 
 console.info("Started DB Service");
 
@@ -216,7 +216,33 @@ for await (const [msg] of zmqSock) {
           }, {
           $autoCancel: false,
         });
-
+      } else if ("GpsPos1" in sensorData) {
+        const gpsPos1 = sensorData.GpsPos1 as GpsPos1;
+        pb.collection("GpsPos1").create({
+          time_stamp: gpsPos1.timeStamp,
+          status: gpsPos1.status,
+          time_of_week: gpsPos1.timeOfWeek,
+          latitude: gpsPos1.latitude,
+          longitude: gpsPos1.longitude,
+          altitude: gpsPos1.altitude,
+          undulation: gpsPos1.undulation,
+        },
+        {
+            $autoCancel: false,
+        });
+      } else if ("GpsPos2" in sensorData) {
+        const gpsPos2 = sensorData.GpsPos2 as GpsPos2;
+        pb.collection("GpsPos2").create({
+          latitude_acc: gpsPos2.latitudeAccuracy,
+          longitude_acc: gpsPos2.longitudeAccuracy,
+          altitude_acc: gpsPos2.altitudeAccuracy,
+          num_sv_used: gpsPos2.numSvUsed,
+          base_station_id: gpsPos2.baseStationId,
+          differential_age: gpsPos2.differentialAge,
+        },
+        {
+            $autoCancel: false,
+        });
       }
     } else if ("log" in rocketData) {
       const dataLog = rocketData.log; // Log

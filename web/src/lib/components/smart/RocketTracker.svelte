@@ -4,7 +4,7 @@
 	import { onDestroy, onMount } from 'svelte';
 	import { spring } from 'svelte/motion';
 	import { onCollectionCreated } from '$lib/common/utils';
-	import type { EkfNav2 } from '@rgs/bindings';
+	import type { GpsPos1 } from '@rgs/bindings';
 	import { defaultLaunchCoords, latestLaunchPoint } from '../../common/director';
 	let map: L.Map | null;
 
@@ -57,10 +57,10 @@
 		}
 	});
 
-	onCollectionCreated('EkfNav2', (msg: EkfNav2) => {
+	onCollectionCreated('GpsPos1', (msg: GpsPos1) => {
 		rocketCoords = {
-			lat: msg.position[0],
-			lng: msg.position[1]
+			lat: msg.latitude,
+			lng: msg.longitude
 		};
 		sprintCoords.set({ x: rocketCoords.lat, y: rocketCoords.lng });
 

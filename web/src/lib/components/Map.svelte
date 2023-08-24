@@ -3,7 +3,7 @@
 	import { onCollectionCreated, onInterval } from '$lib/common/utils';
 	import { browser } from '$app/environment';
 	import { onDestroy, onMount, tick } from 'svelte';
-	import type { EkfNav2 } from '@rgs/bindings';
+	import type { GpsPos1 } from '@rgs/bindings';
 	import { latestLaunchPoint } from '../common/director';
 
 	// FIXME: The mock rocket position reports the rocket as being in the middle of the Gulf of Guinea (northwest of South Africa)
@@ -57,10 +57,10 @@
 			})
 		});
 
-		onCollectionCreated('EkfNav2', (msg: EkfNav2) => {
+		onCollectionCreated('GpsPos1', (msg: GpsPos1) => {
 			target = {
-				lat: msg.position[0],
-				lng: msg.position[1]
+				lat: msg.latitude,
+				lng: msg.longitude
 			};
 		});
 		onInterval(() => {

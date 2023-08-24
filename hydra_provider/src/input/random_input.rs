@@ -5,6 +5,8 @@ use messages::sensor::Air;
 use messages::sensor::EkfNav1;
 use messages::sensor::EkfNav2;
 use messages::sensor::EkfQuat;
+use messages::sensor::GpsPos1;
+use messages::sensor::GpsPos2;
 use messages::sensor::GpsVel;
 use messages::sensor::Imu1;
 use messages::sensor::Imu2;
@@ -121,6 +123,25 @@ impl RandomInput {
             velocity_acc: [self.rng.gen(), self.rng.gen(), self.rng.gen()],
         };
 
+        let gps_pos1 = GpsPos1 {
+            timeStamp: time.ticks() as u32,
+            status: self.rng.gen(),
+            timeOfWeek: self.rng.gen(),
+            latitude: self.rng.gen(),
+            longitude: self.rng.gen(),
+            altitude: self.rng.gen(),
+            undulation: self.rng.gen(),
+        };
+
+        let gps_pos2 = GpsPos2 {
+            latitudeAccuracy: self.rng.gen(),
+            longitudeAccuracy: self.rng.gen(),
+            altitudeAccuracy: self.rng.gen(),
+            numSvUsed: self.rng.gen(),
+            baseStationId: self.rng.gen(),
+            differentialAge: self.rng.gen(),
+        };
+
         // Array of sensor messages (we will select one of it)
         let sensors = [
             Sensor::new(utc_time),
@@ -131,6 +152,8 @@ impl RandomInput {
             Sensor::new(imu1),
             Sensor::new(imu2),
             Sensor::new(gps_vel),
+            Sensor::new(gps_pos1),
+            Sensor::new(gps_pos2),
         ];
 
         let status = match self.rng.gen_range(0..=6) {

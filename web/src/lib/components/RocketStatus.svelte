@@ -1,8 +1,10 @@
 <script lang="ts">
-	import type { EkfNav1, EkfNav2, Imu1, Imu2, LinkStatus, State, Air } from '@rgs/bindings';
+	import type { EkfNav1, EkfNav2, Imu2, LinkStatus, State, Air, GpsPos1 } from '@rgs/bindings';
 	import { onCollectionCreated } from '$lib/common/utils';
 	import { pb } from '$lib/stores';
 	import { max } from '$lib/common/utils';
+	import { latestLaunchPoint } from '../common/director';
+	import type { LatLngLiteral } from 'leaflet';
 
 	let connection = false;
 	let state = '';
@@ -20,7 +22,7 @@
 	let total_traveled_distance = 0;
 	let distance_from_target = 0;
 	let launch_point = [0, 0];
-	let current_position = [0, 0, 0];
+	$: current_position = [0, 0, 0];
 	let g_force = 0;
 	let max_g_force = 0;
 
@@ -60,8 +62,9 @@
 		}
 	});
 
-	onCollectionCreated('EkfNav2', (msg: EkfNav2) => {
-		current_position = [msg.position[0], msg.position[1], msg.position[2]];
+	onCollectionCreated('GpsPos1', (msg: GpsPos1) => {
+		current_position = [msg.latitude, msg.longitude, msg.altitude];
+		console.log('current_position', current_position);
 	});
 
 	function convertToRadians(degrees: number): number {
@@ -80,14 +83,29 @@
 
 	$: ground_altitude = altitude - relative_altitude;
 	$: distance_from_target = target_altitude - ground_altitude;
+
+	function latLngDeltaKm(p1: LatLngLiteral, p2: LatLngLiteral) {
+		const R = 6371; // Radius of the earth in km
+		const dLat = convertToRadians(p2.lat - p1.lat); // deg2rad below
+		const dLon = convertToRadians(p2.lng - p1.lng);
+		const a =
+			Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+			Math.cos(convertToRadians(p1.lat)) *
+				Math.cos(convertToRadians(p2.lat)) *
+				Math.sin(dLon / 2) *
+				Math.sin(dLon / 2);
+		const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+		return R * c; // Distance in km
+	}
+
 	$: {
-		let dlon = convertToRadians(current_position[0] - launch_point[0]);
-		let dlat = convertToRadians(current_position[1] - launch_point[1]);
-		let a =
-			Math.sin(dlat / 2) ** 2 +
-			Math.cos(launch_point[1]) * Math.cos(current_position[1]) * Math.sin(dlon / 2) ** 2;
-		let c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
-		total_traveled_distance = 6371 * c;
+		total_traveled_distance = latLngDeltaKm(
+			{
+				lat: current_position[0],
+				lng: current_position[1]
+			},
+			$latestLaunchPoint
+		);
 	}
 
 	$: pb.collection('CalculatedMetrics').create(
@@ -167,11 +185,21 @@
 			<tr class="hover clicky cursor-pointer">
 				<div class="tooltip tooltip-right" data-tip="Current Altitude of the rocket from sea level">
 					<td>
-						<span class="text-left font-bold">Altitude</span>
+						<span class="text-left font-bold">Air: Altitude</span>
 					</td>
 				</div>
 				<td>
 					<span class="text-right">{altitude}</span>
+				</td>
+			</tr>
+			<tr class="hover clicky cursor-pointer">
+				<div class="tooltip tooltip-right" data-tip="Current Altitude of the rocket from sea level">
+					<td>
+						<span class="text-left font-bold">GpsPos: Altitude</span>
+					</td>
+				</div>
+				<td>
+					<span class="text-right">{current_position[2]}</span>
 				</td>
 			</tr>
 			<tr class="hover clicky cursor-pointer">
