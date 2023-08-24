@@ -121,6 +121,7 @@
 			$autoCancel: false
 		}
 	);
+
 </script>
 
 <div class="w-full h-full overflow-x-auto">
