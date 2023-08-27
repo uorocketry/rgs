@@ -5,14 +5,14 @@
 	import { spring } from 'svelte/motion';
 	import { onCollectionCreated } from '$lib/common/utils';
 	import type { GpsPos1 } from '@rgs/bindings';
-	import { defaultLaunchCoords, latestLaunchPoint } from '../../common/director';
+	import { defaultLaunchCoords, launchPoint } from '$lib/realtime/launchPoint';
 	let map: L.Map | null;
 
 	const urlTemplate = '/api/tiles/{z}/{x}/{y}.png';
 
 	let rocketMarker: L.Marker<unknown>;
 
-	let launchPointMarker = L.marker($latestLaunchPoint, {
+	let launchPointMarker = L.marker($launchPoint, {
 		icon: L.divIcon({
 			// Maybe some custom checkpoints?
 			html: '🏠',
@@ -51,7 +51,7 @@
 	}
 
 	// Subscribe to the store
-	latestLaunchPoint.subscribe(({ lat, lng }) => {
+	launchPoint.subscribe(({ lat, lng }) => {
 		if (lat && lng) {
 			launchPointMarker.setLatLng({ lat, lng });
 		}

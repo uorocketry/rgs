@@ -3,8 +3,8 @@
 	import { onCollectionCreated } from '$lib/common/utils';
 	import { pb } from '$lib/stores';
 	import { max } from '$lib/common/utils';
-	import { latestLaunchPoint } from '../common/director';
 	import type { LatLngLiteral } from 'leaflet';
+	import { launchPoint } from '$lib/realtime/launchPoint';
 
 	let connection = false;
 	let state = '';
@@ -104,7 +104,7 @@
 				lat: current_position[0],
 				lng: current_position[1]
 			},
-			$latestLaunchPoint
+			$launchPoint
 		);
 	}
 
@@ -121,7 +121,6 @@
 			$autoCancel: false
 		}
 	);
-
 </script>
 
 <div class="w-full h-full overflow-x-auto">
