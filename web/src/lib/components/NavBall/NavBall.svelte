@@ -7,6 +7,7 @@
 
 	let clientWidth: number;
 	let clientHeight: number;
+	export let useRocketModel = false;
 	$: minWH = Math.min(clientWidth, clientHeight);
 </script>
 
@@ -14,7 +15,7 @@
 	{#key clientHeight}
 		{#key clientWidth}
 			<Canvas size={{ width: minWH, height: minWH }}>
-				<NavBallScene bind:targetRotation />
+				<NavBallScene bind:targetRotation bind:useRocketModel />
 			</Canvas>
 		{/key}
 	{/key}
