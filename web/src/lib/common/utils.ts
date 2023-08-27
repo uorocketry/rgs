@@ -1,5 +1,5 @@
 import { pb } from '$lib/stores';
-import type { RecordSubscription } from 'pocketbase';
+import type { BaseModel, RecordSubscription } from 'pocketbase';
 import { onDestroy, onMount } from 'svelte';
 import { writable, type Unsubscriber, type Writable } from 'svelte/store';
 
@@ -42,6 +42,22 @@ export function onCollectionCreated<T>(collection: string, callback: (msg: T) =>
 	};
 	onCollection(collection, createdFilter);
 }
+
+export async function lastCollectionRecord<T = BaseModel>(collection: string): Promise<T | undefined> {
+	const ret = await pb.collection(collection).getList(1, 1,
+		{
+			sort: '-created',
+			$autoCancel: false,
+		})
+	if (ret.items.length === 0) {
+		return undefined;
+	} else {
+		let rec = ret.items[0];
+		rec = unflattenObjectWithArray(rec);
+		return rec as T;
+	}
+}
+
 
 export function formatVariableName(name: string): string {
 	return name
