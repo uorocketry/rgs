@@ -4,9 +4,10 @@
 	import { MathUtils } from 'three';
 	import { onCollectionCreated } from '$lib/common/utils';
 	import type { EkfQuat } from '@rgs/bindings';
-	import { onMount } from 'svelte';
 
 	let ninetyDegVerticalRot = new Quaternion();
+	let useRocketModel = false;
+
 	ninetyDegVerticalRot.setFromAxisAngle(new Vector3(1, 0, 0), Math.PI / 2);
 
 	let targetRotation = new Quaternion(0, 0, 0, 1);
@@ -19,24 +20,9 @@
 	let eulerRepr = new Euler();
 	eulerRepr.setFromQuaternion(targetRotation);
 
-	// onCollectionCreated('EkfQuat', (msg: EkfQuat) => {
-	onMount(() => {
-		const mockQuat = new Quaternion(0, 0, 0, 1);
-		// Rotate 45 degrees around the z axis to mock
-		const rot = new Quaternion();
-		rot.setFromAxisAngle(new Vector3(-0.3, 0, 0), Math.PI / 4);
-		mockQuat.multiply(rot);
-
-		const mockEkf: EkfQuat = {
-			// W, X, Y, Z
-			quaternion: [mockQuat.w, mockQuat.x, mockQuat.y, mockQuat.z],
-			euler_std_dev: [0, 0, 0],
-			status: 0,
-			time_stamp: 0
-		};
-
-		const quat = mockEkf.quaternion;
-		latestQuat = mockEkf;
+	onCollectionCreated('EkfQuat', (msg: EkfQuat) => {
+		const quat = msg.quaternion;
+		latestQuat = msg;
 		targetRotation.set(quat[1], quat[2], quat[3], quat[0]);
 		targetRotation.normalize();
 		targetRotation = targetRotation;
@@ -51,8 +37,7 @@
 	function upright(quaternion: Quaternion) {
 		const upDirection = new Vector3(0, 1, 0);
 		const localUpDirection = upDirection.clone().applyQuaternion(quaternion);
-		const dotProduct = localUpDirection.dot(upDirection);
-		return dotProduct > 0;
+		return localUpDirection.y > 0;
 	}
 
 	function adjustedPitch(quaternion: Quaternion) {
@@ -88,7 +73,7 @@
 
 <div class="w-full h-full p-2 flex flex-col">
 	<div>
-		<div class=" flex flex-wrap">
+		<!-- <div class=" flex flex-wrap">
 			<button
 				class="btn btn-sm flex-1"
 				on:click={() => navigator.clipboard.writeText(JSON.stringify(targetRotation))}
@@ -102,7 +87,7 @@
 			>
 				Copy Euler
 			</button>
-		</div>
+		</div> -->
 
 		<div class="flex">
 			<span class="flex-1">Quat (W,X,Y,Z)</span>
@@ -149,6 +134,13 @@
 	</div>
 
 	<div class="flex-1 overflow-hidden">
-		<NavBall bind:targetRotation />
+		<NavBall bind:targetRotation bind:useRocketModel />
 	</div>
+</div>
+
+<!-- Abs bottom left -->
+<div class="absolute bottom-0 left-0 p-2">
+	<button class="btn btn-sm" on:click={() => (useRocketModel = !useRocketModel)}>
+		{useRocketModel ? 'Use NavBall' : 'Use Rocket'}
+	</button>
 </div>
