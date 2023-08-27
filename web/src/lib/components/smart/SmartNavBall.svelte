@@ -138,9 +138,22 @@
 	</div>
 </div>
 
-<!-- Abs bottom left -->
+<!-- Abs bottom left  radio to control useROcketmodel-->
 <div class="absolute bottom-0 left-0 p-2">
-	<button class="btn btn-sm" on:click={() => (useRocketModel = !useRocketModel)}>
-		{useRocketModel ? 'Use NavBall' : 'Use Rocket'}
-	</button>
+	<div class="join">
+		<input
+			class="join-item btn"
+			type="radio"
+			name="options"
+			aria-label="NavBall"
+			on:click={() => (useRocketModel = false)}
+		/>
+		<input
+			class="join-item btn"
+			type="radio"
+			name="options"
+			aria-label="Rocket"
+			on:click={() => (useRocketModel = true)}
+		/>
+	</div>
 </div>
