@@ -7,7 +7,7 @@
 	} from '$lib/common/utils';
 	import { flightDirector, launchPoint } from '$lib/realtime/flightDirector';
 	import { rocketAltitude, rocketPosition } from '$lib/realtime/gps';
-	import { linkStatus, state } from '$lib/realtime/linkStatus';
+	import { ekf, linkStatus, state } from '$lib/realtime/linkStatus';
 	import { commandBoxToggle as commandBoxToggle } from '$lib/stores';
 	import { fly } from 'svelte/transition';
 	import TimeCounter from './TimeCounter.svelte';
@@ -44,6 +44,34 @@
 			</button>
 		</div>
 
+		<div class="font-mono">
+			<div class="tooltip tooltip-bottom" data-tip="Vertical Velocity">
+				<label for="my-modal-4" class=" btn">
+					<i class="fa-solid fa-arrow-up"></i>
+					{padFloatToDecimalPlaces(roundToDecimalPlaces($ekf?.velocity?.[2] ?? 0, 2), 2)} m/s
+				</label>
+			</div>
+		</div>
+
+		<div class="font-mono">
+			<div class="tooltip tooltip-bottom" data-tip="Speed">
+				<label for="my-modal-4" class=" btn">
+					<i class="fa-solid fa-gauge"></i>
+					{padFloatToDecimalPlaces(
+						roundToDecimalPlaces(
+							Math.sqrt(
+								($ekf?.velocity?.[0] ?? 0) ** 2 +
+									($ekf?.velocity?.[1] ?? 0) ** 2 +
+									($ekf?.velocity?.[2] ?? 0) ** 2
+							),
+							2
+						),
+						2
+					)} m/s
+				</label>
+			</div>
+		</div>
+
 		<!-- Total Distance traveled -->
 		<div class="font-mono">
 			<div class="tooltip tooltip-bottom" data-tip="Total Distance Traveled">
@@ -52,7 +80,7 @@
 					{padFloatToDecimalPlaces(
 						roundToDecimalPlaces(haversineDistance($launchPoint, $rocketPosition), 2),
 						2
-					)}km
+					)} km
 				</label>
 			</div>
 		</div>
@@ -62,7 +90,7 @@
 			<div class="tooltip tooltip-bottom" data-tip="Relative Altitude">
 				<label for="my-modal-4" class=" btn">
 					<i class="fa-solid fa-mountain"></i>
-					{Math.round($rocketAltitude - ($flightDirector?.relativeAltitude ?? 0))}m
+					{Math.round($rocketAltitude - ($flightDirector?.relativeAltitude ?? 0))} m
 				</label>
 			</div>
 		</div>
