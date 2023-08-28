@@ -89,13 +89,13 @@
 			</button>
 		</div> -->
 
-		<div class="flex">
+		<!-- <div class="flex">
 			<span class="flex-1">Quat (W,X,Y,Z)</span>
 			<span class="flex-1">{targetRotation.w.toFixed(2)}</span>
 			<span class="flex-1">{targetRotation.x.toFixed(2)}</span>
 			<span class="flex-1">{targetRotation.y.toFixed(2)}</span>
 			<span class="flex-1">{targetRotation.z.toFixed(2)}</span>
-		</div>
+		</div> -->
 
 		<!-- Pitch yaw row -->
 		<div class="grid grid-cols-2">
@@ -105,31 +105,8 @@
 			<span class="text-right">{MathUtils.radToDeg(eulerRepr.y ?? 0).toFixed(2)}°</span>
 			<span>Yaw</span>
 			<span class="text-right">{MathUtils.radToDeg(eulerRepr.z ?? 0).toFixed(2)}°</span>
-		</div>
-
-		<!-- Pointing direction -->
-		<div class="flex">
-			<span class="flex-1">Pointing</span>
-			<span class="flex-1">{upright(targetRotation) ? 'Up' : 'Down'}</span>
-		</div>
-
-		<!-- UP VECTOR -->
-		<div class="flex">
-			<span class="flex-1">Up Vector</span>
-			<span class="flex-1"
-				>{upVector
-					.toArray()
-					.map((v) => v.toFixed(2))
-					.join(', ')}</span
-			>
-		</div>
-
-		<!-- Up Angle -->
-		<div class="flex">
-			<span class="flex-1">Up Angle</span>
-			<span class="flex-1"
-				>{MathUtils.radToDeg(adjustedPitch(adjustedTargetRotation)).toFixed(2)}°</span
-			>
+			<span>Pointing</span>
+			<span class="text-right">{upright(targetRotation) ? 'Up' : 'Down'}</span>
 		</div>
 	</div>
 

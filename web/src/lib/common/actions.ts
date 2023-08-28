@@ -2,7 +2,7 @@ import { get, writable, type Writable } from 'svelte/store';
 import { layoutComponentsString, layoutConfig, virtualLayout } from './layoutStore';
 import { LayoutConfig } from 'golden-layout';
 import { pb } from '$lib/stores';
-import { latestLaunchPoint } from './director';
+import { launchPoint } from '../realtime/flightDirector';
 
 export interface CommandAction {
 	name: string;
@@ -74,25 +74,25 @@ export const commandActions: Writable<CommandAction[]> = writable([
 	{
 		name: 'FlightPlan: Set Launch Point ',
 		do: async () => {
-		  const cmd = get(commandReqAdaptor);
-		  if (!cmd) return;
-	  
-		  const launchPoint = await cmd.string('Launch Point?', 'Latitude, Longitude');
-		  if (!launchPoint) return;
-		  const launchPointSplit = launchPoint.split(',');
-		  if (launchPointSplit.length !== 2) return;
-		  const lat = parseFloat(launchPointSplit[0]);
-		  const lng = parseFloat(launchPointSplit[1]);
-		  if (isNaN(lng) || isNaN(lat)) return;
-		  pb.collection('FlightDirector').create({
-			latitude: lat,
-			longitude: lng
-		  });
-		  
-		  // Update the store with the new values
-		  latestLaunchPoint.set({ lat, lng });
+			const cmd = get(commandReqAdaptor);
+			if (!cmd) return;
+
+			const launchPointStr = await cmd.string('Launch Point?', 'Latitude, Longitude');
+			if (!launchPointStr) return;
+			const launchPointSplit = launchPointStr.split(',');
+			if (launchPointSplit.length !== 2) return;
+			const lat = parseFloat(launchPointSplit[0]);
+			const lng = parseFloat(launchPointSplit[1]);
+			if (isNaN(lng) || isNaN(lat)) return;
+			pb.collection('FlightDirector').create({
+				latitude: lat,
+				longitude: lng
+			});
+
+			// Update the store with the new values
+			launchPoint.set({ lat, lng });
 		}
-	  },
+	},
 	{
 		name: 'FlightPlan: Set Target Altitude',
 		do: async () => {
