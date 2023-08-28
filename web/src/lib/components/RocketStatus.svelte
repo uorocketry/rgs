@@ -64,7 +64,6 @@
 
 	onCollectionCreated('GpsPos1', (msg: GpsPos1) => {
 		current_position = [msg.latitude, msg.longitude, msg.altitude];
-		console.log('current_position', current_position);
 	});
 
 	function convertToRadians(degrees: number): number {
@@ -172,16 +171,43 @@
 					<span class="text-right">{pressure_abs}</span>
 				</td>
 			</tr>
+
+
 			<tr class="hover clicky cursor-pointer">
-				<div class="tooltip tooltip-right" data-tip="Current Temprature of rocket">
+				<div class="tooltip tooltip-right" data-tip="Current Temperature of rocket">
 					<td>
-						<span class="text-left">Temprature</span>
+						<span class="text-left">Temperature</span>
 					</td>
 				</div>
 				<td>
 					<span class="text-right">{temp}</span>
 				</td>
 			</tr>
+
+			<!-- Altitude and Longitude -->
+			<tr class="hover clicky cursor-pointer">
+				<div class="tooltip tooltip-right" data-tip="Current Longitude of the rocket">
+					<td>
+						<span class="text-left font-bold">Longitude</span>
+					</td>
+				</div>
+				<td>
+					<span class="text-right">{current_position[1]}</span>
+				</td>
+			</tr>
+
+			<!-- Altitude and Latitude -->
+			<tr class="hover clicky cursor-pointer">
+				<div class="tooltip tooltip-right" data-tip="Current Latitude of the rocket">
+					<td>
+						<span class="text-left font-bold">Latitude</span>
+					</td>
+				</div>
+				<td>
+					<span class="text-right">{current_position[0]}</span>
+				</td>
+			</tr>
+
 			<tr class="hover clicky cursor-pointer">
 				<div class="tooltip tooltip-right" data-tip="Current Altitude of the rocket from sea level">
 					<td>
