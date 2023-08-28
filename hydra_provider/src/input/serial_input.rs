@@ -10,7 +10,10 @@ use messages::mavlink::MavConnection;
 use messages::Message;
 use postcard::from_bytes;
 use serialport::available_ports;
+use std::path::Path;
 use std::sync::mpsc::Sender;
+
+use std::fs::read;
 
 use std::thread;
 use std::time::Duration;
@@ -58,6 +61,12 @@ impl SerialInput {
                     error!("Error sending heartbeat: {:?}", e);
                 }
                 thread::sleep(Duration::from_secs(1));
+            });
+
+            s.spawn(|| loop {
+                if let Err(e) = self.read_sdcard() {
+                    error!("Error reading sdcard: {:?}", e)
+                }
             });
         });
 
@@ -113,5 +122,14 @@ impl SerialInput {
         send.send(msg).unwrap();
 
         Ok(())
+    }
+
+    fn read_sdcard(&self) {
+        let path = Path::new("../data/sdcard.txt");
+        let data = read(path);
+
+        let msg = from_bytes(data);
+
+        // send.send
     }
 }
