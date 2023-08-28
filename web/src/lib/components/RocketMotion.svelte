@@ -1,5 +1,5 @@
 <script lang="ts">
-	import type { EkfNav1, EkfNav2, Imu1, Imu2, LinkStatus, State, Air } from '@rgs/bindings';
+	import type { EkfNav1, Imu1 } from '@rgs/bindings';
 	import { max, onCollectionCreated } from '$lib/common/utils';
 	import { pb } from '$lib/stores';
 
