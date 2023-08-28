@@ -27,7 +27,7 @@
 		})
 	});
 
-	const MAX_ZOOM = 14;
+	const MAX_ZOOM = 16;
 	const MIN_ZOOM = 8;
 	const INITIAL_ZOOM = 10;
 
