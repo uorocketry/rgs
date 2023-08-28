@@ -38,7 +38,7 @@
 		<div class="font-mono">
 			<div class="tooltip tooltip-bottom" data-tip="State">
 				<label for="my-modal-4" class=" btn btn-wide">
-					{formatCamelCase($state?.status)}
+					{formatCamelCase($state?.status ?? 'Unknown')}
 				</label>
 			</div>
 		</div>
