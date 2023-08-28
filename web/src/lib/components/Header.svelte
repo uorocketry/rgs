@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { socketConnected } from '$lib/common/socket';
+	import { linkStatus } from '$lib/realtime/linkStatus';
 	import { commandBoxToggle as commandBoxToggle } from '$lib/stores';
 	import TimeCounter from './TimeCounter.svelte';
 
@@ -25,7 +25,7 @@
 
 		<div class="tooltip tooltip-bottom" data-tip="Status">
 			<button class="btn btn-ghost normal-case text-xl">
-				{#if $socketConnected}
+				{#if $linkStatus?.connected}
 					<i class="fa-solid fa-link text-green-500" />
 				{:else}
 					<i class="fa-solid fa-link-slash text-red-500" />
