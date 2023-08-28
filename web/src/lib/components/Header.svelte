@@ -7,7 +7,7 @@
 	} from '$lib/common/utils';
 	import { flightDirector, launchPoint } from '$lib/realtime/flightDirector';
 	import { rocketAltitude, rocketPosition } from '$lib/realtime/gps';
-	import { ekf, linkStatus, state } from '$lib/realtime/linkStatus';
+	import { air, ekf, linkStatus, state } from '$lib/realtime/linkStatus';
 	import { commandBoxToggle as commandBoxToggle } from '$lib/stores';
 	import { fly } from 'svelte/transition';
 	import TimeCounter from './TimeCounter.svelte';
@@ -90,7 +90,7 @@
 			<div class="tooltip tooltip-bottom" data-tip="Relative Altitude">
 				<label for="my-modal-4" class=" btn">
 					<i class="fa-solid fa-mountain"></i>
-					{Math.round($rocketAltitude - ($flightDirector?.relativeAltitude ?? 0))} m
+					{Math.round(($air?.altitude ?? 0) - ($flightDirector?.relativeAltitude ?? 0))} m
 				</label>
 			</div>
 		</div>
