@@ -50,3 +50,11 @@ export const ekf = derived([ekf1, ekf2, ekfQuaternion], ([$ekf1, $ekf2, $ekfQuat
         ...($ekfQuaternion ?? {})
     }
 });
+
+export const state = latestCollectionWritable<{ status: string }>(
+    "State",
+    undefined,
+    (row) => {
+        return row as unknown as { status: string };
+    }
+);

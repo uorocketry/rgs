@@ -1,5 +1,6 @@
 <script lang="ts">
-	import { linkStatus } from '$lib/realtime/linkStatus';
+	import { formatCamelCase } from '$lib/common/utils';
+	import { linkStatus, state } from '$lib/realtime/linkStatus';
 	import { commandBoxToggle as commandBoxToggle } from '$lib/stores';
 	import TimeCounter from './TimeCounter.svelte';
 
@@ -33,7 +34,15 @@
 			</button>
 		</div>
 	</div>
-	<div class="navbar-end">
+	<div class="navbar-end gap-2">
+		<div class="font-mono">
+			<div class="tooltip tooltip-bottom" data-tip="State">
+				<label for="my-modal-4" class=" btn btn-wide">
+					{formatCamelCase($state?.status)}
+				</label>
+			</div>
+		</div>
+
 		<TimeCounter />
 	</div>
 </div>

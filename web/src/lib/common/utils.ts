@@ -66,6 +66,14 @@ export function formatVariableName(name: string): string {
 		.join(' ');
 }
 
+// ThisIsCamelCase -> This Is Camel Case
+export function formatCamelCase(name: string): string {
+	return name
+		.replace(/([A-Z])/g, ' $1')
+		.replace(/^./, (str) => str.toUpperCase());
+}
+
+
 export function getRandomHexColorFromString(str: string, contrastThreshold = 0.8): string {
 	// Convert the string to a unique number by summing the character codes
 	let num = 0;
