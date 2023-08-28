@@ -9,6 +9,7 @@
 	import { rocketAltitude, rocketPosition } from '$lib/realtime/gps';
 	import { linkStatus, state } from '$lib/realtime/linkStatus';
 	import { commandBoxToggle as commandBoxToggle } from '$lib/stores';
+	import { fly } from 'svelte/transition';
 	import TimeCounter from './TimeCounter.svelte';
 
 	function cmdBoxOpen() {
@@ -30,9 +31,11 @@
 				<i class="fa-solid fa-search" />
 			</button>
 		</div>
-
-		<div class="tooltip tooltip-bottom" data-tip="Status">
-			<button class="btn btn-ghost normal-case text-xl">
+	</div>
+	<div class="navbar-end gap-2">
+		<!-- Link Status -->
+		<div class="tooltip tooltip-bottom" data-tip="Link Status">
+			<button class="btn normal-case text-xl">
 				{#if $linkStatus?.connected}
 					<i class="fa-solid fa-link text-green-500" />
 				{:else}
@@ -40,10 +43,8 @@
 				{/if}
 			</button>
 		</div>
-	</div>
-	<div class="navbar-end gap-2">
+
 		<!-- Total Distance traveled -->
-		<!-- haversineDistance -->
 		<div class="font-mono">
 			<div class="tooltip tooltip-bottom" data-tip="Total Distance Traveled">
 				<label for="my-modal-4" class=" btn">
@@ -70,7 +71,11 @@
 		<div class="font-mono">
 			<div class="tooltip tooltip-bottom" data-tip="State">
 				<label for="my-modal-4" class=" btn btn-wide">
-					{formatCamelCase($state?.status ?? 'Unknown')}
+					{#key $state?.status}
+						<span style="display: inline-block" in:fly={{ y: -25, duration: 100 }}>
+							{formatCamelCase($state?.status ?? 'Unknown')}
+						</span>
+					{/key}
 				</label>
 			</div>
 		</div>

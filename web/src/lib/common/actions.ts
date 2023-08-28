@@ -2,7 +2,7 @@ import { get, writable, type Writable } from 'svelte/store';
 import { layoutComponentsString, layoutConfig, virtualLayout } from './layoutStore';
 import { LayoutConfig } from 'golden-layout';
 import { pb } from '$lib/stores';
-import { launchPoint } from '../realtime/flightDirector';
+import { flightDirector, launchPoint } from '../realtime/flightDirector';
 
 export interface CommandAction {
 	name: string;
@@ -84,9 +84,12 @@ export const commandActions: Writable<CommandAction[]> = writable([
 			const lat = parseFloat(launchPointSplit[0]);
 			const lng = parseFloat(launchPointSplit[1]);
 			if (isNaN(lng) || isNaN(lat)) return;
+			const prevFD = get(flightDirector);
 			pb.collection('FlightDirector').create({
 				latitude: lat,
-				longitude: lng
+				longitude: lng,
+				targetAltitude: prevFD.targetAltitude,
+				relativeAlt: prevFD.relativeAltitude
 			});
 
 			// Update the store with the new values
@@ -103,8 +106,12 @@ export const commandActions: Writable<CommandAction[]> = writable([
 			if (!targetAlt) return;
 			const targetAltNum = parseFloat(targetAlt);
 			if (isNaN(targetAltNum)) return;
+			const prevFD = get(flightDirector);
 			pb.collection('FlightDirector').create({
-				targetAltitude: targetAltNum
+				latitude: prevFD.latitude,
+				longitude: prevFD.longitude,
+				targetAltitude: targetAltNum,
+				relativeAltitude: prevFD.relativeAltitude
 			});
 		}
 	},
@@ -118,7 +125,11 @@ export const commandActions: Writable<CommandAction[]> = writable([
 			if (!relativeAlt) return;
 			const targetAltNum = parseFloat(relativeAlt);
 			if (isNaN(targetAltNum)) return;
+			const prevFD = get(flightDirector);
 			pb.collection('FlightDirector').create({
+				latitude: prevFD.latitude,
+				longitude: prevFD.longitude,
+				targetAltitude: prevFD.targetAltitude,
 				relativeAltitude: targetAltNum
 			});
 		}
