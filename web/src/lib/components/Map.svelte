@@ -1,5 +1,5 @@
 <script defer lang="ts" type="module">
-	import L from 'leaflet';
+	import L, { type LatLngBoundsExpression } from 'leaflet';
 	import { onCollectionCreated, onInterval } from '$lib/common/utils';
 	import { browser } from '$app/environment';
 	import { onDestroy, onMount, tick } from 'svelte';
@@ -14,6 +14,7 @@
 
 	const brBound: L.LatLngTuple = [47.72952771887304, -81.38978578997438];
 	const tlBound: L.LatLngTuple = [48.23170547259465, -82.47626677156998];
+	const bounds: LatLngBoundsExpression = [brBound, tlBound];
 
 	const initialView: L.LatLngTuple = [(brBound[0] + tlBound[0]) / 2, (brBound[1] + tlBound[1]) / 2];
 
@@ -27,7 +28,7 @@
 	});
 
 	const MAX_ZOOM = 14;
-	const MIN_ZOOM = 5;
+	const MIN_ZOOM = 8;
 	const INITIAL_ZOOM = 10;
 
 	let target: L.LatLngLiteral = defaultLaunchCoords;
@@ -68,14 +69,14 @@
 		let m = L.map(container, {
 			preferCanvas: true,
 			worldCopyJump: true,
-			minZoom: MIN_ZOOM
+			minZoom: MIN_ZOOM,
 			// Uncomment to restrict the map to the bounds
-			// maxBounds: bounds,
+			maxBounds: bounds,
 		}).setView(initialView, INITIAL_ZOOM);
 
 		L.tileLayer(urlTemplate, {
 			maxNativeZoom: MAX_ZOOM,
-			minNativeZoom: MIN_ZOOM
+			minNativeZoom: MIN_ZOOM,
 		}).addTo(m); // The actual satellite imagery
 
 		return m;
