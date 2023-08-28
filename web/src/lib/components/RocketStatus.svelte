@@ -1,70 +1,31 @@
 <script lang="ts">
-	import type { EkfNav1, EkfNav2, Imu2, LinkStatus, State, Air, GpsPos1 } from '@rgs/bindings';
-	import { onCollectionCreated } from '$lib/common/utils';
+	import type { Imu2 } from '@rgs/bindings';
+	import { haversineDistance, onCollectionCreated } from '$lib/common/utils';
 	import { pb } from '$lib/stores';
 	import { max } from '$lib/common/utils';
 	import type { LatLngLiteral } from 'leaflet';
-	import { launchPoint } from '$lib/realtime/flightDirector';
+	import { flightDirector, launchPoint } from '$lib/realtime/flightDirector';
+	import { air, ekf, imu, linkStatus, state } from '$lib/realtime/linkStatus';
+	import { rocketAltitude, rocketPosition } from '$lib/realtime/gps';
 
-	let connection = false;
-	let state = '';
-	let missed_messages = 0;
-	let pressure_abs = 0;
-	let altitude = 0;
+	$: connection = $linkStatus?.connected;
+	$: stateStr = $state?.status;
+	$: missed_messages = $linkStatus?.missed_messages;
+	$: pressure_abs = $air?.pressure_abs;
+	$: altitude = $air?.altitude;
 	let max_altitude = 0;
-	let true_airspeed = 0;
+	$: true_airspeed = 0;
 	let max_true_air_speed = 0;
-	let temp = 0;
-	let velocity = [0, 0, 0];
-	let target_altitude = 0;
-	let relative_altitude = 0;
+	$: temp = $imu.temperature;
+	$: velocity = $ekf.velocity;
+	$: target_altitude = $flightDirector.targetAltitude;
+	$: relative_altitude = $flightDirector.relativeAltitude;
 	let ground_altitude = 0;
-	let total_traveled_distance = 0;
 	let distance_from_target = 0;
-	let launch_point = [0, 0];
-	$: current_position = [0, 0, 0];
+	$: launch_point = [$launchPoint.lat, $launchPoint.lng];
+	$: current_position = [$rocketPosition.lat, $rocketPosition.lng, $rocketAltitude];
 	let g_force = 0;
 	let max_g_force = 0;
-
-	onCollectionCreated('LinkStatus', (msg: LinkStatus) => {
-		connection = msg.connected;
-		missed_messages = msg.missed_messages;
-	});
-
-	onCollectionCreated('State', (msg: State) => {
-		state = msg.status;
-	});
-
-	onCollectionCreated('Air', (msg: Air) => {
-		pressure_abs = msg.pressure_abs;
-		altitude = msg.altitude;
-	});
-
-	onCollectionCreated('EkfNav1', (msg: EkfNav1) => {
-		velocity = [msg.velocity[0], msg.velocity[1], msg.velocity[2]];
-	});
-
-	onCollectionCreated('Imu2', (msg: Imu2) => {
-		temp = msg.temperature;
-	});
-
-	onCollectionCreated('FlightDirector', (msg: any) => {
-		if (msg.targetAltitude !== 0) {
-			target_altitude = msg.targetAltitude;
-		} else if (msg.relativeAltitude !== 0) {
-			relative_altitude = msg.relativeAltitude;
-		} else if (msg.latitude !== 0) {
-			launch_point[0] = msg.latitude;
-		} else if (msg.longitude !== 0) {
-			launch_point[1] = msg.longitude;
-		} else {
-			console.log('msg recieved, variable is not defined currently', msg);
-		}
-	});
-
-	onCollectionCreated('GpsPos1', (msg: GpsPos1) => {
-		current_position = [msg.latitude, msg.longitude, msg.altitude];
-	});
 
 	function convertToRadians(degrees: number): number {
 		return (degrees * Math.PI) / 180;
@@ -74,38 +35,16 @@
 		return vf / (t * 9.81);
 	}
 
-	$: g_force = calcGForce(velocity[1], 1);
+	$: g_force = calcGForce(velocity ? velocity[0] : 0, 0.1);
 	$: max_g_force = max(max_g_force, g_force);
 	$: max_true_air_speed = max(max_true_air_speed, true_airspeed);
 
-	$: max_altitude = max(max_altitude, altitude);
+	$: max_altitude = max(max_altitude, altitude ?? 0);
 
-	$: ground_altitude = altitude - relative_altitude;
+	$: ground_altitude = (altitude ?? 0) - relative_altitude;
 	$: distance_from_target = target_altitude - ground_altitude;
 
-	function latLngDeltaKm(p1: LatLngLiteral, p2: LatLngLiteral) {
-		const R = 6371; // Radius of the earth in km
-		const dLat = convertToRadians(p2.lat - p1.lat); // deg2rad below
-		const dLon = convertToRadians(p2.lng - p1.lng);
-		const a =
-			Math.sin(dLat / 2) * Math.sin(dLat / 2) +
-			Math.cos(convertToRadians(p1.lat)) *
-				Math.cos(convertToRadians(p2.lat)) *
-				Math.sin(dLon / 2) *
-				Math.sin(dLon / 2);
-		const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
-		return R * c; // Distance in km
-	}
-
-	$: {
-		total_traveled_distance = latLngDeltaKm(
-			{
-				lat: current_position[0],
-				lng: current_position[1]
-			},
-			$launchPoint
-		);
-	}
+	$: total_traveled_distance = haversineDistance($rocketPosition, $launchPoint);
 
 	$: pb.collection('CalculatedMetrics').create(
 		{
@@ -148,7 +87,7 @@
 					</td>
 				</div>
 				<td>
-					<span class="text-right">{state}</span>
+					<span class="text-right">{stateStr}</span>
 				</td>
 			</tr>
 			<tr class="hover clicky cursor-pointer">
@@ -171,7 +110,6 @@
 					<span class="text-right">{pressure_abs}</span>
 				</td>
 			</tr>
-
 
 			<tr class="hover clicky cursor-pointer">
 				<div class="tooltip tooltip-right" data-tip="Current Temperature of rocket">

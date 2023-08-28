@@ -1,12 +1,10 @@
 <script defer lang="ts" type="module">
 	import L, { type LatLngBoundsExpression } from 'leaflet';
-	import { onCollectionCreated, onInterval } from '$lib/common/utils';
 	import { browser } from '$app/environment';
-	import { onDestroy, onMount, tick } from 'svelte';
+	import { onDestroy, onMount } from 'svelte';
 	import { defaultLaunchCoords, launchPoint } from '$lib/realtime/flightDirector';
-	import type { GpsPos1 } from '@rgs/bindings';
-
-	// FIXME: The mock rocket position reports the rocket as being in the middle of the Gulf of Guinea (northwest of South Africa)
+	import { rocketPosition } from '$lib/realtime/gps';
+	import { tweened } from 'svelte/motion';
 
 	let map: L.Map | null;
 
@@ -31,7 +29,25 @@
 	const MIN_ZOOM = 5;
 	const INITIAL_ZOOM = 10;
 
-	let target: L.LatLngLiteral = defaultLaunchCoords;
+
+	const target = tweened(defaultLaunchCoords, {
+		interpolate: (a, b) => {
+			return (t) => {
+				return {
+					lat: a.lat + t * (b.lat - a.lat),
+					lng: a.lng + t * (b.lng - a.lng)
+				};
+			};
+		}
+	});
+
+	$: {
+		target.set($rocketPosition);
+	}
+
+	$: if (rocketMarker){
+		rocketMarker.setLatLng($target);
+	}
 
 	if (browser) {
 		// Fix: Setting launch point only works at the beggingin after that the marker isn't updated
@@ -48,21 +64,7 @@
 			}),
 		})
 
-		onCollectionCreated('GpsPos1', (msg: GpsPos1) => {
-			target = {
-				lat: msg.latitude,
-				lng: msg.longitude
-			};
-		});
-		onInterval(() => {
-			let curPos: L.LatLng = rocketMarker.getLatLng();
-			const lerpFactor = 0.01;
-			let interpolatedPos: L.LatLngTuple = [
-				curPos.lat + lerpFactor * (target.lat - curPos.lat),
-				curPos.lng + lerpFactor * (target.lng - curPos.lng)
-			];
-			rocketMarker.setLatLng(interpolatedPos);
-		}, 10);
+
 	}
 
 	function createMap(container: string | HTMLElement) {

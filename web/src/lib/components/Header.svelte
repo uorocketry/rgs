@@ -1,5 +1,12 @@
 <script lang="ts">
-	import { formatCamelCase } from '$lib/common/utils';
+	import {
+		formatCamelCase,
+		haversineDistance,
+		padFloatToDecimalPlaces,
+		roundToDecimalPlaces
+	} from '$lib/common/utils';
+	import { flightDirector, launchPoint } from '$lib/realtime/flightDirector';
+	import { rocketAltitude, rocketPosition } from '$lib/realtime/gps';
 	import { linkStatus, state } from '$lib/realtime/linkStatus';
 	import { commandBoxToggle as commandBoxToggle } from '$lib/stores';
 	import TimeCounter from './TimeCounter.svelte';
@@ -35,6 +42,31 @@
 		</div>
 	</div>
 	<div class="navbar-end gap-2">
+		<!-- Total Distance traveled -->
+		<!-- haversineDistance -->
+		<div class="font-mono">
+			<div class="tooltip tooltip-bottom" data-tip="Total Distance Traveled">
+				<label for="my-modal-4" class=" btn">
+					<i class="fa-solid fa-route"></i>
+					{padFloatToDecimalPlaces(
+						roundToDecimalPlaces(haversineDistance($launchPoint, $rocketPosition), 2),
+						2
+					)}km
+				</label>
+			</div>
+		</div>
+
+		<!-- Relative Altitude -->
+		<div class="font-mono">
+			<div class="tooltip tooltip-bottom" data-tip="Relative Altitude">
+				<label for="my-modal-4" class=" btn">
+					<i class="fa-solid fa-mountain"></i>
+					{Math.round($rocketAltitude - ($flightDirector?.relativeAltitude ?? 0))}m
+				</label>
+			</div>
+		</div>
+
+		<!-- Current State -->
 		<div class="font-mono">
 			<div class="tooltip tooltip-bottom" data-tip="State">
 				<label for="my-modal-4" class=" btn btn-wide">

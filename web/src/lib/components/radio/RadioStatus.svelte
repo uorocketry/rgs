@@ -1,14 +1,5 @@
 <script lang="ts">
-	import { onCollectionCreated } from '$lib/common/utils';
-	import type { LinkStatus } from '@rgs/bindings';
-
-	let radio_msg: LinkStatus[] = [];
-
-	onCollectionCreated('LinkStatus', (msg: LinkStatus) => {
-		radio_msg = [...radio_msg, msg];
-	});
-
-	$: current_msg = radio_msg[radio_msg.length - 1];
+	import { linkStatus } from '$lib/realtime/linkStatus';
 </script>
 
 <div class="w-full h-full overflow-x-auto">
@@ -21,8 +12,8 @@
 		</thead>
 		<tbody>
 			<!-- Iterate over the entries of the current_msg object -->
-			{#if current_msg}
-				{#each Object.entries(current_msg) as [key, val]}
+			{#if $linkStatus}
+				{#each Object.entries($linkStatus) as [key, val]}
 					<!-- On click, copy the value to the clipboard and add a visual effect -->
 					<tr
 						on:click={() => navigator.clipboard.writeText(`${key},${val}`)}

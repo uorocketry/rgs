@@ -2,36 +2,43 @@
 	import { Euler, Quaternion, Vector3, type EulerOrder, Matrix4 } from 'three';
 	import NavBall from '../NavBall/NavBall.svelte';
 	import { MathUtils } from 'three';
-	import { onCollectionCreated } from '$lib/common/utils';
-	import type { EkfQuat } from '@rgs/bindings';
+	import { ekf } from '$lib/realtime/linkStatus';
+	import { tweened } from 'svelte/motion';
 
 	let ninetyDegVerticalRot = new Quaternion();
 	let useRocketModel = false;
 
 	ninetyDegVerticalRot.setFromAxisAngle(new Vector3(1, 0, 0), Math.PI / 2);
 
-	let targetRotation = new Quaternion(0, 0, 0, 1);
-	let latestQuat: EkfQuat | undefined = undefined;
-
-	$: upVector = new Vector3(0, 1, 0).applyQuaternion(targetRotation);
-
-	$: adjustedTargetRotation = targetRotation.clone().multiply(ninetyDegVerticalRot);
-
-	let eulerRepr = new Euler();
-	eulerRepr.setFromQuaternion(targetRotation);
-
-	onCollectionCreated('EkfQuat', (msg: EkfQuat) => {
-		const quat = msg.quaternion;
-		latestQuat = msg;
-		targetRotation.set(quat[1], quat[2], quat[3], quat[0]);
-		targetRotation.normalize();
-		targetRotation = targetRotation;
-		// The IMU is placed flat on the rocket, so the up vector is the x axis
-		// https://support.sbg-systems.com/sc/qd/latest/reference-manual/conventions
-		const baseVec = new Vector3(0, -1, 0).applyQuaternion(targetRotation);
-		// eulerRepr is derived from upVector
-		eulerRepr = vectorToEuler(baseVec, 'XYZ');
+	// Interpolate current rotation to target rotation
+	$: latestReportedRotation = new Quaternion();
+	const targetRotation = tweened(new Quaternion(0, 0, 0, 1), {
+		duration: 300,
+		interpolate: (a, b) => {
+			return (t) => {
+				return a.clone().slerp(b, t).normalize();
+			};
+		}
 	});
+
+	$: eulerRepr = vectorToEuler(
+		new Vector3(0, -1, 0).applyQuaternion(latestReportedRotation),
+		'XYZ'
+	);
+
+	$: {
+		const ekfVal = $ekf;
+		const quat = ekfVal?.quaternion;
+		if (quat) {
+			latestReportedRotation = new Quaternion(quat[1], quat[2], quat[3], quat[0]);
+			// The IMU is placed flat on the rocket, so the up vector is the x axis
+			// https://support.sbg-systems.com/sc/qd/latest/reference-manual/conventions
+		}
+	}
+
+	setInterval(() => {
+		targetRotation.set(latestReportedRotation.clone());
+	}, 250);
 
 	// Is the up vector pointing above the horizon?
 	function upright(quaternion: Quaternion) {
@@ -106,12 +113,12 @@
 			<span>Yaw</span>
 			<span class="text-right">{MathUtils.radToDeg(eulerRepr.z ?? 0).toFixed(2)}°</span>
 			<span>Pointing</span>
-			<span class="text-right">{upright(targetRotation) ? 'Up' : 'Down'}</span>
+			<span class="text-right">{upright(latestReportedRotation) ? 'Up' : 'Down'}</span>
 		</div>
 	</div>
 
 	<div class="flex-1 overflow-hidden">
-		<NavBall bind:targetRotation bind:useRocketModel />
+		<NavBall targetRotation={$targetRotation} bind:useRocketModel />
 	</div>
 </div>
 

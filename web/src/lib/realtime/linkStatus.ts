@@ -1,4 +1,4 @@
-import type { Air, EkfNav1, EkfNav2, EkfQuat, LinkStatus } from '@rgs/bindings';
+import type { Air, EkfNav1, EkfNav2, EkfQuat, Imu1, Imu2, LinkStatus } from '@rgs/bindings';
 import { latestCollectionWritable } from './lastestCollectionWritable';
 import { derived, writable } from 'svelte/store';
 import { unflattenObjectWithArray } from '$lib/common/utils';
@@ -9,7 +9,7 @@ export const linkStatus = latestCollectionWritable<LinkStatus | undefined>(
     }
 );
 
-export const air = latestCollectionWritable<Air>(
+export const air = latestCollectionWritable<Air | undefined>(
     "Air",
     undefined,
     (row) => {
@@ -36,7 +36,7 @@ const ekf2 = latestCollectionWritable<EkfNav2 | undefined>(
 )
 
 const ekfQuaternion = latestCollectionWritable<EkfQuat | undefined>(
-    "EkfQuaternion",
+    "EkfQuat",
     undefined,
     (row) => {
         return unflattenObjectWithArray(row) as unknown as EkfQuat;
@@ -51,10 +51,35 @@ export const ekf = derived([ekf1, ekf2, ekfQuaternion], ([$ekf1, $ekf2, $ekfQuat
     }
 });
 
-export const state = latestCollectionWritable<{ status: string }>(
+export const state = latestCollectionWritable<{ status: string } | undefined>(
     "State",
     undefined,
     (row) => {
         return row as unknown as { status: string };
     }
+);
+
+
+const imu1 = latestCollectionWritable<Imu1 | undefined>(
+    "Imu1",
+    undefined,
+    (row) => {
+        return unflattenObjectWithArray(row) as unknown as Imu1;
+    }
+);
+
+const imu2 = latestCollectionWritable<Imu2 | undefined>(
+    "Imu2",
+    undefined,
+    (row) => {
+        return unflattenObjectWithArray(row) as unknown as Imu2;
+    }
+);
+
+export const imu = derived([imu1, imu2], ([$imu1, $imu2]) => {
+    return {
+        ...($imu1 ?? {}),
+        ...($imu2 ?? {})
+    }
+}
 );

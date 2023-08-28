@@ -1,5 +1,6 @@
 .lm_goldenlayout {
 	background: hsl(var(--b2));
+	z-index: 0;
 }
 .lm_content {
 	background: hsl(var(--b1));
