@@ -5,7 +5,7 @@
 	import { get } from 'svelte/store';
 	import { commandBoxToggle } from '$lib/stores';
 
-	let visible = false;
+	let visible = true;
 	let inputElement: HTMLInputElement;
 	let inputValue = '';
 	let list: string[] = [];

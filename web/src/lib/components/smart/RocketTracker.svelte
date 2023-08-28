@@ -3,9 +3,8 @@
 	import { browser } from '$app/environment';
 	import { onDestroy, onMount } from 'svelte';
 	import { spring } from 'svelte/motion';
-	import { onCollectionCreated } from '$lib/common/utils';
-	import type { GpsPos1 } from '@rgs/bindings';
 	import { defaultLaunchCoords, launchPoint } from '$lib/realtime/flightDirector';
+	import { rocketPosition } from '$lib/realtime/gps';
 	let map: L.Map | null;
 
 	const urlTemplate = '/api/tiles/{z}/{x}/{y}.png';
@@ -20,14 +19,12 @@
 		})
 	});
 
-	let rocketCoords: L.LatLngLiteral = defaultLaunchCoords;
-
 	const MAX_ZOOM = 14;
 	const MIN_ZOOM = 5;
 	const INITIAL_ZOOM = 10;
 
 	let sprintCoords = spring(
-		{ x: rocketCoords.lat, y: rocketCoords.lng },
+		{ x: $rocketPosition.lat, y: $rocketPosition.lng },
 		{
 			stiffness: 0.1,
 			damping: 0.25
@@ -42,7 +39,7 @@
 	});
 
 	if (browser) {
-		rocketMarker = L.marker(rocketCoords, {
+		rocketMarker = L.marker($rocketPosition, {
 			icon: L.divIcon({
 				html: '🚀',
 				className: 'bg-transparent text-3xl '
@@ -57,24 +54,20 @@
 		}
 	});
 
-	onCollectionCreated('GpsPos1', (msg: GpsPos1) => {
-		rocketCoords = {
-			lat: msg.latitude,
-			lng: msg.longitude
-		};
+	$: {
+		const rocketCoords = $rocketPosition;
 		sprintCoords.set({ x: rocketCoords.lat, y: rocketCoords.lng });
-
 		if (map) {
 			map.setView(rocketCoords, map.getZoom());
 		}
-	});
+	}
 
 	function createMap(container: string | HTMLElement) {
 		let m = L.map(container, {
 			preferCanvas: true,
 			worldCopyJump: true,
 			minZoom: MIN_ZOOM
-		}).setView(rocketCoords, INITIAL_ZOOM);
+		}).setView($rocketPosition, INITIAL_ZOOM);
 
 		L.tileLayer(urlTemplate, {
 			maxNativeZoom: MAX_ZOOM,
@@ -120,13 +113,13 @@
 	<div class="overlay">
 		<ul class="menu menu-xs bg-base-100 !p-0">
 			<li>
-				<button on:click={() => navigator.clipboard.writeText(`${rocketCoords.lat}`)}>
-					Lat: {rocketCoords.lat.toFixed(5)}
+				<button on:click={() => navigator.clipboard.writeText(`${$rocketPosition.lat}`)}>
+					Lat: {$rocketPosition.lat.toFixed(5)}
 				</button>
 			</li>
 			<li>
-				<button on:click={() => navigator.clipboard.writeText(`${rocketCoords.lng}`)}>
-					Lng: {rocketCoords.lng.toFixed(5)}
+				<button on:click={() => navigator.clipboard.writeText(`${$rocketPosition.lng}`)}>
+					Lng: {$rocketPosition.lng.toFixed(5)}
 				</button>
 			</li>
 		</ul>

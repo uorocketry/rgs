@@ -1,4 +1,5 @@
 import { pb } from '$lib/stores';
+import type { LatLngLiteral } from 'leaflet';
 import type { BaseModel, RecordSubscription } from 'pocketbase';
 import { onDestroy, onMount } from 'svelte';
 import { writable, type Unsubscriber, type Writable } from 'svelte/store';
@@ -52,7 +53,7 @@ export async function lastCollectionRecord<T = BaseModel>(collection: string): P
 	if (ret.items.length === 0) {
 		return undefined;
 	} else {
-		let rec = ret.items[0];
+		let rec = ret.items[0].export();
 		rec = unflattenObjectWithArray(rec);
 		return rec as T;
 	}
@@ -146,4 +147,34 @@ export function unflattenObjectWithArray<T>(obj: any): T {
 
 export function max(a: number, b: number) {
 	return a > b ? a : b;
+}
+
+export function haversineDistance(coord1: LatLngLiteral, coord2: LatLngLiteral): number {
+	const R = 6371; // Radius of the Earth in km
+	const dLat = toRad(coord2.lat - coord1.lat);
+	const dLon = toRad(coord2.lng - coord1.lng);
+
+	const a =
+		Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+		Math.cos(toRad(coord1.lat)) * Math.cos(toRad(coord2.lat)) * Math.sin(dLon / 2) * Math.sin(dLon / 2);
+
+	const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+	return R * c;
+}
+
+function toRad(v: number) {
+	return v * Math.PI / 180;
+}
+
+
+export function roundToDecimalPlaces(num: number, decimalPlaces: number) {
+	const factor = Math.pow(10, decimalPlaces);
+	return Math.round(num * factor) / factor;
+}
+
+// 1.04, 3 -> 1.040
+// 1.5, 2 -> 1.50
+export function padFloatToDecimalPlaces(num: number, decimalPlaces: number) {
+	const factor = Math.pow(10, decimalPlaces);
+	return (Math.round(num * factor) / factor).toFixed(decimalPlaces);
 }

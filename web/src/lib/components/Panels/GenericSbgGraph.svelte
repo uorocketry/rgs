@@ -146,7 +146,7 @@
 	});
 </script>
 
-<div class="w-full h-full flex flex-col" bind:clientHeight bind:clientWidth>
+<div class="w-full h-full flex flex-col bg-white" bind:clientHeight bind:clientWidth>
 	<div class="flex flex-wrap justify-center">
 		<!-- TODO: Checkbox not working(???) -->
 		{#each collectionsEntries as collection}

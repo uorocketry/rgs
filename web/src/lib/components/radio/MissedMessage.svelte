@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { onCollectionCreated } from '$lib/common/utils';
+	import { linkStatus } from '$lib/realtime/linkStatus';
 	import type { LinkStatus } from '@rgs/bindings';
 	import { Bar } from 'svelte-chartjs';
 
@@ -14,28 +14,44 @@
 			{
 				label: 'Missed Messages',
 				data: missed_msgs,
-				backgroundColor: [randomCol(), randomCol(), randomCol(), randomCol(), randomCol()],
-				borderWidth: 2,
-				borderColor: randomCol()
+				borderWidth: 2
 			}
 		]
 	};
 
-	onCollectionCreated('LinkStatus', (msg: LinkStatus) => {
-		messages = [...messages, msg];
-		timestamp.push(msg.timestamp);
-		if (messages.length > 1) {
-			let diff =
-				messages[messages.length - 1].missed_messages -
-				messages[messages.length - 2].missed_messages;
-			missed_msgs.push(diff);
+	const options = {
+		maintainAspectRatio: false,
+		showLine: true,
+		responsive: true,
+		animation: {
+			duration: 0
+		},
+		// Update x axis to convert timestamp to date
+		scales: {
+			x: {
+				ticks: {
+					callback: function (tickValue: number) {
+						let date = new Date(Number(timestamp[tickValue]));
+						return date.toLocaleTimeString();
+					}
+				}
+			}
 		}
-		data = { ...data };
-		totalMessages = msg.missed_messages;
-	});
+	};
 
-	function randomCol(): string {
-		return `rgb(${Math.random() * 255}, ${Math.random() * 255}, ${Math.random() * 255})`;
+	$: {
+		if ($linkStatus) {
+			messages = [...messages, $linkStatus];
+			if (messages.length > 1) {
+				timestamp.push(Date.now());
+				let diff =
+					messages[messages.length - 1].missed_messages -
+					messages[messages.length - 2].missed_messages;
+				missed_msgs.push(diff);
+			}
+			data = data;
+			totalMessages = $linkStatus.missed_messages;
+		}
 	}
 
 	let clientHeight = 0;
@@ -55,7 +71,7 @@
 <div class="w-full h-full flex flex-col p-2" bind:clientHeight bind:clientWidth>
 	<div class="flex-1">
 		{#key restart}
-			<Bar bind:data options={{ responsive: true, maintainAspectRatio: false }} />
+			<Bar bind:data {options} />
 		{/key}
 	</div>
 	<p class="text-center">Total Messages: {totalMessages}</p>
