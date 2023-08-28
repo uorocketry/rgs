@@ -3,7 +3,7 @@
 	import { onCollectionCreated, onInterval } from '$lib/common/utils';
 	import { browser } from '$app/environment';
 	import { onDestroy, onMount, tick } from 'svelte';
-	import { defaultLaunchCoords, launchPoint } from '$lib/realtime/launchPoint';
+	import { defaultLaunchCoords, launchPoint } from '$lib/realtime/flightDirector';
 	import type { GpsPos1 } from '@rgs/bindings';
 
 	// FIXME: The mock rocket position reports the rocket as being in the middle of the Gulf of Guinea (northwest of South Africa)

@@ -4,7 +4,7 @@
 	import { pb } from '$lib/stores';
 	import { max } from '$lib/common/utils';
 	import type { LatLngLiteral } from 'leaflet';
-	import { launchPoint } from '$lib/realtime/launchPoint';
+	import { launchPoint } from '$lib/realtime/flightDirector';
 
 	let connection = false;
 	let state = '';

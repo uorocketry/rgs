@@ -5,7 +5,7 @@
 	import { spring } from 'svelte/motion';
 	import { onCollectionCreated } from '$lib/common/utils';
 	import type { GpsPos1 } from '@rgs/bindings';
-	import { defaultLaunchCoords, launchPoint } from '$lib/realtime/launchPoint';
+	import { defaultLaunchCoords, launchPoint } from '$lib/realtime/flightDirector';
 	let map: L.Map | null;
 
 	const urlTemplate = '/api/tiles/{z}/{x}/{y}.png';

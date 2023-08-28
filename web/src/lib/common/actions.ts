@@ -2,7 +2,7 @@ import { get, writable, type Writable } from 'svelte/store';
 import { layoutComponentsString, layoutConfig, virtualLayout } from './layoutStore';
 import { LayoutConfig } from 'golden-layout';
 import { pb } from '$lib/stores';
-import { launchPoint } from '../realtime/launchPoint';
+import { launchPoint } from '../realtime/flightDirector';
 
 export interface CommandAction {
 	name: string;
