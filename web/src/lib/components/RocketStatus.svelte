@@ -22,20 +22,15 @@
 	$: relative_altitude = $flightDirector.relativeAltitude;
 	let ground_altitude = 0;
 	let distance_from_target = 0;
-	$: launch_point = [$launchPoint.lat, $launchPoint.lng];
 	$: current_position = [$rocketPosition.lat, $rocketPosition.lng, $rocketAltitude];
 	let g_force = 0;
 	let max_g_force = 0;
-
-	function convertToRadians(degrees: number): number {
-		return (degrees * Math.PI) / 180;
-	}
 
 	function calcGForce(vf: number, t: number) {
 		return vf / (t * 9.81);
 	}
 
-	$: g_force = calcGForce(velocity ? velocity[0] : 0, 0.1);
+	$: g_force = calcGForce(velocity ? velocity[1] : 0, 0.1);
 	$: max_g_force = max(max_g_force, g_force);
 	$: max_true_air_speed = max(max_true_air_speed, true_airspeed);
 
