@@ -9,19 +9,14 @@ import ErrorRate from '$lib/components/radio/ErrorRate.svelte';
 import LayoutList from '$lib/components/LayoutList.svelte';
 import MissedMessage from '$lib/components/radio/MissedMessage.svelte';
 import Map from '$lib/components/Map.svelte';
-import LogViewer from '$lib/components/LogViewer.svelte';
-import Settings from '$lib/components/Settings.svelte';
 import RocketTracker from '$lib/components/smart/RocketTracker.svelte';
 import RocketStatus from '$lib/components/RocketStatus.svelte';
 import RocketMotion from '$lib/components/RocketMotion.svelte';
-import { browser } from '$app/environment';
 
 export const layoutComponents = {
 	SmartNavBall,
 	RocketTracker,
-	Settings,
 	Map,
-	LogViewer,
 	ErrorRate,
 	MissedMessage,
 	RadioStatus,

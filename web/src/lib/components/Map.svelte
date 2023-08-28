@@ -45,8 +45,8 @@
 				// Maybe some custom checkpoints?
 				html: '🚀',
 				className: 'bg-transparent text-3xl '
-			})
-		});
+			}),
+		})
 
 		onCollectionCreated('GpsPos1', (msg: GpsPos1) => {
 			target = {
