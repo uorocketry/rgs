@@ -28,7 +28,7 @@
 	});
 
 	const MAX_ZOOM = 16;
-	const MIN_ZOOM = 8;
+	const MIN_ZOOM = 5;
 	const INITIAL_ZOOM = 10;
 
 	let target: L.LatLngLiteral = defaultLaunchCoords;
