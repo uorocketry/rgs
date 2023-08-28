@@ -6,6 +6,8 @@
 	let countDown = 0;
 	let startTime: number;
 	let timeString = '';
+	let dialog: HTMLDialogElement | undefined;
+	let paused = false;
 
 	const padWithLeadingZero = (num: number) => num.toString().padStart(2, '0');
 
@@ -32,10 +34,17 @@
 		return `${sign}${hours}:${minutes}:${seconds}.${milliseconds}`;
 	};
 
+	let timePaused = 0;
+
 	onInterval(() => {
+		if (paused) {
+			timePaused += 10;
+			return;
+		}
 		if (startTimer) {
 			const elapsed = Date.now() - startTime;
-			countDown = initialCountDown - elapsed;
+			countDown = initialCountDown - elapsed + timePaused;
+
 			timeString = formatTime(countDown);
 		} else {
 			timeString = formatTime(initialCountDown);
@@ -43,47 +52,58 @@
 	}, 10);
 </script>
 
-<div class="font-mono">
-	<div class="tooltip tooltip-left" data-tip="Time Remaining">
-		<label for="my-modal-4" class="{countDown > 0 ? 'text-red-500' : 'text-green-500'} btn">
-			{timeString}
-		</label>
+<div class="flex flex-row gap-2">
+	<div class="tooltip tooltip-bottom" data-tip="Play/Pause">
+		<label class="swap swap-rotate btn">
+			<!-- this hidden checkbox controls the state -->
+			<input type="checkbox" bind:checked={paused} />
 
-		<input type="checkbox" id="my-modal-4" class="modal-toggle" />
-		<label for="my-modal-4" class="modal cursor-pointer">
-			<div class="modal-box">
-				<h3 class="text-lg font-bold">Count Down Timer</h3>
-				<p class="py-4">Timer:</p>
-				<input
-					type="number"
-					class="input input-bordered bg-gray-100 p-2 rounded mb-2"
-					placeholder="Enter time in seconds"
-					on:change={(e) => {
-						if (e.target.value !== '') {
-							initialCountDown = parseInt(e.target.value) * 1000;
-							countDown = initialCountDown;
-						}
-					}}
-				/>
+			<!-- volume on icon -->
+			<i class="fa-solid fa-pause swap-on" />
 
-				<div class="mb-2">
-					<label class="btn bg-black">
-						<input
-							type="checkbox"
-							class="sr-only"
-							bind:checked={startTimer}
-							on:change={() => {
-								if (startTimer) {
-									startTime = Date.now();
-								} else {
-									countDown = initialCountDown;
-								}
-							}}
-						/>
-						<span class="text-white">{startTimer ? 'Stop Timer' : 'Start Timer'}</span>
-					</label>
-				</div>
-			</div>
+			<i class="fa-solid fa-play swap-off" />
 		</label>
 	</div>
+
+	<div class="font-mono">
+		<div class="tooltip tooltip-bottom" data-tip="Time Remaining">
+			<button
+				class="{countDown > 0 ? 'text-red-500' : 'text-green-500'} btn"
+				on:click={() => {
+					dialog?.showModal();
+				}}
+			>
+				{timeString}
+			</button>
+		</div>
+	</div>
 </div>
+
+<dialog class="modal" bind:this={dialog}>
+	<form
+		method="dialog"
+		class="modal-box"
+		on:submit={(e) => {
+			const time = e.target[0].value;
+			if (time !== '') {
+				initialCountDown = parseInt(time) * 1000;
+				countDown = initialCountDown;
+				timePaused = 0;
+				paused = false;
+				startTime = Date.now();
+				startTimer = true;
+			}
+		}}
+	>
+		<h3 class="text-lg font-bold">Count Down Timer</h3>
+		<p class="py-4">Timer:</p>
+		<input
+			type="number"
+			class="input input-bordered bg-gray-100 p-2 rounded mb-2"
+			placeholder="Enter time in seconds"
+		/>
+	</form>
+	<form method="dialog" class="modal-backdrop">
+		<button>close</button>
+	</form>
+</dialog>
