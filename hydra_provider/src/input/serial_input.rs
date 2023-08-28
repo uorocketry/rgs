@@ -1,4 +1,5 @@
 use crate::processing::InputData;
+use crate::processing::LinkData;
 use anyhow::Context;
 use anyhow::Ok;
 use anyhow::Result;
@@ -64,7 +65,7 @@ impl SerialInput {
             });
 
             s.spawn(|| loop {
-                if let Err(e) = self.read_sdcard() {
+                if let Err(e) = self.read_sdcard(&send) {
                     error!("Error reading sdcard: {:?}", e)
                 }
             });
@@ -124,12 +125,17 @@ impl SerialInput {
         Ok(())
     }
 
-    fn read_sdcard(&self) {
+    fn read_sdcard(&self, send: &Sender<InputData>) -> Result<()> {
         let path = Path::new("../data/sdcard.txt");
         let data = read(path);
 
-        let msg = from_bytes(data);
+        //incomplete
+        // let msg = match data {
+
+        // }
 
         // send.send
+
+        Ok(())
     }
 }
