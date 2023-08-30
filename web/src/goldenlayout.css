@@ -1,5 +1,5 @@
 .lm_goldenlayout {
-	background: hsl(var(--b2));
+	background: hsl(var(--nc));
 	z-index: 0;
 }
 .lm_content {
@@ -18,8 +18,7 @@
 	opacity: 0.1;
 }
 .lm_splitter {
-	background: hsl(var(--a));
-	opacity: 0.25;
+	background: hsl(var(--nc));
 	transition: opacity 200ms ease;
 }
 .lm_splitter:hover,
@@ -31,8 +30,8 @@
 }
 .lm_header .lm_tab {
 	font-size: 0.75rem;
-	color: hsl(var(--ac));
-	background: #fafafa;
+	background: hsl(var(--bc));
+	color: hsl(var(--b1));
 	margin-right: 2px;
 	padding-bottom: 4px;
 	border: 1px solid hsl(var(--n));
@@ -75,8 +74,8 @@
 }
 .lm_tab:hover,
 .lm_tab.lm_active {
-	background: hsl(var(--n));
-	color: hsl(var(--nc));
+	background: hsl(var(--b1));
+	color: hsl(var(--bc));
 }
 .lm_header .lm_controls .lm_tabdropdown:before {
 	color: #000000;
