@@ -44,6 +44,14 @@
 			</button>
 		</div>
 
+		<!-- RSSI -->
+		<div class="tooltip tooltip-bottom" data-tip="RSSI">
+			<label for="my-modal-4" class=" btn btn-outline">
+				<i class="fa-solid fa-radio"></i>
+				{padFloatToDecimalPlaces(roundToDecimalPlaces($linkStatus?.rssi ?? 0, 2), 2)}
+			</label>
+		</div>
+
 		<div class="tooltip tooltip-bottom" data-tip="Vertical Velocity">
 			<label for="my-modal-4" class=" btn btn-outline">
 				<i class="fa-solid fa-arrow-up"></i>
