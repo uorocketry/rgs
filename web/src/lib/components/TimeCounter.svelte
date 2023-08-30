@@ -54,7 +54,7 @@
 
 <div class="flex flex-row gap-2">
 	<div class="tooltip tooltip-bottom" data-tip="Play/Pause">
-		<label class="swap swap-rotate btn">
+		<label class="swap swap-rotate btn btn-outline">
 			<!-- this hidden checkbox controls the state -->
 			<input type="checkbox" bind:checked={paused} />
 
@@ -65,17 +65,15 @@
 		</label>
 	</div>
 
-	<div class="font-mono">
-		<div class="tooltip tooltip-bottom" data-tip="Time Remaining">
-			<button
-				class="{countDown > 0 ? 'text-red-500' : 'text-green-500'} btn"
-				on:click={() => {
-					dialog?.showModal();
-				}}
-			>
-				{timeString}
-			</button>
-		</div>
+	<div class="tooltip tooltip-bottom" data-tip="Time Remaining">
+		<button
+			class="{countDown > 0 ? 'text-red-500' : 'text-green-500'} btn btn-outline"
+			on:click={() => {
+				dialog?.showModal();
+			}}
+		>
+			{timeString}
+		</button>
 	</div>
 </div>
 
