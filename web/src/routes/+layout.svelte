@@ -44,10 +44,6 @@
 	}
 
 	main {
-		/* Bunch of dots */
-		--size: 0.5rem;
-		background-image: radial-gradient(circle at center, hsla(var(--bc) / 0.2) 20%, transparent 25%);
-		background-size: var(--size) var(--size);
 		position: relative;
 		bottom: 0;
 		flex: 1 1 auto;

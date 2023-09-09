@@ -32,10 +32,10 @@
 			</button>
 		</div>
 	</div>
-	<div class="navbar-end gap-2">
+	<div class="navbar-end font-mono gap-2">
 		<!-- Link Status -->
 		<div class="tooltip tooltip-bottom" data-tip="Link Status">
-			<button class="btn normal-case text-xl">
+			<button class="btn btn-outline normal-case text-xl">
 				{#if $linkStatus?.connected}
 					<i class="fa-solid fa-link text-green-500" />
 				{:else}
@@ -44,68 +44,66 @@
 			</button>
 		</div>
 
-		<div class="font-mono">
-			<div class="tooltip tooltip-bottom" data-tip="Vertical Velocity">
-				<label for="my-modal-4" class=" btn">
-					<i class="fa-solid fa-arrow-up"></i>
-					{padFloatToDecimalPlaces(roundToDecimalPlaces($ekf?.velocity?.[2] ?? 0, 2), 2)} m/s
-				</label>
-			</div>
+		<!-- RSSI -->
+		<div class="tooltip tooltip-bottom" data-tip="RSSI">
+			<label for="my-modal-4" class=" btn btn-outline">
+				<i class="fa-solid fa-radio"></i>
+				{padFloatToDecimalPlaces(roundToDecimalPlaces($linkStatus?.rssi ?? 0, 2), 2)}
+			</label>
 		</div>
 
-		<div class="font-mono">
-			<div class="tooltip tooltip-bottom" data-tip="Speed">
-				<label for="my-modal-4" class=" btn">
-					<i class="fa-solid fa-gauge"></i>
-					{padFloatToDecimalPlaces(
-						roundToDecimalPlaces(
-							Math.sqrt(
-								($ekf?.velocity?.[0] ?? 0) ** 2 +
-									($ekf?.velocity?.[1] ?? 0) ** 2 +
-									($ekf?.velocity?.[2] ?? 0) ** 2
-							),
-							2
+		<div class="tooltip tooltip-bottom" data-tip="Vertical Velocity">
+			<label for="my-modal-4" class=" btn btn-outline">
+				<i class="fa-solid fa-arrow-up"></i>
+				{padFloatToDecimalPlaces(roundToDecimalPlaces($ekf?.velocity?.[2] ?? 0, 2), 2)} m/s
+			</label>
+		</div>
+
+		<div class="tooltip tooltip-bottom" data-tip="Speed">
+			<label for="my-modal-4" class=" btn btn-outline">
+				<i class="fa-solid fa-gauge"></i>
+				{padFloatToDecimalPlaces(
+					roundToDecimalPlaces(
+						Math.sqrt(
+							($ekf?.velocity?.[0] ?? 0) ** 2 +
+								($ekf?.velocity?.[1] ?? 0) ** 2 +
+								($ekf?.velocity?.[2] ?? 0) ** 2
 						),
 						2
-					)} m/s
-				</label>
-			</div>
+					),
+					2
+				)} m/s
+			</label>
 		</div>
 
 		<!-- Total Distance traveled -->
-		<div class="font-mono">
-			<div class="tooltip tooltip-bottom" data-tip="Total Distance Traveled">
-				<label for="my-modal-4" class=" btn">
-					<i class="fa-solid fa-route"></i>
-					{padFloatToDecimalPlaces(
-						roundToDecimalPlaces(haversineDistance($launchPoint, $rocketPosition), 2),
-						2
-					)} km
-				</label>
-			</div>
+		<div class="tooltip tooltip-bottom" data-tip="Total Distance Traveled">
+			<label for="my-modal-4" class=" btn btn-outline">
+				<i class="fa-solid fa-route"></i>
+				{padFloatToDecimalPlaces(
+					roundToDecimalPlaces(haversineDistance($launchPoint, $rocketPosition), 2),
+					2
+				)} km
+			</label>
 		</div>
 
 		<!-- Relative Altitude -->
-		<div class="font-mono">
-			<div class="tooltip tooltip-bottom" data-tip="Relative Altitude">
-				<label for="my-modal-4" class=" btn">
-					<i class="fa-solid fa-mountain"></i>
-					{Math.round(($air?.altitude ?? 0) - ($flightDirector?.relativeAltitude ?? 0))} m
-				</label>
-			</div>
+		<div class="tooltip tooltip-bottom" data-tip="Relative Altitude">
+			<label for="my-modal-4" class=" btn btn-outline">
+				<i class="fa-solid fa-mountain"></i>
+				{Math.round($rocketAltitude - ($flightDirector?.relativeAltitude ?? 0))} m
+			</label>
 		</div>
 
 		<!-- Current State -->
-		<div class="font-mono">
-			<div class="tooltip tooltip-bottom" data-tip="State">
-				<label for="my-modal-4" class=" btn btn-wide">
-					{#key $state?.status}
-						<span style="display: inline-block" in:fly={{ y: -25, duration: 100 }}>
-							{formatCamelCase($state?.status ?? 'Unknown')}
-						</span>
-					{/key}
-				</label>
-			</div>
+		<div class="tooltip tooltip-bottom" data-tip="State">
+			<label for="my-modal-4" class=" btn btn-outline btn-wide">
+				{#key $state?.status}
+					<span style="display: inline-block" in:fly={{ y: -25, duration: 100 }}>
+						{formatCamelCase($state?.status ?? 'Unknown')}
+					</span>
+				{/key}
+			</label>
 		</div>
 
 		<TimeCounter />
