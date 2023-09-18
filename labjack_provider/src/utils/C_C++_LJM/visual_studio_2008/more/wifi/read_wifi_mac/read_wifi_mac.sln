@@ -1,0 +1,26 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 10.00
+# Visual Studio 2008
+Project("{D2EEA018-4C58-4CFF-A11A-520363631B75}") = "read_wifi_mac", "read_wifi_mac.vcproj", "{6606670F-4957-428A-BBBA-E0B8D3135D9E}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Win32 = Debug|Win32
+		Debug|x64 = Debug|x64
+		Release|Win32 = Release|Win32
+		Release|x64 = Release|x64
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{6606670F-4957-428A-BBBA-E0B8D3135D9E}.Debug|Win32.ActiveCfg = Debug|Win32
+		{6606670F-4957-428A-BBBA-E0B8D3135D9E}.Debug|Win32.Build.0 = Debug|Win32
+		{6606670F-4957-428A-BBBA-E0B8D3135D9E}.Debug|x64.ActiveCfg = Debug|x64
+		{6606670F-4957-428A-BBBA-E0B8D3135D9E}.Debug|x64.Build.0 = Debug|x64
+		{6606670F-4957-428A-BBBA-E0B8D3135D9E}.Release|Win32.ActiveCfg = Release|Win32
+		{6606670F-4957-428A-BBBA-E0B8D3135D9E}.Release|Win32.Build.0 = Release|Win32
+		{6606670F-4957-428A-BBBA-E0B8D3135D9E}.Release|x64.ActiveCfg = Release|x64
+		{6606670F-4957-428A-BBBA-E0B8D3135D9E}.Release|x64.Build.0 = Release|x64
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+EndGlobal

@@ -1,0 +1,26 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 10.00
+# Visual Studio 2008
+Project("{91A7DD69-4A74-43BC-8127-A7B7D315DEDA}") = "stream_out_only", "stream_out_only.vcproj", "{B73F2343-B5D9-482A-B6A1-4797C81541A9}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Win32 = Debug|Win32
+		Debug|x64 = Debug|x64
+		Release|Win32 = Release|Win32
+		Release|x64 = Release|x64
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{B73F2343-B5D9-482A-B6A1-4797C81541A9}.Debug|Win32.ActiveCfg = Debug|Win32
+		{B73F2343-B5D9-482A-B6A1-4797C81541A9}.Debug|Win32.Build.0 = Debug|Win32
+		{B73F2343-B5D9-482A-B6A1-4797C81541A9}.Debug|x64.ActiveCfg = Debug|x64
+		{B73F2343-B5D9-482A-B6A1-4797C81541A9}.Debug|x64.Build.0 = Debug|x64
+		{B73F2343-B5D9-482A-B6A1-4797C81541A9}.Release|Win32.ActiveCfg = Release|Win32
+		{B73F2343-B5D9-482A-B6A1-4797C81541A9}.Release|Win32.Build.0 = Release|Win32
+		{B73F2343-B5D9-482A-B6A1-4797C81541A9}.Release|x64.ActiveCfg = Release|x64
+		{B73F2343-B5D9-482A-B6A1-4797C81541A9}.Release|x64.Build.0 = Release|x64
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+EndGlobal

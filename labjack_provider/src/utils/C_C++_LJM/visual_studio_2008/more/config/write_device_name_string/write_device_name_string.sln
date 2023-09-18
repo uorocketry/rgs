@@ -1,0 +1,26 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 10.00
+# Visual Studio 2008
+Project("{3C4BC76E-690A-492B-BC24-18AF33E0AE7C}") = "write_device_name_string", "write_device_name_string.vcproj", "{6C5A07CF-DC9D-4743-B138-5E80B3070C5B}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Win32 = Debug|Win32
+		Debug|x64 = Debug|x64
+		Release|Win32 = Release|Win32
+		Release|x64 = Release|x64
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{6C5A07CF-DC9D-4743-B138-5E80B3070C5B}.Debug|Win32.ActiveCfg = Debug|Win32
+		{6C5A07CF-DC9D-4743-B138-5E80B3070C5B}.Debug|Win32.Build.0 = Debug|Win32
+		{6C5A07CF-DC9D-4743-B138-5E80B3070C5B}.Debug|x64.ActiveCfg = Debug|x64
+		{6C5A07CF-DC9D-4743-B138-5E80B3070C5B}.Debug|x64.Build.0 = Debug|x64
+		{6C5A07CF-DC9D-4743-B138-5E80B3070C5B}.Release|Win32.ActiveCfg = Release|Win32
+		{6C5A07CF-DC9D-4743-B138-5E80B3070C5B}.Release|Win32.Build.0 = Release|Win32
+		{6C5A07CF-DC9D-4743-B138-5E80B3070C5B}.Release|x64.ActiveCfg = Release|x64
+		{6C5A07CF-DC9D-4743-B138-5E80B3070C5B}.Release|x64.Build.0 = Release|x64
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+EndGlobal

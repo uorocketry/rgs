@@ -1,0 +1,127 @@
+LabJack LJM C/C++ Examples
+
+https://labjack.com/support/software/examples/ljm/c
+
+Support for Windows, Mac, and Linux.
+
+This examples package includes:
+
+- .c/.cpp example programs
+- utility .h headers
+- a Python build system for Mac/Linux
+- a Visual Studio 2008 build system for Windows
+- Windows .exe executable files
+
+
+#### Examples Organization
+
+Examples folder:
+
+    LJM_Utilities.h
+        Contains general-purpose functions which help to simplify the logic of
+        the example programs.
+
+        For example, the `WriteNameOrDie` function is a wrapper function for
+        `LJM_eWriteName` that simply calls `LJM_eWriteName`, and if any error
+        occurs, it prints the error using `LJM_ErrorToString` then exits with an
+        error status.
+
+    LJM_StreamUtilities.h
+        Contains stream-related helper functions.
+
+    LabJackMModbusMap.h
+        Contains definitions describing the available device registers.
+
+    basic/
+        Contains examples showing the LJM Easy functions for performing
+        device operations. Also contains a looping read/write example.
+
+    more/
+
+        1-wire/
+            Contains a 1-Wire communication demonstration with the DS1822
+            sensor.
+
+        ain/
+            Contains examples showing how to perform analog input readings and
+            configurations.
+
+        asynch/
+            Contains a UART loopback test.
+
+        config/
+            Contains examples showing how to read and write device
+            configurations, including device name and power configurations.
+
+        dio/
+            Contains examples showing how to read and write digital IOs.
+
+        dio_ef/
+            Contains a demonstration of PWM output and counter input.
+
+        ethernet/
+            Contains examples showing how to read and write Ethernet
+            configurations.
+
+        i2c/
+            Contains a demonstration of I2C communication.
+
+        list_all/
+            Contains examples of displaying what LabJack devices are available
+            using LJM_ListAll.
+
+        spi/
+            Contains a demonstration of SPI communication.
+
+        stream/
+            Contains stream examples, including burst stream, externally-clocked
+            stream, triggered stream, and stream out.
+
+        testing/
+            Contains a speed test and other tests.
+
+        utilities/
+            Contains utility programs, including a device info displayer, a
+            thermocouple example, a Lua script demonstration, and demonstrations
+            of functions such as LJM_WriteRaw/LJM_ReadRaw, LJM_NamesToAddresses,
+            LJM_ErrorToString, and the LJM library config functions, and a
+            dynamic runtime linking example for Windows.
+
+        watchdog/
+            Contains examples showing how to read and write watchdog
+            configurations.
+
+        wifi/
+            Contains examples showing how to read and write WiFi configurations
+            and properties.
+
+
+#### Build systems
+
+Windows:
+
+    The `examples\visual_studio_2008` directory contains a .sln and a .vcproj
+    file for each example program.
+
+    Newer versions of Visual Studio work with these .sln and .vcproj files,
+    though you will need to run the automatic upgrade process when opening them.
+
+    For Visual Studio 2017, you may get the following error:
+
+        Error   C1083   Cannot open include file: 'stdio.h': No such file or directory
+
+    In this case, you need to switch the project SDK version from 8.1 to 10:
+        1. Open the Properties window for the project (e.g. in the Solution
+           Explorer, right click on the project - not the solution)
+        2. Change Configuration Properties -> General -> Target Platform Version
+           to something like 10.0.14393.0
+
+Mac/Linux:
+
+    Each directory in `examples/` contains a `make.sh` script that will run the
+    corresponding SConstruct file. Additionally, the script
+    `examples/make_all.sh` will call all the `make.sh` scripts.
+
+    SConstruct is a Python-based build system. A local copy is included in
+    `scons-local-2.5.1`, though you will need Python installed.
+

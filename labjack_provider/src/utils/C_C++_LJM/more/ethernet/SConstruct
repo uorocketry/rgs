@@ -1,0 +1,31 @@
+Help("""
+Invocation:
+
+    Make:
+    $ python scons-local-2.5.1/scons.py
+
+    Clean:
+    $ python scons.py -c
+
+    Quiet:
+    $ scons -Q
+
+""")
+
+import os
+
+link_libs = 'LabJackM'
+ccflags = '-g -Wall'
+env = Environment(CCFLAGS = ccflags)
+
+examples_src = Split("""
+    read_ethernet_config.c
+    read_ethernet_mac.c
+    write_ethernet_config.c
+""")
+
+# Make
+for example in examples_src:
+    lib = env.Program(target = os.path.splitext(example)[0], source = example, LIBS = link_libs)
+
+

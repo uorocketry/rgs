@@ -1,0 +1,26 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 10.00
+# Visual Studio 2008
+Project("{ED450F6E-CF3B-43B0-A908-A37E973AC357}") = "read_device_name_string", "read_device_name_string.vcproj", "{5440DE14-A52F-44C5-84F4-335003EBB008}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Win32 = Debug|Win32
+		Debug|x64 = Debug|x64
+		Release|Win32 = Release|Win32
+		Release|x64 = Release|x64
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{5440DE14-A52F-44C5-84F4-335003EBB008}.Debug|Win32.ActiveCfg = Debug|Win32
+		{5440DE14-A52F-44C5-84F4-335003EBB008}.Debug|Win32.Build.0 = Debug|Win32
+		{5440DE14-A52F-44C5-84F4-335003EBB008}.Debug|x64.ActiveCfg = Debug|x64
+		{5440DE14-A52F-44C5-84F4-335003EBB008}.Debug|x64.Build.0 = Debug|x64
+		{5440DE14-A52F-44C5-84F4-335003EBB008}.Release|Win32.ActiveCfg = Release|Win32
+		{5440DE14-A52F-44C5-84F4-335003EBB008}.Release|Win32.Build.0 = Release|Win32
+		{5440DE14-A52F-44C5-84F4-335003EBB008}.Release|x64.ActiveCfg = Release|x64
+		{5440DE14-A52F-44C5-84F4-335003EBB008}.Release|x64.Build.0 = Release|x64
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+EndGlobal

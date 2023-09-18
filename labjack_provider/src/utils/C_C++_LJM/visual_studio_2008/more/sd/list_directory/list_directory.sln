@@ -1,0 +1,26 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 10.00
+# Visual Studio 2008
+Project("{8810EB04-DE70-43B6-87B9-7FF6486F62C9}") = "list_directory", "list_directory.vcproj", "{6EF6C8F4-3063-476E-BD70-123575F62B76}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Win32 = Debug|Win32
+		Debug|x64 = Debug|x64
+		Release|Win32 = Release|Win32
+		Release|x64 = Release|x64
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{6EF6C8F4-3063-476E-BD70-123575F62B76}.Debug|Win32.ActiveCfg = Debug|Win32
+		{6EF6C8F4-3063-476E-BD70-123575F62B76}.Debug|Win32.Build.0 = Debug|Win32
+		{6EF6C8F4-3063-476E-BD70-123575F62B76}.Debug|x64.ActiveCfg = Debug|x64
+		{6EF6C8F4-3063-476E-BD70-123575F62B76}.Debug|x64.Build.0 = Debug|x64
+		{6EF6C8F4-3063-476E-BD70-123575F62B76}.Release|Win32.ActiveCfg = Release|Win32
+		{6EF6C8F4-3063-476E-BD70-123575F62B76}.Release|Win32.Build.0 = Release|Win32
+		{6EF6C8F4-3063-476E-BD70-123575F62B76}.Release|x64.ActiveCfg = Release|x64
+		{6EF6C8F4-3063-476E-BD70-123575F62B76}.Release|x64.Build.0 = Release|x64
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+EndGlobal

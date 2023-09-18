@@ -1,0 +1,26 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 10.00
+# Visual Studio 2008
+Project("{61EBFB2B-1DFB-41C2-A5D2-F8C8728725DE}") = "read_config", "read_config.vcproj", "{CE2D645E-88F6-4150-87D5-E728B2D12C71}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Win32 = Debug|Win32
+		Debug|x64 = Debug|x64
+		Release|Win32 = Release|Win32
+		Release|x64 = Release|x64
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{CE2D645E-88F6-4150-87D5-E728B2D12C71}.Debug|Win32.ActiveCfg = Debug|Win32
+		{CE2D645E-88F6-4150-87D5-E728B2D12C71}.Debug|Win32.Build.0 = Debug|Win32
+		{CE2D645E-88F6-4150-87D5-E728B2D12C71}.Debug|x64.ActiveCfg = Debug|x64
+		{CE2D645E-88F6-4150-87D5-E728B2D12C71}.Debug|x64.Build.0 = Debug|x64
+		{CE2D645E-88F6-4150-87D5-E728B2D12C71}.Release|Win32.ActiveCfg = Release|Win32
+		{CE2D645E-88F6-4150-87D5-E728B2D12C71}.Release|Win32.Build.0 = Release|Win32
+		{CE2D645E-88F6-4150-87D5-E728B2D12C71}.Release|x64.ActiveCfg = Release|x64
+		{CE2D645E-88F6-4150-87D5-E728B2D12C71}.Release|x64.Build.0 = Release|x64
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+EndGlobal

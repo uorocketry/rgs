@@ -1,0 +1,26 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 10.00
+# Visual Studio 2008
+Project("{BB6FE222-E571-46B9-A22F-93FCF8D92FE7}") = "read_ethernet_mac", "read_ethernet_mac.vcproj", "{B5F39B1D-E871-4E59-8E3A-0F9418FAFB5D}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Win32 = Debug|Win32
+		Debug|x64 = Debug|x64
+		Release|Win32 = Release|Win32
+		Release|x64 = Release|x64
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{B5F39B1D-E871-4E59-8E3A-0F9418FAFB5D}.Debug|Win32.ActiveCfg = Debug|Win32
+		{B5F39B1D-E871-4E59-8E3A-0F9418FAFB5D}.Debug|Win32.Build.0 = Debug|Win32
+		{B5F39B1D-E871-4E59-8E3A-0F9418FAFB5D}.Debug|x64.ActiveCfg = Debug|x64
+		{B5F39B1D-E871-4E59-8E3A-0F9418FAFB5D}.Debug|x64.Build.0 = Debug|x64
+		{B5F39B1D-E871-4E59-8E3A-0F9418FAFB5D}.Release|Win32.ActiveCfg = Release|Win32
+		{B5F39B1D-E871-4E59-8E3A-0F9418FAFB5D}.Release|Win32.Build.0 = Release|Win32
+		{B5F39B1D-E871-4E59-8E3A-0F9418FAFB5D}.Release|x64.ActiveCfg = Release|x64
+		{B5F39B1D-E871-4E59-8E3A-0F9418FAFB5D}.Release|x64.Build.0 = Release|x64
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+EndGlobal

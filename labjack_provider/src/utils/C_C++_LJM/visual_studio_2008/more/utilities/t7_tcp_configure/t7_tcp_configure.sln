@@ -1,0 +1,26 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 10.00
+# Visual Studio 2008
+Project("{482D4072-9A36-4781-96F3-A7873B62EBE5}") = "t7_tcp_configure", "t7_tcp_configure.vcproj", "{E44D217B-BDB2-4CAF-9D27-9EF6AC79EF4E}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Win32 = Debug|Win32
+		Debug|x64 = Debug|x64
+		Release|Win32 = Release|Win32
+		Release|x64 = Release|x64
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{E44D217B-BDB2-4CAF-9D27-9EF6AC79EF4E}.Debug|Win32.ActiveCfg = Debug|Win32
+		{E44D217B-BDB2-4CAF-9D27-9EF6AC79EF4E}.Debug|Win32.Build.0 = Debug|Win32
+		{E44D217B-BDB2-4CAF-9D27-9EF6AC79EF4E}.Debug|x64.ActiveCfg = Debug|x64
+		{E44D217B-BDB2-4CAF-9D27-9EF6AC79EF4E}.Debug|x64.Build.0 = Debug|x64
+		{E44D217B-BDB2-4CAF-9D27-9EF6AC79EF4E}.Release|Win32.ActiveCfg = Release|Win32
+		{E44D217B-BDB2-4CAF-9D27-9EF6AC79EF4E}.Release|Win32.Build.0 = Release|Win32
+		{E44D217B-BDB2-4CAF-9D27-9EF6AC79EF4E}.Release|x64.ActiveCfg = Release|x64
+		{E44D217B-BDB2-4CAF-9D27-9EF6AC79EF4E}.Release|x64.Build.0 = Release|x64
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+EndGlobal

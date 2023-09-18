@@ -1,0 +1,26 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 10.00
+# Visual Studio 2008
+Project("{B1D7A225-A5AF-4B75-9E40-60A6874C20BB}") = "write_ethernet_config", "write_ethernet_config.vcproj", "{AD6E7A9F-3001-4EAC-9EC4-36B7CA508F84}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Win32 = Debug|Win32
+		Debug|x64 = Debug|x64
+		Release|Win32 = Release|Win32
+		Release|x64 = Release|x64
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{AD6E7A9F-3001-4EAC-9EC4-36B7CA508F84}.Debug|Win32.ActiveCfg = Debug|Win32
+		{AD6E7A9F-3001-4EAC-9EC4-36B7CA508F84}.Debug|Win32.Build.0 = Debug|Win32
+		{AD6E7A9F-3001-4EAC-9EC4-36B7CA508F84}.Debug|x64.ActiveCfg = Debug|x64
+		{AD6E7A9F-3001-4EAC-9EC4-36B7CA508F84}.Debug|x64.Build.0 = Debug|x64
+		{AD6E7A9F-3001-4EAC-9EC4-36B7CA508F84}.Release|Win32.ActiveCfg = Release|Win32
+		{AD6E7A9F-3001-4EAC-9EC4-36B7CA508F84}.Release|Win32.Build.0 = Release|Win32
+		{AD6E7A9F-3001-4EAC-9EC4-36B7CA508F84}.Release|x64.ActiveCfg = Release|x64
+		{AD6E7A9F-3001-4EAC-9EC4-36B7CA508F84}.Release|x64.Build.0 = Release|x64
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+EndGlobal

@@ -1,0 +1,26 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 10.00
+# Visual Studio 2008
+Project("{0F05450B-D09B-4C90-BCD7-2A7CC50EA878}") = "lua_script_basic", "lua_script_basic.vcproj", "{ACEB905E-1B56-446E-8B6C-1541BD5EFCB4}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Win32 = Debug|Win32
+		Debug|x64 = Debug|x64
+		Release|Win32 = Release|Win32
+		Release|x64 = Release|x64
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{ACEB905E-1B56-446E-8B6C-1541BD5EFCB4}.Debug|Win32.ActiveCfg = Debug|Win32
+		{ACEB905E-1B56-446E-8B6C-1541BD5EFCB4}.Debug|Win32.Build.0 = Debug|Win32
+		{ACEB905E-1B56-446E-8B6C-1541BD5EFCB4}.Debug|x64.ActiveCfg = Debug|x64
+		{ACEB905E-1B56-446E-8B6C-1541BD5EFCB4}.Debug|x64.Build.0 = Debug|x64
+		{ACEB905E-1B56-446E-8B6C-1541BD5EFCB4}.Release|Win32.ActiveCfg = Release|Win32
+		{ACEB905E-1B56-446E-8B6C-1541BD5EFCB4}.Release|Win32.Build.0 = Release|Win32
+		{ACEB905E-1B56-446E-8B6C-1541BD5EFCB4}.Release|x64.ActiveCfg = Release|x64
+		{ACEB905E-1B56-446E-8B6C-1541BD5EFCB4}.Release|x64.Build.0 = Release|x64
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+EndGlobal

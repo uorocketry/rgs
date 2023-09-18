@@ -1,0 +1,26 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 10.00
+# Visual Studio 2008
+Project("{3AE9AE98-14D0-4A77-AE6C-50F5BD769298}") = "1-wire", "1-wire.vcproj", "{CF0C9019-DD9A-4A1C-B3B5-C22515C6DD56}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Win32 = Debug|Win32
+		Debug|x64 = Debug|x64
+		Release|Win32 = Release|Win32
+		Release|x64 = Release|x64
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{CF0C9019-DD9A-4A1C-B3B5-C22515C6DD56}.Debug|Win32.ActiveCfg = Debug|Win32
+		{CF0C9019-DD9A-4A1C-B3B5-C22515C6DD56}.Debug|Win32.Build.0 = Debug|Win32
+		{CF0C9019-DD9A-4A1C-B3B5-C22515C6DD56}.Debug|x64.ActiveCfg = Debug|x64
+		{CF0C9019-DD9A-4A1C-B3B5-C22515C6DD56}.Debug|x64.Build.0 = Debug|x64
+		{CF0C9019-DD9A-4A1C-B3B5-C22515C6DD56}.Release|Win32.ActiveCfg = Release|Win32
+		{CF0C9019-DD9A-4A1C-B3B5-C22515C6DD56}.Release|Win32.Build.0 = Release|Win32
+		{CF0C9019-DD9A-4A1C-B3B5-C22515C6DD56}.Release|x64.ActiveCfg = Release|x64
+		{CF0C9019-DD9A-4A1C-B3B5-C22515C6DD56}.Release|x64.Build.0 = Release|x64
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+EndGlobal

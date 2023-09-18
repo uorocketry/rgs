@@ -1,0 +1,26 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 10.00
+# Visual Studio 2008
+Project("{CCD2C689-99E9-45AA-A5B3-ADD9EA3FF465}") = "eAddresses", "eAddresses.vcproj", "{39B4A84A-30C9-4FDD-9DDC-8DB65887488F}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Win32 = Debug|Win32
+		Debug|x64 = Debug|x64
+		Release|Win32 = Release|Win32
+		Release|x64 = Release|x64
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{39B4A84A-30C9-4FDD-9DDC-8DB65887488F}.Debug|Win32.ActiveCfg = Debug|Win32
+		{39B4A84A-30C9-4FDD-9DDC-8DB65887488F}.Debug|Win32.Build.0 = Debug|Win32
+		{39B4A84A-30C9-4FDD-9DDC-8DB65887488F}.Debug|x64.ActiveCfg = Debug|x64
+		{39B4A84A-30C9-4FDD-9DDC-8DB65887488F}.Debug|x64.Build.0 = Debug|x64
+		{39B4A84A-30C9-4FDD-9DDC-8DB65887488F}.Release|Win32.ActiveCfg = Release|Win32
+		{39B4A84A-30C9-4FDD-9DDC-8DB65887488F}.Release|Win32.Build.0 = Release|Win32
+		{39B4A84A-30C9-4FDD-9DDC-8DB65887488F}.Release|x64.ActiveCfg = Release|x64
+		{39B4A84A-30C9-4FDD-9DDC-8DB65887488F}.Release|x64.Build.0 = Release|x64
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+EndGlobal

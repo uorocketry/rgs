@@ -1,0 +1,26 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 10.00
+# Visual Studio 2008
+Project("{FD42CF68-2988-4EDF-BEFC-BBB6B69A8567}") = "dual_ain_loop", "dual_ain_loop.vcproj", "{83D61ED0-3117-462B-823D-942E0AFD667C}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Win32 = Debug|Win32
+		Debug|x64 = Debug|x64
+		Release|Win32 = Release|Win32
+		Release|x64 = Release|x64
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{83D61ED0-3117-462B-823D-942E0AFD667C}.Debug|Win32.ActiveCfg = Debug|Win32
+		{83D61ED0-3117-462B-823D-942E0AFD667C}.Debug|Win32.Build.0 = Debug|Win32
+		{83D61ED0-3117-462B-823D-942E0AFD667C}.Debug|x64.ActiveCfg = Debug|x64
+		{83D61ED0-3117-462B-823D-942E0AFD667C}.Debug|x64.Build.0 = Debug|x64
+		{83D61ED0-3117-462B-823D-942E0AFD667C}.Release|Win32.ActiveCfg = Release|Win32
+		{83D61ED0-3117-462B-823D-942E0AFD667C}.Release|Win32.Build.0 = Release|Win32
+		{83D61ED0-3117-462B-823D-942E0AFD667C}.Release|x64.ActiveCfg = Release|x64
+		{83D61ED0-3117-462B-823D-942E0AFD667C}.Release|x64.Build.0 = Release|x64
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+EndGlobal

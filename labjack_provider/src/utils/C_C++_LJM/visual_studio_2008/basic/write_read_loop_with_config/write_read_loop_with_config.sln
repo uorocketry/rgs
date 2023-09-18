@@ -1,0 +1,26 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 10.00
+# Visual Studio 2008
+Project("{BD299C42-0306-4987-96C5-15DFC833D2C0}") = "write_read_loop_with_config", "write_read_loop_with_config.vcproj", "{2D691FF2-8467-404B-809E-FE7D24510FB2}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Win32 = Debug|Win32
+		Debug|x64 = Debug|x64
+		Release|Win32 = Release|Win32
+		Release|x64 = Release|x64
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{2D691FF2-8467-404B-809E-FE7D24510FB2}.Debug|Win32.ActiveCfg = Debug|Win32
+		{2D691FF2-8467-404B-809E-FE7D24510FB2}.Debug|Win32.Build.0 = Debug|Win32
+		{2D691FF2-8467-404B-809E-FE7D24510FB2}.Debug|x64.ActiveCfg = Debug|x64
+		{2D691FF2-8467-404B-809E-FE7D24510FB2}.Debug|x64.Build.0 = Debug|x64
+		{2D691FF2-8467-404B-809E-FE7D24510FB2}.Release|Win32.ActiveCfg = Release|Win32
+		{2D691FF2-8467-404B-809E-FE7D24510FB2}.Release|Win32.Build.0 = Release|Win32
+		{2D691FF2-8467-404B-809E-FE7D24510FB2}.Release|x64.ActiveCfg = Release|x64
+		{2D691FF2-8467-404B-809E-FE7D24510FB2}.Release|x64.Build.0 = Release|x64
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+EndGlobal

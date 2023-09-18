@@ -1,0 +1,29 @@
+Help("""
+Invocation:
+
+    Make:
+    $ python scons-local-2.5.1/scons.py
+
+    Clean:
+    $ python scons.py -c
+
+    Quiet:
+    $ scons -Q
+
+""")
+
+import os
+
+link_libs = 'LabJackM'
+ccflags = '-g -Wall'
+env = Environment(CCFLAGS = ccflags)
+
+examples_src = Split("""
+    dio_ef_config_1_pwm_and_1_counter.c
+""")
+
+# Make
+for example in examples_src:
+    lib = env.Program(target = os.path.splitext(example)[0], source = example, LIBS = link_libs)
+
+

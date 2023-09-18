@@ -1,0 +1,26 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 10.00
+# Visual Studio 2008
+Project("{7834E619-67A7-4424-B759-9F9F8716EC58}") = "spi", "spi.vcproj", "{FE75AC6B-0BD4-45FC-AB9E-0FF6BEB1D9DD}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Win32 = Debug|Win32
+		Debug|x64 = Debug|x64
+		Release|Win32 = Release|Win32
+		Release|x64 = Release|x64
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{FE75AC6B-0BD4-45FC-AB9E-0FF6BEB1D9DD}.Debug|Win32.ActiveCfg = Debug|Win32
+		{FE75AC6B-0BD4-45FC-AB9E-0FF6BEB1D9DD}.Debug|Win32.Build.0 = Debug|Win32
+		{FE75AC6B-0BD4-45FC-AB9E-0FF6BEB1D9DD}.Debug|x64.ActiveCfg = Debug|x64
+		{FE75AC6B-0BD4-45FC-AB9E-0FF6BEB1D9DD}.Debug|x64.Build.0 = Debug|x64
+		{FE75AC6B-0BD4-45FC-AB9E-0FF6BEB1D9DD}.Release|Win32.ActiveCfg = Release|Win32
+		{FE75AC6B-0BD4-45FC-AB9E-0FF6BEB1D9DD}.Release|Win32.Build.0 = Release|Win32
+		{FE75AC6B-0BD4-45FC-AB9E-0FF6BEB1D9DD}.Release|x64.ActiveCfg = Release|x64
+		{FE75AC6B-0BD4-45FC-AB9E-0FF6BEB1D9DD}.Release|x64.Build.0 = Release|x64
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+EndGlobal

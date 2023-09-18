@@ -1,0 +1,26 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 10.00
+# Visual Studio 2008
+Project("{005A38DB-9886-4321-8AC9-35CC08A0E1C9}") = "eWriteNames", "eWriteNames.vcproj", "{ECC1DC44-81DF-43AF-B505-9C5DF9BAAA26}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Win32 = Debug|Win32
+		Debug|x64 = Debug|x64
+		Release|Win32 = Release|Win32
+		Release|x64 = Release|x64
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{ECC1DC44-81DF-43AF-B505-9C5DF9BAAA26}.Debug|Win32.ActiveCfg = Debug|Win32
+		{ECC1DC44-81DF-43AF-B505-9C5DF9BAAA26}.Debug|Win32.Build.0 = Debug|Win32
+		{ECC1DC44-81DF-43AF-B505-9C5DF9BAAA26}.Debug|x64.ActiveCfg = Debug|x64
+		{ECC1DC44-81DF-43AF-B505-9C5DF9BAAA26}.Debug|x64.Build.0 = Debug|x64
+		{ECC1DC44-81DF-43AF-B505-9C5DF9BAAA26}.Release|Win32.ActiveCfg = Release|Win32
+		{ECC1DC44-81DF-43AF-B505-9C5DF9BAAA26}.Release|Win32.Build.0 = Release|Win32
+		{ECC1DC44-81DF-43AF-B505-9C5DF9BAAA26}.Release|x64.ActiveCfg = Release|x64
+		{ECC1DC44-81DF-43AF-B505-9C5DF9BAAA26}.Release|x64.Build.0 = Release|x64
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+EndGlobal
