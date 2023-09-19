@@ -45,3 +45,9 @@ pocketbase/pb_data/*
 
 
 db/dist/
+
+# labjack provider build
+labjack_provider/build
+
+# VSCode config
+.vscode/*

@@ -1,17 +1,9 @@
 #ifndef THERMOCOUPLE_HPP
 #define THERMOCOUPLE_HPP
 
-#include "Peripheral.hpp" // Include the base class header
-
-class Thermocouple : public Peripheral {
-public:
-    Thermocouple(const char* initialName = "AIN0", ThermocoupleType type);
-    void test_peripheral(int handle) override;
-    double read_temperature(int handle);
-private:
-    const char* name; 
-    ThermocoupleType type;
-};
+#include <iostream>
+#include <assert.h>
+#include "peripheral.hpp" 
 
 enum class ThermocoupleType : long {
     B = 6001,
@@ -23,6 +15,16 @@ enum class ThermocoupleType : long {
     S = 6007,
     T = 6008,
     C = 6009
+};
+
+class Thermocouple : public Peripheral {
+public:
+    Thermocouple(const char* initialName = "AIN0", ThermocoupleType type = ThermocoupleType::K);
+    void test_peripheral(int handle) override;
+    double read_temperature(int handle);
+private:
+    const char* name; 
+    ThermocoupleType type;
 };
 
 #endif // THERMOCOUPLE_HPP
