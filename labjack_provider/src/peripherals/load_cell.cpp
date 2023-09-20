@@ -1,6 +1,6 @@
 #include "load_cell.hpp"
 
-LoadCell::LoadCell(const char* initialNamePos, const char* initialNameNeg, float sensitivity) : Peripheral() {
+LoadCell::LoadCell(const char* initialNamePos, const char* initialNameNeg, float sensitivity, int ratedLoad) : Peripheral() {
     this->name_pos = initialNamePos;
     this->name_neg = initialNameNeg;
     this->sensitivity = sensitivity;
@@ -25,6 +25,6 @@ float LoadCell::read_weight(int handle) {
     // ErrorCheck(err, "LJM_eReadName");
     err = LJM_eReadName(handle, name_neg, &value_neg);
     // ErrorCheck(err, "LJM_eReadName");
-    //     return 1000 * (value_pos - value_neg) / (sensitivity * 5.0);
-    return (value_pos - value_neg) * sensitivity;
+    return rated_load * (value_neg - value_pos) / (sensitivity * 5.0);
+    // return (value_pos - value_neg) * sensitivity;
 }

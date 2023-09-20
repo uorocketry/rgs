@@ -11,8 +11,8 @@ int main() {
 	handle = OpenOrDie(LJM_dtANY, LJM_ctANY, "LJM_idANY");
     servo.setup_servo(handle);
     servo.write_angle(handle, 0.0);
-	MillisecondSleep(5000);
-    servo.write_angle(handle, 180.0);
+	// MillisecondSleep(5000);
+    // servo.write_angle(handle, 180.0);
     // Set up a flag to control the loop
     std::atomic<bool> exitFlag = false;
 
@@ -46,13 +46,14 @@ int main() {
         // Your main loop logic here
         // temp = thermocouple.read_temperature(handle);
         // load = load_cell.read_weight(handle);
-        // std::cout << "Load: " << load << std::endl;
+        // std::cout << "Temp: " << temp << std::endl;
         // if (i >= 180.0) {
         //     i = 0.0;
         // }
         // servo.write_angle(handle, i);
-        // std::this_thread::sleep_for(std::chrono::milliseconds(50));
+        // std::this_thread::sleep_for(std::chrono::milliseconds(100));
         // i++;
+
     }
 
     // Wait for the input thread to finish
