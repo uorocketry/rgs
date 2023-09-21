@@ -11,8 +11,8 @@ int main() {
 	handle = OpenOrDie(LJM_dtANY, LJM_ctANY, "LJM_idANY");
     servo.setup_servo(handle);
     servo.write_angle(handle, 0.0);
-	// MillisecondSleep(5000);
-    // servo.write_angle(handle, 180.0);
+	MillisecondSleep(5000);
+    servo.write_angle(handle, 180.0);
     // Set up a flag to control the loop
     std::atomic<bool> exitFlag = false;
 

@@ -47,7 +47,9 @@ PeripheralStatus Servo::write_angle(int handle, double angle) {
     duty = angle_to_duty(angle, this->min_pulse, this->max_pulse);
     a = duty_to_config_a(duty, this->max_pulse, this->roll_value);
     err = LJM_eWriteName(handle, "DIO0_EF_CONFIG_A", a);
-	// ErrorCheck(err, "LJM_eWriteName");
+    if (err != 0) {
+        return PeripheralStatus::FAILURE;
+    }
     this->config_a = a;
     this->angle = angle;
     return PeripheralStatus::SUCCESS;
@@ -87,7 +89,9 @@ PeripheralStatus Servo::setup_servo(int handle) {
 
     err = LJM_eWriteNames(handle, NUM_FRAMES_CONFIGURE, aNamesConfigure,
 		aValuesConfigure, &errAddress);
-	// ErrorCheckWithAddress(err, errAddress, "LJM_eWriteNames - aNamesConfigure"); // exits if there is an error
+    if (err != 0) {
+        return PeripheralStatus::FAILURE;
+    }
 
     return PeripheralStatus::SUCCESS;
 }
@@ -96,6 +100,6 @@ void Servo::test_peripheral(int handle) {
     int err;
     double value;
     err = LJM_eReadName(handle, name, &value);
-    // ErrorCheck(err, "LJM_eReadName");
+    assert(err == 0);
     assert(value >= 0.0);
 }

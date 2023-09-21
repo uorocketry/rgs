@@ -2,7 +2,6 @@
 #define PERIPHERAL_HPP
 
 #include <LabJackM.h>
-// #include "../utils/C_C++_LJM/LJM_Utilities.h"
 
 class Peripheral {
 public:
