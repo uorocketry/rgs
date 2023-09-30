@@ -7,7 +7,6 @@ yarn-error.log*
 lerna-debug.log*
 .pnpm-debug.log*
 
-
 # Dependency directories
 node_modules/
 .pnpm-store
@@ -41,7 +40,6 @@ data
 vite.config.ts.*.mjs
 
 # database
-pocketbase/pb_data/*
+*/pb_data/*
 
-
-db/dist/
+*/dist/

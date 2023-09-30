@@ -17,18 +17,26 @@ module.exports = {
   apps: [
     {
       name: "db",
-      script: "cd db && pnpm dev",
+      cwd: "db",
+      script: "pnpm install && pnpm dev",
       env: common_env,
     },
     {
       name: "web",
-      script: "cd web && pnpm install && pnpm dev",
+      cwd: "web",
+      script: "pnpm install && pnpm dev",
       env: common_env,
     },
     {
-      name: "pocketbase",
-      script: "cd pocketbase && ./pocketbase serve --http='0.0.0.0:8090'",
+      name: "pb",
+      cwd: "pb",
+      script: `./pocketbase serve --http='0.0.0.0:${DB_REST_PORT}'`,
     },
+    {
+      name: "zmq_server",
+      cwd: "zmq_server",
+      script: "./scripts/dev.sh",
+    }
   ],
 
   deploy: {
