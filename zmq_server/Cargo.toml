@@ -1,6 +1,6 @@
 
 [package]
-name = "zmq_master"
+name = "zmq_server"
 version = "0.0.1"
 
 [dependencies]
