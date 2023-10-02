@@ -20,14 +20,13 @@ fn main() {
     let xpub = ctx.socket(zmq::XPUB).unwrap();
     let xsub = ctx.socket(zmq::XSUB).unwrap();
 
-    let port = args.pub_port;
+    let pub_port = args.pub_port;
     let sub_port = args.sub_port;
 
-    println!("Binding XPUB to port {}", port);
-    assert!(xpub.bind(&format!("tcp://*:{}", port)).is_ok());
+    println!("Binding XPUB to port {}", pub_port);
+    assert!(xpub.bind(&format!("tcp://*:{}", pub_port)).is_ok());
     println!("Binding XSUB to port {}", sub_port);
     assert!(xsub.bind(&format!("tcp://*:{}", sub_port)).is_ok());
-
     println!("Starting proxy");
     zmq::proxy(&xpub, &xsub).unwrap();
 }

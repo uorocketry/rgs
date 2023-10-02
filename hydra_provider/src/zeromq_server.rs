@@ -19,7 +19,6 @@ impl ZeroMQServer {
 
     pub fn send(&self, msg: &ProcessedMessage) -> Result<()> {
         self.socket.send(&serde_json::to_string(msg)?, 0)?;
-
         Ok(())
     }
 }

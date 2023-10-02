@@ -72,7 +72,7 @@ await pb.admins.authWithPassword(
  * @type {zmq.Subscriber}
  */
 const zmqSock = new zmq.Subscriber();
-zmqSock.connect(`tcp://localhost:${process.env.XSUB_PORT ?? "3003"}`);
+zmqSock.connect(`tcp://localhost:${process.env.XPUB_PORT ?? "3003"}`);
 zmqSock.subscribe();
 
 console.log(
@@ -82,7 +82,6 @@ console.log(
 
 // Listen and store messages
 for await (const [msg] of zmqSock) {
-  console.info("Received message");
   const obj = JSON.parse(msg.toString()) as ProcessedMessage;
   if ("RocketMessage" in obj) {
     const rocketMsg = obj.RocketMessage;
