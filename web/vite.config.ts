@@ -7,7 +7,7 @@ const config = (mode: string) => {
 
 	return defineConfig({
 		server: {
-			port: parseInt(process.env['PORT'] ?? '') || 3000
+			port: parseInt(process.env['WEB_SERVER_PORT'] ?? '') || 3000
 		},
 		plugins: [sveltekit()]
 	});

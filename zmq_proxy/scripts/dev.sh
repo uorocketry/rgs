@@ -7,10 +7,11 @@ cleanup() {
 
 trap cleanup EXIT
 
-ZMQ_PORT=${ZMQ_PORT:-3002}
+XPUB_PORT=${XPUB_PORT:-3002}
+XSUB_PORT=${XSUB_PORT:-3003}
 
 # Start 'cargo run' and save its PID
-cargo run -- -z $ZMQ_PORT &
+cargo run -- -p $XPUB_PORT -s $XSUB_PORT &
 CARGO_PID=$!
 
 # Forever loop to watch for changes in the 'src' folder
@@ -23,6 +24,6 @@ while true; do
     clear
 
     # Run 'cargo run' again and save its new PID
-    cargo run -- -z $ZMQ_PORT &
+    cargo run -- -p $XPUB_PORT -s $XSUB_PORT &
     CARGO_PID=$!
 done

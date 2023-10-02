@@ -1,4 +1,4 @@
-# ZeroMQ Server
+# ZeroMQ Pub-SUb proxy
 
 ## Build and run
 

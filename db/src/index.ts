@@ -1,7 +1,21 @@
 import zmq from "zeromq";
 import PocketBase from "pocketbase";
 // Ayo? 🤨
-import { Air, Data, EkfNav1, EkfNav2, GpsVel, Imu1, Imu2, LinkStatus, ProcessedMessage, UtcTime, StateData, GpsPos1, GpsPos2 } from "@rgs/bindings"
+import {
+  Air,
+  Data,
+  EkfNav1,
+  EkfNav2,
+  GpsVel,
+  Imu1,
+  Imu2,
+  LinkStatus,
+  ProcessedMessage,
+  UtcTime,
+  StateData,
+  GpsPos1,
+  GpsPos2,
+} from "@rgs/bindings";
 
 console.info("Started DB Service");
 
@@ -58,28 +72,30 @@ await pb.admins.authWithPassword(
  * @type {zmq.Subscriber}
  */
 const zmqSock = new zmq.Subscriber();
-zmqSock.connectTimeout = 1000;
-zmqSock.connect(`tcp://localhost:${process.env.ZMQ_PORT ?? "3002"}`);
+zmqSock.connect(`tcp://localhost:${process.env.XSUB_PORT ?? "3003"}`);
 zmqSock.subscribe();
 
 console.log(
   "Connected to ZMQ on address",
-  `tcp://localhost:${process.env.ZMQ_PORT ?? "3002"}`
+  `tcp://localhost:${process.env.XSUB_PORT ?? "3003"}`
 );
 
 // Listen and store messages
 for await (const [msg] of zmqSock) {
+  console.info("Received message");
   const obj = JSON.parse(msg.toString()) as ProcessedMessage;
   if ("RocketMessage" in obj) {
     const rocketMsg = obj.RocketMessage;
 
     const rocketData: Data = rocketMsg.data;
-    pb.collection("raw").create({
-      data: rocketData
-    },
-    {
+    pb.collection("raw").create(
+      {
+        data: rocketData,
+      },
+      {
         $autoCancel: false,
-    });
+      }
+    );
 
     console.info("Adding raw data", rocketData);
     // { state: State } | { sensor: Sensor } | { log: Log };
@@ -87,13 +103,14 @@ for await (const [msg] of zmqSock) {
       const dataState = rocketData.state; // State
       const stateData: StateData = dataState.data;
       console.log("Adding state data", stateData);
-      pb.collection("State").create({
-        status: stateData
-      },
-      {
+      pb.collection("State").create(
+        {
+          status: stateData,
+        },
+        {
           $autoCancel: false,
-      });
-
+        }
+      );
     } else if ("sensor" in rocketData) {
       const dataSensor = rocketData.sensor; // Sensor
       const sensorData = dataSensor.data;
@@ -102,19 +119,20 @@ for await (const [msg] of zmqSock) {
         // No use yet, but its already stored in the raw data
       } else if ("Air" in sensorData) {
         const air = sensorData.Air as Air;
-        pb.collection("Air").create({
-          timestamp: air.time_stamp,
-          status: air.status,
-          pressure_abs: air.pressure_abs,
-          altitude: air.altitude,
-          pressure_diff: air.pressure_diff,
-          true_airspeed: air.true_airspeed,
-          air_temperature: air.air_temperature,
-        },
+        pb.collection("Air").create(
+          {
+            timestamp: air.time_stamp,
+            status: air.status,
+            pressure_abs: air.pressure_abs,
+            altitude: air.altitude,
+            pressure_diff: air.pressure_diff,
+            true_airspeed: air.true_airspeed,
+            air_temperature: air.air_temperature,
+          },
           {
             $autoCancel: false,
-          });
-
+          }
+        );
       } else if ("EkfQuat" in sensorData) {
         await pb.collection("EkfQuat").create(
           {
@@ -143,11 +161,11 @@ for await (const [msg] of zmqSock) {
             velocity_std_dev_0: ekfNav1.velocity_std_dev[0],
             velocity_std_dev_1: ekfNav1.velocity_std_dev[1],
             velocity_std_dev_2: ekfNav1.velocity_std_dev[2],
-          }, {
-          $autoCancel: false,
-        }
+          },
+          {
+            $autoCancel: false,
+          }
         );
-
       } else if ("EkfNav2" in sensorData) {
         const ekfNav2 = sensorData.EkfNav2 as EkfNav2;
         pb.collection("EkfNav2").create(
@@ -160,10 +178,11 @@ for await (const [msg] of zmqSock) {
             position_std_dev_1: ekfNav2.position_std_dev[1],
             position_std_dev_2: ekfNav2.position_std_dev[2],
             status: ekfNav2.status,
-          }, {
-          $autoCancel: false,
-        });
-
+          },
+          {
+            $autoCancel: false,
+          }
+        );
       } else if ("Imu1" in sensorData) {
         const imu1 = sensorData.Imu1 as Imu1;
         pb.collection("Imu1").create(
@@ -176,10 +195,11 @@ for await (const [msg] of zmqSock) {
             gyroscopes_0: imu1.gyroscopes[0],
             gyroscopes_1: imu1.gyroscopes[1],
             gyroscopes_2: imu1.gyroscopes[2],
-          }, {
-          $autoCancel: false,
-        });
-
+          },
+          {
+            $autoCancel: false,
+          }
+        );
       } else if ("Imu2" in sensorData) {
         const imu2 = sensorData.Imu2 as Imu2;
 
@@ -192,11 +212,11 @@ for await (const [msg] of zmqSock) {
             delta_angle_0: imu2.delta_angle[0],
             delta_angle_1: imu2.delta_angle[1],
             delta_angle_2: imu2.delta_angle[2],
-          }, {
-          $autoCancel: false,
-        });
-
-
+          },
+          {
+            $autoCancel: false,
+          }
+        );
       } else if ("GpsVel" in sensorData) {
         const gpsVel = sensorData.GpsVel as GpsVel;
         //  export interface GpsVel { time_stamp: number, status: number, time_of_week: number, velocity: Array<number>, velocity_acc: Array<number>, course: number, course_acc: number, }
@@ -213,64 +233,74 @@ for await (const [msg] of zmqSock) {
             velocity_acc_2: gpsVel.velocity_acc[2],
             course: gpsVel.course,
             course_acc: gpsVel.course_acc,
-          }, {
-          $autoCancel: false,
-        });
+          },
+          {
+            $autoCancel: false,
+          }
+        );
       } else if ("GpsPos1" in sensorData) {
         const gpsPos1 = sensorData.GpsPos1 as GpsPos1;
-        pb.collection("GpsPos1").create({
-          time_stamp: gpsPos1.timeStamp,
-          status: gpsPos1.status,
-          time_of_week: gpsPos1.timeOfWeek,
-          latitude: gpsPos1.latitude,
-          longitude: gpsPos1.longitude,
-          altitude: gpsPos1.altitude,
-          undulation: gpsPos1.undulation,
-        },
-        {
+        pb.collection("GpsPos1").create(
+          {
+            time_stamp: gpsPos1.timeStamp,
+            status: gpsPos1.status,
+            time_of_week: gpsPos1.timeOfWeek,
+            latitude: gpsPos1.latitude,
+            longitude: gpsPos1.longitude,
+            altitude: gpsPos1.altitude,
+            undulation: gpsPos1.undulation,
+          },
+          {
             $autoCancel: false,
-        });
+          }
+        );
       } else if ("GpsPos2" in sensorData) {
         const gpsPos2 = sensorData.GpsPos2 as GpsPos2;
-        pb.collection("GpsPos2").create({
-          latitude_acc: gpsPos2.latitudeAccuracy,
-          longitude_acc: gpsPos2.longitudeAccuracy,
-          altitude_acc: gpsPos2.altitudeAccuracy,
-          num_sv_used: gpsPos2.numSvUsed,
-          base_station_id: gpsPos2.baseStationId,
-          differential_age: gpsPos2.differentialAge,
-        },
-        {
+        pb.collection("GpsPos2").create(
+          {
+            latitude_acc: gpsPos2.latitudeAccuracy,
+            longitude_acc: gpsPos2.longitudeAccuracy,
+            altitude_acc: gpsPos2.altitudeAccuracy,
+            num_sv_used: gpsPos2.numSvUsed,
+            base_station_id: gpsPos2.baseStationId,
+            differential_age: gpsPos2.differentialAge,
+          },
+          {
             $autoCancel: false,
-        });
+          }
+        );
       }
     } else if ("log" in rocketData) {
       const dataLog = rocketData.log; // Log
-      pb.collection("Log").create({
-        level: dataLog.level,
-        event: dataLog.event,
-      },
-      {
+      pb.collection("Log").create(
+        {
+          level: dataLog.level,
+          event: dataLog.event,
+        },
+        {
           $autoCancel: false,
-      });
+        }
+      );
     }
   } else if ("LinkStatus" in obj) {
     const linkStatus = obj.LinkStatus as LinkStatus;
-    pb.collection("LinkStatus").create({
-      rssi: linkStatus.rssi,
-      remrssi: linkStatus.remrssi,
-      txbuf: linkStatus.txbuf,
-      noise: linkStatus.noise,
-      remnoise: linkStatus.remnoise,
-      rxerrors: linkStatus.rxerrors,
-      fixed: linkStatus.fixed,
-      recent_error_rate: linkStatus.recent_error_rate,
-      missed_messages: linkStatus.missed_messages,
-      connected: linkStatus.connected,
-    },
-    {
+    pb.collection("LinkStatus").create(
+      {
+        rssi: linkStatus.rssi,
+        remrssi: linkStatus.remrssi,
+        txbuf: linkStatus.txbuf,
+        noise: linkStatus.noise,
+        remnoise: linkStatus.remnoise,
+        rxerrors: linkStatus.rxerrors,
+        fixed: linkStatus.fixed,
+        recent_error_rate: linkStatus.recent_error_rate,
+        missed_messages: linkStatus.missed_messages,
+        connected: linkStatus.connected,
+      },
+      {
         $autoCancel: false,
-    });
+      }
+    );
   } else {
     console.error("Unknown message type", obj);
   }

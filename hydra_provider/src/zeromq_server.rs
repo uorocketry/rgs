@@ -12,7 +12,6 @@ impl ZeroMQServer {
         let ctx = zmq::Context::new();
         let socket = ctx.socket(zmq::PUB).unwrap();
         assert!(socket.connect(&format!("tcp://localhost:{port}")).is_ok());
-
         info!("ZeroMQ server connected to port {}", port);
 
         ZeroMQServer { socket }

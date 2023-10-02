@@ -7,7 +7,6 @@ cleanup() {
 
 trap cleanup EXIT
 
-# Get zmq_port from env var, otherwise use 3000
 ZMQ_PORT=${ZMQ_PORT:-3002}
 
 # Start 'cargo run' and save its PID

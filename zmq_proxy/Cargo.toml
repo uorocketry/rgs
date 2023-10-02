@@ -1,6 +1,6 @@
 
 [package]
-name = "zmq_server"
+name = "zmq_proxy"
 version = "0.0.1"
 
 [dependencies]

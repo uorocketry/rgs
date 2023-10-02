@@ -21,9 +21,7 @@
 		<Header />
 	</header>
 
-	<main class="overflow-auto">
-		<slot />
-	</main>
+	<slot />
 </div>
 
 <style>

@@ -80,30 +80,6 @@
 
 <div class="w-full h-full p-2 flex flex-col">
 	<div>
-		<!-- <div class=" flex flex-wrap">
-			<button
-				class="btn btn-sm flex-1"
-				on:click={() => navigator.clipboard.writeText(JSON.stringify(targetRotation))}
-			>
-				Copy Quat
-			</button>
-
-			<button
-				class="btn btn-sm flex-1"
-				on:click={() => navigator.clipboard.writeText(JSON.stringify(eulerRepr.toArray()))}
-			>
-				Copy Euler
-			</button>
-		</div> -->
-
-		<!-- <div class="flex">
-			<span class="flex-1">Quat (W,X,Y,Z)</span>
-			<span class="flex-1">{targetRotation.w.toFixed(2)}</span>
-			<span class="flex-1">{targetRotation.x.toFixed(2)}</span>
-			<span class="flex-1">{targetRotation.y.toFixed(2)}</span>
-			<span class="flex-1">{targetRotation.z.toFixed(2)}</span>
-		</div> -->
-
 		<!-- Pitch yaw row -->
 		<div class="grid grid-cols-2">
 			<span>Roll</span>
@@ -128,6 +104,7 @@
 		<input
 			class="join-item btn"
 			type="radio"
+			checked={true}
 			name="options"
 			aria-label="NavBall"
 			on:click={() => (useRocketModel = false)}
