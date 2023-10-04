@@ -9,10 +9,10 @@
 class Servo : public Peripheral {
 public:
     Servo(const char* initialName = "DIO0", int min_pulse = 500, int max_pulse = 2500);
-    void test_peripheral(int handle) override;
-    PeripheralStatus write_angle(int handle, double angle);
-    double read_angle(int handle);
-    PeripheralStatus setup_servo(int handle);
+    void test_peripheral(LabJack handle) override;
+    PeripheralStatus write_angle(LabJack handle, double angle);
+    double read_angle(); // needs to change since it just gets the software angle stored in the struct. 
+    PeripheralStatus setup_servo(LabJack handle);
 private:
     const char* name; 
     int min_pulse;

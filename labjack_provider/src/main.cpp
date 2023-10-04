@@ -8,11 +8,12 @@ int main() {
     LoadCell load_cell = LoadCell("AIN2", "AIN3", 0.02);
     Thermocouple thermocouple = Thermocouple("AIN0", ThermocoupleType::K);
     Servo servo = Servo("DAC0", 500, 2500);
-	handle = OpenOrDie(LJM_dtANY, LJM_ctANY, "LJM_idANY");
-    servo.setup_servo(handle);
-    servo.write_angle(handle, 0.0);
+	handle = OpenOrDie(LJM_dtANY, LJM_ctANY, "LJM_idANY"); // this needs to go into the Labjack class constructor
+    LabJack labjack = LabJack(handle);
+    servo.setup_servo(labjack);
+    servo.write_angle(labjack, 0.0);
 	MillisecondSleep(5000);
-    servo.write_angle(handle, 180.0);
+    servo.write_angle(labjack, 180.0);
     // Set up a flag to control the loop
     std::atomic<bool> exitFlag = false;
 

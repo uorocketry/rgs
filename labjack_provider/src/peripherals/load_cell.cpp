@@ -6,12 +6,12 @@ LoadCell::LoadCell(const char* initialNamePos, const char* initialNameNeg, float
     this->sensitivity = sensitivity;
 }
 
-void LoadCell::test_peripheral(int handle) {
+void LoadCell::test_peripheral(LabJack handle) {
     int err;
     double value;
-    err = LJM_eReadName(handle, name_pos, &value);
+    err = LJM_eReadName(handle.get_handle(), name_pos, &value);
     assert(value >= 0.0);
-    err = LJM_eReadName(handle, name_neg, &value);
+    err = LJM_eReadName(handle.get_handle(), name_neg, &value);
     assert(value >= 0.0);
 }
 
@@ -20,15 +20,15 @@ void LoadCell::test_peripheral(int handle) {
  * @brief Read the weight from the load cell.
  * Returns -1.0 if there is an error.
 */
-float LoadCell::read_weight(int handle) {
+float LoadCell::read_weight(LabJack handle) {
     int err;
     double value_pos;
     double value_neg;
-    err = LJM_eReadName(handle, name_pos, &value_pos);
+    err = LJM_eReadName(handle.get_handle(), name_pos, &value_pos);
     if (err != 0) {
         return -1.0;
     }
-    err = LJM_eReadName(handle, name_neg, &value_neg);
+    err = LJM_eReadName(handle.get_handle(), name_neg, &value_neg);
     if (err != 0) {
         return -1.0;
     }

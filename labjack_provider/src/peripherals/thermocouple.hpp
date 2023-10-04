@@ -20,8 +20,8 @@ enum class ThermocoupleType : long {
 class Thermocouple : public Peripheral {
 public:
     Thermocouple(const char* initialName = "AIN0", ThermocoupleType type = ThermocoupleType::K);
-    void test_peripheral(int handle) override;
-    double read_temperature(int handle);
+    void test_peripheral(LabJack handle) override;
+    double read_temperature(LabJack handle);
 private:
     const char* name; 
     ThermocoupleType type;

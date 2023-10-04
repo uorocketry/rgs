@@ -40,13 +40,13 @@ Servo::Servo(const char* initialName, int min_pulse, int max_pulse) : Peripheral
 /**
  * Bilda servo max rotation is 300 degrees 
 */
-PeripheralStatus Servo::write_angle(int handle, double angle) {
+PeripheralStatus Servo::write_angle(LabJack handle, double angle) {
     int err;
     int a;
     int duty;
     duty = angle_to_duty(angle, this->min_pulse, this->max_pulse);
     a = duty_to_config_a(duty, this->max_pulse, this->roll_value);
-    err = LJM_eWriteName(handle, "DIO0_EF_CONFIG_A", a);
+    err = LJM_eWriteName(handle.get_handle(), "DIO0_EF_CONFIG_A", a);
     if (err != 0) {
         return PeripheralStatus::FAILURE;
     }
@@ -55,11 +55,15 @@ PeripheralStatus Servo::write_angle(int handle, double angle) {
     return PeripheralStatus::SUCCESS;
 }
 
-double Servo::read_angle(int handle) {
+
+/**
+ * This should be changed since we can't rely on software to keep track of the angle
+*/
+double Servo::read_angle() {
     return this->angle;
 }
 
-PeripheralStatus Servo::setup_servo(int handle) { 
+PeripheralStatus Servo::setup_servo(LabJack handle) { 
     int err;
 	int errAddress;
 
@@ -87,7 +91,7 @@ PeripheralStatus Servo::setup_servo(int handle) {
 		1,
 	};
 
-    err = LJM_eWriteNames(handle, NUM_FRAMES_CONFIGURE, aNamesConfigure,
+    err = LJM_eWriteNames(handle.get_handle(), NUM_FRAMES_CONFIGURE, aNamesConfigure,
 		aValuesConfigure, &errAddress);
     if (err != 0) {
         return PeripheralStatus::FAILURE;
@@ -96,10 +100,10 @@ PeripheralStatus Servo::setup_servo(int handle) {
     return PeripheralStatus::SUCCESS;
 }
 
-void Servo::test_peripheral(int handle) {
+void Servo::test_peripheral(LabJack handle) {
     int err;
     double value;
-    err = LJM_eReadName(handle, name, &value);
+    err = LJM_eReadName(handle.get_handle(), name, &value);
     assert(err == 0);
     assert(value >= 0.0);
 }
