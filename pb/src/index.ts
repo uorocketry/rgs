@@ -31,7 +31,7 @@ envRequired("DB_ADMIN");
 envRequired("DB_ADMIN_PASSWORD");
 envRequired("XPUB_PORT");
 
-console.info("Started DB Service");
+console.info("Started PB Service");
 
 import { spawn } from "child_process";
 

@@ -10,7 +10,7 @@ migrate(
   (db) => {
     const dao = new Dao(db);
 
-    const admin = dao.findAdminByEmail("test@example.com");
+    const admin = dao.findAdminByEmail("admin@admin.com");
 
     return dao.deleteAdmin(admin);
   }

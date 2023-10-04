@@ -28,29 +28,10 @@ module.exports = {
       script: "pnpm dev",
       env: common_env,
     },
-    // {
-    //   name: "pb",
-    //   cwd: "pb",
-    //   script: `./pocketbase serve --http='0.0.0.0:${DB_REST_PORT}'`,
-    // },
     {
       name: "zmq_proxy",
       cwd: "zmq_proxy",
       script: "./scripts/dev.sh",
     }
-  ],
-
-  deploy: {
-    production: {
-      user: "SSH_USERNAME",
-      host: "SSH_HOSTMACHINE",
-      ref: "origin/master",
-      repo: "GIT_REPOSITORY",
-      path: "DESTINATION_PATH",
-      "pre-deploy-local": "",
-      "post-deploy":
-        "npm install && pm2 reload ecosystem.config.js --env production",
-      "pre-setup": "",
-    },
-  },
+  ]
 };
