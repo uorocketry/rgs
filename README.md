@@ -20,6 +20,8 @@ Make sure you have installed the following installed:
 
 To run the nodejs you can run:
 
+> pnpm install
+> pnpm install -g pm2
 > pm2 start ./ecosystem.config.js
 
 See the pm2 documentation for more information.

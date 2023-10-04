@@ -19,13 +19,13 @@ module.exports = {
     {
       name: "db",
       cwd: "db",
-      script: "pnpm install && pnpm dev",
+      script: "pnpm dev",
       env: common_env,
     },
     {
       name: "web",
       cwd: "web",
-      script: "pnpm install && pnpm dev",
+      script: "pnpm dev",
       env: common_env,
     },
     {
