@@ -1,34 +1,22 @@
+// For format details, see https://aka.ms/devcontainer.json. For config options, see the
+// README at: https://github.com/devcontainers/templates/tree/main/src/ubuntu
 {
-    "name": "uORocketry",
-    "build": {
-        "dockerfile": "Dockerfile",
-        "context": "../"
-    },
-    "features": {
-        "ghcr.io/devcontainers/features/common-utils:2": {
-            "installZsh": false,
-            "installOhMyZsh": false,
-            "username": "vscode"
-        }
-    },
-    "remoteUser": "vscode",
-    "portsAttributes": {
-        "3000": {
-            "label": "RGS Web"
-        },
-        "3001": {
-            "label": "RGS WS"
-        },
-        "3002": {
-            "label": "ZeroMQ Server"
-        }
-    },
-	"postCreateCommand": "./scripts/clean.sh",
+	"name": "Ubuntu",
+	// Or use a Dockerfile or Docker Compose file. More info: https://containers.dev/guide/dockerfile
+	"image": "mcr.microsoft.com/devcontainers/base:jammy",
+	"forwardPorts": [],
 	"customizations": {
 		"vscode": {
 			"extensions": [
-				"svelte.svelte-vscode"
+				"GitHub.copilot",
+				"GitHub.copilot-chat",
+				"GitHub.copilot-labs",
+				"rust-lang.rust-analyzer",
+				"svelte.svelte-vscode",
+				"VisualStudioExptTeam.vscodeintellicode",
+				"alex-young.pm2-explorer"
 			]
 		}
-	}
+	},
+	"postCreateCommand": "chmod u+x ./scripts/postcreate.sh && ./scripts/postcreate.sh"
 }
