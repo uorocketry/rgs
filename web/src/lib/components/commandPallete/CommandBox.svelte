@@ -46,6 +46,7 @@
 
 	let displayedList: number[] = [];
 	$: {
+		selectedIndex = 0; // Reset selected index when list changes
 		let scores: number[] = getStringScores(inputValue, list);
 		displayedList = scores
 			.map((score, i) => ({ score, index: i }))
@@ -100,11 +101,11 @@
 			class="flex-1 input input-sm input-bordered"
 			{placeholder}
 		/>
-		<button class="btn btn-sm" on:click={closePrompt}>✕</button>
+		<button class="btn btn-sm ml-2" on:click={closePrompt}>✕</button>
 	</div>
 	<!-- Results -->
 	{#if list.length > 0}
-		<ul class="menu menu-xs w-full bg-base-200 rounded">
+		<ul class="menu w-full bg-base-200 rounded">
 			{#each displayedList as listIndex, i}
 				<li>
 					<button

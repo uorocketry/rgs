@@ -17,7 +17,7 @@
 	}
 </script>
 
-<div class="navbar">
+<div class="navbar bg-primary text-primary-content font-mono">
 	<div class="navbar-start">
 		<a href="/" class="btn btn-ghost normal-case text-xl">RGS</a>
 		<div class="tooltip tooltip-bottom" data-tip="Dashboard">
@@ -31,11 +31,17 @@
 				<i class="fa-solid fa-search" />
 			</button>
 		</div>
+
+		<div class="tooltip tooltip-bottom" data-tip="System Health">
+			<a href="/health" class="btn btn-ghost normal-case text-xl">
+				<i class="fa-solid fa-heart"></i>
+			</a>
+		</div>
 	</div>
-	<div class="navbar-end font-mono gap-2">
+	<div class="navbar-end gap-2">
 		<!-- Link Status -->
 		<div class="tooltip tooltip-bottom" data-tip="Link Status">
-			<button class="btn btn-outline normal-case text-xl">
+			<button class="btn btn-accent normal-case text-xl">
 				{#if $linkStatus?.connected}
 					<i class="fa-solid fa-link text-green-500" />
 				{:else}
@@ -46,21 +52,23 @@
 
 		<!-- RSSI -->
 		<div class="tooltip tooltip-bottom" data-tip="RSSI">
-			<label for="my-modal-4" class=" btn btn-outline">
+			<label for="my-modal-4" class="infolabel">
 				<i class="fa-solid fa-radio"></i>
 				{padFloatToDecimalPlaces(roundToDecimalPlaces($linkStatus?.rssi ?? 0, 2), 2)}
 			</label>
 		</div>
 
 		<div class="tooltip tooltip-bottom" data-tip="Vertical Velocity">
-			<label for="my-modal-4" class=" btn btn-outline">
+			<label for="my-modal-4" class="infolabel">
 				<i class="fa-solid fa-arrow-up"></i>
-				{padFloatToDecimalPlaces(roundToDecimalPlaces($ekf?.velocity?.[2] ?? 0, 2), 2)} m/s
+				<span>
+					{padFloatToDecimalPlaces(roundToDecimalPlaces($ekf?.velocity?.[2] ?? 0, 2), 2)} m/s
+				</span>
 			</label>
 		</div>
 
 		<div class="tooltip tooltip-bottom" data-tip="Speed">
-			<label for="my-modal-4" class=" btn btn-outline">
+			<label for="my-modal-4" class="infolabel">
 				<i class="fa-solid fa-gauge"></i>
 				{padFloatToDecimalPlaces(
 					roundToDecimalPlaces(
@@ -78,7 +86,7 @@
 
 		<!-- Total Distance traveled -->
 		<div class="tooltip tooltip-bottom" data-tip="Total Distance Traveled">
-			<label for="my-modal-4" class=" btn btn-outline">
+			<label for="my-modal-4" class="infolabel">
 				<i class="fa-solid fa-route"></i>
 				{padFloatToDecimalPlaces(
 					roundToDecimalPlaces(haversineDistance($launchPoint, $rocketPosition), 2),
@@ -89,15 +97,18 @@
 
 		<!-- Relative Altitude -->
 		<div class="tooltip tooltip-bottom" data-tip="Relative Altitude">
-			<label for="my-modal-4" class=" btn btn-outline">
+			<label for="my-modal-4" class="infolabel">
 				<i class="fa-solid fa-mountain"></i>
-				{Math.round($rocketAltitude - ($flightDirector?.relativeAltitude ?? 0))} m
+				{String(Math.round($rocketAltitude - ($flightDirector?.relativeAltitude ?? 0))).padStart(
+					4,
+					'0'
+				)} m
 			</label>
 		</div>
 
 		<!-- Current State -->
 		<div class="tooltip tooltip-bottom" data-tip="State">
-			<label for="my-modal-4" class=" btn btn-outline btn-wide">
+			<label for="my-modal-4" class=" btn btn-accent btn-wide">
 				{#key $state?.status}
 					<span style="display: inline-block" in:fly={{ y: -25, duration: 100 }}>
 						{formatCamelCase($state?.status ?? 'Unknown')}
@@ -109,3 +120,9 @@
 		<TimeCounter />
 	</div>
 </div>
+
+<style>
+	.infolabel {
+		@apply btn btn-accent p-2 whitespace-nowrap;
+	}
+</style>

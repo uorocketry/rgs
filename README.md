@@ -3,23 +3,25 @@
 In this repository you may find the following folders:
 
 - bindings: Typescript type bindings for the rocket messages backend
-- pocketbase: Pocketbase backend
-- db: ZMQ data recorder
-- web: Web interface application
-  - io: Socket.IO server
+- pb: Pocketbase backend that logs ZMQ messages
+- web: The main web-based interface
+- zmq_proxy: Main XSUB/XPUB proxy
 - hydra_provider: Rocket data receiver and broadcaster
 
 ## How to run
 
 Make sure you have installed the following installed:
 
-- Rust
-- NodeJS
-  - pm2 (process manager)
-  - pnpm (package manager)
+- [Rust](https://www.rust-lang.org/tools/install)
+- libudev-dev
+- [NodeJS](https://nodejs.org/en/download/current)
+  - pm2 (process manager) - `npm install -g pm2`
+  - pnpm (package manager) - `npm install -g pnpm`
 
 To run the nodejs you can run:
 
+> pnpm install
+> pnpm install -g pm2
 > pm2 start ./ecosystem.config.js
 
 See the pm2 documentation for more information.

@@ -1,6 +1,8 @@
+/* @tailwind utilities; */
+@import url('@fortawesome/fontawesome-free/css/all.min.css');
+
 .lm_goldenlayout {
-	background: hsl(var(--nc));
-	z-index: 0;
+	background: hsl(var(--b2));
 }
 .lm_content {
 	background: hsl(var(--b1));
@@ -61,6 +63,12 @@
 .lm_header .lm_tab.lm_active .lm_close_tab {
 	opacity: 1;
 }
+
+.lm_dragProxy {
+	overflow: hidden;
+	
+}
+
 .lm_dragProxy.lm_right .lm_header .lm_tab.lm_active,
 .lm_stack.lm_right .lm_header .lm_tab.lm_active {
 	box-shadow: 2px -2px 2px -2px hsl(var(--n) / 0.2);
@@ -87,6 +95,14 @@
 	opacity: 0.8;
 	transition: opacity 300ms ease;
 }
+
+.lm_controls {
+	color: hsl(var(--c));
+	background-color: hsl(var(--a));
+	height: 100%;
+	align-items: center;
+}
+
 .lm_controls > *:hover {
 	opacity: 1;
 }
@@ -94,10 +110,10 @@
 	background-image: url(data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAkAAAAJCAYAAADgkQYQAAAANUlEQVR4nI2QMQoAMAwCz5L/f9mOzZIaN0E9UDyZhaaQz6atgBHgambEJ5wBKoS0WaIvfT+6K2MIECN19MAAAAAASUVORK5CYII=);
 }
 .lm_controls .lm_maximise {
-	background-image: url(data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAkAAAAJCAYAAADgkQYQAAAAIklEQVR4nGNkYGD4z0AAMBFSAAOETPpPlEmDUREjAxHhBABPvAQLFv3qngAAAABJRU5ErkJggg==);
+	@apply fa-solid fa-expand;
 }
 .lm_controls .lm_close {
-	background-image: url(data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAkAAAAJCAYAAADgkQYQAAAAKUlEQVR4nGNgYGD4z4Af/Mdg4FKASwCnDf8JKSBoAtEmEXQTQd8RDCcA6+4Q8OvIgasAAAAASUVORK5CYII=);
+	@apply fa-solid fa-xmark;
 }
 .lm_controls .lm_dock {
 	background-image: url(data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABIAAAASCAYAAABWzo5XAAAACXBIWXMAAAsTAAALEwEAmpwYAAAAIGNIUk0AAHolAACAgwAA+f8AAIDpAAB1MAAA6mAAADqYAAAXb5JfxUYAAAC6SURBVHjavNRRFYIwFAbgLwJRaCBRaCIRbGAEaSARaKANpMF8GedM3BSV4wMvY/u4+++GEIItns8m0/wMoUHA8WsIFS7oMOawtVCPPkGfsFeLa+ywx4RqUeEDVgIuMY8R11zIcZthfpfLYsKQVpCZc1p+oFTRhLbQuVvMrHqbUQmLVXQftT/JoE3GhtKhLCFtRLq5sphNQL0KSpB2sc0zrquuyBLJZFa/hUpI2vZVtx+HErL5b+Qv0H0Axmb86JFNd6MAAAAASUVORK5CYII=);
@@ -116,8 +132,9 @@
 	background-color: #ffffff;
 }
 .lm_maximised .lm_controls .lm_maximise {
-	background-image: url(data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAkAAAAJCAYAAADgkQYQAAAAJklEQVR4nGP8//8/AyHARFDFUFbEwsDAwMDIyIgzHP7//89IlEkApSkHEScJTKoAAAAASUVORK5CYII=);
+	@apply fa-solid fa-compress;
 }
+
 .lm_transition_indicator {
 	background-color: #000000;
 	border: 1px dashed #555555;
