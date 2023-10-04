@@ -8,8 +8,8 @@ const common_env = {
   DB_REST_PORT: DB_REST_PORT,
   VITE_DB_REST_PORT: DB_REST_PORT,
   
-  XPUB_PORT: 3002,
-  XSUB_PORT: 3003,
+  XPUB_PORT: 3002,  // PORT THAT SUBS CONNECT TO
+  XSUB_PORT: 3003,  // PORT THAT PUBS CONNECT TO
 };
 
 
@@ -17,8 +17,8 @@ module.exports = {
   name: "rgs",
   apps: [
     {
-      name: "db",
-      cwd: "db",
+      name: "pb",
+      cwd: "pb",
       script: "pnpm dev",
       env: common_env,
     },
@@ -28,11 +28,11 @@ module.exports = {
       script: "pnpm dev",
       env: common_env,
     },
-    {
-      name: "pb",
-      cwd: "pb",
-      script: `./pocketbase serve --http='0.0.0.0:${DB_REST_PORT}'`,
-    },
+    // {
+    //   name: "pb",
+    //   cwd: "pb",
+    //   script: `./pocketbase serve --http='0.0.0.0:${DB_REST_PORT}'`,
+    // },
     {
       name: "zmq_proxy",
       cwd: "zmq_proxy",

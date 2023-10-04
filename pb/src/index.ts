@@ -17,7 +17,32 @@ import {
   GpsPos2,
 } from "@rgs/bindings";
 
+function envRequired(name: string): string {
+  const val = process.env[name];
+  if (val === undefined || val === "") {
+    console.error(`${name} is not set`);
+    throw new Error(`${name} is not set`);
+  }
+  return val;
+}
+
+envRequired("DB_REST_PORT");
+envRequired("DB_ADMIN");
+envRequired("DB_ADMIN_PASSWORD");
+envRequired("XPUB_PORT");
+
 console.info("Started DB Service");
+
+import { spawn } from "child_process";
+
+const child = spawn("./pocketbase", [
+  "serve",
+  `--http=0.0.0.0:${process.env.DB_REST_PORT}`,
+]);
+// print output of child process
+child.stdout.on("data", (data) => {
+  console.log(`PB: ${data}`);
+});
 
 // Keep calling http://127.0.0.1:8090/api/health until it responds
 const TIMEOUT = 5000;
@@ -25,9 +50,12 @@ const start = Date.now();
 let started = false;
 while (!started) {
   try {
-    const res = await fetch("http://127.0.0.1:8090/api/health", {
-      method: "GET",
-    });
+    const res = await fetch(
+      `http://127.0.0.1:${process.env.DB_REST_PORT}/api/health`,
+      {
+        method: "GET",
+      }
+    );
     if (res.status === 200) {
       console.info("PocketBase server started successfully");
       started = true;
@@ -41,45 +69,27 @@ while (!started) {
   }
 }
 
+console.log("Health check passed, PocketBase server started successfully");
+
 // Connect to PocketBase server
-if (process.env.DB_ADMIN === undefined || process.env.DB_ADMIN === "") {
-  console.error("DB_ADMIN is not set");
-  throw new Error("DB_ADMIN is not set");
-}
-if (
-  process.env.DB_ADMIN_PASSWORD === undefined ||
-  process.env.DB_ADMIN_PASSWORD === ""
-) {
-  console.error("DB_ADMIN_PASSWORD is not set");
-  throw new Error("DB_ADMIN_PASSWORD is not set");
-}
-if (process.env.DB_REST_PORT === undefined || process.env.DB_REST_PORT === "") {
-  console.error("DB_REST_PORT is not set");
-  throw new Error("DB_REST_PORT is not set");
-}
 
 console.info("Connecting to PocketBase server");
-const pb = new PocketBase(
-  `http://127.0.0.1:${process.env.DB_REST_PORT ?? "8090"}`
-);
+const pb = new PocketBase(`http://127.0.0.1:${process.env.DB_REST_PORT}`);
 await pb.admins.authWithPassword(
-  process.env.DB_ADMIN,
-  process.env.DB_ADMIN_PASSWORD
+  process.env.DB_ADMIN!,
+  process.env.DB_ADMIN_PASSWORD!
 );
 
+const PORT = process.env.XPUB_PORT!;
 // Setup ZMQ subscriber
 /**
  * @type {zmq.Subscriber}
  */
 const zmqSock = new zmq.Subscriber();
-zmqSock.connect(`tcp://localhost:${process.env.XPUB_PORT ?? "3003"}`);
+zmqSock.connect(`tcp://localhost:${PORT}`);
 zmqSock.subscribe();
 
-console.log(
-  "Connected to ZMQ on address",
-  `tcp://localhost:${process.env.XSUB_PORT ?? "3003"}`
-);
-
+console.log("Connected to ZMQ on address", `tcp://localhost:${PORT}`);
 // Listen and store messages
 for await (const [msg] of zmqSock) {
   const obj = JSON.parse(msg.toString()) as ProcessedMessage;
@@ -96,12 +106,11 @@ for await (const [msg] of zmqSock) {
       }
     );
 
-    console.info("Adding raw data", rocketData);
+    console.info("RocketData:", JSON.stringify(rocketData));
     // { state: State } | { sensor: Sensor } | { log: Log };
     if ("state" in rocketData) {
       const dataState = rocketData.state; // State
       const stateData: StateData = dataState.data;
-      console.log("Adding state data", stateData);
       pb.collection("State").create(
         {
           status: stateData,
@@ -280,6 +289,9 @@ for await (const [msg] of zmqSock) {
           $autoCancel: false,
         }
       );
+    } else {
+      console.error("Unknown RocketData type");
+      console.error(JSON.stringify(obj));
     }
   } else if ("LinkStatus" in obj) {
     const linkStatus = obj.LinkStatus as LinkStatus;
@@ -301,7 +313,8 @@ for await (const [msg] of zmqSock) {
       }
     );
   } else {
-    console.error("Unknown message type", obj);
+    // Unknown message type
+    console.error("ERR:", JSON.stringify(obj));
   }
 }
 
