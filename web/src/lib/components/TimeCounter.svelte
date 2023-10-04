@@ -7,6 +7,7 @@
 	let startTime: number;
 	let timeString = '';
 	let dialog: HTMLDialogElement | undefined;
+	let timerForm: HTMLFormElement | undefined;
 	let paused = false;
 
 	const padWithLeadingZero = (num: number) => num.toString().padStart(2, '0');
@@ -50,11 +51,28 @@
 			timeString = formatTime(initialCountDown);
 		}
 	}, 10);
+
+	function setTimer() {
+		if (!timerForm) return;
+		if (!('0' in timerForm)) return;
+
+		const inputEl = timerForm[0] as HTMLInputElement;
+		const time = inputEl.value;
+		if (time === '') return;
+
+		initialCountDown = parseInt(time) * 1000;
+		countDown = initialCountDown;
+		timePaused = 0;
+		startTime = Date.now();
+		startTimer = true;
+		paused = false;
+		timerForm.reset();
+	}
 </script>
 
 <div class="flex flex-row gap-2">
 	<div class="tooltip tooltip-bottom" data-tip="Play/Pause">
-		<label class="swap swap-rotate btn btn-outline">
+		<label class="swap swap-rotate btn">
 			<!-- this hidden checkbox controls the state -->
 			<input type="checkbox" bind:checked={paused} />
 
@@ -77,27 +95,15 @@
 	</div>
 </div>
 
-<dialog class="modal" bind:this={dialog}>
-	<form
-		method="dialog"
-		class="modal-box"
-		on:submit={(e) => {
-			const time = e.target[0].value;
-			if (time !== '') {
-				initialCountDown = parseInt(time) * 1000;
-				countDown = initialCountDown;
-				timePaused = 0;
-				paused = false;
-				startTime = Date.now();
-				startTimer = true;
-			}
-		}}
-	>
+<dialog class="modal text-base-content" bind:this={dialog} on:close={setTimer}>
+	<form class="modal-box p-2" bind:this={timerForm}>
 		<h3 class="text-lg font-bold">Count Down Timer</h3>
 		<p class="py-4">Timer:</p>
 		<input
 			type="number"
-			class="input input-bordered bg-gray-100 p-2 rounded mb-2"
+			name="time"
+			required
+			class="input w-full"
 			placeholder="Enter time in seconds"
 		/>
 	</form>

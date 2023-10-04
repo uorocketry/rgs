@@ -7,7 +7,6 @@ yarn-error.log*
 lerna-debug.log*
 .pnpm-debug.log*
 
-
 # Dependency directories
 node_modules/
 .pnpm-store
@@ -18,30 +17,12 @@ node_modules/
 # Yarn Integrity file
 .yarn-integrity
 
-# dotenv environment variable files
-.env.development.local
-.env.test.local
-.env.production.local
+# local dotenv files
+.env.*.local
 .env.local
-
-# SvelteKit
-.DS_Store
-node_modules
-/build
-/.svelte-kit
-/package
-.env
-.env.*
-!.env.example
-.vercel
-.output
 
 # Temporary files
 data
 vite.config.ts.*.mjs
 
-# database
-pocketbase/pb_data/*
-
-
-db/dist/
+*/dist/

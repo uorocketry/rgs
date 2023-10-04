@@ -69,8 +69,8 @@
 	}
 
 	async function listenToToggle(e: KeyboardEvent) {
-		// Ctrl + P to toggle
-		if (e.ctrlKey && e.key === 'p') {
+		// tilde "`" to toggle
+		if (e.key === '`') {
 			e.preventDefault();
 			if (!visible) inputValue = '';
 			visible = !visible;
