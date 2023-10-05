@@ -1,10 +1,10 @@
 <script lang="ts">
-	import '../../goldenlayout.css';
-	import GoldenLayout from 'svelte-golden-layout';
 	import { layoutComponents, layoutConfig, virtualLayout } from '$lib/common/layoutStore';
+	import type { JsonValue, VirtualLayout } from 'golden-layout';
 	import { onMount } from 'svelte';
+	import GoldenLayout from 'svelte-golden-layout';
 	import { get } from 'svelte/store';
-	import type { VirtualLayout } from 'golden-layout';
+	import '../../goldenlayout.css';
 
 	let goldenLayout: VirtualLayout;
 
@@ -23,7 +23,7 @@
 		});
 	});
 
-	const identity = (x: any) => x;
+	const identity = (x: JsonValue) => x as object;
 	const svelteComponentMap = (componentType: string) => {
 		return layoutComponents[componentType as keyof typeof layoutComponents];
 	};

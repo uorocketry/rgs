@@ -3,7 +3,7 @@
 	import { LayoutConfig, type ResolvedLayoutConfig } from 'golden-layout';
 	import type { UnsubscribeFunc } from 'pocketbase';
 	import { onDestroy, onMount } from 'svelte';
-	import { pb } from '../stores';
+	import { pb } from '../../../stores';
 
 	let layouts = new Map<string, { name: string; data: ResolvedLayoutConfig }>();
 
