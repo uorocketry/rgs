@@ -1,31 +1,12 @@
 <script lang="ts">
-	import type { EkfNav1, Imu1 } from '@rgs/bindings';
-	import { max, onCollectionCreated } from '$lib/common/utils';
-	import { pb } from '$lib/stores';
+	import { ekf, imu } from '$lib/realtime/linkStatus';
+	import { max_velocity } from '$lib/realtime/metrics';
 
 	let velocity = [0, 0, 0];
-	let max_velocity = [0, 0, 0];
 	let acc = [0, 0, 0];
 
-	onCollectionCreated('EkfNav1', (msg: EkfNav1) => {
-		velocity = [msg.velocity[0], msg.velocity[1], msg.velocity[2]];
-	});
-
-	onCollectionCreated('Imu1', (msg: Imu1) => {
-		acc = [msg.accelerometers[0], msg.accelerometers[1], msg.accelerometers[2]];
-	});
-
-	$: max_velocity = [
-		max(max_velocity[0], velocity[0]),
-		max(max_velocity[1], velocity[1]),
-		max(max_velocity[2], velocity[2])
-	];
-
-	$: pb.collection('CalculatedMetrics').create({
-		max_velocity_1: max_velocity[0],
-		max_velocity_2: max_velocity[1],
-		max_velocity_3: max_velocity[2]
-	});
+	$: velocity = [$ekf.velocity![0], $ekf.velocity![1], $ekf.velocity![2]];
+	$: acc = [$imu.accelerometers![0], $imu.accelerometers![1], $imu.accelerometers![2]];
 </script>
 
 <div class="w-full h-full overflow-x-auto">
@@ -75,7 +56,7 @@
 					</td>
 				</div>
 				<td>
-					<span class="text-right">{max_velocity[0]}</span>
+					<span class="text-right">{$max_velocity[0]}</span>
 				</td>
 			</tr>
 			<tr class="hover clicky cursor-pointer">
@@ -85,7 +66,7 @@
 					</td>
 				</div>
 				<td>
-					<span class="text-right">{max_velocity[1]}</span>
+					<span class="text-right">{$max_velocity[1]}</span>
 				</td>
 			</tr>
 			<tr class="hover clicky cursor-pointer">
@@ -95,7 +76,7 @@
 					</td>
 				</div>
 				<td>
-					<span class="text-right">{max_velocity[2]}</span>
+					<span class="text-right">{$max_velocity[2]}</span>
 				</td>
 			</tr>
 			<tr class="hover clicky cursor-pointer">

@@ -1,15 +1,15 @@
 <script lang="ts" type="module">
 	import { formatVariableName, getRandomHexColorFromString } from '$lib/common/utils';
 
-	import { Scatter } from 'svelte-chartjs';
-	import CheckboxSelect from '../CheckboxSelect.svelte';
 	import { collectionFields } from '$lib/common/dao';
 	import { pb } from '$lib/stores';
-	import type { Collection, UnsubscribeFunc } from 'pocketbase';
 	import type { ChartDataset, Point } from 'chart.js/auto';
+	import type { UnsubscribeFunc } from 'pocketbase';
+	import { Scatter } from 'svelte-chartjs';
+	import CheckboxSelect from '../../dumb/CheckboxSelect.svelte';
 
 	export let selected: { [key: string]: string[] } = {};
-	let tooltipDesc: String;
+	let tooltipDesc: string;
 
 	const options = {
 		maintainAspectRatio: false,
@@ -91,8 +91,6 @@
 
 						// Add the new data point
 						if (data.action === 'create') {
-							let time: any;
-							console.log('time', time);
 							dataPoints.push({
 								x: Date.parse(data.record.created),
 								y: data.record[key]

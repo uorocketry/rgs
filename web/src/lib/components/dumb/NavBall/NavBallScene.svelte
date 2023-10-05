@@ -1,20 +1,9 @@
 <script lang="ts">
+	import Rocket from '$lib/components/models/Rocket.svelte';
 	import { T } from '@threlte/core';
 	import { HTML, OrbitControls, useTexture } from '@threlte/extras';
-	import {
-		Euler,
-		Group,
-		Mesh,
-		MeshBasicMaterial,
-		Quaternion,
-		type EulerOrder,
-		PlaneHelper,
-		PolarGridHelper
-	} from 'three';
-	import { useGltf } from '@threlte/extras';
 	import { tweened, type Tweened } from 'svelte/motion';
-
-	const gltf = useGltf('/models/rocket.glb');
+	import { Euler, Quaternion, type EulerOrder } from 'three';
 	const map = useTexture('textures/navball.png');
 	map.then((tex) => {
 		tex.anisotropy = 32;
@@ -47,20 +36,6 @@
 		const euler = new Euler().setFromQuaternion($tweenedRotation);
 		rot = [euler.x, euler.y, euler.z, 'YZX'];
 	}
-
-	function gltfProcess(e: { ref: Group }) {
-		e.ref.traverse((obj) => {
-			if (obj.type === 'Mesh') {
-				const mesh = obj as Mesh;
-				const mat = mesh.material as MeshBasicMaterial;
-				mesh.renderOrder = 999;
-
-				if (mat.map) {
-					mat.map.anisotropy = 32;
-				}
-			}
-		});
-	}
 </script>
 
 <T.PerspectiveCamera
@@ -84,9 +59,7 @@
 <T.PolarGridHelper args={[15, 15, 8, 64]} />
 
 {#if useRocketModel}
-	{#await gltf then { scene }}
-		<T bind:rotation={rot} is={scene} scale={1} on:create={gltfProcess} />
-	{/await}
+	<Rocket bind:rotation={rot} scale={0.75} />
 {:else}
 	{#await map then tex}
 		<T.Mesh bind:rotation={rot}>
@@ -94,7 +67,7 @@
 			<T.MeshStandardMaterial map={tex} />
 		</T.Mesh>
 		<!-- Another DOT sphere geometry with position y = 0.5 -->
-		<T.Mesh position.y="15">
+		<T.Mesh position.y="10">
 			<T.SphereGeometry args={[0.3, 10, 2]} />
 			<T.MeshStandardMaterial color={[1, 0, 1]} />
 		</T.Mesh>

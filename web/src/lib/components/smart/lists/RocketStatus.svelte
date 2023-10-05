@@ -1,59 +1,15 @@
 <script lang="ts">
-	import type { Imu2 } from '@rgs/bindings';
-	import { haversineDistance, onCollectionCreated } from '$lib/common/utils';
-	import { pb } from '$lib/stores';
-	import { max } from '$lib/common/utils';
-	import type { LatLngLiteral } from 'leaflet';
-	import { flightDirector, launchPoint } from '$lib/realtime/flightDirector';
-	import { air, ekf, imu, linkStatus, state } from '$lib/realtime/linkStatus';
-	import { rocketAltitude, rocketPosition } from '$lib/realtime/gps';
-
-	$: connection = $linkStatus?.connected;
-	$: stateStr = $state?.status;
-	$: missed_messages = $linkStatus?.missed_messages;
-	$: pressure_abs = $air?.pressure_abs;
-	$: altitude = $air?.altitude;
-	let max_altitude = 0;
-	$: true_airspeed = 0;
-	let max_true_air_speed = 0;
-	$: temp = $imu.temperature;
-	$: velocity = $ekf.velocity;
-	$: target_altitude = $flightDirector.targetAltitude;
-	$: relative_altitude = $flightDirector.relativeAltitude;
-	let ground_altitude = 0;
-	let distance_from_target = 0;
-	$: current_position = [$rocketPosition.lat, $rocketPosition.lng, $rocketAltitude];
-	let g_force = 0;
-	let max_g_force = 0;
-
-	function calcGForce(vf: number, t: number) {
-		return vf / (t * 9.81);
-	}
-
-	$: g_force = calcGForce(velocity ? velocity[1] : 0, 0.1);
-	$: max_g_force = max(max_g_force, g_force);
-	$: max_true_air_speed = max(max_true_air_speed, true_airspeed);
-
-	$: max_altitude = max(max_altitude, altitude ?? 0);
-
-	$: ground_altitude = (altitude ?? 0) - relative_altitude;
-	$: distance_from_target = target_altitude - ground_altitude;
-
-	$: total_traveled_distance = haversineDistance($rocketPosition, $launchPoint);
-
-	$: pb.collection('CalculatedMetrics').create(
-		{
-			ground_altitude: ground_altitude,
-			distance_from_target: distance_from_target,
-			total_traveled_distance: total_traveled_distance,
-			max_altitude: max_altitude,
-			g_force: g_force,
-			max_g_force: max_g_force
-		},
-		{
-			$autoCancel: false
-		}
-	);
+	import { flightDirector } from '$lib/realtime/flightDirector';
+	import { air, imu, linkStatus, state } from '$lib/realtime/linkStatus';
+	import {
+		current_position,
+		distance_from_target,
+		g_force,
+		ground_altitude,
+		max_altitude,
+		max_g_force,
+		total_traveled_distance
+	} from '$lib/realtime/metrics';
 </script>
 
 <div class="w-full h-full overflow-x-auto">
@@ -72,7 +28,7 @@
 					</td>
 				</div>
 				<td>
-					<span class="text-right">{connection ? 'Connected' : 'Disconnected'}</span>
+					<span class="text-right">{$linkStatus?.connected ? 'Connected' : 'Disconnected'}</span>
 				</td>
 			</tr>
 			<tr class="hover clicky cursor-pointer">
@@ -82,7 +38,7 @@
 					</td>
 				</div>
 				<td>
-					<span class="text-right">{stateStr}</span>
+					<span class="text-right">{$state?.status}</span>
 				</td>
 			</tr>
 			<tr class="hover clicky cursor-pointer">
@@ -92,7 +48,7 @@
 					</td>
 				</div>
 				<td>
-					<span class="text-right">{missed_messages}</span>
+					<span class="text-right">{$linkStatus?.missed_messages}</span>
 				</td>
 			</tr>
 			<tr class="hover clicky cursor-pointer">
@@ -102,7 +58,7 @@
 					</td>
 				</div>
 				<td>
-					<span class="text-right">{pressure_abs}</span>
+					<span class="text-right">{$air?.pressure_abs}</span>
 				</td>
 			</tr>
 
@@ -113,7 +69,7 @@
 					</td>
 				</div>
 				<td>
-					<span class="text-right">{temp}</span>
+					<span class="text-right">{$imu.temperature}</span>
 				</td>
 			</tr>
 
@@ -125,7 +81,7 @@
 					</td>
 				</div>
 				<td>
-					<span class="text-right">{current_position[1]}</span>
+					<span class="text-right">{$current_position[1]}</span>
 				</td>
 			</tr>
 
@@ -137,7 +93,7 @@
 					</td>
 				</div>
 				<td>
-					<span class="text-right">{current_position[0]}</span>
+					<span class="text-right">{$current_position[0]}</span>
 				</td>
 			</tr>
 
@@ -148,7 +104,7 @@
 					</td>
 				</div>
 				<td>
-					<span class="text-right">{altitude}</span>
+					<span class="text-right">{$air?.altitude}</span>
 				</td>
 			</tr>
 			<tr class="hover clicky cursor-pointer">
@@ -158,7 +114,7 @@
 					</td>
 				</div>
 				<td>
-					<span class="text-right">{current_position[2]}</span>
+					<span class="text-right">{$current_position[2]}</span>
 				</td>
 			</tr>
 			<tr class="hover clicky cursor-pointer">
@@ -171,7 +127,7 @@
 					</td>
 				</div>
 				<td>
-					<span class="text-right">{ground_altitude}</span>
+					<span class="text-right">{$ground_altitude}</span>
 				</td>
 			</tr>
 			<tr class="hover clicky cursor-pointer">
@@ -181,7 +137,7 @@
 					</td>
 				</div>
 				<td>
-					<span class="text-right">{max_altitude}</span>
+					<span class="text-right">{$max_altitude}</span>
 				</td>
 			</tr>
 			<tr class="hover clicky cursor-pointer">
@@ -191,7 +147,7 @@
 					</td>
 				</div>
 				<td>
-					<span class="text-right">{target_altitude}</span>
+					<span class="text-right">{$flightDirector.targetAltitude}</span>
 				</td>
 			</tr>
 			<tr class="hover clicky cursor-pointer">
@@ -204,7 +160,7 @@
 					</td>
 				</div>
 				<td>
-					<span class="text-right">{relative_altitude}</span>
+					<span class="text-right">{$flightDirector.relativeAltitude}</span>
 				</td>
 			</tr>
 			<tr class="hover clicky cursor-pointer">
@@ -214,7 +170,7 @@
 					</td>
 				</div>
 				<td>
-					<span class="text-right">{distance_from_target}</span>
+					<span class="text-right">{$distance_from_target}</span>
 				</td>
 			</tr>
 			<tr class="hover clicky cursor-pointer">
@@ -227,7 +183,7 @@
 					</td>
 				</div>
 				<td>
-					<span class="text-right">{total_traveled_distance}</span>
+					<span class="text-right">{$total_traveled_distance}</span>
 				</td>
 			</tr>
 			<tr class="hover clicky cursor-pointer">
@@ -237,7 +193,7 @@
 					</td>
 				</div>
 				<td>
-					<span class="text-right">{g_force}</span>
+					<span class="text-right">{$g_force}</span>
 				</td>
 			</tr>
 			<tr class="hover clicky cursor-pointer">
@@ -247,7 +203,7 @@
 					</td>
 				</div>
 				<td>
-					<span class="text-right">{max_g_force}</span>
+					<span class="text-right">{$max_g_force}</span>
 				</td>
 			</tr>
 		</tbody>

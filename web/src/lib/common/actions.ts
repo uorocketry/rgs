@@ -133,6 +133,5 @@ export const commandActions: Writable<CommandAction[]> = writable([
 				relativeAltitude: targetAltNum
 			});
 		}
-	},
-
+	}
 ]);
