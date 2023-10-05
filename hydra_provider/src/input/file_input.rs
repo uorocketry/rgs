@@ -190,7 +190,7 @@ impl FileInput {
                                     gpspos1_wtr.write_record(&[
                                         &msg.timestamp.to_string(),
                                         &gpspos1_data.status.to_string(),
-                                        &gpspos1_data.timeOfWeek.to_string(),
+                                        &gpspos1_data.time_of_week.to_string(),
                                         &gpspos1_data.latitude.to_string(),
                                         &gpspos1_data.longitude.to_string(),
                                         &gpspos1_data.altitude.to_string(),
@@ -200,12 +200,12 @@ impl FileInput {
                                 sensor::SensorData::GpsPos2(gpspos2_data) => {
                                     gpspos2_wtr.write_record(&[
                                         &msg.timestamp.to_string(),
-                                        &gpspos2_data.latitudeAccuracy.to_string(),
-                                        &gpspos2_data.longitudeAccuracy.to_string(),
-                                        &gpspos2_data.altitudeAccuracy.to_string(),
-                                        &gpspos2_data.numSvUsed.to_string(),
-                                        &gpspos2_data.baseStationId.to_string(),
-                                        &gpspos2_data.differentialAge.to_string(),
+                                        &gpspos2_data.latitude_accuracy.to_string(),
+                                        &gpspos2_data.longitude_accuracy.to_string(),
+                                        &gpspos2_data.altitude_accuracy.to_string(),
+                                        &gpspos2_data.num_sv_used.to_string(),
+                                        &gpspos2_data.base_station_id.to_string(),
+                                        &gpspos2_data.differential_age.to_string(),
                                     ])?;
                                 }
                                 sensor::SensorData::EkfNav1(ekfnav1_data) => {
