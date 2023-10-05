@@ -7,7 +7,7 @@
 	} from '$lib/common/utils';
 	import { flightDirector, launchPoint } from '$lib/realtime/flightDirector';
 	import { rocketAltitude, rocketPosition } from '$lib/realtime/gps';
-	import { ekf, linkStatus, state } from '$lib/realtime/linkStatus';
+	import { air, ekf, linkStatus, state } from '$lib/realtime/linkStatus';
 	import { commandBoxToggle as commandBoxToggle } from '$lib/stores';
 	import { fly } from 'svelte/transition';
 	import TimeCounter from './TimeCounter.svelte';
