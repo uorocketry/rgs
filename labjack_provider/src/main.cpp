@@ -1,15 +1,13 @@
 #include "main.hpp"
 
 int main() {
-    int handle;
     float load;
     double temp;
     int angle;
     LoadCell load_cell = LoadCell("AIN2", "AIN3", 0.02);
     Thermocouple thermocouple = Thermocouple("AIN0", ThermocoupleType::K);
     Servo servo = Servo("DAC0", 500, 2500);
-	handle = OpenOrDie(LJM_dtANY, LJM_ctANY, "LJM_idANY"); // this needs to go into the Labjack class constructor
-    LabJack labjack = LabJack(handle);
+    LabJack labjack = LabJack();
     servo.setup_servo(labjack);
     servo.write_angle(labjack, 0.0);
 	MillisecondSleep(5000);
@@ -60,7 +58,7 @@ int main() {
     // Wait for the input thread to finish
     inputThread.join();
 
-	CloseOrDie(handle);
+    ~labjack;
 
     std::cout << "Exiting the program." << std::endl;
     return 0;

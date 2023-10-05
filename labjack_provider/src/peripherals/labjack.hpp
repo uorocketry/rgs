@@ -7,7 +7,8 @@
 
 class LabJack{
 public:
-    LabJack(int handle);
+    LabJack();
+    ~LabJack();
     int get_handle();
 private:
     int handle;
