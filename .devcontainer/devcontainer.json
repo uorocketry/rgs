@@ -12,9 +12,18 @@
 				"svelte.svelte-vscode",
 				"VisualStudioExptTeam.vscodeintellicode",
 				"alex-young.pm2-explorer",
-				"esbenp.prettier-vscode"
+				"esbenp.prettier-vscode",
+				"dbaeumer.vscode-eslint"
 			]
 		}
 	},
-	"postCreateCommand": "chmod u+x ./scripts/postcreate.sh && cd scripts && ./postcreate.sh"
+	"postCreateCommand": "chmod u+x ./scripts/postcreate.sh && cd scripts && ./postcreate.sh",
+	"portsAttributes": {
+		"3000": {
+			"label": "web"
+		},
+		"8090": {
+			"label": "db"
+		}
+	}
 }

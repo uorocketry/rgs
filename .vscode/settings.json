@@ -1,0 +1,15 @@
+{
+    "editor.codeActionsOnSave": {
+        "source.fixAll": true,
+        "source.organizeImports": true
+    },
+    "eslint.workingDirectories": [
+        "./web",
+        "./pb",
+        "./scripts",
+        "./bindings"
+    ],
+    "eslint.validate": [
+        "javascript"
+    ]
+}

@@ -2,16 +2,16 @@ import { LayoutConfig, type VirtualLayout } from 'golden-layout';
 import { writable, type Writable } from 'svelte/store';
 
 // Components
-import SmartNavBall from '$lib/components/smart/SmartNavBall.svelte';
-import GenericSbgGraph from '$lib/components/Panels/GenericSbgGraph.svelte';
-import RadioStatus from '$lib/components/radio/RadioStatus.svelte';
-import ErrorRate from '$lib/components/radio/ErrorRate.svelte';
-import LayoutList from '$lib/components/LayoutList.svelte';
-import MissedMessage from '$lib/components/radio/MissedMessage.svelte';
-import Map from '$lib/components/Map.svelte';
+import Map from '$lib/components/smart/Map.svelte';
+import SmartNavBall from '$lib/components/smart/RocketNavBall.svelte';
 import RocketTracker from '$lib/components/smart/RocketTracker.svelte';
-import RocketStatus from '$lib/components/RocketStatus.svelte';
-import RocketMotion from '$lib/components/RocketMotion.svelte';
+import ErrorRate from '$lib/components/smart/graphs/ErrorRate.svelte';
+import GenericSbgGraph from '$lib/components/smart/graphs/GenericSbgGraph.svelte';
+import MissedMessage from '$lib/components/smart/graphs/MissedMessage.svelte';
+import LayoutList from '$lib/components/smart/lists/LayoutList.svelte';
+import RadioStatus from '$lib/components/smart/lists/RadioStatus.svelte';
+import RocketMotion from '$lib/components/smart/lists/RocketMotion.svelte';
+import RocketStatus from '$lib/components/smart/lists/RocketStatus.svelte';
 
 export const layoutComponents = {
 	SmartNavBall,
@@ -53,7 +53,10 @@ export function startLayout() {
 			const resolved = JSON.parse(layoutConfigStr);
 			layoutConfig.set(LayoutConfig.fromResolved(resolved));
 		} catch (error) {
-			console.error("Failed to parse layoutConfig from localStorage. It's probably corrupted.");
+			console.error(
+				"Failed to parse layoutConfig from localStorage. It's probably corrupted.",
+				error
+			);
 			localStorage.removeItem('layoutConfig');
 		}
 	}

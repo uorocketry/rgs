@@ -1,9 +1,8 @@
 <script lang="ts">
-	import { Euler, Quaternion, Vector3, type EulerOrder, Matrix4 } from 'three';
-	import NavBall from '../NavBall/NavBall.svelte';
-	import { MathUtils } from 'three';
 	import { ekf } from '$lib/realtime/linkStatus';
 	import { tweened } from 'svelte/motion';
+	import { Euler, MathUtils, Matrix4, Quaternion, Vector3, type EulerOrder } from 'three';
+	import NavBall from '../dumb/NavBall/NavBall.svelte';
 
 	let ninetyDegVerticalRot = new Quaternion();
 	let useRocketModel = false;
@@ -47,14 +46,6 @@
 		return localUpDirection.y > 0;
 	}
 
-	function adjustedPitch(quaternion: Quaternion) {
-		const upDirection = new Vector3(0, 1, 0);
-		const localUpDirection = upDirection.clone().applyQuaternion(quaternion);
-		const dotProduct = localUpDirection.dot(upDirection);
-		const angle = Math.acos(dotProduct);
-		return angle;
-	}
-
 	function vectorToEuler(direction: Vector3, eulerOrder: EulerOrder = 'XYZ'): Euler {
 		// Create a clone of the direction vector
 		const directionClone = direction.clone();
@@ -78,10 +69,10 @@
 	}
 </script>
 
-<div class="w-full h-full p-2 flex flex-col">
-	<div>
+<div class="w-full h-full flex flex-col relative">
+	<div class="absolute top-4 left-4 z-10 card bg-primary text-primary-content">
 		<!-- Pitch yaw row -->
-		<div class="grid grid-cols-2">
+		<div class="card-body grid grid-cols-2">
 			<span>Roll</span>
 			<span class="text-right">{MathUtils.radToDeg(eulerRepr.x ?? 0).toFixed(2)}°</span>
 			<span>Pitch</span>

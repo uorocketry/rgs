@@ -1,10 +1,10 @@
 <script defer lang="ts" type="module">
-	import L from 'leaflet';
 	import { browser } from '$app/environment';
+	import { launchPoint } from '$lib/realtime/flightDirector';
+	import { rocketPosition } from '$lib/realtime/gps';
+	import L from 'leaflet';
 	import { onDestroy, onMount } from 'svelte';
 	import { spring } from 'svelte/motion';
-	import { defaultLaunchCoords, launchPoint } from '$lib/realtime/flightDirector';
-	import { rocketPosition } from '$lib/realtime/gps';
 	let map: L.Map | null;
 
 	const urlTemplate = '/api/tiles/{z}/{x}/{y}.png';
@@ -78,7 +78,7 @@
 	}
 
 	let toolbar = new L.Control({ position: 'topright' });
-	toolbar.onAdd = (_: L.Map) => {
+	toolbar.onAdd = () => {
 		let div = L.DomUtil.create('div');
 		return div;
 	};

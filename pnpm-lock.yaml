@@ -6,6 +6,24 @@ settings:
 
 importers:
 
+  .:
+    devDependencies:
+      '@typescript-eslint/eslint-plugin':
+        specifier: ^6.1.0
+        version: 6.7.4(@typescript-eslint/parser@6.7.4)(eslint@8.50.0)(typescript@5.2.2)
+      '@typescript-eslint/parser':
+        specifier: ^6.1.0
+        version: 6.7.4(eslint@8.50.0)(typescript@5.2.2)
+      eslint:
+        specifier: ^8.50.0
+        version: 8.50.0
+      eslint-config-prettier:
+        specifier: ^8.8.0
+        version: 8.10.0(eslint@8.50.0)
+      prettier:
+        specifier: ^3.0.0
+        version: 3.0.3
+
   bindings:
     devDependencies:
       typescript:
@@ -26,33 +44,15 @@ importers:
       '@types/zeromq':
         specifier: ^5.2.2
         version: 5.2.3
-      '@typescript-eslint/eslint-plugin':
-        specifier: ^6.1.0
-        version: 6.7.4(@typescript-eslint/parser@6.7.4)(eslint@8.50.0)(typescript@5.2.2)
-      '@typescript-eslint/parser':
-        specifier: ^6.1.0
-        version: 6.7.4(eslint@8.50.0)(typescript@5.2.2)
-      eslint:
-        specifier: ^8.45.0
-        version: 8.50.0
-      eslint-config-prettier:
-        specifier: ^8.8.0
-        version: 8.10.0(eslint@8.50.0)
-      eslint-plugin-svelte:
-        specifier: ^2.32.2
-        version: 2.34.0(eslint@8.50.0)(svelte@4.2.1)
       pocketbase:
         specifier: ^0.15.3
         version: 0.15.3
-      prettier:
-        specifier: ^3.0.0
-        version: 3.0.3
       tslib:
         specifier: ^2.6.0
         version: 2.6.2
       tsup:
         specifier: ^7.1.0
-        version: 7.2.0(postcss@8.4.31)(typescript@5.2.2)
+        version: 7.2.0(typescript@5.2.2)
       typescript:
         specifier: ^5.1.6
         version: 5.2.2
@@ -111,8 +111,8 @@ importers:
         specifier: ^4.4.0
         version: 4.4.0
       daisyui:
-        specifier: ^3.8.3
-        version: 3.8.3
+        specifier: ^3.9.1
+        version: 3.9.1
       eslint:
         specifier: ^8.50.0
         version: 8.50.0
@@ -1103,7 +1103,7 @@ packages:
     hasBin: true
     dependencies:
       caniuse-lite: 1.0.30001543
-      electron-to-chromium: 1.4.540
+      electron-to-chromium: 1.4.542
       node-releases: 2.0.13
       update-browserslist-db: 1.0.13(browserslist@4.22.1)
     dev: true
@@ -1522,8 +1522,8 @@ packages:
       d3-zoom: 1.8.3
     dev: true
 
-  /daisyui@3.8.3:
-    resolution: {integrity: sha512-64QuR6niTv58E5YyAVBkoXQGngp04jt6XOcKGxnq1C/7r5ZE3bDuOSc4ktT7CPacTRjl5cCeNYY13VxLpZP+7A==}
+  /daisyui@3.9.1:
+    resolution: {integrity: sha512-xkZgVpPPpNbaZiG+djoP+XZF+6YeVA8sIP5ZwDzhaOlg1tXHfXvqhTmwKXGKLng3la2rwDrHYw3zjMMHLIGFUQ==}
     engines: {node: '>=16.9.0'}
     dependencies:
       colord: 2.9.3
@@ -1592,8 +1592,8 @@ packages:
       esutils: 2.0.3
     dev: true
 
-  /electron-to-chromium@1.4.540:
-    resolution: {integrity: sha512-aoCqgU6r9+o9/S7wkcSbmPRFi7OWZWiXS9rtjEd+Ouyu/Xyw5RSq2XN8s5Qp8IaFOLiRrhQCphCIjAxgG3eCAg==}
+  /electron-to-chromium@1.4.542:
+    resolution: {integrity: sha512-6+cpa00G09N3sfh2joln4VUXHquWrOFx3FLZqiVQvl45+zS9DskDBTPvob+BhvFRmTBkyDSk0vvLMMRo/qc6mQ==}
     dev: true
 
   /enabled@2.0.0:
@@ -3318,7 +3318,7 @@ packages:
     resolution: {integrity: sha512-AEYxH93jGFPn/a2iVAwW87VuUIkR1FVUKB77NwMF7nBTDkDrrT/Hpt/IrCJ0QXhW27jTBDcf5ZY7w6RiqTMw2Q==}
     dev: true
 
-  /tsup@7.2.0(postcss@8.4.31)(typescript@5.2.2):
+  /tsup@7.2.0(typescript@5.2.2):
     resolution: {integrity: sha512-vDHlczXbgUvY3rWvqFEbSqmC1L7woozbzngMqTtL2PGBODTtWlRwGDDawhvWzr5c1QjKe4OAKqJGfE1xeXUvtQ==}
     engines: {node: '>=16.14'}
     hasBin: true
@@ -3342,7 +3342,6 @@ packages:
       execa: 5.1.1
       globby: 11.1.0
       joycon: 3.1.1
-      postcss: 8.4.31
       postcss-load-config: 4.0.1(postcss@8.4.31)
       resolve-from: 5.0.0
       rollup: 3.29.4

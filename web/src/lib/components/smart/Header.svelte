@@ -10,7 +10,7 @@
 	import { ekf, linkStatus, state } from '$lib/realtime/linkStatus';
 	import { commandBoxToggle as commandBoxToggle } from '$lib/stores';
 	import { fly } from 'svelte/transition';
-	import TimeCounter from './TimeCounter.svelte';
+	import TimeCounter from '../dumb/CountdownTimer.svelte';
 
 	function cmdBoxOpen() {
 		commandBoxToggle.set({});
@@ -52,14 +52,14 @@
 
 		<!-- RSSI -->
 		<div class="tooltip tooltip-bottom" data-tip="RSSI">
-			<label for="my-modal-4" class="infolabel">
+			<label for="my-modal-4" class="btn btn-accent p-2 whitespace-nowrap">
 				<i class="fa-solid fa-radio"></i>
 				{padFloatToDecimalPlaces(roundToDecimalPlaces($linkStatus?.rssi ?? 0, 2), 2)}
 			</label>
 		</div>
 
 		<div class="tooltip tooltip-bottom" data-tip="Vertical Velocity">
-			<label for="my-modal-4" class="infolabel">
+			<label for="my-modal-4" class="btn btn-accent p-2 whitespace-nowrap">
 				<i class="fa-solid fa-arrow-up"></i>
 				<span>
 					{padFloatToDecimalPlaces(roundToDecimalPlaces($ekf?.velocity?.[2] ?? 0, 2), 2)} m/s
@@ -68,7 +68,7 @@
 		</div>
 
 		<div class="tooltip tooltip-bottom" data-tip="Speed">
-			<label for="my-modal-4" class="infolabel">
+			<label for="my-modal-4" class="btn btn-accent p-2 whitespace-nowrap">
 				<i class="fa-solid fa-gauge"></i>
 				{padFloatToDecimalPlaces(
 					roundToDecimalPlaces(
@@ -86,7 +86,7 @@
 
 		<!-- Total Distance traveled -->
 		<div class="tooltip tooltip-bottom" data-tip="Total Distance Traveled">
-			<label for="my-modal-4" class="infolabel">
+			<label for="my-modal-4" class="btn btn-accent p-2 whitespace-nowrap">
 				<i class="fa-solid fa-route"></i>
 				{padFloatToDecimalPlaces(
 					roundToDecimalPlaces(haversineDistance($launchPoint, $rocketPosition), 2),
@@ -97,7 +97,7 @@
 
 		<!-- Relative Altitude -->
 		<div class="tooltip tooltip-bottom" data-tip="Relative Altitude">
-			<label for="my-modal-4" class="infolabel">
+			<label for="my-modal-4" class="btn btn-accent p-2 whitespace-nowrap">
 				<i class="fa-solid fa-mountain"></i>
 				{String(Math.round($rocketAltitude - ($flightDirector?.relativeAltitude ?? 0))).padStart(
 					4,
@@ -120,9 +120,3 @@
 		<TimeCounter />
 	</div>
 </div>
-
-<style>
-	.infolabel {
-		@apply btn btn-accent p-2 whitespace-nowrap;
-	}
-</style>
