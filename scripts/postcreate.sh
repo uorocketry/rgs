@@ -1,28 +1,19 @@
 # bin/bash -i
 
-# echo 'Updating system'
-# sudo apt update && sudo apt upgrade -y
+set -e
 
-# echo 'Installing NVM'
-# curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.39.5/install.sh | bash
-# [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"
+# Get the directory of this script
+DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" >/dev/null 2>&1 && pwd )"
 
-# echo 'Installing Node'
-# nvm install node
-# echo 'Installing pnpm'
-curl -fsSL https://get.pnpm.io/install.sh | sh -
-source ~/.bashrc
-pnpm setup
-echo 'Installing PM2'
-pnpm install -g pm2
-echo 'Installing project dependencies'
-pnpm install
+for script in $DIR/requirements/*.sh
+do
+  chmod +x $script
+  $script   
+done
 
-echo 'Installing rust'
-curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- --default-toolchain none -y
-rustup default stable
-
-echo 'Installing dev dependencies'
-sudo apt-get install -y \
-    pkg-config \
-    libudev-dev
+echo ''
+echo '🚀 You are almost ready to go!'
+echo 'Re-open your terminal to update your environment'
+echo ''
+echo '📝 Running `pnpm install` will install all node deps'
+echo '🦀 Running `cargo build` will install and compile all rust deps' 

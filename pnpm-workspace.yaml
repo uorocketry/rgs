@@ -1,4 +1,4 @@
 packages:
-  - 'db'
-  - 'web'
-  - 'bindings'
+  - "pb"
+  - "web"
+  - "bindings"
