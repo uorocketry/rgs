@@ -2,6 +2,7 @@ mod input;
 mod processing;
 mod zeromq_server;
 
+use crate::input::FileInput;
 use crate::input::RandomInput;
 use crate::input::SerialInput;
 use crate::processing::{
@@ -44,6 +45,10 @@ struct Args {
     #[arg(short, long, env, default_value = "false")]
     random_input: bool,
 
+    // Read from file, input path
+    #[arg(short, long, env, default_value = "")]
+    file_input: String,
+
     /// Logging level
     #[arg(short, long, env, default_value = "Info")]
     log: LevelFilter,
@@ -79,7 +84,12 @@ fn start_input(args: Args, send: Sender<InputData>) -> JoinHandle<()> {
     thread::Builder::new()
         .name("Input".to_string())
         .spawn(move || {
-            if !args.random_input {
+            if !args.file_input.is_empty() {
+                info!("Reading from file");
+                FileInput::new(args.file_input)
+                    .process_file(send)
+                    .expect("Could not process file");
+            } else if !args.random_input {
                 info!("Using serial input");
                 SerialInput::new(&args.serial_port, args.baud_rate)
                     .expect("Could not start serial input")
@@ -112,22 +122,29 @@ fn start_processing(
         .spawn(move || {
             let rocket_processing = RocketProcessing::new();
             loop {
-                let msg = recv.recv().unwrap();
-                trace!("Received data: {:?}", msg);
+                let msg = recv.recv();
                 match msg {
-                    InputData::RocketData(data) => {
-                        server_send.send(rocket_processing.process(data)).unwrap();
+                    Ok(msg) => {
+                        trace!("Received data: {:?}", msg);
+                        match msg {
+                            InputData::RocketData(data) => {
+                                server_send.send(rocket_processing.process(data)).unwrap();
+                            }
+                            InputData::MavlinkRadioStatus(status) => {
+                                link_send.send(LinkData::RadioStatus(status)).unwrap()
+                            }
+                            InputData::MavlinkHeader(header) => {
+                                link_send.send(LinkData::MavlinkHeader(header)).unwrap()
+                            }
+                            InputData::MavlinkHeartbeat() => {
+                                link_send.send(LinkData::MavlinkHeartbeat()).unwrap()
+                            }
+                        }
                     }
-                    InputData::MavlinkRadioStatus(status) => {
-                        link_send.send(LinkData::RadioStatus(status)).unwrap()
+                    Err(e) => {
+                        continue;
                     }
-                    InputData::MavlinkHeader(header) => {
-                        link_send.send(LinkData::MavlinkHeader(header)).unwrap()
-                    }
-                    InputData::MavlinkHeartbeat() => {
-                        link_send.send(LinkData::MavlinkHeartbeat()).unwrap()
-                    }
-                }
+                };
             }
         })
         .unwrap()
