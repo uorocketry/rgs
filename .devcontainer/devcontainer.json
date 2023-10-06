@@ -1,34 +1,29 @@
 {
-    "name": "uORocketry",
-    "build": {
-        "dockerfile": "Dockerfile",
-        "context": "../"
-    },
-    "features": {
-        "ghcr.io/devcontainers/features/common-utils:2": {
-            "installZsh": false,
-            "installOhMyZsh": false,
-            "username": "vscode"
-        }
-    },
-    "remoteUser": "vscode",
-    "portsAttributes": {
-        "3000": {
-            "label": "RGS Web"
-        },
-        "3001": {
-            "label": "RGS WS"
-        },
-        "3002": {
-            "label": "ZeroMQ Server"
-        }
-    },
-	"postCreateCommand": "./scripts/clean.sh",
+	"name": "Ubuntu",
+	"image": "mcr.microsoft.com/devcontainers/base:jammy",
+	"forwardPorts": [],
 	"customizations": {
 		"vscode": {
 			"extensions": [
-				"svelte.svelte-vscode"
+				"GitHub.copilot",
+				"GitHub.copilot-chat",
+				"GitHub.copilot-labs",
+				"rust-lang.rust-analyzer",
+				"svelte.svelte-vscode",
+				"VisualStudioExptTeam.vscodeintellicode",
+				"alex-young.pm2-explorer",
+				"esbenp.prettier-vscode",
+				"dbaeumer.vscode-eslint"
 			]
+		}
+	},
+	"postCreateCommand": "chmod u+x ./scripts/postcreate.sh && cd scripts && ./postcreate.sh",
+	"portsAttributes": {
+		"3000": {
+			"label": "web"
+		},
+		"8090": {
+			"label": "db"
 		}
 	}
 }

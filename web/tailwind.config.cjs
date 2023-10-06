@@ -5,11 +5,12 @@ module.exports = {
 		themes: [
 			{
 				rgs: {
-					primary: '#006DB7',
-					secondary: '#EC1C24',
+					primary: '#8F001A',
+					'primary-content': '#FFFFFF',
+					secondary: '#ffffff',
 					accent: '#FFCF00',
-					neutral: '#EFEFEF',
-					'base-100': '#FFFFFF',
+					neutral: '#FFFFFF',
+					'base-100': '#ffffff',
 					info: '#FFCF00',
 					success: '#36D399',
 					warning: '#FFCF00',

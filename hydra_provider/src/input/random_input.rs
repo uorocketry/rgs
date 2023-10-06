@@ -124,9 +124,9 @@ impl RandomInput {
         };
 
         let gps_pos1 = GpsPos1 {
-            timeStamp: time.ticks() as u32,
+            time_stamp: time.ticks() as u32,
             status: self.rng.gen(),
-            timeOfWeek: self.rng.gen(),
+            time_of_week: self.rng.gen(),
             latitude: self.rng.gen(),
             longitude: self.rng.gen(),
             altitude: self.rng.gen(),
@@ -134,12 +134,12 @@ impl RandomInput {
         };
 
         let gps_pos2 = GpsPos2 {
-            latitudeAccuracy: self.rng.gen(),
-            longitudeAccuracy: self.rng.gen(),
-            altitudeAccuracy: self.rng.gen(),
-            numSvUsed: self.rng.gen(),
-            baseStationId: self.rng.gen(),
-            differentialAge: self.rng.gen(),
+            latitude_accuracy: self.rng.gen(),
+            longitude_accuracy: self.rng.gen(),
+            altitude_accuracy: self.rng.gen(),
+            num_sv_used: self.rng.gen(),
+            base_station_id: self.rng.gen(),
+            differential_age: self.rng.gen(),
         };
 
         // Array of sensor messages (we will select one of it)
