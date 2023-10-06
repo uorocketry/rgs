@@ -8,6 +8,5 @@
 #include <atomic>
 #include <chrono>
 #include "peripherals/peripherals.hpp"
-#include "utils/C_C++_LJM/LJM_Utilities.h"
 
 #endif // MAIN_HPP

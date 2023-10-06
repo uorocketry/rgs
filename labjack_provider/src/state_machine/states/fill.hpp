@@ -1,19 +1,7 @@
 #ifndef FILL_HPP
 #define FILL_HPP
 
-#include "state_machine_context.hpp"
-#include "state.hpp"
-
-class Fill : public State {
-public:
-    Fill(FillContext* context);
-    ~Fill();
-    void enter_state();
-    void exit_state();
-    State* step();
-private:
-    FillContext* context;
-};
+#include "../state.hpp"
 
 
 class FillContext : public StateContext {
@@ -25,6 +13,18 @@ public:
 private:
     std::vector<std::shared_ptr<Peripheral>> peripherals;
     LabJack labjack; // should be a reference
+};
+
+
+class Fill : public State {
+public:
+    Fill(FillContext* context);
+    ~Fill();
+    void enter_state();
+    void exit_state();
+private:
+    State* step_impl();
+    FillContext* context;
 };
 
 #endif // FILL_HPP
