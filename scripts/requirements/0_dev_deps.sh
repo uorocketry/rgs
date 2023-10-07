@@ -9,5 +9,6 @@ sudo apt -qq install -y \
     pkg-config \
     libudev-dev \
     inotify-tools \
-    cmake
+    cmake \
+    libusb-1.0-0-dev
 echo '✅ Dev dependencies installed'
