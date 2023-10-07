@@ -1,3 +1,0 @@
-/home/ns/Rocketry/rgs/labjack_provider/CMakeFiles/labjack.dir
-/home/ns/Rocketry/rgs/labjack_provider/CMakeFiles/edit_cache.dir
-/home/ns/Rocketry/rgs/labjack_provider/CMakeFiles/rebuild_cache.dir
