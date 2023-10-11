@@ -1,14 +1,14 @@
 <script lang="ts">
 	// CSS
+	import '@fortawesome/fontawesome-free/css/all.min.css';
 	import '../app.css';
 	import '../leaflet.css';
-	import '@fortawesome/fontawesome-free/css/all.min.css';
 
 	import 'chart.js/auto'; // Import everything from chart.js
-	import Header from '$lib/components/Header.svelte';
-	import MasterCommandBox from '$lib/components/commandPallete/MasterCommandBox.svelte';
-	import { onMount } from 'svelte';
 	import { startLayout } from '$lib/common/layoutStore';
+	import Header from '$lib/components/smart/Header.svelte';
+	import MasterCommandBox from '$lib/components/smart/commandPallete/MasterCommandBox.svelte';
+	import { onMount } from 'svelte';
 
 	onMount(() => {
 		startLayout();
@@ -21,9 +21,7 @@
 		<Header />
 	</header>
 
-	<main class="overflow-auto">
-		<slot />
-	</main>
+	<slot />
 </div>
 
 <style>
@@ -41,11 +39,5 @@
 	header {
 		flex: 0 1 auto;
 		z-index: 1;
-	}
-
-	main {
-		position: relative;
-		bottom: 0;
-		flex: 1 1 auto;
 	}
 </style>
