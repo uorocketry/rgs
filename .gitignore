@@ -25,5 +25,29 @@ node_modules/
 data
 vite.config.ts.*.mjs
 
+# database
+pocketbase/pb_data/*
+
+
+db/dist/
+
+# labjack provider build
+labjack_provider/build
+
+# VSCode config
+.vscode/*
+
 */dist/
 target
+
+# cmake
+CMakeCache.txt
+CMakeFiles
+cmake_install.cmake
+**/CMakeFiles/
+**/cmake_install.cmake
+Makefile
+CMakeHelloWorld
+*.a
+**/*.a
+build/**

@@ -1,0 +1,51 @@
+Version History
+---------------
+
+2019-05-16 (LJM 1.2001)
+ - LJM_StreamUtilities.h: Renamed CountAndOutputNumSkippedScans -> CountAndOutputNumSkippedSamples.
+ - LJM_Utilities.h: Added Get().
+ - Added cstring header to sd_util.hpp. Fixes CentOS 6 compilation.
+ - Minor URL updates.
+
+2019-03-27 (LJM 1.2000)
+ - Added SD card examples to more/sd/.
+     - change_directory.cpp
+     - delete_file.cpp
+     - get_disk_info.cpp
+     - list_directory.cpp
+     - print_working_directory.cpp
+     - read_file.cpp
+ - Removed dependency to symbol pow in c-r_speed_test.c. pow was not available on some older Linux distributions.
+
+2018-02-20 (LJM 1.2000)
+ - Added an Xcode project for write_read_loop_with_config
+ - stream_basic.c: Added usage of LJM_GetStreamTCPReceiveBufferStatus
+ - stream_basic_with_stream_out.c can now do UINT16 stream out targets
+ - Fixed the NumberToDebugLogMode definition in LJM_Utilities.h
+
+2018-10-02 (LJM 1.1900)
+ - Added more/stream/stream_sequential_ain.c
+ - Added more/testing/write_read_loop_with_config_speed_test_eNames.c
+ - Added more/utilities/dynamic_runtime_linking/windows_dynamic_runtime_linking.c
+ - Renamed basic/read_write_loop_with_config.c to basic/write_read_loop_with_config.c
+
+2018-01-02 (LJM 1.1700)
+ - Added T4 support to read_cal.c
+
+2017-08-31 (LJM 1.1600)
+ - Added 1-wire example
+ - Many refactors
+
+2017-01-06 (LJM 1.1404)
+ - Added T4 support.
+ - Renamed:
+     stream/callback_stream.c to stream/stream_callback.c
+     stream/o_stream_only.c to stream/stream_out_only.c
+     stream/o_stream_run.c to stream/stream_basic_with_stream_out.c
+     stream/o_stream_update.c to stream/stream_out_update.c
+     stream/stream_all_or_none.c to stream/stream_external_clock.c
+     stream/stream_example.c to stream/stream_basic.c
+ - Added:
+     dio_ef/dio_ef_config_1_pwm_and_1_counter.c
+     spi/spi.c
+ - Many refactors
