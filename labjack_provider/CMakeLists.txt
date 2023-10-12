@@ -14,11 +14,17 @@ include_directories(
     src/utils/C_C++_LJM
 )
 
+# Find cppzmq package
+find_package(cppzmq REQUIRED)
+
 # Add executable target
 add_executable(${PROJECT_NAME} ${SOURCES})
 
 # Link against LabJackM library (adjust the library name if needed)
 target_link_libraries(${PROJECT_NAME} LabJackM)
+
+# Link against cppzmq library
+target_link_libraries(${PROJECT_NAME} cppzmq)
 
 # Set the output directory for the executable
 set_target_properties(${PROJECT_NAME} PROPERTIES

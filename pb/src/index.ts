@@ -1,20 +1,20 @@
-import zmq from "zeromq";
 import PocketBase from "pocketbase";
+import zmq from "zeromq";
 // Ayo? 🤨
 import {
   Air,
   Data,
   EkfNav1,
   EkfNav2,
+  GpsPos1,
+  GpsPos2,
   GpsVel,
   Imu1,
   Imu2,
   LinkStatus,
   ProcessedMessage,
-  UtcTime,
   StateData,
-  GpsPos1,
-  GpsPos2,
+  UtcTime,
 } from "@rgs/bindings";
 
 function envRequired(name: string): string {
@@ -92,6 +92,7 @@ zmqSock.subscribe();
 console.log("Connected to ZMQ on address", `tcp://localhost:${PORT}`);
 // Listen and store messages
 for await (const [msg] of zmqSock) {
+  console.log("Received message", msg.toString());
   const obj = JSON.parse(msg.toString()) as ProcessedMessage;
   if ("RocketMessage" in obj) {
     const rocketMsg = obj.RocketMessage;
