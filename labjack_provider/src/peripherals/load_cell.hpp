@@ -3,6 +3,7 @@
 
 #include <iostream>
 #include <assert.h>
+#include <mutex>
 #include "peripheral.hpp"
 
 class LoadCell : public Peripheral {
