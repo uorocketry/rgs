@@ -6,38 +6,48 @@
 
 	import 'chart.js/auto'; // Import everything from chart.js
 	import { startLayout } from '$lib/common/layoutStore';
-	import Header from '$lib/components/smart/Header.svelte';
+	import { AppBar, AppShell, LightSwitch } from '@skeletonlabs/skeleton';
+
+	import SideBar from '$lib/components/smart/SideBar.svelte';
 	import MasterCommandBox from '$lib/components/smart/commandPallete/MasterCommandBox.svelte';
 	import { onMount } from 'svelte';
-
 	onMount(() => {
 		startLayout();
 	});
 </script>
 
-<div id="wrapper" class="wrapper">
-	<MasterCommandBox />
-	<header>
-		<Header />
-	</header>
-
+<AppShell>
+	<svelte:fragment slot="header">
+		<AppBar
+			padding="p-0"
+			background="bg-surface-100-800-token"
+			border="border-b border-surface-500"
+		>
+			<svelte:fragment slot="lead">
+				<img src="/favicon-32x32.png" class="ml-1 w-8 h-8 p-1" alt="logo" />
+			</svelte:fragment>
+			<div class="flex place-content-center max-h-8">
+				<button class="btn flex place-content-center btn-xs w-full max-w-sm variant-glass">
+					<i class="fa-solid fa-magnifying-glass text-sm"></i>
+					<small>&Tilde; (Tilde)</small>
+				</button>
+			</div>
+			<svelte:fragment slot="trail">
+				<div class="mr-1">
+					<LightSwitch />
+				</div>
+			</svelte:fragment>
+		</AppBar>
+	</svelte:fragment>
+	<svelte:fragment slot="sidebarLeft">
+		<MasterCommandBox />
+		<SideBar />
+	</svelte:fragment>
 	<slot />
-</div>
-
-<style>
-	.wrapper {
-		position: fixed;
-		display: flex;
-		flex-flow: column;
-		height: 100%;
-		width: 100%;
-		min-height: 100%;
-		margin: 0px auto;
-		padding: 0px auto;
-	}
-
-	header {
-		flex: 0 1 auto;
-		z-index: 1;
-	}
-</style>
+	<!-- footer -->
+	<svelte:fragment slot="footer">
+		<div class="max-h-5 h-5 bg-surface-100-800-token border-t border-surface-500">
+			<!-- TODO -->
+		</div>
+	</svelte:fragment>
+</AppShell>

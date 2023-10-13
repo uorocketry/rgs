@@ -33,6 +33,9 @@ export const layoutConfig: Writable<LayoutConfig> = writable({
 	settings: {
 		showPopoutIcon: false
 	},
+	dimensions: {
+		headerHeight: 32
+	},
 	root: {
 		type: 'row',
 		content: [
