@@ -22,8 +22,7 @@ link_directories(vendor/labjack/lib)
 add_executable(${PROJECT_NAME} ${SOURCES})
 
 # Link against LabJackM library (adjust the library name if needed)
-target_link_libraries(${PROJECT_NAME} LabJackM)
-# target_link_libraries(${PROJECT_NAME} PRIVATE ${CMAKE_SOURCE_DIR}/vendor/labjack/lib/libLabJackM.so)
+target_link_libraries(${PROJECT_NAME} PRIVATE ${CMAKE_SOURCE_DIR}/vendor/labjack/lib/libLabJackM.so)
 
 # Set the output directory for the executable
 set_target_properties(${PROJECT_NAME} PROPERTIES
