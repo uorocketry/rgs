@@ -3,7 +3,8 @@
 
 #include <iostream>
 #include <assert.h>
-#include "peripheral.hpp"
+#include <LabJackM.h>
+// #include "utils/C_C++_LJM/LJM_Utilities.h"
 
 class LabJack{
 public:

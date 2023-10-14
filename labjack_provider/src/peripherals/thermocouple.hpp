@@ -21,7 +21,7 @@ class Thermocouple : public Peripheral {
 public:
     Thermocouple(const char* initialName = "AIN0", ThermocoupleType type = ThermocoupleType::K);
     void test_peripheral(LabJack handle) override;
-    double read_temperature(LabJack handle);
+    double read_temperature(LabJack handle);   
 private:
     const char* name; 
     ThermocoupleType type;

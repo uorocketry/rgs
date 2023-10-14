@@ -7,7 +7,6 @@ yarn-error.log*
 lerna-debug.log*
 .pnpm-debug.log*
 
-
 # Dependency directories
 node_modules/
 .pnpm-store
@@ -18,23 +17,9 @@ node_modules/
 # Yarn Integrity file
 .yarn-integrity
 
-# dotenv environment variable files
-.env.development.local
-.env.test.local
-.env.production.local
+# local dotenv files
+.env.*.local
 .env.local
-
-# SvelteKit
-.DS_Store
-node_modules
-/build
-/.svelte-kit
-/package
-.env
-.env.*
-!.env.example
-.vercel
-.output
 
 # Temporary files
 data
@@ -51,3 +36,18 @@ labjack_provider/build
 
 # VSCode config
 .vscode/*
+
+*/dist/
+target
+
+# cmake
+CMakeCache.txt
+CMakeFiles
+cmake_install.cmake
+**/CMakeFiles/
+**/cmake_install.cmake
+Makefile
+CMakeHelloWorld
+*.a
+**/*.a
+build/**

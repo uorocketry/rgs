@@ -10,7 +10,7 @@ int main() {
     LabJack labjack = LabJack();
     servo.setup_servo(labjack);
     servo.write_angle(labjack, 0.0);
-	MillisecondSleep(5000);
+	// MillisecondSleep(5000);
     servo.write_angle(labjack, 180.0);
     // Set up a flag to control the loop
     std::atomic<bool> exitFlag = false;
@@ -58,7 +58,7 @@ int main() {
     // Wait for the input thread to finish
     inputThread.join();
 
-    ~labjack;
+
 
     std::cout << "Exiting the program." << std::endl;
     return 0;

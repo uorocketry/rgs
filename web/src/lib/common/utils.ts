@@ -2,7 +2,7 @@ import { pb } from '$lib/stores';
 import type { LatLngLiteral } from 'leaflet';
 import type { BaseModel, RecordSubscription } from 'pocketbase';
 import { onDestroy, onMount } from 'svelte';
-import { writable, type Unsubscriber, type Writable } from 'svelte/store';
+import { writable, type Writable } from 'svelte/store';
 
 export const theme: Writable<string> = writable();
 
@@ -23,10 +23,13 @@ export function onInterval(callback: () => void, milliseconds: number) {
 	});
 }
 
-export function onCollection<T>(collection: string, callback: (msg: RecordSubscription<T>) => void) {
+export function onCollection<T>(
+	collection: string,
+	callback: (msg: RecordSubscription<T>) => void
+) {
 	onMount(() => {
-		const unsubscribe = pb.collection(collection).subscribe("*", (msg) => {
-			msg.record = unflattenObjectWithArray(msg.record)
+		const unsubscribe = pb.collection(collection).subscribe('*', (msg) => {
+			msg.record = unflattenObjectWithArray(msg.record);
 			callback(msg as RecordSubscription<T>);
 		});
 		return async () => {
@@ -44,21 +47,20 @@ export function onCollectionCreated<T>(collection: string, callback: (msg: T) =>
 	onCollection(collection, createdFilter);
 }
 
-export async function lastCollectionRecord<T = BaseModel>(collection: string): Promise<T | undefined> {
-	const ret = await pb.collection(collection).getList(1, 1,
-		{
-			sort: '-created',
-			$autoCancel: false,
-		})
+export async function lastCollectionRecord<T = BaseModel>(
+	collection: string
+): Promise<T | undefined> {
+	const ret = await pb.collection(collection).getList(1, 1, {
+		sort: '-created',
+		$autoCancel: false
+	});
 	if (ret.items.length === 0) {
 		return undefined;
 	} else {
-		let rec = ret.items[0].export();
-		rec = unflattenObjectWithArray(rec);
+		const rec = unflattenObjectWithArray(ret.items[0]);
 		return rec as T;
 	}
 }
-
 
 export function formatVariableName(name: string): string {
 	return name
@@ -69,11 +71,8 @@ export function formatVariableName(name: string): string {
 
 // ThisIsCamelCase -> This Is Camel Case
 export function formatCamelCase(name: string): string {
-	return name
-		.replace(/([A-Z])/g, ' $1')
-		.replace(/^./, (str) => str.toUpperCase());
+	return name.replace(/([A-Z])/g, ' $1').replace(/^./, (str) => str.toUpperCase());
 }
-
 
 export function getRandomHexColorFromString(str: string, contrastThreshold = 0.8): string {
 	// Convert the string to a unique number by summing the character codes
@@ -103,8 +102,9 @@ export function getRandomHexColorFromString(str: string, contrastThreshold = 0.8
 	return hexColor;
 }
 
-export function flattenObjectWithArray(obj: any) {
-	const res: any = {};
+type KV = { [key: string | number]: unknown } | ArrayLike<unknown>;
+export function flattenObjectWithArray(obj: KV) {
+	const res: KV = {};
 	// Iterate over all keys in the object
 	for (const key in obj) {
 		const el = obj[key];
@@ -127,8 +127,8 @@ export function flattenObjectWithArray(obj: any) {
  * merge them into an array. This is the inverse of flattenObjectWithArray.
  * @param obj
  */
-export function unflattenObjectWithArray<T>(obj: any): T {
-	const res: any = {};
+export function unflattenObjectWithArray<T>(obj: KV): T {
+	const res: KV = {};
 	for (const key in obj) {
 		const el = obj[key];
 		// Regex match for keys with _0, _1, _2, etc.
@@ -136,13 +136,13 @@ export function unflattenObjectWithArray<T>(obj: any): T {
 		if (match) {
 			const baseName = key.substring(0, match.index);
 			res[baseName] = res[baseName] || [];
-			res[baseName].push(el);
+			//
+			(res[baseName] as Array<unknown>).push(el);
 		} else {
 			res[key] = el;
 		}
 	}
-	return res;
-
+	return res as T;
 }
 
 export function max(a: number, b: number) {
@@ -156,16 +156,18 @@ export function haversineDistance(coord1: LatLngLiteral, coord2: LatLngLiteral):
 
 	const a =
 		Math.sin(dLat / 2) * Math.sin(dLat / 2) +
-		Math.cos(toRad(coord1.lat)) * Math.cos(toRad(coord2.lat)) * Math.sin(dLon / 2) * Math.sin(dLon / 2);
+		Math.cos(toRad(coord1.lat)) *
+			Math.cos(toRad(coord2.lat)) *
+			Math.sin(dLon / 2) *
+			Math.sin(dLon / 2);
 
 	const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
 	return R * c;
 }
 
 function toRad(v: number) {
-	return v * Math.PI / 180;
+	return (v * Math.PI) / 180;
 }
-
 
 export function roundToDecimalPlaces(num: number, decimalPlaces: number) {
 	const factor = Math.pow(10, decimalPlaces);
