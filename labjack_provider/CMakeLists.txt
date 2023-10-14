@@ -28,10 +28,3 @@ target_link_libraries(${PROJECT_NAME} PRIVATE ${CMAKE_SOURCE_DIR}/vendor/labjack
 set_target_properties(${PROJECT_NAME} PROPERTIES
     RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/bin"
 )
-
-# Copy LabJackM shared library to the output directory
-#add_custom_command(TARGET ${PROJECT_NAME} POST_BUILD
-#    COMMAND ${CMAKE_COMMAND} -E copy_if_different
-#        $<TARGET_FILE:LabJackM>
-#        $<TARGET_FILE_DIR:${PROJECT_NAME}>
-#)
