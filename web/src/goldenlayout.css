@@ -7,10 +7,11 @@
 
 .lm_dropTargetIndicator {
 	outline: 1px dashed rgba(var(--color-surface-500) / 1);
-	.lm_inner {
-		background: rgba(var(--color-surface-900) / 1);
-		opacity: 0.1;
-	}
+}
+
+.lm_dropTargetIndicator .lm_inner {
+	background: rgba(var(--color-surface-900) / 1);
+	opacity: 0.1;
 }
 
 .lm_splitter {
