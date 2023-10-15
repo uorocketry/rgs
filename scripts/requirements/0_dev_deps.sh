@@ -8,5 +8,7 @@ echo '📥 Installing dev dependencies'
 sudo apt -qq install -y \
     pkg-config \
     libudev-dev \
-    inotify-tools 
+    inotify-tools \
+    cmake \
+    libusb-1.0-0-dev
 echo '✅ Dev dependencies installed'
