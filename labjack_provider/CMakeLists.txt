@@ -12,13 +12,17 @@ include_directories(
     src
     src/peripherals
     src/utils/C_C++_LJM
+    vendor/labjack/include
 )
+
+# Set the LabJackM library path
+link_directories(vendor/labjack/lib)
 
 # Add executable target
 add_executable(${PROJECT_NAME} ${SOURCES})
 
 # Link against LabJackM library (adjust the library name if needed)
-target_link_libraries(${PROJECT_NAME} LabJackM)
+target_link_libraries(${PROJECT_NAME} PRIVATE ${CMAKE_SOURCE_DIR}/vendor/labjack/lib/libLabJackM.so)
 
 # Set the output directory for the executable
 set_target_properties(${PROJECT_NAME} PROPERTIES
