@@ -10,14 +10,6 @@ html {
 	overflow: hidden;
 }
 
-.article {
-	@apply prose;
-	@apply bg-base-200;
-	@apply m-auto;
-	@apply p-4;
-	@apply flex-1;
-}
-
 /* ScrollBar */
 
 ::-webkit-scrollbar-thumb:hover {

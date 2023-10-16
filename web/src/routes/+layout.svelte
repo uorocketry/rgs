@@ -8,12 +8,15 @@
 	import { startLayout } from '$lib/common/layoutStore';
 	import { AppBar, AppShell, LightSwitch } from '@skeletonlabs/skeleton';
 
+	import { findSetting } from '$lib/common/settings';
 	import SideBar from '$lib/components/smart/SideBar.svelte';
 	import MasterCommandBox from '$lib/components/smart/commandPallete/MasterCommandBox.svelte';
 	import { onMount } from 'svelte';
 	onMount(() => {
 		startLayout();
 	});
+
+	const sideBarLeft = findSetting<boolean>('ui.sidebarLeft')?.value;
 </script>
 
 <AppShell>
@@ -39,10 +42,19 @@
 			</svelte:fragment>
 		</AppBar>
 	</svelte:fragment>
+	<MasterCommandBox />
 	<svelte:fragment slot="sidebarLeft">
-		<MasterCommandBox />
-		<SideBar />
+		{#if $sideBarLeft}
+			<SideBar />
+		{/if}
 	</svelte:fragment>
+
+	<svelte:fragment slot="sidebarRight">
+		{#if !$sideBarLeft}
+			<SideBar />
+		{/if}
+	</svelte:fragment>
+
 	<slot />
 	<!-- footer -->
 	<svelte:fragment slot="footer">
