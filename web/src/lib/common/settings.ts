@@ -34,7 +34,6 @@ type Setting = { name: string; description?: string } & ValueT;
 
 type SettingsGroup = {
 	name: string;
-	// eslint-disable-next-line @typescript-eslint/no-explicit-any
 	settings: Setting[];
 };
 
@@ -58,7 +57,19 @@ const uiSettings: SettingsGroup = {
 	]
 } as const;
 
-export const settings: SettingsGroup[] = [uiSettings] as const;
+const notificationSettings: SettingsGroup = {
+	name: 'notifications',
+	settings: [
+		{
+			name: 'consoleNotifications',
+			description: 'Enable on-screen console notifications',
+			valueDescription: 'boolean',
+			value: localStorageStore('notifications.consoleNotifications', false)
+		}
+	]
+} as const;
+
+export const settings: SettingsGroup[] = [uiSettings, notificationSettings] as const;
 
 // ui.sidebarLeft
 export const findSetting = (name: string): Setting | undefined => {

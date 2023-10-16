@@ -24,9 +24,7 @@
 						checked={settingValue}
 						type="checkbox"
 						on:change={() => {
-							console.log('settingVal', settingVal);
-							let val = get(settingVal);
-							settingVal.set(!val);
+							settingVal.set(!get(settingVal));
 						}}
 					/>
 				{:else if setting.valueDescription === 'number'}
@@ -38,7 +36,7 @@
 						value={settingValue}
 						type="number"
 						on:change={(e) => {
-							settingVal.set(Number(e.target.value));
+							settingVal.set(Number(e.target?.value ?? 0));
 						}}
 					/>
 				{:else if setting.valueDescription === 'string'}
@@ -50,7 +48,7 @@
 						value={settingValue}
 						type="text"
 						on:change={(e) => {
-							settingVal.set(e.target.value);
+							settingVal.set(e.target?.value ?? 0);
 						}}
 					/>
 				{:else if setting.valueDescription === 'array'}

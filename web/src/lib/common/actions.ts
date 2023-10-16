@@ -1,8 +1,8 @@
-import { get, writable, type Writable } from 'svelte/store';
-import { layoutComponentsString, layoutConfig, virtualLayout } from './layoutStore';
-import { LayoutConfig } from 'golden-layout';
 import { pb } from '$lib/stores';
+import { LayoutConfig } from 'golden-layout';
+import { get, writable, type Writable } from 'svelte/store';
 import { flightDirector, launchPoint } from '../realtime/flightDirector';
+import { layoutComponentsString, layoutConfig, virtualLayout } from './layoutStore';
 
 export interface CommandAction {
 	name: string;
@@ -10,8 +10,8 @@ export interface CommandAction {
 }
 
 export interface CommandRequest {
-	string: (prompt: string, placeholder: string) => Promise<string | undefined>;
-	select: (prompt: string, options: string[]) => Promise<number | undefined>;
+	string: (prompt: string, placeholder?: string) => Promise<string | undefined>;
+	select: (prompt: string, options: string[], placeholder?: string) => Promise<number | undefined>;
 }
 
 const defaultAdapterResponse = async () => {
@@ -52,7 +52,7 @@ export const commandActions: Writable<CommandAction[]> = writable([
 			const layouts = await pb.collection('layouts').getFullList();
 			const layoutNames = layouts.map((l) => l.name);
 
-			const layoutIndex = await cmd.select('Layout name?', layoutNames);
+			const layoutIndex = await cmd.select('Layout name?', layoutNames, 'Recovery Layout');
 			if (layoutIndex === undefined) return;
 			const layout = layouts[layoutIndex];
 			layoutConfig.set(LayoutConfig.fromResolved(layout.data));
@@ -63,12 +63,18 @@ export const commandActions: Writable<CommandAction[]> = writable([
 		do: async () => {
 			const cmd = get(commandReqAdaptor);
 			if (!cmd) return;
-
-			const toAdd = await cmd.select('Component to add?', layoutComponentsString);
+			const toAdd = await cmd.select('Component to add?', layoutComponentsString, 'ComponentName');
 			if (toAdd === undefined) return;
 			const vLayout = get(virtualLayout);
 			if (!vLayout) return;
 			vLayout.addComponent(layoutComponentsString[toAdd], undefined, layoutComponentsString[toAdd]);
+		}
+	},
+	{
+		name: 'Close command palette',
+		do: () => {
+			const cmd = get(commandReqAdaptor);
+			if (!cmd) return;
 		}
 	},
 	{

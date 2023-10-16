@@ -1,34 +1,30 @@
 <!-- Checkbox group -->
 <script lang="ts">
+	import { ListBox, ListBoxItem, popup, type PopupSettings } from '@skeletonlabs/skeleton';
+
 	export let dropdownLabel = 'Options';
 	export let options: string[] = [];
 	export let selected: string[] = [];
+	export let comboboxValue: string[] = [];
+
+	const popupCombobox: PopupSettings = {
+		event: 'click',
+		target: 'popupCombobox-' + dropdownLabel,
+		placement: 'bottom'
+	};
 </script>
 
-<div class="dropdown dropdown-bottom">
-	<!-- svelte-ignore a11y-label-has-associated-control -->
-	<!-- svelte-ignore a11y-no-noninteractive-tabindex -->
-	<label tabindex="0" class="btn btn-sm m-1">{dropdownLabel}</label>
-	<!-- svelte-ignore a11y-no-noninteractive-tabindex -->
-	<div class="dropdown-content z-10">
-		<ul
-			tabindex="0"
-			class=" menu p-2 shadow bg-base-100 rounded-box max-h-96 overflow-scroll flex-row"
-		>
-			{#each options as option}
-				<li class="form-control flex-1">
-					<label class="label cursor-pointer">
-						<span class="label-text">{option}</span>
-						<input
-							type="checkbox"
-							bind:group={selected}
-							checked={selected.includes(option)}
-							value={option}
-							class="checkbox"
-						/>
-					</label>
-				</li>
-			{/each}
-		</ul>
-	</div>
+<div class="card py-2" data-popup="popupCombobox-{dropdownLabel}">
+	<ListBox multiple>
+		{#each options as option}
+			<ListBoxItem bind:group={selected} name="{dropdownLabel}-{option}" value={option}
+				>{option}</ListBoxItem
+			>
+		{/each}
+	</ListBox>
+	<div class="arrow bg-surface-100-800-token" />
 </div>
+
+<button class="btn variant-filled" use:popup={popupCombobox}>
+	{dropdownLabel}
+</button>
