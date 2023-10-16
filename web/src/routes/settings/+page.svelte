@@ -28,7 +28,9 @@
 						}}
 					/>
 				{:else if setting.valueDescription === 'number'}
-					{@const settingVal = setting.value}
+					<!--TODO: Implement input for other types -->
+					Is Number
+					<!-- {@const settingVal = setting.value}
 					{@const settingValue = get(setting.value)}
 
 					<input
@@ -38,9 +40,10 @@
 						on:change={(e) => {
 							settingVal.set(Number(e.target?.value ?? 0));
 						}}
-					/>
+					/> -->
 				{:else if setting.valueDescription === 'string'}
-					{@const settingVal = setting.value}
+					Is String
+					<!-- {@const settingVal = setting.value}
 					{@const settingValue = get(setting.value)}
 
 					<input
@@ -50,7 +53,7 @@
 						on:change={(e) => {
 							settingVal.set(e.target?.value ?? 0);
 						}}
-					/>
+					/> -->
 				{:else if setting.valueDescription === 'array'}
 					Is Array
 				{:else if setting.valueDescription === 'kv'}
