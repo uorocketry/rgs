@@ -1,7 +1,6 @@
 import { skeleton } from '@skeletonlabs/tw-plugin';
 import { join } from 'path';
-
-// 1. Import the Skeleton plugin
+import { uorocketryTheme } from './src/lib/common/uorocketryTheme';
 
 const config = {
 	darkMode: 'class',
@@ -13,10 +12,7 @@ const config = {
 		require('@tailwindcss/typography'),
 		skeleton({
 			themes: {
-				preset: [
-					{ name: 'rocket', enhancements: true },
-					{ name: 'skeleton', enhancements: true }
-				]
+				custom: [uorocketryTheme]
 			}
 		})
 	]

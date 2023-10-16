@@ -5,19 +5,34 @@
 	import '../leaflet.css';
 
 	import 'chart.js/auto'; // Import everything from chart.js
-	import { startLayout } from '$lib/common/layoutStore';
-	import { AppBar, AppShell, LightSwitch } from '@skeletonlabs/skeleton';
+	import {
+		AppBar,
+		AppShell,
+		modeOsPrefers,
+		modeUserPrefers,
+		setModeCurrent,
+		setModeUserPrefers
+	} from '@skeletonlabs/skeleton';
 
 	import { findSetting } from '$lib/common/settings';
 	import SideBar from '$lib/components/smart/SideBar.svelte';
 	import MasterCommandBox from '$lib/components/smart/commandPallete/MasterCommandBox.svelte';
-	import { onMount } from 'svelte';
-	onMount(() => {
-		startLayout();
-	});
+	import { modeCurrent, setInitialClassState } from '@skeletonlabs/skeleton';
+	import type { Writable } from 'svelte/store';
 
-	const sideBarLeft = findSetting<boolean>('ui.sidebarLeft')?.value;
+	modeUserPrefers.set(false);
+	modeOsPrefers.set(false);
+	modeCurrent.set(false);
+	const sideBarLeft = findSetting('ui.sidebarLeft')?.value as Writable<boolean>;
+	const useDarkMode = findSetting('ui.lightMode')?.value as Writable<boolean>;
+
+	useDarkMode.subscribe((val) => {
+		setModeUserPrefers(val);
+		setModeCurrent(val);
+	});
 </script>
+
+<svelte:head>{@html `<script>(${setInitialClassState.toString()})();</script>`}</svelte:head>
 
 <AppShell>
 	<svelte:fragment slot="header">
@@ -35,11 +50,6 @@
 					<small>&Tilde; (Tilde)</small>
 				</button>
 			</div>
-			<svelte:fragment slot="trail">
-				<div class="mr-1">
-					<LightSwitch />
-				</div>
-			</svelte:fragment>
 		</AppBar>
 	</svelte:fragment>
 	<MasterCommandBox />

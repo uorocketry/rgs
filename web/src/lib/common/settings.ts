@@ -48,14 +48,20 @@ const uiSettings: SettingsGroup = {
 			description: 'Show side bar on the left side, otherwise on the right side',
 			valueDescription: 'boolean',
 			value: localStorageStore('ui.sidebarLeft', false)
+		},
+		{
+			name: 'lightMode',
+			description: 'Use light mode',
+			valueDescription: 'boolean',
+			value: localStorageStore('ui.lightMode', true)
 		}
 	]
 } as const;
 
-export const settings: SettingsGroup[] = [uiSettings];
+export const settings: SettingsGroup[] = [uiSettings] as const;
 
 // ui.sidebarLeft
-export const findSetting = <T>(name: string): Setting | undefined => {
+export const findSetting = (name: string): Setting | undefined => {
 	const groupName = name.split('.')[0];
 	const group = settings.find((group) => group.name === groupName);
 	if (group) {
