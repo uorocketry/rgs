@@ -15,5 +15,14 @@ else
     *) export PATH="$PNPM_HOME:$PATH" ;;
     esac
     pnpm setup
+    
+    // Install ZSH completions
+    echo '# PNPM configuration' >> ~/.zshrc
+    echo 'PNPM_HOME="$HOME/.local/share/pnpm"' >> ~/.zshrc
+    echo 'case ":$PATH:" in' >> ~/.zshrc
+    echo '*":$PNPM_HOME:"*) ;;' >> ~/.zshrc
+    echo '*) export PATH="$PNPM_HOME:$PATH" ;;' >> ~/.zshrc
+    echo 'esac' >> ~/.zshrc
+
     echo '✅ PNPM installed'
 fi
