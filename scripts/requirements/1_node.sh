@@ -14,5 +14,10 @@ else
     [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"
     nvm install node
     nvm use node
+
+    # Add zsh completions
+    echo 'export NVM_DIR=~/.nvm' >> ~/.zshrc
+    echo '[ -s "$NVM_DIR/nvm.sh" ] && . "$NVM_DIR/nvm.sh"' >> ~/.zshrc
+
     echo '✅ NODE installed'
 fi
