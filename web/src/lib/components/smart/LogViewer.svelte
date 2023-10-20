@@ -5,7 +5,6 @@
 	import GenericLogCard from '../dumb/GenericLogCard.svelte';
 
 	let logs: RawResponse[] = []
-	// $: logs: RawResponse[] = [] satisfies RawResponse[];
 
 	let search = '';
 
