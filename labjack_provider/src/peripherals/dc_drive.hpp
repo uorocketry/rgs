@@ -15,12 +15,13 @@ enum DCMotorDirection
 
 
 class DC_Drive : public Peripheral {
-    DC_Drive(const char* forwardName, const char* reverseName, double angle);
+    DC_Drive(const char* forwardName, const char* reverseName, const char* potentiometerName, double angle);
     void test_peripheral(LabJack handle) override;
     void forward(LabJack handle, int motorPower);
     void reverse(LabJack handle, int motorPower);
     void stop(LabJack handle);
-    void controlDCMotor(LabJack handle, int targetPosition, int motorPower);
+    double read_Angle(LabJack handle);
+    void controlDCMotor(LabJack handle, double targetPosition, int motorPower);
 
     
 private:
@@ -30,6 +31,7 @@ private:
     bool active = false;
     int targetPosition = 0;
     DCMotorDirection direction = DCMotorDirection::Stopped;
+    const char* potentiometerName;
 };
 
 
