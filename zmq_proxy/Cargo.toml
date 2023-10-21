@@ -1,9 +1,0 @@
-
-[package]
-name = "zmq_proxy"
-version = "0.0.1"
-
-[dependencies]
-clap = { version = "4.4.6", features = ["derive", "env"] }
-log = "0.4.20"
-zmq = "0.10.0"

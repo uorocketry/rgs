@@ -1,4 +1,4 @@
-const DB_REST_PORT = 8090;
+const DB_REST_PORT = 3001;
 
 const common_env = {
   // If you ever change these, you'll also need to change the ones in
@@ -6,10 +6,7 @@ const common_env = {
   DB_ADMIN: "admin@admin.com",
   DB_ADMIN_PASSWORD: "admin",
   DB_REST_PORT: DB_REST_PORT,
-  VITE_DB_REST_PORT: DB_REST_PORT,
-  
-  XPUB_PORT: 3002,  // PORT THAT SUBS CONNECT TO
-  XSUB_PORT: 3003,  // PORT THAT PUBS CONNECT TO
+  VITE_DB_REST_PORT: DB_REST_PORT,  
 };
 
 
@@ -19,7 +16,7 @@ module.exports = {
     {
       name: "pb",
       cwd: "pb",
-      script: "pnpm dev",
+      script: `./pocketbase serve --http=0.0.0.0:${DB_REST_PORT}`,
       env: common_env,
     },
     {
@@ -27,11 +24,6 @@ module.exports = {
       cwd: "web",
       script: "pnpm dev",
       env: common_env,
-    },
-    {
-      name: "zmq_proxy",
-      cwd: "zmq_proxy",
-      script: "./scripts/dev.sh",
     }
   ]
 };

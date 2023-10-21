@@ -1,14 +1,14 @@
 mod input;
+mod pb_client;
 mod processing;
-mod zeromq_server;
 
 use crate::input::FileInput;
 use crate::input::RandomInput;
 use crate::input::SerialInput;
+use crate::pb_client::PBClient;
 use crate::processing::{
     InputData, LinkData, LinkStatusProcessing, ProcessedMessage, RocketProcessing,
 };
-use crate::zeromq_server::ZeroMQServer;
 
 use anyhow::Result;
 use clap::ArgGroup;
@@ -155,7 +155,7 @@ fn start_server(args: Args, recv: Receiver<ProcessedMessage>) -> JoinHandle<()> 
         .name("ZMQ Server".to_string())
         .spawn(move || {
             info!("Starting ZeroMQ server on port {}", args.zeromq_port);
-            let server = ZeroMQServer::new(args.zeromq_port);
+            let server = PBClient::new(args.zeromq_port);
 
             loop {
                 let msg = recv
