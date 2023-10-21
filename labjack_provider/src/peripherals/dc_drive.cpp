@@ -96,6 +96,7 @@ void DC_Drive:: controlDCMotor(LabJack handle, double targetPosition, int motorP
                 this->active=false;
                 stop(handle);
             }
+            this->angle=read_Angle(handle);
 
         }
 }
