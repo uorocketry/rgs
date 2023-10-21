@@ -1,5 +1,10 @@
 <script lang="ts">
-	import { layoutComponents, layoutConfig, virtualLayout } from '$lib/common/layoutStore';
+	import {
+		layoutComponents,
+		layoutConfig,
+		startLayout,
+		virtualLayout
+	} from '$lib/common/layoutStore';
 	import type { JsonValue, VirtualLayout } from 'golden-layout';
 	import { onMount } from 'svelte';
 	import GoldenLayout from 'svelte-golden-layout';
@@ -13,6 +18,7 @@
 	}
 
 	onMount(() => {
+		startLayout();
 		goldenLayout.on('stateChanged', () => {
 			let config = get(virtualLayout);
 			if (config === undefined) {

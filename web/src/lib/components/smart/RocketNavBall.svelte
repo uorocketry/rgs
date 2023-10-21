@@ -1,5 +1,6 @@
 <script lang="ts">
 	import { ekf } from '$lib/realtime/linkStatus';
+	import { SlideToggle } from '@skeletonlabs/skeleton';
 	import { tweened } from 'svelte/motion';
 	import { Euler, MathUtils, Matrix4, Quaternion, Vector3, type EulerOrder } from 'three';
 	import NavBall from '../dumb/NavBall/NavBall.svelte';
@@ -69,43 +70,23 @@
 	}
 </script>
 
-<div class="w-full h-full flex flex-col relative">
-	<div class="absolute top-4 left-4 z-10 card bg-primary text-primary-content">
-		<!-- Pitch yaw row -->
-		<div class="card-body grid grid-cols-2">
-			<span>Roll</span>
-			<span class="text-right">{MathUtils.radToDeg(eulerRepr.x ?? 0).toFixed(2)}°</span>
-			<span>Pitch</span>
-			<span class="text-right">{MathUtils.radToDeg(eulerRepr.y ?? 0).toFixed(2)}°</span>
-			<span>Yaw</span>
-			<span class="text-right">{MathUtils.radToDeg(eulerRepr.z ?? 0).toFixed(2)}°</span>
-			<span>Pointing</span>
-			<span class="text-right">{upright(latestReportedRotation) ? 'Up' : 'Down'}</span>
-		</div>
-	</div>
-
-	<div class="flex-1 overflow-hidden">
-		<NavBall targetRotation={$targetRotation} bind:useRocketModel />
-	</div>
+<div class="z-10 absolute top-2 left-2 variant-glass p-2 grid grid-cols-2">
+	<span>Roll</span>
+	<span class="text-right">{MathUtils.radToDeg(eulerRepr.x ?? 0).toFixed(2)}°</span>
+	<span>Pitch</span>
+	<span class="text-right">{MathUtils.radToDeg(eulerRepr.y ?? 0).toFixed(2)}°</span>
+	<span>Yaw</span>
+	<span class="text-right">{MathUtils.radToDeg(eulerRepr.z ?? 0).toFixed(2)}°</span>
+	<span>Pointing</span>
+	<span class="text-right">{upright(latestReportedRotation) ? 'Up' : 'Down'}</span>
 </div>
 
-<!-- Abs bottom left  radio to control useROcketmodel-->
-<div class="absolute bottom-0 left-0 p-2">
-	<div class="join">
-		<input
-			class="join-item btn"
-			type="radio"
-			checked={true}
-			name="options"
-			aria-label="NavBall"
-			on:click={() => (useRocketModel = false)}
-		/>
-		<input
-			class="join-item btn"
-			type="radio"
-			name="options"
-			aria-label="Rocket"
-			on:click={() => (useRocketModel = true)}
-		/>
-	</div>
+<div class="z-10 absolute bottom-2 left-2 variant-glass p-2 flex gap-2 items-center">
+	<i class="fa-solid fa-globe"></i>
+	<SlideToggle name="slide" bind:checked={useRocketModel}></SlideToggle>
+	<i class="fa-solid fa-rocket"></i>
+</div>
+
+<div class="z-0 absolute w-full h-full">
+	<NavBall targetRotation={$targetRotation} bind:useRocketModel />
 </div>

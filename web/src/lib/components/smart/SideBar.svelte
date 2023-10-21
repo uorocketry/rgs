@@ -1,31 +1,10 @@
 <script lang="ts">
-	import {
-		formatCamelCase,
-		haversineDistance,
-		padFloatToDecimalPlaces,
-		roundToDecimalPlaces
-	} from '$lib/common/utils';
-	import { flightDirector, launchPoint } from '$lib/realtime/flightDirector';
-	import { rocketAltitude, rocketPosition } from '$lib/realtime/gps';
-	import { air, ekf, linkStatus, state } from '$lib/realtime/linkStatus';
-	import { commandBoxToggle as commandBoxToggle } from '$lib/stores';
-	import { fly } from 'svelte/transition';
-	import TimeCounter from '../dumb/CountdownTimer.svelte';
-
-	function cmdBoxOpen() {
-		commandBoxToggle.set({});
-	}
+	import { page } from '$app/stores';
+	import { AppRail, AppRailAnchor } from '@skeletonlabs/skeleton';
 </script>
 
-<div class="navbar bg-primary text-primary-content font-mono">
+<!-- <div class="navbar bg-primary text-primary-content font-mono">
 	<div class="navbar-start">
-		<a href="/" class="btn btn-ghost normal-case text-xl">RGS</a>
-		<div class="tooltip tooltip-bottom" data-tip="Dashboard">
-			<a href="/dashboard" class="btn btn-ghost normal-case text-xl">
-				<i class="fa-solid fa-chart-line" />
-			</a>
-		</div>
-
 		<div class="tooltip tooltip-bottom" data-tip="Commands">
 			<button class="btn btn-ghost normal-case text-xl" on:click={cmdBoxOpen}>
 				<i class="fa-solid fa-search" />
@@ -39,7 +18,6 @@
 		</div>
 	</div>
 	<div class="navbar-end gap-2">
-		<!-- Link Status -->
 		<div class="tooltip tooltip-bottom" data-tip="Link Status">
 			<button class="btn btn-accent normal-case text-xl">
 				{#if $linkStatus?.connected}
@@ -50,7 +28,6 @@
 			</button>
 		</div>
 
-		<!-- RSSI -->
 		<div class="tooltip tooltip-bottom" data-tip="RSSI">
 			<label for="my-modal-4" class="btn btn-accent p-2 whitespace-nowrap">
 				<i class="fa-solid fa-radio"></i>
@@ -84,7 +61,6 @@
 			</label>
 		</div>
 
-		<!-- Total Distance traveled -->
 		<div class="tooltip tooltip-bottom" data-tip="Total Distance Traveled">
 			<label for="my-modal-4" class="btn btn-accent p-2 whitespace-nowrap">
 				<i class="fa-solid fa-route"></i>
@@ -95,7 +71,6 @@
 			</label>
 		</div>
 
-		<!-- Relative Altitude -->
 		<div class="tooltip tooltip-bottom" data-tip="Relative Altitude">
 			<label for="my-modal-4" class="btn btn-accent p-2 whitespace-nowrap">
 				<i class="fa-solid fa-mountain"></i>
@@ -106,7 +81,6 @@
 			</label>
 		</div>
 
-		<!-- Current State -->
 		<div class="tooltip tooltip-bottom" data-tip="State">
 			<label for="my-modal-4" class=" btn btn-accent btn-wide">
 				{#key $state?.status}
@@ -119,4 +93,33 @@
 
 		<TimeCounter />
 	</div>
-</div>
+</div> -->
+<span class="bg-primary-hover-token"></span>
+
+<AppRail width="w-12" border="border-r border-surface-500" background="bg-surface-100-800-token">
+	<AppRailAnchor href="/dashboard" selected={$page.url.pathname === '/dashboard'} title="Dashboard">
+		<i class="text-surface-800-100-token fas fa-chart-line" />
+	</AppRailAnchor>
+	<AppRailAnchor href="/health" selected={$page.url.pathname === '/health'} title="System Health">
+		<i class="text-surface-800-100-token fas fa-heart"></i>
+	</AppRailAnchor>
+
+	<!-- <i class="fa-solid fa-database"></i> -->
+	<AppRailAnchor href="/db" selected={$page.url.pathname === '/db'} title="Data">
+		<i class="text-surface-800-100-token fas fa-database"></i>
+	</AppRailAnchor>
+	<svelte:fragment slot="trail">
+		<AppRailAnchor title="Help">
+			<i class="text-surface-800-100-token fas fa-question"></i>
+		</AppRailAnchor>
+		<AppRailAnchor href="/settings" selected={$page.url.pathname === '/settings'} title="Settings">
+			<i class="text-surface-800-100-token fas fa-cog"></i>
+		</AppRailAnchor>
+	</svelte:fragment>
+</AppRail>
+
+<style>
+	i {
+		@apply text-xl;
+	}
+</style>
