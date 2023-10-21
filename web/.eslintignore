@@ -9,3 +9,4 @@ svelte.config.js
 !.env.example
 
 target/
+tailwind.config.ts

@@ -5,8 +5,12 @@
 	let velocity = [0, 0, 0];
 	let acc = [0, 0, 0];
 
-	$: velocity = [$ekf.velocity![0], $ekf.velocity![1], $ekf.velocity![2]];
-	$: acc = [$imu.accelerometers![0], $imu.accelerometers![1], $imu.accelerometers![2]];
+	$: velocity = $ekf.velocity
+		? [$ekf.velocity[0], $ekf.velocity[1], $ekf.velocity[2]]
+		: [NaN, NaN, NaN];
+	$: acc = $imu.accelerometers
+		? [$imu.accelerometers[0], $imu.accelerometers[1], $imu.accelerometers[2]]
+		: [NaN, NaN, NaN];
 </script>
 
 <div class="w-full h-full overflow-x-auto">

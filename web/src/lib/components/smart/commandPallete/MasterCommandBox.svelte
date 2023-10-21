@@ -1,20 +1,20 @@
 <script lang="ts">
-	import { onDestroy, onMount, tick } from 'svelte';
-	import CommandBox from './CommandBox.svelte';
 	import { commandActions, commandReqAdaptor, type CommandRequest } from '$lib/common/actions';
-	import { get } from 'svelte/store';
 	import { commandBoxToggle } from '$lib/stores';
+	import { onDestroy, onMount, tick } from 'svelte';
+	import { get } from 'svelte/store';
+	import CommandBox from './CommandBox.svelte';
 
 	let visible = true;
 	let inputElement: HTMLInputElement;
 	let inputValue = '';
 	let list: string[] = [];
-	let placeholder = 'Search';
+	let placeholder = 'Search by name';
 	let prompt = '';
 	let selectedIndex = 0;
 
 	let cmdAdaptor: CommandRequest = {
-		string: async (reqPrompt, reqPlaceholder) => {
+		string: async (reqPrompt, reqPlaceholder = '...') => {
 			visible = true;
 			inputValue = '';
 			list = [];
@@ -36,11 +36,12 @@
 				});
 			});
 		},
-		select: async (reqPrompt, options) => {
+		select: async (reqPrompt, options, reqPlaceholder = 'Search by name') => {
 			visible = true;
 			inputValue = '';
 			list = options;
 			prompt = reqPrompt;
+			placeholder = reqPlaceholder;
 			await tick();
 			inputElement.focus();
 
@@ -60,7 +61,11 @@
 
 	async function chooseAction() {
 		let actionNames = get(commandActions).map((a) => a.name);
-		let choice: number | undefined = await cmdAdaptor.select('', actionNames); // Number
+		let choice: number | undefined = await cmdAdaptor.select(
+			'',
+			actionNames,
+			'Search action by name'
+		); // Number
 		if (choice === undefined) {
 			return;
 		}
@@ -93,6 +98,7 @@
 			visible = !visible;
 			if (visible) {
 				selectedIndex = 0;
+				placeholder = 'Search commands by name';
 				inputElement?.focus();
 				chooseAction();
 			}
