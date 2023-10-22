@@ -141,7 +141,7 @@ fn start_processing(
                             }
                         }
                     }
-                    Err(e) => {
+                    Err(_) => {
                         continue;
                     }
                 };
