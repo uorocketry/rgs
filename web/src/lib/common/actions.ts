@@ -105,8 +105,8 @@ export const commandActions: Writable<CommandAction[]> = writable([
 			pb.collection(Collections.FlightDirector).create({
 				latitude: lat,
 				longitude: lng,
-				targetAltitude: prevFD.targetAltitude,
-				relativeAltitude: prevFD.relativeAltitude
+				targetAltitude: prevFD?.targetAltitude,
+				relativeAltitude: prevFD?.relativeAltitude
 			} satisfies FlightDirectorRecord);
 		}
 	},
@@ -122,10 +122,10 @@ export const commandActions: Writable<CommandAction[]> = writable([
 			if (isNaN(targetAltNum)) return;
 			const prevFD = get(flightDirector);
 			pb.collection(Collections.FlightDirector).create({
-				latitude: prevFD.latitude,
-				longitude: prevFD.longitude,
+				latitude: prevFD?.latitude,
+				longitude: prevFD?.longitude,
 				targetAltitude: targetAltNum,
-				relativeAltitude: prevFD.relativeAltitude
+				relativeAltitude: prevFD?.relativeAltitude
 			} satisfies FlightDirectorRecord);
 		}
 	},
@@ -141,9 +141,9 @@ export const commandActions: Writable<CommandAction[]> = writable([
 			if (isNaN(targetAltNum)) return;
 			const prevFD = get(flightDirector);
 			pb.collection(Collections.FlightDirector).create({
-				latitude: prevFD.latitude,
-				longitude: prevFD.longitude,
-				targetAltitude: prevFD.targetAltitude,
+				latitude: prevFD?.latitude,
+				longitude: prevFD?.longitude,
+				targetAltitude: prevFD?.targetAltitude,
 				relativeAltitude: targetAltNum
 			} satisfies FlightDirectorRecord);
 		}

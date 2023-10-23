@@ -65,8 +65,8 @@
 			lng: $rocketPos.longitude ?? 0
 		});
 		home.set({
-			lat: $flightDirector.latitude ?? 0,
-			lng: $flightDirector.longitude ?? 0
+			lat: $flightDirector?.latitude ?? 0,
+			lng: $flightDirector?.longitude ?? 0
 		});
 	}
 

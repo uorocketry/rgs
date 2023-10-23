@@ -35,9 +35,8 @@ Make sure you have installed the following installed:
 - [Rust](https://www.rust-lang.org/tools/install)
 - libudev-dev
 - inotify-tools
-- [NodeJS](https://nodejs.org/en/download/current)
-  - pm2 (process manager) - `npm install -g pm2`
-  - pnpm (package manager) - `npm install -g pnpm`
+- [bun](https://bun.sh/)
+  - pm2 (process manager) - `bun install -g pm2`
 
 Then run the following commands:
 

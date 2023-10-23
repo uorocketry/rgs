@@ -28,7 +28,7 @@
 					</td>
 				</div>
 				<td>
-					<span class="text-right">{$linkStatus.connected ? 'Connected' : 'Disconnected'}</span>
+					<span class="text-right">{$linkStatus?.connected ? 'Connected' : 'Disconnected'}</span>
 				</td>
 			</tr>
 			<tr class="hover clicky cursor-pointer">
@@ -38,7 +38,7 @@
 					</td>
 				</div>
 				<td>
-					<span class="text-right">{$state.state}</span>
+					<span class="text-right">{$state?.state ?? 'Unknown'}</span>
 				</td>
 			</tr>
 			<tr class="hover clicky cursor-pointer">
@@ -48,7 +48,7 @@
 					</td>
 				</div>
 				<td>
-					<span class="text-right">{$linkStatus.missed_messages}</span>
+					<span class="text-right">{$linkStatus?.missed_messages ?? '?'}</span>
 				</td>
 			</tr>
 			<tr class="hover clicky cursor-pointer">
@@ -147,7 +147,7 @@
 					</td>
 				</div>
 				<td>
-					<span class="text-right">{$flightDirector.targetAltitude ?? '?'}</span>
+					<span class="text-right">{$flightDirector?.targetAltitude ?? '?'}</span>
 				</td>
 			</tr>
 			<tr class="hover clicky cursor-pointer">
@@ -160,7 +160,7 @@
 					</td>
 				</div>
 				<td>
-					<span class="text-right">{$flightDirector.relativeAltitude ?? '?'}</span>
+					<span class="text-right">{$flightDirector?.relativeAltitude ?? '?'}</span>
 				</td>
 			</tr>
 			<tr class="hover clicky cursor-pointer">
