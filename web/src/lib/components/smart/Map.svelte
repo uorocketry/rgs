@@ -2,19 +2,20 @@
 	import { browser } from '$app/environment';
 	import { defaultLaunchCoords, flightDirector } from '$lib/realtime/flightDirector';
 	import { rocketPos } from '$lib/realtime/gps';
-	import L, { type LatLngBoundsExpression } from 'leaflet';
+	import { localStorageStore } from '@skeletonlabs/skeleton';
+	import L from 'leaflet';
 	import { onDestroy, onMount } from 'svelte';
 	import { tweened } from 'svelte/motion';
+	import { writable } from 'svelte/store';
 
 	let map: L.Map | null;
 
 	const urlTemplate = '/api/tiles/{z}/{x}/{y}.png';
 
-	const brBound: L.LatLngTuple = [47.72952771887304, -81.38978578997438];
-	const tlBound: L.LatLngTuple = [48.23170547259465, -82.47626677156998];
-	const bounds: LatLngBoundsExpression = [brBound, tlBound];
+	const initialX = browser ? localStorageStore('mapX', 45.4215) : writable(0);
+	const initialY = browser ? localStorageStore('mapY', -75.6972) : writable(0);
 
-	const initialView: L.LatLngTuple = [(brBound[0] + tlBound[0]) / 2, (brBound[1] + tlBound[1]) / 2];
+	const initialView: L.LatLngTuple = [$initialX, $initialY];
 
 	let rocketMarker = L.marker(defaultLaunchCoords, {
 		icon: L.divIcon({
@@ -71,9 +72,6 @@
 
 	$: {
 		rocketMarker.setLatLng($target);
-	}
-
-	$: {
 		launchPointMarker.setLatLng($home);
 	}
 
@@ -106,6 +104,12 @@
 		toolbar.addTo(map);
 		launchPointMarker.addTo(map);
 		rocketMarker.addTo(map);
+
+		mapEl.onmouseup = () => {
+			// Save the map position
+			$initialX = map?.getCenter().lat ?? 0;
+			$initialY = map?.getCenter().lng ?? 0;
+		};
 	});
 
 	onDestroy(() => {
@@ -123,6 +127,16 @@
 			map.invalidateSize();
 		}
 	}
+
+	function onMouseUp() {
+		console.log('drag');
+	}
 </script>
 
-<div class="h-full w-full isolate" bind:this={mapEl} bind:clientHeight bind:clientWidth />
+<div
+	class="h-full w-full isolate"
+	bind:this={mapEl}
+	bind:clientHeight
+	bind:clientWidth
+	role="application"
+/>
