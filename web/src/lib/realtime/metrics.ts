@@ -64,7 +64,7 @@ export const total_traveled_distance: Readable<number> = derived(
 	[rocketPos, flightDirector],
 	([$rocketPos, $flightDirector]) => {
 		return haversineDistance(
-			{ lat: $rocketPos?.latitude ?? 0, lng: $rocketPos?.longitude ?? 0 }, 
+			{ lat: $rocketPos?.latitude ?? 0, lng: $rocketPos?.longitude ?? 0 },
 			{ lat: $flightDirector?.latitude ?? 0, lng: $flightDirector?.longitude ?? 0 }
 		);
 	}

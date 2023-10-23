@@ -38,16 +38,17 @@ export function onCollection<T extends Collections>(
 	});
 }
 
-export function onCollectionCreated<T extends Collections>(collection: T, callback: (msg: CollectionResponses[T]) => void) {
-	const createdFilter = (msg:  RecordSubscription<CollectionResponses[T]>) => {
+export function onCollectionCreated<T extends Collections>(
+	collection: T,
+	callback: (msg: CollectionResponses[T]) => void
+) {
+	const createdFilter = (msg: RecordSubscription<CollectionResponses[T]>) => {
 		if (msg.action === 'crete') {
 			callback(msg.record);
 		}
 	};
 	onCollection(collection, createdFilter);
 }
-
-
 
 export async function lastCollectionRecord<T extends Collections>(
 	collection: T

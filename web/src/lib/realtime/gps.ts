@@ -12,5 +12,4 @@ export const rocketPos = derived([rocketPos1, rocketPos2], ([$rocketPos1, $rocke
 	};
 });
 
-
 export const rocketVel = latestCollectionWritable(Collections.RocketVel);

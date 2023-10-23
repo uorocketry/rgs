@@ -7,8 +7,7 @@ export const defaultLaunchCoords = {
 	lng: defaultLaunchCoordinates[1]
 };
 
-
 export const defaultTargetAltitude = 7000;
 export const defaultRelativeAltitude = 360;
 
-export const flightDirector = latestCollectionWritable(Collections.FlightDirector)
+export const flightDirector = latestCollectionWritable(Collections.FlightDirector);
