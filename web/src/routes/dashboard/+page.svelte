@@ -1,5 +1,6 @@
 <script lang="ts">
 	import { dashboard_components, resolvedLayout, virtualLayout } from '$lib/common/dashboard';
+	import Lazy from '$lib/components/smart/Lazy.svelte';
 	import {
 		LayoutConfig,
 		ResolvedLayoutConfig,
@@ -72,6 +73,6 @@
 
 <div class="w-full h-full overflow-clip z-0">
 	<GoldenLayout config={$layoutConfig} let:componentType let:componentState bind:goldenLayout>
-		<svelte:component this={svelteComponentMap(componentType)} {...identity(componentState)} />
+		<Lazy this={svelteComponentMap(componentType)} {...identity(componentState)}></Lazy>
 	</GoldenLayout>
 </div>
