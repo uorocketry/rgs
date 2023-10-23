@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { ekf } from '$lib/realtime/linkStatus';
+	import { quat } from '$lib/realtime/sensors';
 	import { SlideToggle } from '@skeletonlabs/skeleton';
 	import { tweened } from 'svelte/motion';
 	import { Euler, MathUtils, Matrix4, Quaternion, Vector3, type EulerOrder } from 'three';
@@ -27,9 +27,11 @@
 	);
 
 	$: {
-		const quat = $ekf.quaternion;
-		if (quat) {
-			latestReportedRotation = new Quaternion(quat[1], quat[2], quat[3], quat[0]);
+		console.log($quat);
+		if ($quat && $quat.quaternion) {
+			console.log($quat.quaternion);
+			const rot = $quat.quaternion;
+			latestReportedRotation = new Quaternion(rot[1], rot[2], rot[3], rot[0]);
 			// The IMU is placed flat on the rocket, so the up vector is the x axis
 			// https://support.sbg-systems.com/sc/qd/latest/reference-manual/conventions
 		}

@@ -41,7 +41,7 @@ impl RandomInput {
 impl RandomInput {
     pub fn read_loop(&mut self, send: std::sync::mpsc::Sender<InputData>) -> ! {
         loop {
-            std::thread::sleep(Duration::from_millis(100));
+            std::thread::sleep(Duration::from_millis(45));
 
             let msg = self.read_message();
             send.send(msg).unwrap();

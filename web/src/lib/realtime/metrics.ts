@@ -3,15 +3,15 @@ import type { Readable } from 'svelte/motion';
 import { derived } from 'svelte/store';
 import { flightDirector } from './flightDirector';
 import { rocketPos } from './gps';
-import { air, ekf } from './linkStatus';
+import { air, nav } from './sensors';
 
 const _velocity = [0, 0, 0];
-export const max_velocity: Readable<[number, number, number]> = derived([ekf], ([$ekf]) => {
-	if ($ekf.velocity) {
+export const max_velocity: Readable<[number, number, number]> = derived([nav], ([$nav]) => {
+	if ($nav.velocity) {
 		return [
-			max(_velocity[0], $ekf.velocity[0]),
-			max(_velocity[1], $ekf.velocity[1]),
-			max(_velocity[2], $ekf.velocity[2])
+			max(_velocity[0], $nav.velocity[0]),
+			max(_velocity[1], $nav.velocity[1]),
+			max(_velocity[2], $nav.velocity[2])
 		] satisfies [number, number, number];
 	} else {
 		return [0, 0, 0] satisfies [number, number, number];
@@ -75,9 +75,9 @@ function calcGForce(vf: number, t: number) {
 }
 
 // FIXME: The G-Force calculation is wrong since it's not given a proper time delta
-export const g_force: Readable<number> = derived(ekf, ($ekf) => {
-	if ($ekf.velocity) {
-		return calcGForce($ekf.velocity[1], 0.1);
+export const g_force: Readable<number> = derived(nav, ($nav) => {
+	if ($nav.velocity) {
+		return calcGForce($nav.velocity[1], 0.1);
 	}
 	return 0;
 });

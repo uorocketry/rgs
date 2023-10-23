@@ -72,9 +72,9 @@ impl PBClient {
         match status.is_success() {
             true => {}
             false => {
-                let bodyStr = serde_json::to_string(body).unwrap();
+                let body_str = serde_json::to_string(body).unwrap();
                 println!("Collection: {}", collection);
-                println!("Body: {:?}", bodyStr);
+                println!("Body: {:?}", body_str);
                 println!("Response: {:?}", &resp_json.to_string());
                 panic!("Error creating rocket message")
             }
@@ -109,7 +109,7 @@ impl PBClient {
             }),
         );
 
-        let mut sensor_data_msg = serde_json::to_value(&sensor_data).unwrap();
+        let sensor_data_msg = serde_json::to_value(&sensor_data).unwrap();
         let mut sensor_data_msg_mut = sensor_data_msg.clone();
 
         let key = sensor_data_msg.as_object().unwrap().keys().next().unwrap();
@@ -134,7 +134,7 @@ impl PBClient {
         let discriminator = match &sensor.data {
             messages::sensor::SensorData::UtcTime(_) => "rocket_time",
             messages::sensor::SensorData::Air(_) => "rocket_air",
-            messages::sensor::SensorData::EkfQuat(r) => "rocket_quat",
+            messages::sensor::SensorData::EkfQuat(_) => "rocket_quat",
             messages::sensor::SensorData::EkfNav1(_) => "rocket_nav1",
             messages::sensor::SensorData::EkfNav2(_) => "rocket_nav2",
             messages::sensor::SensorData::Imu1(_) => "rocket_imu1",

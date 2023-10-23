@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { linkStatus } from '$lib/realtime/linkStatus';
+	import { linkStatus } from '$lib/realtime/sensors';
 	import { Bar } from 'svelte-chartjs';
 	import type { RocketLinkResponse } from '../../../common/pocketbase-types';
 

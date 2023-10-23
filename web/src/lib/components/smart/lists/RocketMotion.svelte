@@ -1,12 +1,12 @@
 <script lang="ts">
-	import { ekf, imu } from '$lib/realtime/linkStatus';
 	import { max_velocity } from '$lib/realtime/metrics';
+	import { imu, nav } from '$lib/realtime/sensors';
 
 	let velocity = [0, 0, 0];
 	let acc = [0, 0, 0];
 
-	$: velocity = $ekf.velocity
-		? [$ekf.velocity[0], $ekf.velocity[1], $ekf.velocity[2]]
+	$: velocity = $nav.velocity
+		? [$nav.velocity[0], $nav.velocity[1], $nav.velocity[2]]
 		: [NaN, NaN, NaN];
 	$: acc = $imu.accelerometers
 		? [$imu.accelerometers[0], $imu.accelerometers[1], $imu.accelerometers[2]]

@@ -38,7 +38,7 @@ struct Args {
     baud_rate: u32,
 
     /// Pocketbase port
-    #[arg(short, long, env, default_value = "2223")]
+    #[arg(short, long, env, default_value = "3001")]
     pocketbase_port: u32,
 
     /// Simulate a source with random data for testing

@@ -55,7 +55,12 @@
 <T.PolarGridHelper args={[15, 15, 8, 64]} />
 
 {#if useRocketModel}
-	<Rocket bind:rotation={rot} scale={0.75} />
+	<!-- <Lazy
+		this={async () => (await import('$lib/components/models/Rocket.svelte')).default}
+		rotation={rot}
+		scale={0.75}
+	></Lazy> -->
+	<Rocket position.x="-10" rotation={rot} scale={0.75} />
 {:else}
 	{#await map then tex}
 		<T.Mesh bind:rotation={rot}>

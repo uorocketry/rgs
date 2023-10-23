@@ -2,6 +2,9 @@
  * This file was @generated using pocketbase-typegen
  */
 
+import type PocketBase from 'pocketbase';
+import type { RecordService } from 'pocketbase';
+
 export enum Collections {
 	FlightDirector = 'FlightDirector',
 	Layouts = 'layouts',
@@ -246,18 +249,14 @@ export type RocketTimeRecord = {
 	year?: number;
 };
 
-export type RocketVelRecord = {
+export type RocketVelRecord<Tvelocity = unknown, Tvelocity_acc = unknown> = {
 	course?: number;
 	course_acc?: number;
 	parent: RecordIdString;
 	status?: number;
 	time_stamp?: number;
-	velocity_0?: number;
-	velocity_1?: number;
-	velocity_2?: number;
-	velocity_acc_0?: number;
-	velocity_acc_1?: number;
-	velocity_acc_2?: number;
+	velocity: null | Tvelocity;
+	velocity_acc: null | Tvelocity_acc;
 };
 
 export type RocketVoltageRecord = {
@@ -331,8 +330,11 @@ export type RocketTemperatureResponse<Texpand = unknown> = Required<RocketTemper
 	BaseSystemFields<Texpand>;
 export type RocketTimeResponse<Texpand = unknown> = Required<RocketTimeRecord> &
 	BaseSystemFields<Texpand>;
-export type RocketVelResponse<Texpand = unknown> = Required<RocketVelRecord> &
-	BaseSystemFields<Texpand>;
+export type RocketVelResponse<
+	Tvelocity = unknown,
+	Tvelocity_acc = unknown,
+	Texpand = unknown
+> = Required<RocketVelRecord<Tvelocity, Tvelocity_acc>> & BaseSystemFields<Texpand>;
 export type RocketVoltageResponse<Texpand = unknown> = Required<RocketVoltageRecord> &
 	BaseSystemFields<Texpand>;
 export type UsersResponse<Texpand = unknown> = Required<UsersRecord> & AuthSystemFields<Texpand>;
@@ -389,4 +391,33 @@ export type CollectionResponses = {
 	rocket_vel: RocketVelResponse;
 	rocket_voltage: RocketVoltageResponse;
 	users: UsersResponse;
+};
+
+// Type for usage with type asserted PocketBase instance
+// https://github.com/pocketbase/js-sdk#specify-typescript-definitions
+
+export type TypedPocketBase = PocketBase & {
+	collection(idOrName: 'FlightDirector'): RecordService<FlightDirectorResponse>;
+	collection(idOrName: 'layouts'): RecordService<LayoutsResponse>;
+	collection(idOrName: 'rocket_air'): RecordService<RocketAirResponse>;
+	collection(idOrName: 'rocket_command'): RecordService<RocketCommandResponse>;
+	collection(idOrName: 'rocket_current'): RecordService<RocketCurrentResponse>;
+	collection(idOrName: 'rocket_imu1'): RecordService<RocketImu1Response>;
+	collection(idOrName: 'rocket_imu2'): RecordService<RocketImu2Response>;
+	collection(idOrName: 'rocket_link'): RecordService<RocketLinkResponse>;
+	collection(idOrName: 'rocket_log'): RecordService<RocketLogResponse>;
+	collection(idOrName: 'rocket_message'): RecordService<RocketMessageResponse>;
+	collection(idOrName: 'rocket_nav1'): RecordService<RocketNav1Response>;
+	collection(idOrName: 'rocket_nav2'): RecordService<RocketNav2Response>;
+	collection(idOrName: 'rocket_pos1'): RecordService<RocketPos1Response>;
+	collection(idOrName: 'rocket_pos2'): RecordService<RocketPos2Response>;
+	collection(idOrName: 'rocket_quat'): RecordService<RocketQuatResponse>;
+	collection(idOrName: 'rocket_regulator'): RecordService<RocketRegulatorResponse>;
+	collection(idOrName: 'rocket_sensor'): RecordService<RocketSensorResponse>;
+	collection(idOrName: 'rocket_state'): RecordService<RocketStateResponse>;
+	collection(idOrName: 'rocket_temperature'): RecordService<RocketTemperatureResponse>;
+	collection(idOrName: 'rocket_time'): RecordService<RocketTimeResponse>;
+	collection(idOrName: 'rocket_vel'): RecordService<RocketVelResponse>;
+	collection(idOrName: 'rocket_voltage'): RecordService<RocketVoltageResponse>;
+	collection(idOrName: 'users'): RecordService<UsersResponse>;
 };
