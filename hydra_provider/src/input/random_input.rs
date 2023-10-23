@@ -14,6 +14,7 @@ use messages::sensor::Imu1;
 use messages::sensor::Imu2;
 use messages::sensor::Regulator;
 use messages::sensor::Sensor;
+use messages::sensor::Temperature;
 use messages::sensor::UtcTime;
 use messages::sensor::Voltage;
 use messages::state::State;
@@ -162,6 +163,11 @@ impl RandomInput {
             status: self.rng.gen::<f32>() > 0.5f32,
         };
 
+        let temperature = Temperature {
+            rolling_avg: self.rng.gen(),
+            temperature: self.rng.gen(),
+        };
+
         // Array of sensor messages (we will select one of it)
         let sensors = [
             Sensor::new(utc_time),
@@ -177,6 +183,7 @@ impl RandomInput {
             Sensor::new(current),
             Sensor::new(voltage),
             Sensor::new(regulator),
+            Sensor::new(temperature),
         ];
 
         let status = match self.rng.gen_range(0..=6) {

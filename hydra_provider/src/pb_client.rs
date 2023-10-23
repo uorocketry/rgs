@@ -93,290 +93,54 @@ impl PBClient {
         );
     }
 
+    pub fn create_sensor<T>(
+        &self,
+        parent_id: &str,
+        component_id: u8,
+        sensor_data: &T,
+        discriminator: &str,
+    ) where
+        T: Serialize + ?Sized + std::fmt::Debug,
+    {
+        let sensor_msg = self.create(
+            "rocket_sensor",
+            &serde_json::json!({
+                "parent": parent_id,
+                "discriminator": discriminator,
+                "component_id": component_id
+            }),
+        );
+
+        let mut sensor_data_msg = serde_json::to_value(sensor_data).unwrap();
+        merge(
+            &mut sensor_data_msg,
+            &serde_json::json!({
+                "parent": sensor_msg.id
+            }),
+        );
+
+        self.create("rocket_temperature", &sensor_data_msg);
+    }
+
     pub fn create_rocket_sensor(&self, sensor: &Sensor, parent_id: &str) {
-        match &sensor.data {
-            messages::sensor::SensorData::UtcTime(time) => {
-                let sensor_msg = self.create(
-                    "rocket_sensor",
-                    &serde_json::json!({
-                        "parent": parent_id,
-                        "discriminator": "rocket_time",
-                        "component_id": sensor.component_id
-                    }),
-                );
+        let discriminator = match &sensor.data {
+            messages::sensor::SensorData::UtcTime(_) => "rocket_time",
+            messages::sensor::SensorData::Air(_) => "rocket_air",
+            messages::sensor::SensorData::EkfQuat(_) => "rocket_quat",
+            messages::sensor::SensorData::EkfNav1(_) => "rocket_nav1",
+            messages::sensor::SensorData::EkfNav2(_) => "rocket_nav2",
+            messages::sensor::SensorData::Imu1(_) => "rocket_imu1",
+            messages::sensor::SensorData::Imu2(_) => "rocket_imu2",
+            messages::sensor::SensorData::GpsVel(_) => "rocket_vel",
+            messages::sensor::SensorData::GpsPos1(_) => "rocket_pos1",
+            messages::sensor::SensorData::GpsPos2(_) => "rocket_pos2",
+            messages::sensor::SensorData::Current(_) => "rocket_current",
+            messages::sensor::SensorData::Voltage(_) => "rocket_voltage",
+            messages::sensor::SensorData::Regulator(_) => "rocket_regulator",
+            messages::sensor::SensorData::Temperature(_) => "rocket_temperature",
+        };
 
-                let mut utc_time = serde_json::to_value(time).unwrap();
-                merge(
-                    &mut utc_time,
-                    &serde_json::json!({
-                        "parent": sensor_msg.id
-                    }),
-                );
-
-                self.create("rocket_time", &utc_time);
-            }
-            messages::sensor::SensorData::Air(air_msg) => {
-                let sensor_msg = self.create(
-                    "rocket_sensor",
-                    &serde_json::json!({
-                        "parent": parent_id,
-                        "discriminator": "rocket_air",
-                        "component_id": sensor.component_id
-                    }),
-                );
-
-                let mut air = serde_json::to_value(air_msg).unwrap();
-                merge(
-                    &mut air,
-                    &serde_json::json!({
-                        "parent": sensor_msg.id
-                    }),
-                );
-
-                self.create("rocket_air", &air);
-            }
-            messages::sensor::SensorData::EkfQuat(quat_msg) => {
-                let sensor_msg = self.create(
-                    "rocket_sensor",
-                    &serde_json::json!({
-                        "parent": parent_id,
-                        "discriminator": "rocket_quat",
-                        "component_id": sensor.component_id
-                    }),
-                );
-
-                let mut ekf_quat = serde_json::to_value(quat_msg).unwrap();
-                merge(
-                    &mut ekf_quat,
-                    &serde_json::json!({
-                        "parent": sensor_msg.id
-                    }),
-                );
-
-                self.create("rocket_quat", &ekf_quat);
-            }
-            messages::sensor::SensorData::EkfNav1(nav1) => {
-                let sensor_msg = self.create(
-                    "rocket_sensor",
-                    &serde_json::json!({
-                        "parent": parent_id,
-                        "discriminator": "rocket_nav1",
-                        "component_id": sensor.component_id
-                    }),
-                );
-
-                let mut ekf_nav1 = serde_json::to_value(nav1).unwrap();
-                merge(
-                    &mut ekf_nav1,
-                    &serde_json::json!({
-                        "parent": sensor_msg.id
-                    }),
-                );
-
-                self.create("rocket_nav1", &ekf_nav1);
-            }
-            messages::sensor::SensorData::EkfNav2(nav2) => {
-                let sensor_msg = self.create(
-                    "rocket_sensor",
-                    &serde_json::json!({
-                        "parent": parent_id,
-                        "discriminator": "rocket_nav2",
-                        "component_id": sensor.component_id
-                    }),
-                );
-
-                let mut ekf_nav2 = serde_json::to_value(nav2).unwrap();
-                merge(
-                    &mut ekf_nav2,
-                    &serde_json::json!({
-                        "parent": sensor_msg.id
-                    }),
-                );
-
-                self.create("rocket_nav2", &ekf_nav2);
-            }
-            messages::sensor::SensorData::Imu1(imu1_msg) => {
-                let sensor_msg = self.create(
-                    "rocket_sensor",
-                    &serde_json::json!({
-                        "parent": parent_id,
-                        "discriminator": "rocket_imu1",
-                        "component_id": sensor.component_id
-                    }),
-                );
-
-                let mut imu1 = serde_json::to_value(imu1_msg).unwrap();
-
-                merge(
-                    &mut imu1,
-                    &serde_json::json!({
-                        "parent": sensor_msg.id
-                    }),
-                );
-
-                self.create("rocket_imu1", &imu1);
-            }
-            messages::sensor::SensorData::Imu2(imu2_msg) => {
-                let sensor_msg = self.create(
-                    "rocket_sensor",
-                    &serde_json::json!({
-                        "parent": parent_id,
-                        "discriminator": "rocket_imu2",
-                        "component_id": sensor.component_id
-                    }),
-                );
-
-                let mut imu2 = serde_json::to_value(imu2_msg).unwrap();
-                merge(
-                    &mut imu2,
-                    &serde_json::json!({
-                        "parent": sensor_msg.id
-                    }),
-                );
-
-                self.create("rocket_imu2", &imu2);
-            }
-            messages::sensor::SensorData::GpsVel(vel_msg) => {
-                let sensor_msg = self.create(
-                    "rocket_sensor",
-                    &serde_json::json!({
-                        "parent": parent_id,
-                        "discriminator": "rocket_vel",
-                        "component_id": sensor.component_id
-                    }),
-                );
-
-                let mut vel = serde_json::to_value(vel_msg).unwrap();
-                merge(
-                    &mut vel,
-                    &serde_json::json!({
-                        "parent": sensor_msg.id
-                    }),
-                );
-
-                self.create("rocket_vel", &vel);
-            }
-            messages::sensor::SensorData::GpsPos1(pos1_msg) => {
-                let sensor_msg = self.create(
-                    "rocket_sensor",
-                    &serde_json::json!({
-                        "parent": parent_id,
-                        "discriminator": "rocket_pos1",
-                        "component_id": sensor.component_id
-                    }),
-                );
-
-                let mut pos1 = serde_json::to_value(pos1_msg).unwrap();
-                merge(
-                    &mut pos1,
-                    &serde_json::json!({
-                        "parent": sensor_msg.id
-                    }),
-                );
-
-                self.create("rocket_pos1", &pos1);
-            }
-            messages::sensor::SensorData::GpsPos2(pos2_msg) => {
-                let sensor_msg = self.create(
-                    "rocket_sensor",
-                    &serde_json::json!({
-                        "parent": parent_id,
-                        "discriminator": "rocket_pos2",
-                        "component_id": sensor.component_id
-                    }),
-                );
-
-                let mut pos2 = serde_json::to_value(pos2_msg).unwrap();
-                merge(
-                    &mut pos2,
-                    &serde_json::json!({
-                        "parent": sensor_msg.id
-                    }),
-                );
-
-                self.create("rocket_pos2", &pos2);
-            }
-            messages::sensor::SensorData::Current(current_msg) => {
-                let sensor_msg = self.create(
-                    "rocket_sensor",
-                    &serde_json::json!({
-                        "parent": parent_id,
-                        "discriminator": "rocket_current",
-                        "component_id": sensor.component_id
-                    }),
-                );
-
-                let mut current = serde_json::to_value(current_msg).unwrap();
-                merge(
-                    &mut current,
-                    &serde_json::json!({
-                        "parent": sensor_msg.id
-                    }),
-                );
-
-                self.create("rocket_current", &current);
-            }
-            messages::sensor::SensorData::Voltage(voltage_msg) => {
-                let sensor_msg = self.create(
-                    "rocket_sensor",
-                    &serde_json::json!({
-                        "parent": parent_id,
-                        "discriminator": "rocket_voltage",
-                        "component_id": sensor.component_id
-                    }),
-                );
-
-                let mut voltage = serde_json::to_value(voltage_msg).unwrap();
-                merge(
-                    &mut voltage,
-                    &serde_json::json!({
-                        "parent": sensor_msg.id
-                    }),
-                );
-
-                self.create("rocket_voltage", &voltage);
-            }
-            messages::sensor::SensorData::Regulator(regulator_msg) => {
-                let sensor_msg = self.create(
-                    "rocket_sensor",
-                    &serde_json::json!({
-                        "parent": parent_id,
-                        "discriminator": "rocket_regulator",
-                        "component_id": sensor.component_id
-                    }),
-                );
-
-                let mut regulator = serde_json::to_value(regulator_msg).unwrap();
-                merge(
-                    &mut regulator,
-                    &serde_json::json!({
-                        "parent": sensor_msg.id
-                    }),
-                );
-
-                self.create("rocket_regulator", &regulator);
-            }
-            messages::sensor::SensorData::Temperature(temp_msg) => {
-                let sensor_msg = self.create(
-                    "rocket_sensor",
-                    &serde_json::json!({
-                        "parent": parent_id,
-                        "discriminator": "rocket_temperature",
-                        "component_id": sensor.component_id
-                    }),
-                );
-
-                let mut temperature = serde_json::to_value(temp_msg).unwrap();
-                merge(
-                    &mut temperature,
-                    &serde_json::json!({
-                        "parent": sensor_msg.id
-                    }),
-                );
-
-                self.create("rocket_temperature", &temperature);
-            }
-        }
+        self.create_sensor(parent_id, sensor.component_id, &sensor.data, discriminator);
     }
 
     pub fn send(&self, msg: &ProcessedMessage) -> Result<()> {
@@ -416,7 +180,6 @@ impl PBClient {
                 messages::Data::Command(command_msg) => {
                     let parent_msg = self.create_rocket_message(rocket_message, "rocket_command");
 
-                    // TODO: Normalize data
                     self.create(
                         "rocket_command",
                         &serde_json::json!({
