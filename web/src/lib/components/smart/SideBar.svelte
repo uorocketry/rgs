@@ -18,7 +18,7 @@
 		<i class="text-xl text-surface-800-100-token fas fa-database"></i>
 	</AppRailAnchor>
 	<svelte:fragment slot="trail">
-		<AppRailAnchor title="Help">
+		<AppRailAnchor href="/help" title="Help">
 			<i class="text-xl text-surface-800-100-token fas fa-question"></i>
 		</AppRailAnchor>
 		<AppRailAnchor href="/settings" selected={$page.url.pathname === '/settings'} title="Settings">
