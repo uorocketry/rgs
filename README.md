@@ -6,10 +6,6 @@ The RGS repository contains the main infrastructure for the uORocketry Ground St
 
 The infrastructure is composed of the following components:
 
-### ZeroMQ Services
-
-At the moment being the `zmq_proxy` and `pb` services. They allow inter-process communication between the components of the infrastructure.
-
 ### Providers
 
 The providers are the components that receive data from an external source (eg: The rocket or a sensor) and broadcast it to the rest of the infrastructure.
@@ -56,6 +52,5 @@ For development convenience `hydra_provider` isn't included in the `pm2` ecosyst
 Please refer to each of the following for more information.
 
 - [uORocketry Wiki - Ground Station](https://avwiki.uorocketry.ca/en/Avionics/HYDRA/Software/Ground-Station) (Project Documentation)
-- [ZeroMQ](https://zeromq.org/get-started/) (Proxy-Web Server Networking)
 - [SvelteKit](https://kit.svelte.dev/docs/introduction) (Web Framework)
 - [PM2](https://pm2.keymetrics.io/docs/usage/pm2-doc-single-page/) (Process Manager)

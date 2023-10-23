@@ -37,9 +37,9 @@ struct Args {
     #[arg(short, long, env, default_value = "57600")]
     baud_rate: u32,
 
-    /// Port of the ZeroMQ server
+    /// Pocketbase port
     #[arg(short, long, env, default_value = "2223")]
-    zeromq_port: u32,
+    pocketbase_port: u32,
 
     /// Simulate a source with random data for testing
     #[arg(short, long, env, default_value = "false")]
@@ -71,7 +71,7 @@ fn run(args: &Args) -> Result<()> {
 
     let input_handle = start_input(args.clone(), input_send);
     let processing_handle = start_processing(input_recv, server_send);
-    let server_handle = start_server(args.clone(), server_rcv);
+    let server_handle = start_client(args.clone(), server_rcv);
 
     input_handle.join().unwrap();
     processing_handle.join().unwrap();
@@ -150,12 +150,15 @@ fn start_processing(
         .unwrap()
 }
 
-fn start_server(args: Args, recv: Receiver<ProcessedMessage>) -> JoinHandle<()> {
+fn start_client(args: Args, recv: Receiver<ProcessedMessage>) -> JoinHandle<()> {
     thread::Builder::new()
-        .name("ZMQ Server".to_string())
+        .name("Pocketbase Client".to_string())
         .spawn(move || {
-            info!("Starting ZeroMQ server on port {}", args.zeromq_port);
-            let server = PBClient::new(args.zeromq_port);
+            info!(
+                "Starting Pocketbase client on port {}",
+                args.pocketbase_port
+            );
+            let server = PBClient::new(args.pocketbase_port);
 
             loop {
                 let msg = recv
