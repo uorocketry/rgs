@@ -1,45 +1,38 @@
-// export INFLUXDB_TOKEN=j05jnLjTrYp_PgmYGD7h5qxkNtay5zuC3hFKaEU3eO3OalGMFtQeazBfXXaQOboIB8XKvVM4LXHQpHRVkSoqnA==
-console.log("Hello via Bun!");
+import { Command } from "commander";
+import fs from "fs";
 
-// Run influxd
-const influxd = Bun.spawn(["influxd"]);
+import { sql } from "drizzle-orm";
+import { Hono } from "hono";
+import process from "process";
+import { getDatabase } from "./utils";
 
-if (influxd.stdout) {
-  // influx.stdout is of type ReadableStream<Uint8Array>
-  const writableStream = new WritableStream({
-    write(chunk) {
-      process.stdout.write(chunk);
-    },
-  });
-  influxd.stdout.pipeTo(writableStream);
+// On prgram exit, call db.close()
+process.on("exit", () => {
+  const db = getDatabase();
+  db.run(sql`PRAGMA wal_checkpoint(TRUNCATE);`);
+  console.log("Goodbye!");
+});
+
+const app = new Hono().get("/", (c) => c.text("Hello Bun!"));
+
+// Create db_data folder if it doesn't exist
+const dir = "./db_data";
+if (!fs.existsSync(dir)) {
+  fs.mkdirSync(dir);
 }
 
-setTimeout(() => {
-  // INFLUXD_HTTP_BIND_ADDRESS
-  const bindAddress = Bun.env["INFLUX_HOST"] ?? "localhost";
-  const init = Bun.spawnSync([
-    "./influx",
-    "setup",
-    "--username",
-    "rgs",
-    "--password",
-    "password",
-    "--org",
-    "rgs",
-    "--bucket",
-    "rgs",
-    "--token",
-    "rgs",
-    "--retention",
-    "0",
-    "--host",
-    bindAddress,
-    "--force",
-  ]);
+const program = new Command().name("db").description("Database commands");
 
-  console.log(`
-Influx Setup Output:
-STDOUT:${init.stdout.toString()}
-STDERR:${init.stderr.toString()}
-`);
-}, 1000);
+// Get all commands from src/commands
+const commands = fs.readdirSync("./src/commands");
+for (let i = 0; i < commands.length; i++) {
+  const { default: command } = await import(`./commands/${commands[i]}`);
+  // remove extension
+  const cmdName = commands[i].split(".")[0];
+  command(program.command(cmdName));
+}
+
+program.parse();
+// console.log("🎉 Migrations complete!");
+
+// export default app;

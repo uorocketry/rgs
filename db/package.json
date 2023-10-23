@@ -2,13 +2,22 @@
   "name": "@rgs/db",
   "module": "src/index.ts",
   "type": "module",
+  "scripts": {
+    "start": "bun ./src/index.ts",
+    "serve": "bun ./src/server/server.ts",
+    "generate": "drizzle-kit generate:sqlite"
+  },
   "devDependencies": {
-    "bun-types": "latest"
+    "bun-types": "latest",
+    "drizzle-kit": "^0.19.13"
   },
   "peerDependencies": {
     "typescript": "^5.0.0"
   },
   "dependencies": {
-    "@influxdata/influxdb-client": "^1.33.2"
+    "@influxdata/influxdb-client": "^1.33.2",
+    "commander": "^11.1.0",
+    "drizzle-orm": "^0.28.6",
+    "hono": "^3.8.3"
   }
 }
