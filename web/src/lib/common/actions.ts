@@ -1,8 +1,8 @@
 import { pb } from '$lib/stores';
-import { LayoutConfig, ResolvedLayoutConfig } from 'golden-layout';
+import type { ResolvedLayoutConfig } from 'golden-layout';
 import { get, writable, type Writable } from 'svelte/store';
 import { flightDirector } from '../realtime/flightDirector';
-import { layoutComponentsString, layoutConfig, virtualLayout } from './layoutStore';
+import { layoutComponentsString, resolvedLayout, virtualLayout } from './dashboard';
 import {
 	Collections,
 	type FlightDirectorRecord,
@@ -39,12 +39,11 @@ export const commandActions: Writable<CommandAction[]> = writable([
 			const layoutName = await cmd.string('Layout name?', 'Recovery Layout');
 			if (!layoutName) return;
 			console.log('Saving layout: ' + layoutName);
-			const vLayout = get(virtualLayout);
-			if (!vLayout) return;
-			const saved = vLayout.saveLayout();
+			const saved = get(resolvedLayout);
+			if (!saved) return;
 			pb.collection(Collections.Layouts).create({
 				name: layoutName,
-				data: JSON.stringify(saved)
+				data: saved
 			} satisfies LayoutsRecord);
 		}
 	},
@@ -64,7 +63,7 @@ export const commandActions: Writable<CommandAction[]> = writable([
 			if (layoutIndex === undefined) return;
 			const layout = layouts[layoutIndex];
 			if (layout.data) {
-				layoutConfig.set(LayoutConfig.fromResolved(layout.data));
+				resolvedLayout.set(layout.data);
 			} else {
 				console.error('Failed to load layout: ' + layout.name);
 			}

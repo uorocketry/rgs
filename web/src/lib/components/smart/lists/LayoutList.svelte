@@ -1,9 +1,9 @@
 <script lang="ts">
-	import { layoutConfig } from '$lib/common/layoutStore';
 	import { Collections, type LayoutsResponse } from '$lib/common/pocketbase-types';
-	import { LayoutConfig, ResolvedLayoutConfig } from 'golden-layout';
+	import type { ResolvedLayoutConfig } from 'golden-layout';
 	import type { UnsubscribeFunc } from 'pocketbase';
 	import { onDestroy, onMount } from 'svelte';
+	import { resolvedLayout } from '../../../common/dashboard';
 	import { pb } from '../../../stores';
 
 	let layouts = new Map<string, { name: string; data: ResolvedLayoutConfig }>();
@@ -43,8 +43,9 @@
 
 	function loadLayout(layoutId: string) {
 		let layout = layouts.get(layoutId);
+		console.log(layout);
 		if (!layout) return;
-		layoutConfig.set(LayoutConfig.fromResolved(layout.data));
+		resolvedLayout.set(layout.data);
 	}
 
 	let toDelete: string | undefined = undefined;
@@ -78,7 +79,7 @@
 			{#if layouts.size > 0}
 				{#each [...layouts] as [key, val]}
 					<!-- On click, copy the value to the clipboard and add a visual effect -->
-					<tr on:click={() => loadLayout(key)}>
+					<tr class="cursor-pointer" on:click={() => loadLayout(key)}>
 						<td>
 							<button
 								on:click={(e) => {

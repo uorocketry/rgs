@@ -46,7 +46,7 @@ const uiSettings = {
 			name: 'sidebarLeft',
 			description: 'Show side bar on the left side, otherwise on the right side',
 			valueDescription: 'boolean',
-			value: localStorageStore('ui.sidebarLeft', false)
+			value: localStorageStore('ui.sidebarLeft', true)
 		},
 		{
 			name: 'lightMode',
