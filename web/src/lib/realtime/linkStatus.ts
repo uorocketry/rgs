@@ -1,31 +1,16 @@
-import { unflattenObjectWithArray } from '$lib/common/utils';
-import { derived } from 'svelte/store';
-import type { AirRecord, Collections } from '../common/pocketbase-types';
+import { derived, type Writable } from 'svelte/store';
+import { Collections, type RocketAirResponse, type RocketImu1Response, type RocketImu2Response, type RocketNav1Response, type RocketNav2Response, type RocketQuatResponse } from '../common/pocketbase-types';
 import { latestCollectionWritable } from './lastestCollectionWritable';
 
-export const linkStatus = latestCollectionWritable<LinkStatus | undefined>(
-	'LinkStatus',
-	undefined,
-	(row) => {
-		return row as unknown as LinkStatus;
-	}
-);
+export const linkStatus = latestCollectionWritable(Collections.RocketLink) 
 
-export const air = latestCollectionWritable<AirRecord | undefined>(Collections.Air, undefined, (row) => {
-	return row as unknown as Air;
-});
+export const air = latestCollectionWritable(Collections.RocketAir) as Writable<RocketAirResponse<number[]> | undefined>
 
-const ekf1 = latestCollectionWritable<EkfNav1 | undefined>('EkfNav1', undefined, (row) => {
-	return unflattenObjectWithArray(row) as unknown as EkfNav1;
-});
+const ekf1 = latestCollectionWritable(Collections.RocketNav1) as Writable<RocketNav1Response<number[], number[], unknown> | undefined>
 
-const ekf2 = latestCollectionWritable<EkfNav2 | undefined>('EkfNav2', undefined, (row) => {
-	return unflattenObjectWithArray(row) as unknown as EkfNav2;
-});
+const ekf2 = latestCollectionWritable(Collections.RocketNav2) as Writable<RocketNav2Response<number[], number[], unknown> | undefined>
 
-const ekfQuaternion = latestCollectionWritable<EkfQuat | undefined>('EkfQuat', undefined, (row) => {
-	return unflattenObjectWithArray(row) as unknown as EkfQuat;
-});
+const ekfQuaternion = latestCollectionWritable(Collections.RocketQuat) as Writable<RocketQuatResponse<number[], number[], unknown> | undefined>
 
 export const ekf = derived([ekf1, ekf2, ekfQuaternion], ([$ekf1, $ekf2, $ekfQuaternion]) => {
 	return {
@@ -35,21 +20,10 @@ export const ekf = derived([ekf1, ekf2, ekfQuaternion], ([$ekf1, $ekf2, $ekfQuat
 	};
 });
 
-export const state = latestCollectionWritable<{ status: string } | undefined>(
-	'State',
-	undefined,
-	(row) => {
-		return row as unknown as { status: string };
-	}
-);
+export const state = latestCollectionWritable(Collections.RocketState);
 
-const imu1 = latestCollectionWritable<Imu1 | undefined>('Imu1', undefined, (row) => {
-	return unflattenObjectWithArray(row) as unknown as Imu1;
-});
-
-const imu2 = latestCollectionWritable<Imu2 | undefined>('Imu2', undefined, (row) => {
-	return unflattenObjectWithArray(row) as unknown as Imu2;
-});
+const imu1 = latestCollectionWritable(Collections.RocketImu1) as Writable<RocketImu1Response<number[], number[], unknown> | undefined>
+const imu2 = latestCollectionWritable(Collections.RocketImu2) as Writable<RocketImu2Response<number[], number[], unknown> | undefined>
 
 export const imu = derived([imu1, imu2], ([$imu1, $imu2]) => {
 	return {

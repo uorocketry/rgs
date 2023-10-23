@@ -5,7 +5,7 @@
 	export let dropdownLabel = 'Options';
 	export let options: string[] = [];
 	export let selected: string[] = [];
-	export let comboboxValue: string[] = [];
+	// export let comboboxValue: string[] = [];
 
 	const popupCombobox: PopupSettings = {
 		event: 'click',

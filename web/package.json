@@ -28,7 +28,6 @@
 		"@types/leaflet": "^1.9.6",
 		"@types/node": "^20.8.6",
 		"@types/three": "^0.157.0",
-		"@types/zeromq": "^5.2.3",
 		"@typescript-eslint/eslint-plugin": "^6.7.5",
 		"@typescript-eslint/parser": "^6.7.5",
 		"@vitejs/plugin-basic-ssl": "^1.0.1",
@@ -57,7 +56,6 @@
 		"tslib": "^2.6.2",
 		"typescript": "^5.2.2",
 		"vite": "^4.4.11",
-		"winston": "^3.11.0",
-		"zeromq": "6.0.0-beta.17"
+		"winston": "^3.11.0"
 	}
 }

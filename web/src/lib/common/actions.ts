@@ -1,8 +1,9 @@
 import { pb } from '$lib/stores';
 import { LayoutConfig } from 'golden-layout';
 import { get, writable, type Writable } from 'svelte/store';
-import { flightDirector, launchPoint } from '../realtime/flightDirector';
+import { flightDirector } from '../realtime/flightDirector';
 import { layoutComponentsString, layoutConfig, virtualLayout } from './layoutStore';
+import type { LayoutsResponse } from './pocketbase-types';
 
 export interface CommandAction {
 	name: string;
@@ -49,7 +50,7 @@ export const commandActions: Writable<CommandAction[]> = writable([
 			if (!cmd) return;
 
 			// Load layouts from server
-			const layouts = await pb.collection('layouts').getFullList();
+			const layouts = await pb.collection('layouts').getFullList<LayoutsResponse>();
 			const layoutNames = layouts.map((l) => l.name);
 
 			const layoutIndex = await cmd.select('Layout name?', layoutNames, 'Recovery Layout');
@@ -94,12 +95,9 @@ export const commandActions: Writable<CommandAction[]> = writable([
 			pb.collection('FlightDirector').create({
 				latitude: lat,
 				longitude: lng,
-				targetAltitude: prevFD.targetAltitude,
-				relativeAlt: prevFD.relativeAltitude
+				targetAltitude: prevFD?.targetAltitude ?? 0,
+				relativeAlt: prevFD?.relativeAltitude ?? 0
 			});
-
-			// Update the store with the new values
-			launchPoint.set({ lat, lng });
 		}
 	},
 	{
@@ -114,10 +112,10 @@ export const commandActions: Writable<CommandAction[]> = writable([
 			if (isNaN(targetAltNum)) return;
 			const prevFD = get(flightDirector);
 			pb.collection('FlightDirector').create({
-				latitude: prevFD.latitude,
-				longitude: prevFD.longitude,
+				latitude: prevFD?.latitude ?? 0,
+				longitude: prevFD?.longitude ?? 0,
 				targetAltitude: targetAltNum,
-				relativeAltitude: prevFD.relativeAltitude
+				relativeAltitude: prevFD?.relativeAltitude
 			});
 		}
 	},
@@ -133,9 +131,9 @@ export const commandActions: Writable<CommandAction[]> = writable([
 			if (isNaN(targetAltNum)) return;
 			const prevFD = get(flightDirector);
 			pb.collection('FlightDirector').create({
-				latitude: prevFD.latitude,
-				longitude: prevFD.longitude,
-				targetAltitude: prevFD.targetAltitude,
+				latitude: prevFD?.latitude,
+				longitude: prevFD?.longitude,
+				targetAltitude: prevFD?.targetAltitude,
 				relativeAltitude: targetAltNum
 			});
 		}

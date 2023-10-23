@@ -1,9 +1,9 @@
 <script defer lang="ts" type="module">
-	import L, { type LatLngBoundsExpression } from 'leaflet';
 	import { browser } from '$app/environment';
+	import { defaultLaunchCoords, flightDirector } from '$lib/realtime/flightDirector';
+	import { rocketPos } from '$lib/realtime/gps';
+	import L, { type LatLngBoundsExpression } from 'leaflet';
 	import { onDestroy, onMount } from 'svelte';
-	import { defaultLaunchCoords, launchPoint } from '$lib/realtime/flightDirector';
-	import { rocketPosition } from '$lib/realtime/gps';
 	import { tweened } from 'svelte/motion';
 
 	let map: L.Map | null;
@@ -17,7 +17,10 @@
 	const initialView: L.LatLngTuple = [(brBound[0] + tlBound[0]) / 2, (brBound[1] + tlBound[1]) / 2];
 
 	let rocketMarker: L.Marker<unknown>;
-	let launchPointMarker = L.marker($launchPoint, {
+	let launchPointMarker = L.marker({
+		lat: $flightDirector?.latitude ?? 0,
+		lng: $flightDirector?.longitude ?? 0
+	}, {
 		icon: L.divIcon({
 			// Maybe some custom checkpoints?
 			html: '🏠',
@@ -42,30 +45,30 @@
 	});
 
 	$: {
-		target.set($rocketPosition);
+		target.set({
+			lat: $rocketPos.latitude ?? 0,
+			lng: $rocketPos.longitude ?? 0
+		});
 	}
 
 	$: if (rocketMarker){
 		rocketMarker.setLatLng($target);
 	}
 
-	if (browser) {
-		// Fix: Setting launch point only works at the beggingin after that the marker isn't updated
-		launchPoint.subscribe(({ lat, lng }) => {
-			if (lat !== undefined && lng !== undefined) {
-				launchPointMarker.setLatLng({ lat, lng });
-			}
+	$: {
+		launchPointMarker.setLatLng({
+			lat: $flightDirector?.latitude ?? 0,
+			lng: $flightDirector?.longitude ?? 0
 		});
-		rocketMarker = L.marker(defaultLaunchCoords, {
-			icon: L.divIcon({
-				// Maybe some custom checkpoints?
-				html: '🚀',
-				className: 'bg-transparent text-3xl '
-			}),
-		})
-
-
 	}
+
+	rocketMarker = L.marker(defaultLaunchCoords, {
+		icon: L.divIcon({
+			// Maybe some custom checkpoints?
+			html: '🚀',
+			className: 'bg-transparent text-3xl '
+		}),
+	})
 
 	function createMap(container: string | HTMLElement) {
 		let m = L.map(container, {
