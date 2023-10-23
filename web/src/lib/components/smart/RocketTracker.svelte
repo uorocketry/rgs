@@ -54,7 +54,6 @@
 	}
 
 	$: {
-		console.log('setting view');
 		sprintCoords.set(rocketXY);
 		if (map) {
 			map.setView(rocketLatLng, map.getZoom());
