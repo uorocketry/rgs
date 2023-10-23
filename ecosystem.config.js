@@ -6,10 +6,8 @@ const common_env = {
   DB_ADMIN: "admin@admin.com",
   DB_ADMIN_PASSWORD: "admin",
   DB_REST_PORT: DB_REST_PORT,
-  VITE_DB_REST_PORT: DB_REST_PORT,  
-  INFLUXD_CONFIG_PATH: "./influxdb",
+  VITE_DB_REST_PORT: DB_REST_PORT,
 };
-
 
 module.exports = {
   name: "rgs",
@@ -26,5 +24,5 @@ module.exports = {
       script: `./pocketbase serve --http=0.0.0.0:${DB_REST_PORT}`,
       env: common_env,
     },
-  ]
+  ],
 };
