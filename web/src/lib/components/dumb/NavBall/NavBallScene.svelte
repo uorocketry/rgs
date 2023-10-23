@@ -1,9 +1,9 @@
 <script lang="ts">
-	import Rocket from '$lib/components/models/Rocket.svelte';
 	import { T } from '@threlte/core';
 	import { OrbitControls, useTexture } from '@threlte/extras';
 	import { tweened, type Tweened } from 'svelte/motion';
 	import { Euler, Quaternion, type EulerOrder } from 'three';
+	import Lazy from '../../smart/Lazy.svelte';
 	const map = useTexture('textures/navball.png');
 	map.then((tex) => {
 		tex.anisotropy = 32;
@@ -55,12 +55,11 @@
 <T.PolarGridHelper args={[15, 15, 8, 64]} />
 
 {#if useRocketModel}
-	<!-- <Lazy
+	<Lazy
 		this={async () => (await import('$lib/components/models/Rocket.svelte')).default}
 		rotation={rot}
 		scale={0.75}
-	></Lazy> -->
-	<Rocket position.x="-10" rotation={rot} scale={0.75} />
+	></Lazy>
 {:else}
 	{#await map then tex}
 		<T.Mesh bind:rotation={rot}>

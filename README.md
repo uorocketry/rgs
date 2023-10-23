@@ -37,7 +37,7 @@ Make sure you have installed the following installed:
 Then run the following commands:
 
 ```bash
-pnpm install
+bun install
 pm2 start
 ```
 
