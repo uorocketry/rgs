@@ -39,7 +39,6 @@
 		}
 
 		try {
-			console.info('Loading layoutConfig');
 			layoutConfig.set(LayoutConfig.fromResolved(initialResolvedLayout as ResolvedLayoutConfig));
 		} catch (error) {
 			console.error(
@@ -52,12 +51,10 @@
 		goldenLayout.on('stateChanged', () => {
 			if (JSON.stringify(goldenLayout.saveLayout()) === JSON.stringify(get(resolvedLayout))) return;
 			resolvedLayout.set({ ...goldenLayout.saveLayout(), ignoreReload: true });
-			console.info('Layout state saved');
 		});
 
 		const sub = resolvedLayout.subscribe((layout) => {
 			if (!layout) return;
-			console.info('Loading layout');
 			if (!layout.ignoreReload) {
 				goldenLayout.loadLayout(LayoutConfig.fromResolved(layout));
 			}
