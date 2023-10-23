@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { ProgressRadial } from '@skeletonlabs/skeleton';
 	import { onMount, type ComponentType } from 'svelte';
 
 	let loadComponentFn: () => Promise<ComponentType>;
@@ -13,5 +14,10 @@
 {#if component}
 	<svelte:component this={component} {...$$restProps} />
 {:else}
-	<slot name="loading">Loading...</slot>
+	<slot name="loading">
+		<div class="gap-4 justify-center flex flex-col place-items-center w-full h-full">
+			<span> Loading... </span>
+			<ProgressRadial value={undefined} />
+		</div>
+	</slot>
 {/if}
