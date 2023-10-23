@@ -12,15 +12,7 @@ const config = (mode: string) => {
 					target: 'http://localhost:' + (process.env['DB_REST_PORT'] || '3001'),
 					changeOrigin: true,
 					secure: false,
-					ws: true,
-					configure: (proxy) => {
-						proxy.on('proxyReq', (proxyReq, req) => {
-							if (req.url) {
-								// Remove the first path segment
-								proxyReq.path = req?.url?.replace(/^\/[^/]+/, '');
-							}
-						});
-					}
+					rewrite: (path) => path.replace(/^\/db\//, '')
 				}
 			}
 		},
