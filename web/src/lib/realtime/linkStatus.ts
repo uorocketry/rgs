@@ -8,24 +8,24 @@ import {
 	type RocketNav2Response,
 	type RocketQuatResponse
 } from '../common/pocketbase-types';
-import { latestCollectionWritable } from './lastestCollectionWritable';
+import { latestCollectionWritable, type MaybeAll } from './lastestCollectionWritable';
 
 export const linkStatus = latestCollectionWritable(Collections.RocketLink);
 
 export const air = latestCollectionWritable(Collections.RocketAir) as Writable<
-	RocketAirResponse<number[]> | undefined
+	MaybeAll<RocketAirResponse<number[]>>
 >;
 
 const ekf1 = latestCollectionWritable(Collections.RocketNav1) as Writable<
-	RocketNav1Response<number[], number[], unknown> | undefined
+	MaybeAll<RocketNav1Response<number[], number[], unknown>>
 >;
 
 const ekf2 = latestCollectionWritable(Collections.RocketNav2) as Writable<
-	RocketNav2Response<number[], number[], unknown> | undefined
+	MaybeAll<RocketNav2Response<number[], number[], unknown>>
 >;
 
 const ekfQuaternion = latestCollectionWritable(Collections.RocketQuat) as Writable<
-	RocketQuatResponse<number[], number[], unknown> | undefined
+	MaybeAll<RocketQuatResponse<number[], number[], unknown>>
 >;
 
 export const ekf = derived([ekf1, ekf2, ekfQuaternion], ([$ekf1, $ekf2, $ekfQuaternion]) => {
@@ -39,10 +39,10 @@ export const ekf = derived([ekf1, ekf2, ekfQuaternion], ([$ekf1, $ekf2, $ekfQuat
 export const state = latestCollectionWritable(Collections.RocketState);
 
 const imu1 = latestCollectionWritable(Collections.RocketImu1) as Writable<
-	RocketImu1Response<number[], number[], unknown> | undefined
+	MaybeAll<RocketImu1Response<number[], number[], unknown>>
 >;
 const imu2 = latestCollectionWritable(Collections.RocketImu2) as Writable<
-	RocketImu2Response<number[], number[], unknown> | undefined
+	MaybeAll<RocketImu2Response<number[], number[], unknown>>
 >;
 
 export const imu = derived([imu1, imu2], ([$imu1, $imu2]) => {

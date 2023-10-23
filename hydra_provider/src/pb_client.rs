@@ -66,20 +66,20 @@ impl PBClient {
             .send()
             .unwrap();
 
+        let status = &req.status();
         let resp_json: Value = req.json().unwrap();
-        let rocket_message = serde_json::from_value(resp_json.clone());
 
-        match rocket_message {
-            Ok(rocket_message) => rocket_message,
-            Err(e) => {
+        match status.is_success() {
+            true => {}
+            false => {
+                let bodyStr = serde_json::to_string(body).unwrap();
                 println!("Collection: {}", collection);
-                println!("Body: {:?}", &body);
-                println!("Response: {:?}", &resp_json);
-                println!("Error: {:?}", e);
-
+                println!("Body: {:?}", bodyStr);
+                println!("Response: {:?}", &resp_json.to_string());
                 panic!("Error creating rocket message")
             }
         }
+        return serde_json::from_value(resp_json.clone()).unwrap();
     }
 
     pub fn create_rocket_message(&self, msg: &Message, discriminator: &str) -> CreateResponse {
@@ -93,15 +93,13 @@ impl PBClient {
         );
     }
 
-    pub fn create_sensor<T>(
+    pub fn create_sensor(
         &self,
         parent_id: &str,
         component_id: u8,
-        sensor_data: &T,
+        sensor_data: &messages::sensor::SensorData,
         discriminator: &str,
-    ) where
-        T: Serialize + ?Sized + std::fmt::Debug,
-    {
+    ) {
         let sensor_msg = self.create(
             "rocket_sensor",
             &serde_json::json!({
@@ -111,22 +109,32 @@ impl PBClient {
             }),
         );
 
-        let mut sensor_data_msg = serde_json::to_value(sensor_data).unwrap();
+        let mut sensor_data_msg = serde_json::to_value(&sensor_data).unwrap();
+        let mut sensor_data_msg_mut = sensor_data_msg.clone();
+
+        let key = sensor_data_msg.as_object().unwrap().keys().next().unwrap();
+        let msg_inner = sensor_data_msg_mut
+            .as_object_mut()
+            .unwrap()
+            .get_mut(key)
+            .unwrap();
+
+        // let msg_inner = sensor_data_msg.get_mut(key).unwrap();
         merge(
-            &mut sensor_data_msg,
+            msg_inner,
             &serde_json::json!({
                 "parent": sensor_msg.id
             }),
         );
 
-        self.create("rocket_temperature", &sensor_data_msg);
+        self.create(discriminator, msg_inner);
     }
 
     pub fn create_rocket_sensor(&self, sensor: &Sensor, parent_id: &str) {
         let discriminator = match &sensor.data {
             messages::sensor::SensorData::UtcTime(_) => "rocket_time",
             messages::sensor::SensorData::Air(_) => "rocket_air",
-            messages::sensor::SensorData::EkfQuat(_) => "rocket_quat",
+            messages::sensor::SensorData::EkfQuat(r) => "rocket_quat",
             messages::sensor::SensorData::EkfNav1(_) => "rocket_nav1",
             messages::sensor::SensorData::EkfNav2(_) => "rocket_nav2",
             messages::sensor::SensorData::Imu1(_) => "rocket_imu1",

@@ -16,11 +16,15 @@
 
 	const initialView: L.LatLngTuple = [(brBound[0] + tlBound[0]) / 2, (brBound[1] + tlBound[1]) / 2];
 
-	let rocketMarker: L.Marker<unknown>;
-	let launchPointMarker = L.marker({
-		lat: $flightDirector?.latitude ?? 0,
-		lng: $flightDirector?.longitude ?? 0
-	}, {
+	let rocketMarker = L.marker(defaultLaunchCoords, {
+		icon: L.divIcon({
+			// Maybe some custom checkpoints?
+			html: '🚀',
+			className: 'bg-transparent text-3xl '
+		})
+	});
+
+	let launchPointMarker = L.marker(defaultLaunchCoords, {
 		icon: L.divIcon({
 			// Maybe some custom checkpoints?
 			html: '🏠',
@@ -32,8 +36,18 @@
 	const MIN_ZOOM = 5;
 	const INITIAL_ZOOM = 10;
 
-
 	const target = tweened(defaultLaunchCoords, {
+		interpolate: (a, b) => {
+			return (t) => {
+				return {
+					lat: a.lat + t * (b.lat - a.lat),
+					lng: a.lng + t * (b.lng - a.lng)
+				};
+			};
+		}
+	});
+
+	const home = tweened(defaultLaunchCoords, {
 		interpolate: (a, b) => {
 			return (t) => {
 				return {
@@ -49,39 +63,32 @@
 			lat: $rocketPos.latitude ?? 0,
 			lng: $rocketPos.longitude ?? 0
 		});
+		home.set({
+			lat: $flightDirector.latitude ?? 0,
+			lng: $flightDirector.longitude ?? 0
+		});
 	}
 
-	$: if (rocketMarker){
+	$: {
 		rocketMarker.setLatLng($target);
 	}
 
 	$: {
-		launchPointMarker.setLatLng({
-			lat: $flightDirector?.latitude ?? 0,
-			lng: $flightDirector?.longitude ?? 0
-		});
+		launchPointMarker.setLatLng($home);
 	}
-
-	rocketMarker = L.marker(defaultLaunchCoords, {
-		icon: L.divIcon({
-			// Maybe some custom checkpoints?
-			html: '🚀',
-			className: 'bg-transparent text-3xl '
-		}),
-	})
 
 	function createMap(container: string | HTMLElement) {
 		let m = L.map(container, {
 			preferCanvas: true,
 			worldCopyJump: true,
-			minZoom: MIN_ZOOM,
+			minZoom: MIN_ZOOM
 			// Uncomment to restrict the map to the bounds
-			maxBounds: bounds,
+			// maxBounds: bounds
 		}).setView(initialView, INITIAL_ZOOM);
 
 		L.tileLayer(urlTemplate, {
 			maxNativeZoom: MAX_ZOOM,
-			minNativeZoom: MIN_ZOOM,
+			minNativeZoom: MIN_ZOOM
 		}).addTo(m); // The actual satellite imagery
 
 		return m;
@@ -97,8 +104,8 @@
 	onMount(() => {
 		map = createMap(mapEl);
 		toolbar.addTo(map);
-		rocketMarker.addTo(map);
 		launchPointMarker.addTo(map);
+		rocketMarker.addTo(map);
 	});
 
 	onDestroy(() => {

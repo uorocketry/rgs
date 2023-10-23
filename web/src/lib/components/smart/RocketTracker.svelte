@@ -26,12 +26,10 @@
 	const MIN_ZOOM = 5;
 	const INITIAL_ZOOM = 10;
 
-	let sprintCoords = spring(rocketXY,
-		{
-			stiffness: 0.1,
-			damping: 0.25
-		}
-	);
+	let sprintCoords = spring(rocketXY, {
+		stiffness: 0.1,
+		damping: 0.25
+	});
 
 	sprintCoords.subscribe((val) => {
 		rocketMarker?.setLatLng({
@@ -55,8 +53,8 @@
 		});
 	}
 
-	
 	$: {
+		console.log('setting view');
 		sprintCoords.set(rocketXY);
 		if (map) {
 			map.setView(rocketLatLng, map.getZoom());

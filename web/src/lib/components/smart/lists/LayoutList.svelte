@@ -16,17 +16,25 @@
 		layouts = new Map(
 			allLayouts.map((l) => [l.id, { name: l.name, data: l.data }])
 		) as typeof layouts;
-		unsubscribeF = await pb.collection('layouts').subscribe('*', (data) => {
-			// data.action is create, update, delete
-			if (data.action === 'create') {
-				layouts.set(data.record.id, { name: data.record.collectionName, data: data.record.data });
-			} else if (data.action === 'update') {
-				layouts.set(data.record.id, { name: data.record.collectionName, data: data.record.data });
-			} else if (data.action === 'delete') {
-				layouts.delete(data.record.id);
-			}
-			layouts = layouts;
-		});
+		unsubscribeF = await pb
+			.collection(Collections.Layouts)
+			.subscribe<LayoutsResponse<ResolvedLayoutConfig>>('*', (data) => {
+				if (data.action === 'update' || data.action === 'create') {
+					if (!data.record.data) {
+						console.error(
+							`Layout ${data.record.name} (${data.record.id}) of the layouts doesn't have data`
+						);
+					} else {
+						layouts.set(data.record.id, {
+							name: data.record.name,
+							data: data.record.data
+						});
+					}
+				} else if (data.action === 'delete') {
+					layouts.delete(data.record.id);
+				}
+				layouts = layouts;
+			});
 	});
 
 	onDestroy(() => {
@@ -44,7 +52,7 @@
 	function deletePanel(id: string) {
 		if (timeout) clearTimeout(timeout);
 		if (id === toDelete) {
-			pb.collection('layouts').delete(id);
+			pb.collection(Collections.Layouts).delete(id);
 			toDelete = undefined;
 			return;
 		}
@@ -70,7 +78,7 @@
 			{#if layouts.size > 0}
 				{#each [...layouts] as [key, val]}
 					<!-- On click, copy the value to the clipboard and add a visual effect -->
-					<tr on:click={() => loadLayout(key)} class="clicky">
+					<tr on:click={() => loadLayout(key)}>
 						<td>
 							<button
 								on:click={(e) => {

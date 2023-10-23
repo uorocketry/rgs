@@ -4,13 +4,12 @@ import { defineConfig, loadEnv } from 'vite';
 const config = (mode: string) => {
 	// Make environment variables available from .env available
 	process.env = { ...process.env, ...loadEnv(mode, '../', '') };
-	const pbUrl = 'http://localhost:' + (process.env['DB_REST_PORT'] || '8090');
 	return defineConfig({
 		server: {
 			port: parseInt(process.env['WEB_SERVER_PORT'] ?? '') || 3000,
 			proxy: {
 				'/db/': {
-					target: pbUrl,
+					target: 'http://localhost:' + (process.env['DB_REST_PORT'] || '3001'),
 					changeOrigin: true,
 					secure: false,
 					ws: true,

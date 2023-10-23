@@ -3,7 +3,12 @@ import { LayoutConfig, ResolvedLayoutConfig } from 'golden-layout';
 import { get, writable, type Writable } from 'svelte/store';
 import { flightDirector } from '../realtime/flightDirector';
 import { layoutComponentsString, layoutConfig, virtualLayout } from './layoutStore';
-import type { LayoutsResponse } from './pocketbase-types';
+import {
+	Collections,
+	type FlightDirectorRecord,
+	type LayoutsRecord,
+	type LayoutsResponse
+} from './pocketbase-types';
 
 export interface CommandAction {
 	name: string;
@@ -37,10 +42,10 @@ export const commandActions: Writable<CommandAction[]> = writable([
 			const vLayout = get(virtualLayout);
 			if (!vLayout) return;
 			const saved = vLayout.saveLayout();
-			pb.collection('layouts').create({
+			pb.collection(Collections.Layouts).create({
 				name: layoutName,
 				data: JSON.stringify(saved)
-			});
+			} satisfies LayoutsRecord);
 		}
 	},
 	{
@@ -98,12 +103,12 @@ export const commandActions: Writable<CommandAction[]> = writable([
 			const lng = parseFloat(launchPointSplit[1]);
 			if (isNaN(lng) || isNaN(lat)) return;
 			const prevFD = get(flightDirector);
-			pb.collection('FlightDirector').create({
+			pb.collection(Collections.FlightDirector).create({
 				latitude: lat,
 				longitude: lng,
-				targetAltitude: prevFD?.targetAltitude ?? 0,
-				relativeAlt: prevFD?.relativeAltitude ?? 0
-			});
+				targetAltitude: prevFD.targetAltitude,
+				relativeAltitude: prevFD.relativeAltitude
+			} satisfies FlightDirectorRecord);
 		}
 	},
 	{
@@ -117,12 +122,12 @@ export const commandActions: Writable<CommandAction[]> = writable([
 			const targetAltNum = parseFloat(targetAlt);
 			if (isNaN(targetAltNum)) return;
 			const prevFD = get(flightDirector);
-			pb.collection('FlightDirector').create({
-				latitude: prevFD?.latitude ?? 0,
-				longitude: prevFD?.longitude ?? 0,
+			pb.collection(Collections.FlightDirector).create({
+				latitude: prevFD.latitude,
+				longitude: prevFD.longitude,
 				targetAltitude: targetAltNum,
-				relativeAltitude: prevFD?.relativeAltitude
-			});
+				relativeAltitude: prevFD.relativeAltitude
+			} satisfies FlightDirectorRecord);
 		}
 	},
 	{
@@ -136,12 +141,12 @@ export const commandActions: Writable<CommandAction[]> = writable([
 			const targetAltNum = parseFloat(relativeAlt);
 			if (isNaN(targetAltNum)) return;
 			const prevFD = get(flightDirector);
-			pb.collection('FlightDirector').create({
-				latitude: prevFD?.latitude,
-				longitude: prevFD?.longitude,
-				targetAltitude: prevFD?.targetAltitude,
+			pb.collection(Collections.FlightDirector).create({
+				latitude: prevFD.latitude,
+				longitude: prevFD.longitude,
+				targetAltitude: prevFD.targetAltitude,
 				relativeAltitude: targetAltNum
-			});
+			} satisfies FlightDirectorRecord);
 		}
 	}
 ]);

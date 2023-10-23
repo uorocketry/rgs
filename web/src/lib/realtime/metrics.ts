@@ -48,13 +48,13 @@ export const current_position: Readable<CurrentPositionType> = derived(
 		const x = [1, 2, 3];
 		x.length;
 		return {
-			0: $rocketPos?.latitude ?? 0,
-			1: $rocketPos?.longitude ?? 0,
-			2: $rocketPos?.altitude ?? 0,
+			0: $rocketPos.latitude ?? 0,
+			1: $rocketPos.longitude ?? 0,
+			2: $rocketPos.altitude ?? 0,
 			length: 3,
-			lat: $rocketPos?.latitude ?? 0,
-			lng: $rocketPos?.longitude ?? 0,
-			altitude: $rocketPos?.altitude ?? 0
+			lat: $rocketPos.latitude ?? 0,
+			lng: $rocketPos.longitude ?? 0,
+			altitude: $rocketPos.altitude ?? 0
 		} satisfies CurrentPositionType;
 	}
 );

@@ -27,8 +27,7 @@
 	);
 
 	$: {
-		const ekfVal = $ekf;
-		const quat = ekfVal?.quaternion;
+		const quat = $ekf.quaternion;
 		if (quat) {
 			latestReportedRotation = new Quaternion(quat[1], quat[2], quat[3], quat[0]);
 			// The IMU is placed flat on the rocket, so the up vector is the x axis
