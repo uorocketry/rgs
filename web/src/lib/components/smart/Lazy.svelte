@@ -1,20 +1,17 @@
 <script lang="ts">
-	import { onMount } from 'svelte';
+	import { onMount, type ComponentType } from 'svelte';
 
-	let loadComponent: () => Promise<any>;
-	export { loadComponent as this };
+	let loadComponentFn: () => Promise<ComponentType>;
+	export { loadComponentFn as this };
 
-	let isShowingComponent = false;
-	let componentPromise: Promise<any>;
-	onMount(() => {
-		//
-		componentPromise = loadComponent();
+	let component: ComponentType | null = null;
+	onMount(async () => {
+		component = await loadComponentFn();
 	});
 </script>
 
-{#await componentPromise}
-	<slot name="loading">Loading...</slot>
-{:then component}
-	{@debug component}
+{#if component}
 	<svelte:component this={component} {...$$restProps} />
-{/await}
+{:else}
+	<slot name="loading">Loading...</slot>
+{/if}

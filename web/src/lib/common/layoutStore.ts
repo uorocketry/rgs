@@ -1,20 +1,41 @@
 import { LayoutConfig, type VirtualLayout } from 'golden-layout';
+import type { ComponentType } from 'svelte';
 import { writable, type Writable } from 'svelte/store';
 
 // Components
 
-export const layoutComponents = {
-	RocketNavBall: () => import('$lib/components/smart/RocketNavBall.svelte'),
-	RocketTracker: () => import('$lib/components/smart/RocketTracker.svelte'),
-	Map: () => import('$lib/components/smart/Map.svelte'),
-	ErrorRate: () => import('$lib/components/smart/graphs/ErrorRate.svelte'),
-	GenericSbgGraph: () => import('$lib/components/smart/graphs/GenericSbgGraph.svelte'),
-	MissedMessage: () => import('$lib/components/smart/graphs/MissedMessage.svelte'),
-	LayoutList: () => import('$lib/components/smart/lists/LayoutList.svelte'),
-	RadioStatus: () => import('$lib/components/smart/lists/RadioStatus.svelte'),
-	RocketMotion: () => import('$lib/components/smart/lists/RocketMotion.svelte'),
-	RocketStatus: () => import('$lib/components/smart/lists/RocketStatus.svelte')
-} satisfies Record<string, () => Promise<{ default: any }>>;
+export const layoutComponents: Record<string, () => Promise<ComponentType>> = {
+	RocketNavBall: async () => {
+		return (await import('$lib/components/smart/RocketNavBall.svelte')).default;
+	},
+	RocketTracker: async () => {
+		return (await import('$lib/components/smart/RocketTracker.svelte')).default;
+	},
+	Map: async () => {
+		return (await import('$lib/components/smart/Map.svelte')).default;
+	},
+	ErrorRate: async () => {
+		return (await import('$lib/components/smart/graphs/ErrorRate.svelte')).default;
+	},
+	GenericSbgGraph: async () => {
+		return (await import('$lib/components/smart/graphs/GenericSbgGraph.svelte')).default;
+	},
+	MissedMessage: async () => {
+		return (await import('$lib/components/smart/graphs/MissedMessage.svelte')).default;
+	},
+	LayoutList: async () => {
+		return (await import('$lib/components/smart/lists/LayoutList.svelte')).default;
+	},
+	RadioStatus: async () => {
+		return (await import('$lib/components/smart/lists/RadioStatus.svelte')).default;
+	},
+	RocketMotion: async () => {
+		return (await import('$lib/components/smart/lists/RocketMotion.svelte')).default;
+	},
+	RocketStatus: async () => {
+		return (await import('$lib/components/smart/lists/RocketStatus.svelte')).default;
+	}
+};
 
 export const layoutComponentsString = Object.keys(layoutComponents);
 export const virtualLayout: Writable<VirtualLayout | undefined> = writable();

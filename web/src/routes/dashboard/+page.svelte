@@ -32,14 +32,13 @@
 
 	const identity = (x: JsonValue) => x as object;
 	const svelteComponentMap = (componentType: string) => {
-		const component = layoutComponents[componentType as keyof typeof layoutComponents];
-		return component;
+		const componentFn = layoutComponents[componentType as keyof typeof layoutComponents];
+		return componentFn;
 	};
 </script>
 
 <div class="w-full h-full overflow-clip z-0">
 	<GoldenLayout config={$layoutConfig} let:componentType let:componentState bind:goldenLayout>
-		<!-- <svelte:component this={svelteComponentMap(componentType)} {...identity(componentState)} /> -->
 		<Lazy this={svelteComponentMap(componentType)} {...identity(componentState)}></Lazy>
 	</GoldenLayout>
 </div>
