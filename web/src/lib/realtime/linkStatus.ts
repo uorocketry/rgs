@@ -1,6 +1,6 @@
 import { unflattenObjectWithArray } from '$lib/common/utils';
-import type { Air, EkfNav1, EkfNav2, EkfQuat, Imu1, Imu2, LinkStatus } from '@rgs/bindings';
 import { derived } from 'svelte/store';
+import type { AirRecord, Collections } from '../common/pocketbase-types';
 import { latestCollectionWritable } from './lastestCollectionWritable';
 
 export const linkStatus = latestCollectionWritable<LinkStatus | undefined>(
@@ -11,7 +11,7 @@ export const linkStatus = latestCollectionWritable<LinkStatus | undefined>(
 	}
 );
 
-export const air = latestCollectionWritable<Air | undefined>('Air', undefined, (row) => {
+export const air = latestCollectionWritable<AirRecord | undefined>(Collections.Air, undefined, (row) => {
 	return row as unknown as Air;
 });
 

@@ -17,15 +17,9 @@ module.exports = {
     {
       name: "web",
       cwd: "web",
-      script: "pnpm dev",
+      script: "bun dev",
       env: common_env,
     },
-    // {
-    //   name: "db",
-    //   cwd: "db",
-    //   script: "bun dev",
-    //   env: common_env,
-    // }
     {
       name: "pb",
       cwd: "pb",
