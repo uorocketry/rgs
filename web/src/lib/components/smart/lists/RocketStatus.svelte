@@ -38,7 +38,7 @@
 					</td>
 				</div>
 				<td>
-					<span class="text-right">{$state?.status}</span>
+					<span class="text-right">{$state?.state}</span>
 				</td>
 			</tr>
 			<tr class="hover clicky cursor-pointer">
@@ -147,7 +147,7 @@
 					</td>
 				</div>
 				<td>
-					<span class="text-right">{$flightDirector.targetAltitude}</span>
+					<span class="text-right">{$flightDirector?.targetAltitude ?? '?'}</span>
 				</td>
 			</tr>
 			<tr class="hover clicky cursor-pointer">
@@ -160,7 +160,7 @@
 					</td>
 				</div>
 				<td>
-					<span class="text-right">{$flightDirector.relativeAltitude}</span>
+					<span class="text-right">{$flightDirector?.relativeAltitude ?? '?'}</span>
 				</td>
 			</tr>
 			<tr class="hover clicky cursor-pointer">

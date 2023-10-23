@@ -1,15 +1,15 @@
 <script lang="ts">
+	import { Collections, type RocketLinkResponse } from '$lib/common/pocketbase-types';
 	import { onCollectionCreated } from '$lib/common/utils';
-	import type { LinkStatus } from '@rgs/bindings';
 	import { modeCurrent } from '@skeletonlabs/skeleton';
 	import { onDestroy } from 'svelte';
 	import Speedometer from 'svelte-speedometer';
 
-	let radio_msg: LinkStatus[] = [];
+	let radio_msg: RocketLinkResponse[] = [];
 	$: text_color = $modeCurrent ? 'black' : 'white';
 	let sub = () => {};
 
-	onCollectionCreated('LinkStatus', async (msg: LinkStatus) => {
+	onCollectionCreated(Collections.RocketLink, async (msg) => {
 		radio_msg = [...radio_msg, msg];
 	});
 
