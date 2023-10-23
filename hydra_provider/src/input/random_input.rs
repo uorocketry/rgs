@@ -1,7 +1,9 @@
 use crate::processing::InputData;
+use messages::command::Command;
 use messages::mavlink::MavHeader;
 use messages::sender::Sender;
 use messages::sensor::Air;
+use messages::sensor::Current;
 use messages::sensor::EkfNav1;
 use messages::sensor::EkfNav2;
 use messages::sensor::EkfQuat;
@@ -10,11 +12,14 @@ use messages::sensor::GpsPos2;
 use messages::sensor::GpsVel;
 use messages::sensor::Imu1;
 use messages::sensor::Imu2;
+use messages::sensor::Regulator;
 use messages::sensor::Sensor;
 use messages::sensor::UtcTime;
+use messages::sensor::Voltage;
 use messages::state::State;
 use messages::state::StateData;
 use messages::Data;
+use messages::Log;
 use messages::Message;
 use rand::rngs::ThreadRng;
 use rand::Rng;
@@ -35,7 +40,7 @@ impl RandomInput {
 impl RandomInput {
     pub fn read_loop(&mut self, send: std::sync::mpsc::Sender<InputData>) -> ! {
         loop {
-            std::thread::sleep(Duration::from_millis(200));
+            std::thread::sleep(Duration::from_millis(50));
 
             let msg = self.read_message();
             send.send(msg).unwrap();
@@ -43,7 +48,7 @@ impl RandomInput {
     }
 
     fn random_sensor(&mut self) -> Message {
-        let time = fugit::Instant::<u64, 1, 1000>::from_ticks(
+        let time: fugit::Instant<u64, 1, 1000> = fugit::Instant::<u64, 1, 1000>::from_ticks(
             SystemTime::now()
                 .duration_since(SystemTime::UNIX_EPOCH)
                 .unwrap()
@@ -142,6 +147,21 @@ impl RandomInput {
             differential_age: self.rng.gen(),
         };
 
+        let current = Current {
+            current: self.rng.gen(),
+            rolling_avg: self.rng.gen(),
+        };
+
+        let voltage = Voltage {
+            rolling_avg: self.rng.gen(),
+            voltage: self.rng.gen(),
+        };
+
+        let regulator = Regulator {
+            // true or false
+            status: self.rng.gen::<f32>() > 0.5f32,
+        };
+
         // Array of sensor messages (we will select one of it)
         let sensors = [
             Sensor::new(utc_time),
@@ -154,6 +174,9 @@ impl RandomInput {
             Sensor::new(gps_vel),
             Sensor::new(gps_pos1),
             Sensor::new(gps_pos2),
+            Sensor::new(current),
+            Sensor::new(voltage),
+            Sensor::new(regulator),
         ];
 
         let status = match self.rng.gen_range(0..=6) {
@@ -171,8 +194,19 @@ impl RandomInput {
 
         let state = State { data: status };
 
-        let data = match self.rng.gen_range(0..=1) {
+        let log = Log::new(messages::LogLevel::Info, messages::Event::Initialized());
+
+        let command = Command {
+            data: messages::command::CommandData::DeployDrogue({
+                messages::command::DeployDrogue { val: true }
+            }),
+        };
+
+        let data = match self.rng.gen_range(0..=3) {
             0 => Data::State(state),
+            1 => Data::Log(log),
+            2 => Data::Command(command),
+            3 => Data::Sensor(sensor),
             _ => Data::Sensor(sensor),
         };
 

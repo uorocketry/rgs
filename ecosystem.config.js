@@ -20,11 +20,17 @@ module.exports = {
       script: "pnpm dev",
       env: common_env,
     },
+    // {
+    //   name: "db",
+    //   cwd: "db",
+    //   script: "bun dev",
+    //   env: common_env,
+    // }
     {
-      name: "db",
-      cwd: "db",
-      script: "bun dev",
+      name: "pb",
+      cwd: "pb",
+      script: `./pocketbase serve --http=0.0.0.0:${DB_REST_PORT}`,
       env: common_env,
-    }
+    },
   ]
 };

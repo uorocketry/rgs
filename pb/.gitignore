@@ -171,4 +171,4 @@ dist
 # IntelliJ based IDEs
 .idea
 
-pb_*/
+pb_data/
