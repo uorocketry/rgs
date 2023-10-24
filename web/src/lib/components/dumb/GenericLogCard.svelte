@@ -26,18 +26,16 @@
 
 </script>
 
-
-
-	<tr class="hover" on:click={onLogItemClick}>
-		<td>{Object.keys(data)[0]}</td>
-		<td>{timestamp}</td>
-	</tr>
-	{#if expanded}
-		<tr class="bg-slate-500 text-white">
-			<td colspan="3">
+<button class="col-span-3 hover:bg-slate-100" on:click={onLogItemClick}>
+	<div class="grid grid-cols-3 gap-1 text-left">
+		<div>{Object.keys(data)[0]}</div>
+		<div class="col-span-2">{timestamp}</div>
+		 {#if expanded}
+		 	<div class="bg-slate-500 col-span-3 text-white">
 				<pre>
 					{JSON.stringify(data, null, 4)}
 				</pre>
-			</td>
-		</tr>
-	{/if}
+			</div>
+		 {/if}
+	</div>
+</button>

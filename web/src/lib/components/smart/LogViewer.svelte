@@ -44,28 +44,20 @@
 		{#if !logs}
 			<span class="loading loading-spinner loading-lg"></span>
 		{:else }
-			<table class="table table-xs table-fixed">
-				<thead>
-					<tr>
-						<th>Type</th>
-						<th>Time</th>
-						<th>
-							<input
-								on:input={onSearch}
-								type="text"
-								placeholder="Search"
-								class="input input-bordered input-xs w-full max-w-xs"
-								bind:value={search}
-							/>
-						</th>
-					</tr>
-				</thead>
-				<tbody>
-					{#each logs as { data, updated }}
-						<GenericLogCard {data} timestamp={updated} />
-					{/each}
-				</tbody>
-			</table>
+			<div class="h-screen grid grid-cols-3 gap-1 overflow-auto">
+				<div class="">Type</div>
+				<div class="">Time</div>
+				<input
+					on:input={onSearch}
+					type="text"
+					placeholder="Search"
+					class="input input-bordered input-xs w-full max-w-xs"
+					bind:value={search}
+				/>	
+				{#each logs as { data, updated }}
+					<GenericLogCard {data} timestamp={updated} />
+				{/each}	
+			</div>
 		{/if}
 	</div>
 </div>
