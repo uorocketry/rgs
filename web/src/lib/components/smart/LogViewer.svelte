@@ -1,41 +1,49 @@
 <script lang="ts">
 	import { pb } from '$lib/stores';
-	import type { Data } from '@rgs/bindings';
 	import type { RecordModel } from 'pocketbase';
+	import { onMount } from 'svelte';
 	import GenericLogCard from '../dumb/GenericLogCard.svelte';
 
-	interface pbResult extends RecordModel {
-		data: Data;
-	}
-
-	let logsPromise = pb.collection('raw').getList<pbResult>(1, 100, {
-		sort: '-created'
-	});
+	let logs: RecordModel[] = []
 
 	let search = '';
 	let searchTimer: NodeJS.Timeout;
 
-	const onSearch = () => {
+
+	onMount(async ()=> {
+		logs = (await  pb.collection('raw').getList(1, 100, {
+			sort: '-created'
+		})).items 
+
+		pb.collection('raw').subscribe("*", (r) => {
+			if(r.action === "create") {
+				logs.push(r.record)
+			}
+		})
+
+	})
+
+	const onSearch = async () => {
 		clearTimeout(searchTimer);
-		searchTimer = setTimeout(() => {
-			logsPromise =
+		searchTimer = setTimeout(async () => {
+			logs =
 				search.length === 0
-					? pb.collection('raw').getList<pbResult>(1, 100, {
+					? (await pb.collection('raw').getList(1, 100, {
 							sort: '-created'
-					  })
-					: pb.collection('raw').getList<pbResult>(1, 30, {
+					  })).items
+					: (await  pb.collection('raw').getList(1, 30, {
 							filter: `data ~ '${search}'`,
                             sort: `-created`
-					  });
+					  })).items;
 		}, 1000);
 	};
 </script>
 
 <div class="flex justify-center">
 	<div class="w-8/12 overflow-auto">
-		{#await logsPromise}
+		{#if !logs}
 			<span class="loading loading-spinner loading-lg"></span>
-		{:then logs}
+		{:else }
 			<table class="table table-xs table-fixed">
 				<thead>
 					<tr>
@@ -53,13 +61,11 @@
 					</tr>
 				</thead>
 				<tbody>
-					{#each logs.items as { data, updated }}
+					{#each logs as { data, updated }}
 						<GenericLogCard {data} timestamp={updated} />
 					{/each}
 				</tbody>
 			</table>
-		{:catch err}
-			Fetching logs failed: {err.message}
-		{/await}
+		{/if}
 	</div>
 </div>
