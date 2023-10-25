@@ -5,6 +5,7 @@
 		startLayout,
 		virtualLayout
 	} from '$lib/common/layoutStore';
+	import Lazy from '$lib/components/smart/Lazy.svelte';
 	import type { JsonValue, VirtualLayout } from 'golden-layout';
 	import { onMount } from 'svelte';
 	import GoldenLayout from 'svelte-golden-layout';
@@ -37,6 +38,6 @@
 
 <div class="w-full h-full overflow-clip z-0">
 	<GoldenLayout config={$layoutConfig} let:componentType let:componentState bind:goldenLayout>
-		<svelte:component this={svelteComponentMap(componentType)} {...identity(componentState)} />
+		<Lazy this={svelteComponentMap(componentType)} {...identity(componentState)}></Lazy>
 	</GoldenLayout>
 </div>
