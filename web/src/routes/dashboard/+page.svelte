@@ -39,7 +39,6 @@
 
 <div class="w-full h-full overflow-clip z-0">
 	<GoldenLayout config={$layoutConfig} let:componentType let:componentState bind:goldenLayout>
-		<!-- <svelte:component this={svelteComponentMap(componentType)} {...identity(componentState)} /> -->
 		<Lazy this={svelteComponentMap(componentType)} {...identity(componentState)}></Lazy>
 	</GoldenLayout>
 </div>
