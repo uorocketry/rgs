@@ -1,6 +1,5 @@
 <script lang="ts">
 	import { linkStatus } from '$lib/realtime/linkStatus';
-	import type { LinkStatus } from '@rgs/bindings';
 	import { Bar } from 'svelte-chartjs';
 
 	let timestamp: number[] = [];

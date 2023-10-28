@@ -1,5 +1,4 @@
 import { unflattenObjectWithArray } from '$lib/common/utils';
-import type { Air, EkfNav1, EkfNav2, EkfQuat, Imu1, Imu2, LinkStatus } from '@rgs/bindings';
 import { derived } from 'svelte/store';
 import { latestCollectionWritable } from './lastestCollectionWritable';
 

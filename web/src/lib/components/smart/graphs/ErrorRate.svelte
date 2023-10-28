@@ -1,6 +1,5 @@
 <script lang="ts">
 	import { onCollectionCreated } from '$lib/common/utils';
-	import type { LinkStatus } from '@rgs/bindings';
 	import { modeCurrent } from '@skeletonlabs/skeleton';
 	import { onDestroy } from 'svelte';
 	import Speedometer from 'svelte-speedometer';

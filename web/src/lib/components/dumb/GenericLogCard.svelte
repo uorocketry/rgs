@@ -1,7 +1,5 @@
 <!-- TODO: Refactor needed,  -->
 <script lang="ts">
-	import type { Message } from '@rgs/bindings';
-
 	export let msg: Message;
 
 	function formatData(data: unknown) {

@@ -1,21 +1,5 @@
-import zmq from "zeromq";
 import PocketBase from "pocketbase";
-// Ayo? 🤨
-import {
-  Air,
-  Data,
-  EkfNav1,
-  EkfNav2,
-  GpsVel,
-  Imu1,
-  Imu2,
-  LinkStatus,
-  ProcessedMessage,
-  UtcTime,
-  StateData,
-  GpsPos1,
-  GpsPos2,
-} from "@rgs/bindings";
+import zmq from "zeromq";
 
 function envRequired(name: string): string {
   const val = process.env[name];
