@@ -32,8 +32,7 @@
 
 	const identity = (x: JsonValue) => x as object;
 	const svelteComponentMap = (componentType: string) => {
-		const component = layoutComponents[componentType as keyof typeof layoutComponents];
-		return component;
+		return layoutComponents[componentType as keyof typeof layoutComponents];
 	};
 </script>
 
