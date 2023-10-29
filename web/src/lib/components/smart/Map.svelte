@@ -1,9 +1,9 @@
 <script defer lang="ts" type="module">
-	import L, { type LatLngBoundsExpression } from 'leaflet';
 	import { browser } from '$app/environment';
-	import { onDestroy, onMount } from 'svelte';
 	import { defaultLaunchCoords, launchPoint } from '$lib/realtime/flightDirector';
-	import { rocketPosition } from '$lib/realtime/gps';
+	import { gpsPos1 } from '$lib/realtime/gps';
+	import L, { type LatLngBoundsExpression } from 'leaflet';
+	import { onDestroy, onMount } from 'svelte';
 	import { tweened } from 'svelte/motion';
 
 	let map: L.Map | null;
@@ -29,7 +29,6 @@
 	const MIN_ZOOM = 5;
 	const INITIAL_ZOOM = 10;
 
-
 	const target = tweened(defaultLaunchCoords, {
 		interpolate: (a, b) => {
 			return (t) => {
@@ -42,10 +41,13 @@
 	});
 
 	$: {
-		target.set($rocketPosition);
+		target.set({
+			lat: $gpsPos1?.latitude ?? 0,
+			lng: $gpsPos1?.longitude ?? 0
+		});
 	}
 
-	$: if (rocketMarker){
+	$: if (rocketMarker) {
 		rocketMarker.setLatLng($target);
 	}
 
@@ -61,10 +63,8 @@
 				// Maybe some custom checkpoints?
 				html: '🚀',
 				className: 'bg-transparent text-3xl '
-			}),
-		})
-
-
+			})
+		});
 	}
 
 	function createMap(container: string | HTMLElement) {
@@ -73,12 +73,12 @@
 			worldCopyJump: true,
 			minZoom: MIN_ZOOM,
 			// Uncomment to restrict the map to the bounds
-			maxBounds: bounds,
+			maxBounds: bounds
 		}).setView(initialView, INITIAL_ZOOM);
 
 		L.tileLayer(urlTemplate, {
 			maxNativeZoom: MAX_ZOOM,
-			minNativeZoom: MIN_ZOOM,
+			minNativeZoom: MIN_ZOOM
 		}).addTo(m); // The actual satellite imagery
 
 		return m;

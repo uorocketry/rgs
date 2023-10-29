@@ -1,10 +1,11 @@
 <script lang="ts">
 	import { linkStatus } from '$lib/realtime/linkStatus';
 	import { Bar } from 'svelte-chartjs';
+	import type { LinkStatusRecord } from '../../../common/pocketbase-types';
 
 	let timestamp: number[] = [];
 	let missed_msgs: number[] = [];
-	let messages: LinkStatus[] = [];
+	let messages: LinkStatusRecord[] = [];
 	let totalMessages = 0;
 
 	let data = {
@@ -44,12 +45,12 @@
 			if (messages.length > 1) {
 				timestamp.push(Date.now());
 				let diff =
-					messages[messages.length - 1].missed_messages -
-					messages[messages.length - 2].missed_messages;
+					(messages[messages.length - 1].missed_messages ?? 0) -
+					(messages[messages.length - 2].missed_messages ?? 0);
 				missed_msgs.push(diff);
 			}
 			data = data;
-			totalMessages = $linkStatus.missed_messages;
+			totalMessages = $linkStatus.missed_messages ?? -1;
 		}
 	}
 

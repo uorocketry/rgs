@@ -3,12 +3,13 @@
 	import { modeCurrent } from '@skeletonlabs/skeleton';
 	import { onDestroy } from 'svelte';
 	import Speedometer from 'svelte-speedometer';
+	import type { LinkStatusRecord } from '../../../common/pocketbase-types';
 
-	let radio_msg: LinkStatus[] = [];
+	let radio_msg: LinkStatusRecord[] = [];
 	$: text_color = $modeCurrent ? 'black' : 'white';
 	let sub = () => {};
 
-	onCollectionCreated('LinkStatus', async (msg: LinkStatus) => {
+	onCollectionCreated('LinkStatus', async (msg: LinkStatusRecord) => {
 		radio_msg = [...radio_msg, msg];
 	});
 
@@ -36,7 +37,7 @@
 			needleTransitionDuration={750}
 			needleTransition="easeCubicInOut"
 			currentValueText="Packet Loss: {(
-				radio_msg[radio_msg.length - 1]?.recent_error_rate * 100
+				(radio_msg[radio_msg.length - 1]?.recent_error_rate ?? 0) * 100
 			).toFixed(2)}%"
 			fluidWidth={true}
 			forceRender={true}

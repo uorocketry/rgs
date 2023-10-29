@@ -1,7 +1,7 @@
 import { pb } from '$lib/stores';
-import { LayoutConfig } from 'golden-layout';
+import { LayoutConfig, ResolvedLayoutConfig } from 'golden-layout';
 import { get, writable, type Writable } from 'svelte/store';
-import { flightDirector, launchPoint } from '../realtime/flightDirector';
+import { flightDirector } from '../realtime/flightDirector';
 import { layoutComponentsString, layoutConfig, virtualLayout } from './layoutStore';
 
 export interface CommandAction {
@@ -55,7 +55,7 @@ export const commandActions: Writable<CommandAction[]> = writable([
 			const layoutIndex = await cmd.select('Layout name?', layoutNames, 'Recovery Layout');
 			if (layoutIndex === undefined) return;
 			const layout = layouts[layoutIndex];
-			layoutConfig.set(LayoutConfig.fromResolved(layout.data));
+			layoutConfig.set(LayoutConfig.fromResolved(layout.data as ResolvedLayoutConfig));
 		}
 	},
 	{
@@ -91,6 +91,10 @@ export const commandActions: Writable<CommandAction[]> = writable([
 			const lng = parseFloat(launchPointSplit[1]);
 			if (isNaN(lng) || isNaN(lat)) return;
 			const prevFD = get(flightDirector);
+			if (!prevFD) {
+				await cmd.select("Couldn't find flight director, please report this bug", ['Ok']);
+				return;
+			}
 			pb.collection('FlightDirector').create({
 				latitude: lat,
 				longitude: lng,
@@ -99,7 +103,12 @@ export const commandActions: Writable<CommandAction[]> = writable([
 			});
 
 			// Update the store with the new values
-			launchPoint.set({ lat, lng });
+			flightDirector.set({
+				latitude: lat,
+				longitude: lng,
+				targetAltitude: prevFD.targetAltitude,
+				relativeAltitude: prevFD.relativeAltitude
+			});
 		}
 	},
 	{
@@ -113,6 +122,10 @@ export const commandActions: Writable<CommandAction[]> = writable([
 			const targetAltNum = parseFloat(targetAlt);
 			if (isNaN(targetAltNum)) return;
 			const prevFD = get(flightDirector);
+			if (!prevFD) {
+				await cmd.select("Couldn't find flight director, please report this bug", ['Ok']);
+				return;
+			}
 			pb.collection('FlightDirector').create({
 				latitude: prevFD.latitude,
 				longitude: prevFD.longitude,
@@ -132,6 +145,10 @@ export const commandActions: Writable<CommandAction[]> = writable([
 			const targetAltNum = parseFloat(relativeAlt);
 			if (isNaN(targetAltNum)) return;
 			const prevFD = get(flightDirector);
+			if (!prevFD) {
+				await cmd.select("Couldn't find flight director, please report this bug", ['Ok']);
+				return;
+			}
 			pb.collection('FlightDirector').create({
 				latitude: prevFD.latitude,
 				longitude: prevFD.longitude,

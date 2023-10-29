@@ -2,27 +2,23 @@ import { haversineDistance, max } from '$lib/common/utils';
 import type { Readable } from 'svelte/motion';
 import { derived } from 'svelte/store';
 import { flightDirector, launchPoint } from './flightDirector';
-import { rocketAltitude, rocketPosition } from './gps';
+import { gpsPos1, rocketAltitude, rocketPosition } from './gps';
 import { air, ekf } from './linkStatus';
 
 const _velocity = [0, 0, 0];
 export const max_velocity: Readable<[number, number, number]> = derived([ekf], ([$ekf]) => {
-	if ($ekf.velocity) {
-		return [
-			max(_velocity[0], $ekf.velocity[0]),
-			max(_velocity[1], $ekf.velocity[1]),
-			max(_velocity[2], $ekf.velocity[2])
-		] satisfies [number, number, number];
-	} else {
-		return [0, 0, 0] satisfies [number, number, number];
-	}
+	return [
+		max(_velocity[0], $ekf.velocity_0 ?? 0),
+		max(_velocity[1], $ekf.velocity_1 ?? 0),
+		max(_velocity[2], $ekf.velocity_2 ?? 0)
+	] satisfies [number, number, number];
 });
 
 // ground_altitude = ($air?.altitude ?? 0) - $flightDirector.relativeAltitude;
 export const ground_altitude: Readable<number> = derived(
 	[flightDirector, air],
 	([$flightDirector, $air]) => {
-		return ($air?.altitude ?? 0) - $flightDirector.relativeAltitude;
+		return ($air?.altitude ?? 0) - ($flightDirector?.relativeAltitude ?? 0);
 	}
 );
 
@@ -30,7 +26,7 @@ export const ground_altitude: Readable<number> = derived(
 export const distance_from_target: Readable<number> = derived(
 	[flightDirector, ground_altitude],
 	([$flightDirector, $ground_altitude]) => {
-		return $flightDirector.targetAltitude - $ground_altitude;
+		return ($flightDirector?.targetAltitude ?? 0) - $ground_altitude;
 	}
 );
 
@@ -43,17 +39,17 @@ export const max_altitude: Readable<number> = derived(air, ($air) => {
 type CurrentPositionType = ArrayLike<number> & { lat: number; lng: number; altitude: number };
 // $: current_position = [$rocketPosition.lat, $rocketPosition.lng, $rocketAltitude];
 export const current_position: Readable<CurrentPositionType> = derived(
-	[rocketPosition, rocketAltitude],
+	[gpsPos1, rocketAltitude],
 	([$rocketPosition, $rocketAltitude]) => {
 		const x = [1, 2, 3];
 		x.length;
 		return {
-			0: $rocketPosition.lat,
-			1: $rocketPosition.lng,
+			0: $rocketPosition?.latitude ?? 0,
+			1: $rocketPosition?.longitude ?? 0,
 			2: $rocketAltitude,
 			length: 3,
-			lat: $rocketPosition.lat,
-			lng: $rocketPosition.lng,
+			lat: $rocketPosition?.latitude ?? 0,
+			lng: $rocketPosition?.longitude ?? 0,
 			altitude: $rocketAltitude
 		} satisfies CurrentPositionType;
 	}
@@ -73,10 +69,7 @@ function calcGForce(vf: number, t: number) {
 
 // FIXME: The G-Force calculation is wrong since it's not given a proper time delta
 export const g_force: Readable<number> = derived(ekf, ($ekf) => {
-	if ($ekf.velocity) {
-		return calcGForce($ekf.velocity[1], 0.1);
-	}
-	return 0;
+	return calcGForce($ekf.velocity_1 ?? 0, 0.1);
 });
 
 const _g_force = 0;
