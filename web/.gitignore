@@ -9,3 +9,9 @@ node_modules
 .vercel
 .output
 vite.config.ts.*.mjs
+/test-results/
+/playwright-report/
+/playwright/.cache/
+/test-results/
+/playwright-report/
+/playwright/.cache/
