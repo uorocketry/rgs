@@ -1,36 +1,17 @@
 #include "main.hpp"
 
-void PublisherThread(zmq::context_t *ctx, std::atomic<bool> *exitFlag)
+void WriteThread(std::string token)
 {
-    zmq::socket_t publisher(*ctx, zmq::socket_type::pub);
-    publisher.bind("tcp://*:3003");
-    std::cout << "Publisher thread started." << std::endl;
-    while (!(*exitFlag))
-    {
-        std::string msg = "Hello";
-        zmq::message_t zmq_msg(msg.size());
-        memcpy(zmq_msg.data(), msg.data(), msg.size());
-        publisher.send(zmq_msg, zmq::send_flags::none);
-        std::cout << "Sent message: " << msg << std::endl;
-        std::this_thread::sleep_for(std::chrono::milliseconds(100));
-    }
-    std::cout << "Publisher thread finished." << std::endl;
-}
-
-void SubscriberThread(zmq::context_t *ctx, std::atomic<bool> *exitFlag)
-{
-    zmq::socket_t subscriber(*ctx, zmq::socket_type::sub);
-    subscriber.connect("tcp://localhost:3002");
-    subscriber.set(zmq::sockopt::subscribe, "");
-    std::cout << "Subscriber thread started." << std::endl;
-    while (!(*exitFlag))
-    {
-        zmq::message_t zmq_msg;
-        subscriber.recv(zmq_msg, zmq::recv_flags::none);
-        std::string msg = std::string(static_cast<char *>(zmq_msg.data()), zmq_msg.size());
-        std::cout << "Received message: " << msg << std::endl;
-    }
-    std::cout << "Subscriber thread finished." << std::endl;
+    Json::Value j;
+    j["timestamp"] = 0.0;
+    j["value"] = 0.0;
+    j["peripheral"] = Messages::periphrals::LOADCELL;
+    // std::cout << j.toStyledString() << std::endl;
+    cpr::Response r = cpr::Post(cpr::Url{"http://0.0.0.0:8090/api/collections/labjackRead/records"},
+                                cpr::Body{j.toStyledString()},
+                                cpr::Header{{"Content-Type", "application/json"}},
+                                cpr::Bearer{token});
+    std::cout << r.text << std::endl;
 }
 
 int main()
@@ -38,17 +19,34 @@ int main()
     float load;
     double temp;
     int angle;
-    // LoadCell load_cell = LoadCell("AIN2", "AIN3", 0.02);
+    LoadCell load_cell = LoadCell("AIN2", "AIN3", 0.02);
     // Thermocouple thermocouple = Thermocouple("AIN0", ThermocoupleType::K);
-    // Servo servo = Servo("DAC0", 500, 2500);
+    // Servo servo = Servo("FIO0", 500, 2500);
     // LabJack labjack = LabJack();
     // servo.setup_servo(labjack);
     // servo.write_angle(labjack, 0.0);
-    // // MillisecondSleep(5000);
+
+    // MillisecondSleep(5000);
     // servo.write_angle(labjack, 180.0);
     // Set up a flag to control the loop
-    std::atomic<bool> exitFlag = false;
-    zmq::context_t ctx;
+    std::atomic<bool>
+        exitFlag = false;
+    // Auth with admin account on startup
+    cpr::Response r = cpr::Post(cpr::Url{"http://0.0.0.0:8090/api/admins/auth-with-password"},
+                                cpr::Body{"{\"identity\":\"admin@admin.com\",\"password\":\"admin\"}"},
+                                cpr::Header{{"Content-Type", "application/json"}});
+    std::cout << r.text << std::endl;
+    Json::Value auth_json;
+    Json::CharReaderBuilder builder;
+    Json::CharReader *reader = builder.newCharReader();
+    std::string errors;
+    bool parsingSuccessful = reader->parse(r.text.c_str(), r.text.c_str() + r.text.size(), &auth_json, &errors);
+    delete reader;
+    if (!parsingSuccessful)
+    {
+        std::cerr << "Failed to parse JSON: " << errors << std::endl;
+    }
+    struct Messages::Data msg;
 
     // Create a thread for non-blocking input
     std::thread inputThread([&exitFlag]()
@@ -76,8 +74,7 @@ int main()
         } });
 
     double i = 0.0;
-    auto pub_thread = std::async(std::launch::async, PublisherThread, &ctx, &exitFlag);
-    auto sub_thread = std::async(std::launch::async, SubscriberThread, &ctx, &exitFlag);
+    std::thread write_thread = std::thread(WriteThread, auth_json["token"].asString());
     // Main loop
     while (!exitFlag)
     {
@@ -95,8 +92,9 @@ int main()
 
     // Wait for the input thread to finish
     inputThread.join();
-    pub_thread.wait();
-    sub_thread.wait();
+    write_thread.join();
+    // pub_thread.wait();
+    // sub_thread.wait();
 
     std::cout << "Exiting the program." << std::endl;
     return 0;

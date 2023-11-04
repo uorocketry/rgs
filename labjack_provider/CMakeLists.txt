@@ -17,6 +17,15 @@ include_directories(
 # Find cppzmq package
 find_package(cppzmq REQUIRED)
 
+# find_package(LabJackM REQUIRED)
+find_package(jsoncpp REQUIRED)
+
+# find cpr 
+find_package(cpr REQUIRED)
+
+# pkg_check_modules(JSONCPP jsoncpp)
+# link_libraries(${JSONCPP_LIBRARIES})
+
 # Add executable target
 add_executable(${PROJECT_NAME} ${SOURCES})
 
@@ -25,6 +34,11 @@ target_link_libraries(${PROJECT_NAME} LabJackM)
 
 # Link against cppzmq library
 target_link_libraries(${PROJECT_NAME} cppzmq)
+
+# Link against JsconCpp library
+target_link_libraries(${PROJECT_NAME} jsoncpp)
+
+target_link_libraries(${PROJECT_NAME}  cpr::cpr)
 
 # Set the output directory for the executable
 set_target_properties(${PROJECT_NAME} PROPERTIES
