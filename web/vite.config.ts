@@ -1,11 +1,18 @@
 import { sveltekit } from '@sveltejs/kit/vite';
-import { defineConfig, loadEnv } from 'vite';
+import { loadEnv } from 'vite';
+import { defineConfig } from 'vitest/config';
 
 const config = (mode: string) => {
 	// Make environment variables available from .env available
 	process.env = { ...process.env, ...loadEnv(mode, '../', '') };
 	const pbUrl = 'http://localhost:' + (process.env['DB_REST_PORT'] || '8090');
 	return defineConfig({
+		test: {
+			dir: './src',
+			include: ['**.test.ts']
+			
+		},
+
 		server: {
 			port: parseInt(process.env['WEB_SERVER_PORT'] ?? '') || 3000,
 			proxy: {
@@ -28,7 +35,7 @@ const config = (mode: string) => {
 		plugins: [sveltekit()],
 		ssr: {
 			noExternal: ['three']
-		}
+		},
 	});
 };
 

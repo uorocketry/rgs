@@ -1,20 +1,20 @@
-import zmq from "zeromq";
 import PocketBase from "pocketbase";
+import zmq from "zeromq";
 // Ayo? 🤨
 import {
   Air,
   Data,
   EkfNav1,
   EkfNav2,
+  GpsPos1,
+  GpsPos2,
   GpsVel,
   Imu1,
   Imu2,
   LinkStatus,
   ProcessedMessage,
-  UtcTime,
   StateData,
-  GpsPos1,
-  GpsPos2,
+  UtcTime,
 } from "@rgs/bindings";
 
 function envRequired(name: string): string {
@@ -34,9 +34,12 @@ envRequired("XPUB_PORT");
 console.info("Started PB Service");
 
 import { spawn } from "child_process";
-
-const child = spawn("./pocketbase", [
+let platformName = process.platform;
+const child = spawn(`./bin/${platformName}/pocketbase`, [
   "serve",
+  '--dir=pb_data',
+  '--publicDir=pb_public',
+  '--migrationsDir=pb_migrations',
   `--http=0.0.0.0:${process.env.DB_REST_PORT}`,
 ]);
 // print output of child process

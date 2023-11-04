@@ -13,8 +13,11 @@
 		"lint": "prettier --check . && eslint .",
 		"format": "prettier --write .",
 		"typegen": "npx pocketbase-typegen --db ../pb/pb_data/data.db --out ./src/lib/common/pocketbase-types.ts",
-		"bump": "ncu -u"
+		"bump": "ncu -u",
+		"test": "vitest"
 	},
+
+	
 	"devDependencies": {
 		"@floating-ui/dom": "^1.5.3",
 		"@fortawesome/fontawesome-free": "6.4.2",
@@ -60,6 +63,7 @@
 		"tslib": "^2.6.2",
 		"typescript": "^5.2.2",
 		"vite": "^4.4.11",
+		"vitest": "^0.34.6",
 		"winston": "^3.11.0",
 		"zeromq": "6.0.0-beta.17"
 	}
