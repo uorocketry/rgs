@@ -1,6 +1,6 @@
 <script lang="ts">
 	import { Canvas } from '@threlte/core';
-	import { Sky } from '@threlte/extras';
+	import { Environment } from '@threlte/extras';
 	import { Quaternion } from 'three/src/Three.js';
 	import NavBallScene from './NavBallScene.svelte';
 	export let targetRotation: Quaternion = new Quaternion();
@@ -10,7 +10,7 @@
 
 <div class="flex-1 w-full h-full">
 	<Canvas>
-		<Sky />
+		<Environment path={'/textures/cubemap/'} files={'road.hdr'} isBackground={true} />
 		<NavBallScene bind:targetRotation bind:useRocketModel />
 	</Canvas>
 </div>

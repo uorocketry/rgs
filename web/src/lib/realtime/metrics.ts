@@ -1,17 +1,21 @@
 import { haversineDistance, max } from '$lib/common/utils';
 import type { Readable } from 'svelte/motion';
 import { derived } from 'svelte/store';
-import { air, ekf } from './linkStatus';
 import { flightDirector, launchPoint } from './flightDirector';
 import { rocketAltitude, rocketPosition } from './gps';
+import { air, ekf } from './linkStatus';
 
 const _velocity = [0, 0, 0];
 export const max_velocity: Readable<[number, number, number]> = derived([ekf], ([$ekf]) => {
-	return [
-		max(_velocity[0], $ekf.velocity![0]),
-		max(_velocity[1], $ekf.velocity![1]),
-		max(_velocity[2], $ekf.velocity![2])
-	] satisfies [number, number, number];
+	if ($ekf.velocity) {
+		return [
+			max(_velocity[0], $ekf.velocity[0]),
+			max(_velocity[1], $ekf.velocity[1]),
+			max(_velocity[2], $ekf.velocity[2])
+		] satisfies [number, number, number];
+	} else {
+		return [0, 0, 0] satisfies [number, number, number];
+	}
 });
 
 // ground_altitude = ($air?.altitude ?? 0) - $flightDirector.relativeAltitude;
@@ -69,7 +73,10 @@ function calcGForce(vf: number, t: number) {
 
 // FIXME: The G-Force calculation is wrong since it's not given a proper time delta
 export const g_force: Readable<number> = derived(ekf, ($ekf) => {
-	return calcGForce($ekf.velocity![1], 0.1);
+	if ($ekf.velocity) {
+		return calcGForce($ekf.velocity[1], 0.1);
+	}
+	return 0;
 });
 
 const _g_force = 0;

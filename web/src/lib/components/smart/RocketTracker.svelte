@@ -108,10 +108,10 @@
 	}
 </script>
 
-<div class="isolate w-full h-full">
-	<div class="w-full h-full" bind:this={mapEl} bind:clientHeight bind:clientWidth />
-	<div class="overlay">
-		<ul class="menu menu-xs bg-base-100 !p-0">
+<div class="w-full h-full">
+	<div class="w-full h-full z-0" bind:this={mapEl} bind:clientHeight bind:clientWidth />
+	<div class="variant-glass p-2 absolute top-0 right-0 z-10">
+		<ul class="menu-xs bg-base-100 !p-0">
 			<li>
 				<button on:click={() => navigator.clipboard.writeText(`${$rocketPosition.lat}`)}>
 					Lat: {$rocketPosition.lat.toFixed(5)}
@@ -125,12 +125,3 @@
 		</ul>
 	</div>
 </div>
-
-<style>
-	.overlay {
-		position: absolute;
-		top: 0;
-		right: 0;
-		z-index: 1000;
-	}
-</style>

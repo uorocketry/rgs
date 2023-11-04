@@ -17,7 +17,7 @@
 			]
 		}
 	},
-	"postCreateCommand": "chmod u+x ./scripts/postcreate.sh && cd scripts && ./postcreate.sh",
+	"postCreateCommand": "./scripts/postcreate.sh",
 	"portsAttributes": {
 		"3000": {
 			"label": "web"

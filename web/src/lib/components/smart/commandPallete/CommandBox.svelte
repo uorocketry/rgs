@@ -1,12 +1,12 @@
 <script lang="ts">
 	import { getStringScores } from '$lib/common/stringCmp';
-	import { commandBoxToggle } from '$lib/stores';
+	import { ListBox, ListBoxItem } from '@skeletonlabs/skeleton';
 	import { onDestroy, onMount } from 'svelte';
 
 	const UNDEF_FUN = () => undefined;
 	export let prompt = '';
 	export let selectedIndex = 0;
-	export let placeholder = 'Search';
+	export let placeholder = 'Search commands by name';
 	export let list: string[] = [];
 	export let inputValue = '';
 	export let inputElement: HTMLInputElement | null = null;
@@ -80,43 +80,44 @@
 		window.removeEventListener('keydown', implOnEnter);
 	});
 
-	function closePrompt() {
-		commandBoxToggle.set({});
-	}
+	$: selectedIndex = 0;
 </script>
 
 <div
-	class="absolute top-2 left-1/2 -translate-x-1/2 z-50 rounded
-     bg-base-300 w-full max-w-screen-sm p-2 flex flex-col gap-2"
+	class="absolute top-0 right-0 left-0 mx-auto
+	px-2 py-1
+	max-w-sm
+	z-50
+	bg-surface-300-600-token
+    w-full flex flex-col gap-2"
 >
 	{#if prompt}
 		<span class="text-sm">{prompt}</span>
 	{/if}
 
-	<!-- Header -->
-	<div class="flex flex-row">
+	<div class="flex place-content-center max-h-8">
 		<input
 			bind:this={inputElement}
 			bind:value={inputValue}
-			class="flex-1 input input-sm input-bordered"
+			class="input w-full max-w-sm"
 			{placeholder}
 		/>
-		<button class="btn btn-sm ml-2" on:click={closePrompt}>✕</button>
 	</div>
+
 	<!-- Results -->
 	{#if list.length > 0}
-		<ul class="menu w-full bg-base-200 rounded">
+		<ListBox>
 			{#each displayedList as listIndex, i}
-				<li>
-					<button
-						class:active={i === selectedIndex}
-						on:click={() => {
-							_onClick(listIndex, false);
-							_onClick = UNDEF_FUN;
-						}}>{list[listIndex]}</button
-					>
-				</li>
+				<ListBoxItem
+					on:click={() => {
+						_onClick(listIndex, false);
+						_onClick = UNDEF_FUN;
+					}}
+					bind:group={selectedIndex}
+					name={i.toString()}
+					value={i}>{list[listIndex]}</ListBoxItem
+				>
 			{/each}
-		</ul>
+		</ListBox>
 	{/if}
 </div>

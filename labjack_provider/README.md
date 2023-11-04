@@ -2,18 +2,30 @@
 
 Allows interfacing with the Labjack T7-Pro DAQ.
 
-## Install
+## Requirements
 
-Requires LJM and ZMQ C++ libraries.
+> If you're on a non-apt based distribution you'll need to find the equivalent packages.
+
+- Before everything update you system packages
+  - `sudo apt update`
+- LJM (Labjack driver)
+  - For LJM you need to go to the [./vendor/labjack](./vendor/labjack) folder and run `./install.sh`, which will install required files to your `share` folder (there is also an equivalent `uninstall.sh` script).
+- ZMQ Libraries
+  - `sudo apt install build-essential cmake libusb-1.0-0-dev libudev-dev`
+
+In summary:
+
+```bash
+sudo apt update
+sudo apt install build-essential cmake libusb-1.0-0-dev libudev-dev
+cd ./vendor/labjack
+./vendor/labjack/install.sh
+cd ../../
+```
 
 ## Build
 
-### Makefile
-
-make
-
-### CMake
-
+```bash
 mkdir build
 cd build
 cmake ..
@@ -32,3 +44,4 @@ sudo apt-get install libjsoncpp-dev
 sudo ln -s /usr/include/jsoncpp/json/ /usr/include/json
 https://github.com/libcpr/cpr
 sudo apt update && sudo apt upgrade && sudo apt install curl && sudo apt-get install libcurl4-openssl-dev
+```

@@ -1,11 +1,12 @@
 <script lang="ts">
-	import type { LinkStatus } from '@rgs/bindings';
-	import Speedometer from 'svelte-speedometer';
-	import { onDestroy } from 'svelte';
 	import { onCollectionCreated } from '$lib/common/utils';
+	import type { LinkStatus } from '@rgs/bindings';
+	import { modeCurrent } from '@skeletonlabs/skeleton';
+	import { onDestroy } from 'svelte';
+	import Speedometer from 'svelte-speedometer';
 
 	let radio_msg: LinkStatus[] = [];
-	let text_color: string;
+	$: text_color = $modeCurrent ? 'black' : 'white';
 	let sub = () => {};
 
 	onCollectionCreated('LinkStatus', async (msg: LinkStatus) => {

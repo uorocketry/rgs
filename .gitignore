@@ -51,3 +51,6 @@ CMakeHelloWorld
 *.a
 **/*.a
 build/**
+
+#vs code settings 
+.vscode\settings.json

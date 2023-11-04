@@ -9,7 +9,6 @@
 	import CheckboxSelect from '../../dumb/CheckboxSelect.svelte';
 
 	export let selected: { [key: string]: string[] } = {};
-	let tooltipDesc: string;
 
 	const options = {
 		maintainAspectRatio: false,
@@ -142,51 +141,42 @@
 		}
 		collectionsEntries = [...collectionsEntries];
 	});
+
+	function collectionToReadableName(collection: string) {
+		if (collection == 'Air') {
+			return 'Air Sensor';
+		} else if (collection == 'EkfNav1') {
+			return 'Nav Velocity';
+		} else if (collection == 'EkfNav2') {
+			return 'Nav Position';
+		} else if (collection == 'EkfQuat') {
+			return 'Quaternion';
+		} else if (collection == 'GpsVel') {
+			return 'GPS Vel';
+		} else if (collection == 'Imu1') {
+			return 'Accel & Gyro';
+		} else if (collection == 'Imu2') {
+			return 'ΔV & Δ∠';
+		} else if (collection == 'LinkStatus') {
+			return 'Link Status';
+		} else if (collection == 'Log') {
+			return 'Log';
+		} else if (collection == 'State') {
+			return 'State';
+		} else {
+			return formatVariableName(collection);
+		}
+	}
 </script>
 
 <div class="w-full h-full flex flex-col bg-white" bind:clientHeight bind:clientWidth>
 	<div class="flex flex-wrap justify-center">
-		<!-- TODO: Checkbox not working(???) -->
 		{#each collectionsEntries as collection}
-			<div
-				class="tooltip tooltip-bottom"
-				data-tip={tooltipDesc}
-				on:mouseenter={() => {
-					if (collection.key == 'Air') {
-						tooltipDesc = 'Air Sensor Metrics';
-					} else if (collection.key == 'EkfNav1') {
-						tooltipDesc = 'Navigation Velocity';
-					} else if (collection.key == 'EkfNav2') {
-						tooltipDesc = 'Navigation Position';
-					} else if (collection.key == 'EkfQuat') {
-						tooltipDesc = 'Quaternion Orientation Metrics';
-					} else if (collection.key == 'GpsVel') {
-						tooltipDesc = 'GPS Velocity Metrics';
-					} else if (collection.key == 'Imu1') {
-						tooltipDesc = 'IMU Accelerometer and Gyroscope Metrics';
-					} else if (collection.key == 'Imu2') {
-						tooltipDesc = 'IMU Delta Velocity and Angle Metrics';
-					} else if (collection.key == 'LinkStatus') {
-						tooltipDesc = 'Link Status';
-					} else if (collection.key == 'Log') {
-						tooltipDesc = 'Log';
-					} else if (collection.key == 'State') {
-						tooltipDesc = 'State';
-					} else {
-						tooltipDesc = '';
-					}
-				}}
-				on:mouseleave={() => {
-					tooltipDesc = '';
-				}}
-				aria-hidden="true"
-			>
-				<CheckboxSelect
-					dropdownLabel={formatVariableName(collection.key)}
-					options={collection.value ?? []}
-					bind:selected={selected[collection.key]}
-				/>
-			</div>
+			<CheckboxSelect
+				dropdownLabel={collectionToReadableName(collection.key)}
+				options={collection.value ?? []}
+				bind:selected={selected[collection.key]}
+			/>
 		{/each}
 	</div>
 

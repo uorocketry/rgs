@@ -9,3 +9,5 @@ svelte.config.js
 !.env.example
 
 target/
+tailwind.config.ts
+playwright.config.ts

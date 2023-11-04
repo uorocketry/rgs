@@ -1,6 +1,7 @@
 <script lang="ts">
 	import { layoutConfig } from '$lib/common/layoutStore';
-	import { LayoutConfig, type ResolvedLayoutConfig } from 'golden-layout';
+	import { Collections, type LayoutsResponse } from '$lib/common/pocketbase-types';
+	import { LayoutConfig, ResolvedLayoutConfig } from 'golden-layout';
 	import type { UnsubscribeFunc } from 'pocketbase';
 	import { onDestroy, onMount } from 'svelte';
 	import { pb } from '../../../stores';
@@ -9,17 +10,18 @@
 
 	let unsubscribeF: UnsubscribeFunc | undefined = undefined;
 	onMount(async () => {
-		let allLayouts = await pb.collection('layouts').getFullList({
+		let allLayouts = await pb.collection(Collections.Layouts).getFullList<LayoutsResponse>({
 			$autoCancel: false
 		});
-		layouts = new Map(allLayouts.map((l) => [l.id, { name: l.name, data: l.export().data }]));
+		layouts = new Map(
+			allLayouts.map((l) => [l.id, { name: l.name, data: l.data }])
+		) as typeof layouts;
 		unsubscribeF = await pb.collection('layouts').subscribe('*', (data) => {
 			// data.action is create, update, delete
-			if (data.action === 'create' || data.action === 'update') {
-				layouts.set(data.record.id, {
-					name: data.record.name,
-					data: data.record.data
-				});
+			if (data.action === 'create') {
+				layouts.set(data.record.id, { name: data.record.collectionName, data: data.record.data });
+			} else if (data.action === 'update') {
+				layouts.set(data.record.id, { name: data.record.collectionName, data: data.record.data });
 			} else if (data.action === 'delete') {
 				layouts.delete(data.record.id);
 			}
@@ -54,8 +56,8 @@
 	}
 </script>
 
-<div class="w-full h-full overflow-x-auto">
-	<table class="table table-sm table-pin-rows w-full">
+<div class="w-full h-full table-container overflow-x-auto">
+	<table class="table table-compact w-full">
 		<thead>
 			<tr>
 				<th />
@@ -68,10 +70,9 @@
 			{#if layouts.size > 0}
 				{#each [...layouts] as [key, val]}
 					<!-- On click, copy the value to the clipboard and add a visual effect -->
-					<tr on:click={() => loadLayout(key)} class="hover clicky cursor-pointer">
-						<td class="">
+					<tr on:click={() => loadLayout(key)} class="clicky">
+						<td>
 							<button
-								class="btn btn-xs"
 								on:click={(e) => {
 									e.stopPropagation();
 									deletePanel(key);

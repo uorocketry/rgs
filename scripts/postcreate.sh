@@ -2,12 +2,14 @@
 
 set -e
 
-# Get the directory of this script
-DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" >/dev/null 2>&1 && pwd )"
+# Get the directory of this script'
+cd "$( dirname "$0" )"
+
+DIR="$(pwd)"
 
 for script in $DIR/requirements/*.sh
 do
-  chmod +x $script
+  sudo chmod +x $script
   $script   
 done
 

@@ -1,9 +1,10 @@
 <script lang="ts">
 	import { linkStatus } from '$lib/realtime/linkStatus';
+	import { clipboard } from '@skeletonlabs/skeleton';
 </script>
 
-<div class="w-full h-full overflow-x-auto">
-	<table class="table table-sm table-pin-rows w-full">
+<div class="w-full h-full table-container">
+	<table class="table table-compact w-full">
 		<thead>
 			<tr>
 				<th>Field</th>
@@ -15,10 +16,7 @@
 			{#if $linkStatus}
 				{#each Object.entries($linkStatus) as [key, val]}
 					<!-- On click, copy the value to the clipboard and add a visual effect -->
-					<tr
-						on:click={() => navigator.clipboard.writeText(`${key},${val}`)}
-						class="hover clicky cursor-pointer"
-					>
+					<tr use:clipboard={`${key},${val}`} class="clicky">
 						<td class="text-left">{key}</td>
 						<td class="text-right">{val}</td>
 					</tr>

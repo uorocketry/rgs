@@ -1,5 +1,11 @@
 <script lang="ts">
-	import { layoutComponents, layoutConfig, virtualLayout } from '$lib/common/layoutStore';
+	import {
+		layoutComponents,
+		layoutConfig,
+		startLayout,
+		virtualLayout
+	} from '$lib/common/layoutStore';
+	import Lazy from '$lib/components/smart/Lazy.svelte';
 	import type { JsonValue, VirtualLayout } from 'golden-layout';
 	import { onMount } from 'svelte';
 	import GoldenLayout from 'svelte-golden-layout';
@@ -13,6 +19,7 @@
 	}
 
 	onMount(() => {
+		startLayout();
 		goldenLayout.on('stateChanged', () => {
 			let config = get(virtualLayout);
 			if (config === undefined) {
@@ -31,6 +38,6 @@
 
 <div class="w-full h-full overflow-clip z-0">
 	<GoldenLayout config={$layoutConfig} let:componentType let:componentState bind:goldenLayout>
-		<svelte:component this={svelteComponentMap(componentType)} {...identity(componentState)} />
+		<Lazy this={svelteComponentMap(componentType)} {...identity(componentState)}></Lazy>
 	</GoldenLayout>
 </div>
