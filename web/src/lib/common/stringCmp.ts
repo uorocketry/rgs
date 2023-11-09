@@ -6,6 +6,8 @@
  * @param second string to compare
  * @returns a number between 0 and 1, where 1 is a perfect match
  */
+
+
 export function getStringDifference(first: string, second: string) {
 	first = first.replace(/\s+/g, '');
 	second = second.replace(/\s+/g, '');
@@ -68,3 +70,9 @@ export function getStringScores(baseString: string, stringLst: string[]): number
 
 	return scores;
 }
+
+export function sum(a: number, b: number) {
+	return a + b;
+  }
+  
+

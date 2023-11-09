@@ -18,9 +18,12 @@ envRequired("XPUB_PORT");
 console.info("Started PB Service");
 
 import { spawn } from "child_process";
-
-const child = spawn("./pocketbase", [
+let platformName = process.platform;
+const child = spawn(`./bin/${platformName}/pocketbase`, [
   "serve",
+  "--dir=pb_data",
+  "--publicDir=pb_public",
+  "--migrationsDir=pb_migrations",
   `--http=0.0.0.0:${process.env.DB_REST_PORT}`,
 ]);
 // print output of child process
