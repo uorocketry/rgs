@@ -28,12 +28,14 @@
 
 	$: {
 		const ekfVal = $ekf;
-		const quat = ekfVal?.quaternion;
-		if (quat) {
-			latestReportedRotation = new Quaternion(quat[1], quat[2], quat[3], quat[0]);
-			// The IMU is placed flat on the rocket, so the up vector is the x axis
-			// https://support.sbg-systems.com/sc/qd/latest/reference-manual/conventions
-		}
+		latestReportedRotation = new Quaternion(
+			ekfVal.quaternion_1 ?? 0,
+			ekfVal.quaternion_2 ?? 0,
+			ekfVal.quaternion_3 ?? 0,
+			ekfVal.quaternion_0 ?? 0
+		);
+		// The IMU is placed flat on the rocket, so the up vector is the x axis
+		// https://support.sbg-systems.com/sc/qd/latest/reference-manual/conventions
 	}
 
 	setInterval(() => {

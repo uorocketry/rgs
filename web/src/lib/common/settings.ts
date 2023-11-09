@@ -46,7 +46,7 @@ const uiSettings: SettingsGroup = {
 			name: 'sidebarLeft',
 			description: 'Show side bar on the left side, otherwise on the right side',
 			valueDescription: 'boolean',
-			value: localStorageStore('ui.sidebarLeft', false)
+			value: localStorageStore('ui.sidebarLeft', true)
 		},
 		{
 			name: 'lightMode',
@@ -55,7 +55,7 @@ const uiSettings: SettingsGroup = {
 			value: localStorageStore('ui.lightMode', true)
 		}
 	]
-} as const;
+};
 
 const notificationSettings: SettingsGroup = {
 	name: 'notifications',
@@ -67,9 +67,9 @@ const notificationSettings: SettingsGroup = {
 			value: localStorageStore('notifications.consoleNotifications', false)
 		}
 	]
-} as const;
+};
 
-export const settings: SettingsGroup[] = [uiSettings, notificationSettings] as const;
+export const settings: SettingsGroup[] = [uiSettings, notificationSettings];
 
 // ui.sidebarLeft
 export const findSetting = (name: string): Setting | undefined => {
