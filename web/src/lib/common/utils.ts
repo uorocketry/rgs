@@ -1,8 +1,9 @@
 import { pb } from '$lib/stores';
 import type { LatLngLiteral } from 'leaflet';
-import type { BaseModel, RecordSubscription } from 'pocketbase';
+import type { RecordSubscription } from 'pocketbase';
 import { onDestroy, onMount } from 'svelte';
 import { writable, type Writable } from 'svelte/store';
+import type { CollectionRecords, CollectionResponses, Collections } from './pocketbase-types';
 
 export const theme: Writable<string> = writable();
 
@@ -29,7 +30,6 @@ export function onCollection<T>(
 ) {
 	onMount(() => {
 		const unsubscribe = pb.collection(collection).subscribe('*', (msg) => {
-			msg.record = unflattenObjectWithArray(msg.record);
 			callback(msg as RecordSubscription<T>);
 		});
 		return async () => {
@@ -47,18 +47,18 @@ export function onCollectionCreated<T>(collection: string, callback: (msg: T) =>
 	onCollection(collection, createdFilter);
 }
 
-export async function lastCollectionRecord<T = BaseModel>(
-	collection: string
-): Promise<T | undefined> {
-	const ret = await pb.collection(collection).getList(1, 1, {
+export async function lastCollectionRecord<T extends Collections>(
+	collection: T
+): Promise<CollectionRecords[T] | undefined> {
+	const ret = await pb.collection(collection).getList<CollectionResponses[T]>(1, 1, {
 		sort: '-created',
 		$autoCancel: false
 	});
 	if (ret.items.length === 0) {
 		return undefined;
 	} else {
-		const rec = unflattenObjectWithArray(ret.items[0]);
-		return rec as T;
+		const rec = ret.items[0];
+		return rec as CollectionRecords[T];
 	}
 }
 
@@ -100,49 +100,6 @@ export function getRandomHexColorFromString(str: string, contrastThreshold = 0.8
 	}
 
 	return hexColor;
-}
-
-type KV = { [key: string | number]: unknown } | ArrayLike<unknown>;
-export function flattenObjectWithArray(obj: KV) {
-	const res: KV = {};
-	// Iterate over all keys in the object
-	for (const key in obj) {
-		const el = obj[key];
-		// If not array copy to res
-		if (!Array.isArray(el)) {
-			res[key] = el;
-		} else {
-			// If array, iterate over all elements
-			for (let i = 0; i < el.length; i++) {
-				res[key + '_' + i] = el[i];
-			}
-		}
-	}
-
-	return res;
-}
-
-/**
- * Given an object containing elements with keys such as _0, _1, _2, etc.
- * merge them into an array. This is the inverse of flattenObjectWithArray.
- * @param obj
- */
-export function unflattenObjectWithArray<T>(obj: KV): T {
-	const res: KV = {};
-	for (const key in obj) {
-		const el = obj[key];
-		// Regex match for keys with _0, _1, _2, etc.
-		const match = key.match(/_\d+/);
-		if (match) {
-			const baseName = key.substring(0, match.index);
-			res[baseName] = res[baseName] || [];
-			//
-			(res[baseName] as Array<unknown>).push(el);
-		} else {
-			res[key] = el;
-		}
-	}
-	return res as T;
 }
 
 export function max(a: number, b: number) {

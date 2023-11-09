@@ -1,21 +1,5 @@
 import PocketBase from "pocketbase";
 import zmq from "zeromq";
-// Ayo? 🤨
-import {
-  Air,
-  Data,
-  EkfNav1,
-  EkfNav2,
-  GpsPos1,
-  GpsPos2,
-  GpsVel,
-  Imu1,
-  Imu2,
-  LinkStatus,
-  ProcessedMessage,
-  StateData,
-  UtcTime,
-} from "@rgs/bindings";
 
 function envRequired(name: string): string {
   const val = process.env[name];
@@ -37,9 +21,9 @@ import { spawn } from "child_process";
 let platformName = process.platform;
 const child = spawn(`./bin/${platformName}/pocketbase`, [
   "serve",
-  '--dir=pb_data',
-  '--publicDir=pb_public',
-  '--migrationsDir=pb_migrations',
+  "--dir=pb_data",
+  "--publicDir=pb_public",
+  "--migrationsDir=pb_migrations",
   `--http=0.0.0.0:${process.env.DB_REST_PORT}`,
 ]);
 // print output of child process

@@ -19,9 +19,15 @@
 		unsubscribeF = await pb.collection('layouts').subscribe('*', (data) => {
 			// data.action is create, update, delete
 			if (data.action === 'create') {
-				layouts.set(data.record.id, { name: data.record.collectionName, data: data.record.data });
+				layouts.set(data.record.id, {
+					name: data.record.collectionName,
+					data: data.record.data as ResolvedLayoutConfig
+				});
 			} else if (data.action === 'update') {
-				layouts.set(data.record.id, { name: data.record.collectionName, data: data.record.data });
+				layouts.set(data.record.id, {
+					name: data.record.collectionName,
+					data: data.record.data as ResolvedLayoutConfig
+				});
 			} else if (data.action === 'delete') {
 				layouts.delete(data.record.id);
 			}

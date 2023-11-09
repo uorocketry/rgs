@@ -1,67 +1,60 @@
-import type { LatLngLiteral } from 'leaflet';
-import { latestCollectionWritable } from './lastestCollectionWritable';
-import { defaultLaunchCoords, defaultRelativeAltitude } from './flightDirector';
+import { derived } from 'svelte/store';
 import { Vector3 } from 'three';
+import { Collections } from '../common/pocketbase-types';
+import { defaultRelativeAltitude } from './flightDirector';
+import { latestCollectionWritable } from './lastestCollectionWritable';
 
-export const rocketPosition = latestCollectionWritable<LatLngLiteral>(
-	'GpsPos1',
-	defaultLaunchCoords,
-	(row) => {
-		return {
-			lat: row.latitude,
-			lng: row.longitude
-		};
-	}
-);
+export const gpsPos1 = latestCollectionWritable(Collections.GpsPos1);
+export const gpsPos2 = latestCollectionWritable(Collections.GpsPos2);
+export const gpsVel = latestCollectionWritable(Collections.GpsVel);
+
+export const rocketPosition = derived([gpsPos1], ([$gpsPos1]) => {
+	return {
+		lat: $gpsPos1?.latitude ?? 0,
+		lng: $gpsPos1?.longitude ?? 0
+	};
+});
 
 /**
  * In meters
  */
-export const rocketPositionAccuracyRadius = latestCollectionWritable<number>(
-	'GpsPos2',
-	0,
-	(row) => {
-		return Math.max(row.latitudeAccuracy, row.longitudeAccuracy);
-	}
-);
+export const rocketPositionAccuracyRadius = derived([gpsPos2], ([$gpsPos2]) => {
+	return Math.max($gpsPos2?.latitudeAccuracy ?? 0, $gpsPos2?.longitudeAccuracy ?? 0);
+});
 
 /**
  * In meters relative to sea level
  */
-export const rocketAltitude = latestCollectionWritable<number>(
-	'GpsPos1',
-	defaultRelativeAltitude,
-	(row) => {
-		return row.altitude;
-	}
-);
+export const rocketAltitude = derived([gpsPos1], ([$gpsPos1]) => {
+	return $gpsPos1?.altitude ?? defaultRelativeAltitude;
+});
 
 /**
  * In meters
  */
-export const rocketAltitudeAccuracy = latestCollectionWritable<number>('GpsPos2', 0, (row) => {
-	return row.altitudeAccuracy;
+export const rocketAltitudeAccuracy = derived([gpsPos2], ([$gpsPos2]) => {
+	return $gpsPos2?.altitudeAccuracy ?? 0;
 });
 
 /**
  * GPS North, East, Down velocity in m.s^-1.
  */
-export const rocketVelocity = latestCollectionWritable<Vector3>('GpsVel', new Vector3(), (row) => {
-	return new Vector3(row.velocity_0, row.velocity_1, row.velocity_2);
+export const rocketVelocity = derived([gpsVel], ([$gpsVel]) => {
+	return new Vector3($gpsVel?.velocity_0 ?? 0, $gpsVel?.velocity_1 ?? 0, $gpsVel?.velocity_2 ?? 0);
 });
 
-export const rocketVelocityAccuracy = latestCollectionWritable<Vector3>(
-	'GpsVel',
-	new Vector3(),
-	(row) => {
-		return new Vector3(row.velocity_acc_0, row.velocity_acc_1, row.velocity_acc_2);
-	}
-);
-
-export const rocketCourse = latestCollectionWritable<number>('GpsVel', 0, (row) => {
-	return row.course;
+export const rocketVelocityAccuracy = derived([gpsVel], ([$gpsVel]) => {
+	return new Vector3(
+		$gpsVel?.velocity_acc_0 ?? 0,
+		$gpsVel?.velocity_acc_1 ?? 0,
+		$gpsVel?.velocity_acc_2 ?? 0
+	);
 });
 
-export const rocketCourseAccuracy = latestCollectionWritable<number>('GpsVel', 0, (row) => {
-	return row.courseAccuracy;
+export const rocketCourse = derived([gpsVel], ([$gpsVel]) => {
+	return $gpsVel?.course ?? 0;
+});
+
+export const rocketCourseAccuracy = derived([gpsVel], ([$gpsVel]) => {
+	return $gpsVel?.course_acc ?? 0;
 });
