@@ -3,15 +3,15 @@
 
 #include <memory>
 #include <vector>
-#include "peripherals.hpp"
+#include <mutex>
+#include "peripheral_manager.hpp"
 
 class StateContext {
 public:
     virtual ~StateContext() {}; 
-    virtual std::vector<std::shared_ptr<Peripheral>> get_peripherals() = 0;
     virtual LabJack get_labjack() = 0;
 private: 
-    std::vector<std::shared_ptr<Peripheral>> peripherals;
+    std::lock_guard<std::mutex> peripheral_manager_mutex;
     LabJack labjack;
 };
 
