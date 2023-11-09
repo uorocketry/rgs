@@ -1,8 +1,7 @@
 <!-- TODO: Refactor needed,  -->
 <script lang="ts">
-	import type { Data } from '@rgs/bindings';
 
-	export let data: Data;
+	export let data: unknown;
 	export let timestamp: string
 
 	function formatData(data: unknown) {
@@ -28,7 +27,7 @@
 
 <button class="col-span-3 hover:bg-slate-100" on:click={onLogItemClick}>
 	<div class="grid grid-cols-3 gap-1 text-left">
-		<div>{Object.keys(data)[0]}</div>
+		<div>{Object.keys(data)[0] || ''}</div>
 		<div class="col-span-2">{timestamp}</div>
 		 {#if expanded}
 		 	<div class="bg-slate-500 col-span-3 text-white">

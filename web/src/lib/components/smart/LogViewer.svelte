@@ -1,14 +1,13 @@
 <script lang="ts">
+	import type { RawResponse } from '$lib/pocketbase-types';
 	import { pb } from '$lib/stores';
-	import type { RecordModel } from 'pocketbase';
 	import { onMount } from 'svelte';
 	import GenericLogCard from '../dumb/GenericLogCard.svelte';
 
-	let logs: RecordModel[] = []
+	let logs: RawResponse[] = []
+	// $: logs: RawResponse[] = [] satisfies RawResponse[];
 
 	let search = '';
-	let searchTimer: NodeJS.Timeout;
-
 
 	onMount(async ()=> {
 		logs = (await  pb.collection('raw').getList(1, 100, {
@@ -16,16 +15,17 @@
 		})).items 
 
 		pb.collection('raw').subscribe("*", (r) => {
+			console.log(r);
 			if(r.action === "create") {
 				logs.push(r.record)
+				logs = logs;
 			}
 		})
 
 	})
 
-	const onSearch = async () => {
-		clearTimeout(searchTimer);
-		searchTimer = setTimeout(async () => {
+	const handleSearch = async (e: KeyboardEvent) => {
+		if (e.key == 'Enter') {
 			logs =
 				search.length === 0
 					? (await pb.collection('raw').getList(1, 100, {
@@ -35,7 +35,7 @@
 							filter: `data ~ '${search}'`,
                             sort: `-created`
 					  })).items;
-		}, 1000);
+		}
 	};
 </script>
 
@@ -48,12 +48,13 @@
 				<div class="">Type</div>
 				<div class="">Time</div>
 				<input
-					on:input={onSearch}
+					on:keypress={handleSearch}
 					type="text"
 					placeholder="Search"
 					class="input input-bordered input-xs w-full max-w-xs"
 					bind:value={search}
 				/>	
+				<!-- {#key logs} -->
 				{#each logs as { data, updated }}
 					<GenericLogCard {data} timestamp={updated} />
 				{/each}	
