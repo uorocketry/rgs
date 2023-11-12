@@ -48,16 +48,18 @@ func sseProducer(ctx context.Context, record string, c chan *sse.Event) error {
 		"Accept":       []string{"application/json"},
 	}
 
-	req, err := http.NewRequest("POST", "http://127.0.0.1:8090/api/realtime/", strings.NewReader(fmt.Sprintf(`{"clientId":"%s","subscriptions":["%s"]}`, jsonObj.ClientId, record)))
+	req, err := http.NewRequest(
+		"POST", "http://127.0.0.1:8090/api/realtime/",
+		strings.NewReader(fmt.Sprintf(`{"clientId":"%s","subscriptions":["%s"]}`, jsonObj.ClientId, record)))
 	req.Header = headers
 
 	if err != nil {
 		close(c)
 		return err
 	}
+	resp, err := http.DefaultClient.Do(req)
+	_ = resp
 
-	_resp, err := http.DefaultClient.Do(req)
-	_ = _resp
 	if err != nil {
 		log.Println("Error subscribing to record:", err.Error())
 		close(c)
@@ -102,6 +104,8 @@ func readMessageChannel(ctx context.Context, conn *websocket.Conn, c chan []byte
 }
 
 func wsEndpoint(c echo.Context) error {
+	record := c.PathParam("record")
+
 	ws, err := websocket.Accept(c.Response(), c.Request(), &websocket.AcceptOptions{
 		OriginPatterns: []string{"*"},
 	})
@@ -122,7 +126,7 @@ func wsEndpoint(c echo.Context) error {
 	log.Println("sseProducer 🟢")
 	go func() {
 		defer wg.Done()
-		sseProducer(ctx, "Air", sseChan)
+		sseProducer(ctx, record, sseChan)
 		log.Println("sseProducer 🔴")
 	}()
 
@@ -138,12 +142,6 @@ func wsEndpoint(c echo.Context) error {
 L:
 	for {
 		select {
-		case msg, ok := <-wsReadChan:
-			if !ok {
-				break L
-			}
-			log.Println("🖊️ Message from client:", string(msg))
-
 		case channelMsg, ok := <-sseChan:
 			if !ok {
 				break L
@@ -155,6 +153,12 @@ L:
 				log.Println("Error writing message |", err.Error())
 				break L
 			}
+		case msg, ok := <-wsReadChan:
+			if !ok {
+				break L
+			}
+			log.Println("🖊️ Message from client:", string(msg))
+
 		}
 	}
 
