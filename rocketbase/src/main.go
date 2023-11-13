@@ -177,6 +177,7 @@ L:
 }
 
 func main() {
+	log.Println("Starting server...")
 	app := pocketbase.New()
 
 	// ---------------------------------------------------------------
