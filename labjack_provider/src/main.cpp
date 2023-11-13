@@ -23,7 +23,7 @@ int main()
 {
     try
     {
-        std::string output = exec("../../../dbmim/main --record Air"); // Replace with your program's path
+        std::string output = exec("../../../dbmim/main --record posts"); // Replace with your program's path
         std::cout << "Output of the program:\n"
                   << output << std::endl;
     }
