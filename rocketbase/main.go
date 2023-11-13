@@ -22,9 +22,9 @@ import (
 	"nhooyr.io/websocket"
 )
 
-// Creates a SSE client and subscribes to the specified record
-// Sends the SSE events to the channel
-// func sseProducer(record string, c chan *sse.Event, done chan bool) {
+// sseProducer subscribes to a Server-Sent Events (SSE) stream and sends the events to a channel.
+// It takes a context for cancellation, a record string to subscribe to, and a channel to send the events to.
+// The function returns an error if there's an issue with the SSE subscription or sending the events to the channel.
 func sseProducer(ctx context.Context, record string, c chan *sse.Event) error {
 	client := sse.NewClient("http://127.0.0.1:8090/api/realtime/")
 	events := make(chan *sse.Event)
@@ -38,7 +38,6 @@ func sseProducer(ctx context.Context, record string, c chan *sse.Event) error {
 	}
 	err := json.Unmarshal(msg.Data, &jsonObj)
 	if err != nil {
-		log.Println("Error unmarshalling clientId:", err.Error())
 		close(c)
 		return err
 	}
@@ -61,7 +60,6 @@ func sseProducer(ctx context.Context, record string, c chan *sse.Event) error {
 	_ = resp
 
 	if err != nil {
-		log.Println("Error subscribing to record:", err.Error())
 		close(c)
 		return err
 	}
@@ -82,6 +80,9 @@ func sseProducer(ctx context.Context, record string, c chan *sse.Event) error {
 }
 
 // Channel reader goroutine
+// readMessageChannel reads messages from a WebSocket connection and sends them to a channel.
+// It takes a context for cancellation, a WebSocket connection, and a channel to send the messages to.
+// The function returns an error if there's an issue with reading from the WebSocket or sending the messages to the channel.
 func readMessageChannel(ctx context.Context, conn *websocket.Conn, c chan []byte) error {
 	for {
 		select {
@@ -126,7 +127,10 @@ func wsEndpoint(c echo.Context) error {
 	log.Println("sseProducer 🟢")
 	go func() {
 		defer wg.Done()
-		sseProducer(ctx, record, sseChan)
+		err := sseProducer(ctx, record, sseChan)
+		if err != nil {
+			log.Println("sseProducer error:", err.Error())
+		}
 		log.Println("sseProducer 🔴")
 	}()
 
@@ -135,7 +139,10 @@ func wsEndpoint(c echo.Context) error {
 	log.Println("readMessageChannel 🟢")
 	go func() {
 		defer wg.Done()
-		readMessageChannel(ctx, ws, wsReadChan)
+		err := readMessageChannel(ctx, ws, wsReadChan)
+		if err != nil {
+			log.Println("readMessageChannel error:", err.Error())
+		}
 		log.Println("readMessageChannel 🔴")
 	}()
 
