@@ -4,59 +4,96 @@
 	import { onMount } from 'svelte';
 	import GenericLogCard from '../dumb/GenericLogCard.svelte';
 
-	let logs: RawResponse[] = []
-
+	let logs: RawResponse[] = []; // logs to display
+	let updatedLogs: RawResponse[] = []; // up to date logs
 	let search = '';
+	let paused = false;
+	let pauseDisabled = false;
 
-	onMount(async ()=> {
-		logs = (await  pb.collection('raw').getList(1, 100, {
-			sort: '-created'
-		})).items 
+	onMount(async () => {
+		logs = (
+			await pb.collection('raw').getList(1, 100, {
+				sort: '-created'
+			})
+		).items;
+		updatedLogs = logs.slice();
 
-		pb.collection('raw').subscribe("*", (r) => {
-			console.log(r);
-			if(r.action === "create") {
-				logs.push(r.record)
-				logs = logs;
+		pb.collection('raw').subscribe('*', (r) => {
+			if (r.action === 'create') {
+				// append new logs to top of list
+				updatedLogs = [r.record, ...updatedLogs];
+				// make sure the list doesn't go over 1000 (prevent memory leak)
+				updatedLogs.length = updatedLogs.length > 1000 ? 1000 : updatedLogs.length;
+				if (!paused && !pauseDisabled) {
+					logs = updatedLogs.slice();
+				}
 			}
-		})
-
-	})
+		});
+	});
 
 	const handleSearch = async (e: KeyboardEvent) => {
 		if (e.key == 'Enter') {
-			logs =
-				search.length === 0
-					? (await pb.collection('raw').getList(1, 100, {
-							sort: '-created'
-					  })).items
-					: (await  pb.collection('raw').getList(1, 30, {
-							filter: `data ~ '${search}'`,
-                            sort: `-created`
-					  })).items;
+			if (search.length == 0) {
+				logs = (
+					await pb.collection('raw').getList(1, 100, {
+						sort: '-created'
+					})
+				).items;
+				pauseDisabled = false;
+			} else {
+				logs = (
+					await pb.collection('raw').getList(1, 30, {
+						filter: `data ~ '${search}'`,
+						sort: `-created`
+					})
+				).items;
+				pauseDisabled = true;
+			}
 		}
 	};
+
+	const handlePause = () => {
+		paused = !paused;
+		if (!paused) {
+			logs = updatedLogs.slice();
+		}
+	};
+
+	const beforeUnload = () => {
+		pb.collection('raw').unsubscribe();
+	};
 </script>
+
+<svelte:window on:beforeunload={beforeUnload} />
 
 <div class="flex justify-center">
 	<div class="w-8/12 overflow-auto">
 		{#if !logs}
 			<span class="loading loading-spinner loading-lg"></span>
-		{:else }
+		{:else}
 			<div class="h-screen grid grid-cols-3 gap-1 overflow-auto">
 				<div class="">Type</div>
 				<div class="">Time</div>
-				<input
-					on:keypress={handleSearch}
-					type="text"
-					placeholder="Search"
-					class="input input-bordered input-xs w-full max-w-xs"
-					bind:value={search}
-				/>	
-				<!-- {#key logs} -->
-				{#each logs as { data, updated }}
-					<GenericLogCard {data} timestamp={updated} />
-				{/each}	
+				<div>
+					<input
+						on:keypress={handleSearch}
+						type="text"
+						placeholder="Search"
+						class="input input-bordered input-xs w-full max-w-xs"
+						bind:value={search}
+					/>
+					<button type="button" class="btn" on:click={handlePause} disabled={pauseDisabled}>
+						{#if !paused}
+							<i class="text-surface-800-100-token fas fa-solid fa-pause text-xl" />
+						{:else}
+							<i class="text-surface-800-100-token fas fa-solid fa-play text-xl" />
+						{/if}
+					</button>
+				</div>
+				{#each logs as log, idx (log.id)}
+					<!-- {console.log(log.id)} -->
+					<GenericLogCard data={log.data} timestamp={log.updated} />
+				{/each}
 			</div>
 		{/if}
 	</div>
