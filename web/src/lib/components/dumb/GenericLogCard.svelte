@@ -1,25 +1,8 @@
-<!-- TODO: Refactor needed,  -->
 <script lang="ts">
 	export let data: unknown | { [key: string]: unknown};
 	$: dataAsKeys = data as { [key: string]: unknown};
 	export let timestamp: string;
-
-	function formatData(data: unknown) {
-		// Fixed decimal places for floats
-		if (typeof data === 'number' && data % 1 !== 0) {
-			return data.toFixed(4);
-		}
-		return data;
-	}
-
-	let timeFormat = new Intl.DateTimeFormat('en', {
-		hour: 'numeric',
-		minute: 'numeric',
-		second: 'numeric'
-	});
-
 	let expanded = false;
-
 	const onLogItemClick = () => (expanded = !expanded);
 </script>
 
