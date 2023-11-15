@@ -1,6 +1,7 @@
 <!-- TODO: Refactor needed,  -->
 <script lang="ts">
-	export let data: { [key: string]: unknown};
+	export let data: unknown | { [key: string]: unknown};
+	$: dataAsKeys = data as { [key: string]: unknown};
 	export let timestamp: string;
 
 	function formatData(data: unknown) {
@@ -24,7 +25,7 @@
 
 <div class="col-span-3 hover:bg-surface-300 grid grid-cols-3">
 	<button class="col-span-3 grid grid-cols-3 gap-1 text-left" on:click={onLogItemClick}>
-		<div>{Object.keys(data)[0] || ''}</div>
+		<div>{Object.keys(dataAsKeys)[0] || ''}</div>
 		<div class="col-span-2">{timestamp}</div>
 	</button>
 	{#if expanded}
