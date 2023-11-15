@@ -1,7 +1,7 @@
 <script lang="ts">
 	import type { RawResponse } from '$lib/pocketbase-types';
 	import { pb } from '$lib/stores';
-	import { onMount } from 'svelte';
+	import { onDestroy, onMount } from 'svelte';
 	import GenericLogCard from '../dumb/GenericLogCard.svelte';
 
 	let logs: RawResponse[] = []; // logs to display
@@ -59,12 +59,10 @@
 		}
 	};
 
-	const beforeUnload = () => {
+	onDestroy(() => {
 		pb.collection('raw').unsubscribe();
-	};
+	});
 </script>
-
-<svelte:window on:beforeunload={beforeUnload} />
 
 <div class="flex justify-center">
 	<div class="w-8/12 overflow-auto">
@@ -74,7 +72,7 @@
 			<div class="h-screen grid grid-cols-3 gap-1 overflow-auto">
 				<div class="">Type</div>
 				<div class="">Time</div>
-				<div>
+				<div class="flex">
 					<input
 						on:keypress={handleSearch}
 						type="text"
