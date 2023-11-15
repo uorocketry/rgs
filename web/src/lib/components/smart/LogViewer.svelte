@@ -1,7 +1,8 @@
 <script lang="ts">
-	import type { RawResponse } from '$lib/pocketbase-types';
+	import { Collections, type RawResponse } from '$lib/pocketbase-types';
+	import { latestCollectionWritable } from '$lib/realtime/lastestCollectionWritable';
 	import { pb } from '$lib/stores';
-	import { onDestroy, onMount } from 'svelte';
+	import { onMount } from 'svelte';
 	import GenericLogCard from '../dumb/GenericLogCard.svelte';
 
 	let logs: RawResponse[] = []; // logs to display
@@ -18,17 +19,23 @@
 		).items;
 		updatedLogs = logs.slice();
 
-		pb.collection('raw').subscribe('*', (r) => {
-			if (r.action === 'create') {
-				// append new logs to top of list
-				updatedLogs = [r.record, ...updatedLogs];
-				// make sure the list doesn't go over 1000 (prevent memory leak)
-				updatedLogs.length = updatedLogs.length > 1000 ? 1000 : updatedLogs.length;
-				if (!paused && !pauseDisabled) {
-					logs = updatedLogs.slice();
-				}
+		const unsub = latestCollectionWritable(Collections.Raw).subscribe((r) => {
+			if (!r) {
+				return;
 			}
+
+			// append new logs to top of list
+			updatedLogs = [r, ...updatedLogs];
+			// make sure the list doesn't go over 1000 (prevent memory leak)
+			updatedLogs.length = updatedLogs.length > 1000 ? 1000 : updatedLogs.length;
+			if (!paused && !pauseDisabled) {
+				logs = updatedLogs.slice();
+			}
+		
 		});
+		return () => {
+			unsub();
+		}
 	});
 
 	const handleSearch = async (e: KeyboardEvent) => {
@@ -58,10 +65,6 @@
 			logs = updatedLogs.slice();
 		}
 	};
-
-	onDestroy(() => {
-		pb.collection('raw').unsubscribe();
-	});
 </script>
 
 <div class="flex justify-center">
@@ -89,7 +92,6 @@
 					</button>
 				</div>
 				{#each logs as log, idx (log.id)}
-					<!-- {console.log(log.id)} -->
 					<GenericLogCard data={log.data} timestamp={log.updated} />
 				{/each}
 			</div>
