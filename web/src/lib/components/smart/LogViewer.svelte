@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { Collections, type RawResponse } from '$lib/pocketbase-types';
+	import { Collections, type RawResponse } from '$lib/common/pocketbase-types';
 	import { latestCollectionWritable } from '$lib/realtime/lastestCollectionWritable';
 	import { pb } from '$lib/stores';
 	import { onMount } from 'svelte';
@@ -11,13 +11,13 @@
 	let paused = false;
 	let pauseDisabled = false;
 
-	onMount(async () => {
-		logs = (
-			await pb.collection('raw').getList(1, 100, {
+	onMount(() => {
+		pb.collection('raw').getList(1, 100, {
 				sort: '-created'
-			})
-		).items;
-		updatedLogs = logs.slice();
+			}).then((l) => {
+				logs = l.items;
+				updatedLogs = logs.slice();
+			});
 
 		const unsub = latestCollectionWritable(Collections.Raw).subscribe((r) => {
 			if (!r) {

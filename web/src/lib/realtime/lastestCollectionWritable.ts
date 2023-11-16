@@ -1,6 +1,6 @@
 // initialLaunchPosition.js
+import type { CollectionResponses } from '$lib/common/pocketbase-types';
 import { lastCollectionRecord } from '$lib/common/utils';
-import type { CollectionResponses } from '$lib/pocketbase-types';
 import { pb } from '$lib/stores';
 import type { RecordModel } from 'pocketbase';
 import { writable, type Writable } from 'svelte/store';
