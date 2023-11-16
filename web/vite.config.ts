@@ -10,7 +10,6 @@ const config = (mode: string) => {
 		test: {
 			dir: './src',
 			include: ['**.test.ts']
-			
 		},
 
 		server: {
@@ -35,7 +34,7 @@ const config = (mode: string) => {
 		plugins: [sveltekit()],
 		ssr: {
 			noExternal: ['three']
-		},
+		}
 	});
 };
 
