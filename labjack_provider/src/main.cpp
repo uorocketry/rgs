@@ -1,38 +1,34 @@
 #include "main.hpp"
 
-std::string exec(const char *cmd)
-{
-    std::array<char, 128> buffer;
-    std::string result;
-    std::unique_ptr<FILE, decltype(&pclose)> pipe(popen(cmd, "r"), pclose);
-    if (!pipe)
-    {
-        throw std::runtime_error("popen() failed!");
-    }
-    while (fgets(buffer.data(), buffer.size(), pipe.get()) != nullptr)
-    {
-        // Buffer data has a json string
-        std::string buf = buffer.data();
-
-        // TODO: Convert this to a c++ object(?)
-    }
-    return result;
-}
-
 int main()
 {
-    try
+    CommunicationManager manager = CommunicationManager();
+    std::thread t(&CommunicationManager::readInput, &manager);
+    while (true)
     {
-        std::string output = exec("../../../dbmim/main --record posts"); // Replace with your program's path
-        std::cout << "Output of the program:\n"
-                  << output << std::endl;
+        Messages::Data msg = manager.read();
+        std::cout << "msg: " << msg.value << std::endl;
+        Json::Value jMsg;
+        jMsg["timestamp"] = msg.timestamp;
+        jMsg["data"] = msg.value;
+        jMsg["peripheral"] = msg.peripheral;
+        std::cout << "jMsg: " << jMsg.toStyledString() << std::endl;
     }
-    catch (const std::exception &e)
-    {
-        std::cerr << "Error: " << e.what() << std::endl;
-    }
+    t.join();
+    // try
+    // {
+    //     std::string output = exec("../../dbmim/main --record Air");
+    //     std::cout << jMsg.toStyledString() << std::endl;
 
-    return 0;
+    //     std::cout << "Output of the program:\n"
+    //               << output << std::endl;
+    // }
+    // catch (const std::exception &e)
+    // {
+    //     std::cerr << "Error: " << e.what() << std::endl;
+    // }
+
+    // return 0;
 
     float load;
     double temp;

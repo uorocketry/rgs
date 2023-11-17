@@ -7,6 +7,7 @@ set(CMAKE_CXX_STANDARD 17)
 # Specify the source files
 file(GLOB_RECURSE SOURCES src/*.cpp)
 
+
 # Include directories
 include_directories(
     src
@@ -14,6 +15,12 @@ include_directories(
     src/utils/C_C++_LJM
     vendor/labjack/include
 )
+
+# find_package jsoncpp
+find_package(jsoncpp REQUIRED)
+
+# find cpr
+find_package(cpr REQUIRED)
 
 # Set the LabJackM library path
 link_directories(vendor/labjack/lib)
@@ -23,6 +30,11 @@ add_executable(${PROJECT_NAME} ${SOURCES})
 
 # Link against LabJackM library (adjust the library name if needed)
 target_link_libraries(${PROJECT_NAME} PRIVATE ${CMAKE_SOURCE_DIR}/vendor/labjack/lib/libLabJackM.so)
+
+# Link against JsconCpp library
+target_link_libraries(${PROJECT_NAME} PRIVATE jsoncpp)
+
+target_link_libraries(${PROJECT_NAME} PRIVATE cpr::cpr)
 
 # Set the output directory for the executable
 set_target_properties(${PROJECT_NAME} PROPERTIES
