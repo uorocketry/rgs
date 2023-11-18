@@ -34,6 +34,9 @@ export const layoutComponents: Record<string, () => Promise<ComponentType>> = {
 	},
 	RocketStatus: async () => {
 		return (await import('$lib/components/smart/lists/RocketStatus.svelte')).default;
+	},
+	LogViewer: async () => {
+		return (await import('$lib/components/smart/LogViewer.svelte')).default;
 	}
 };
 
