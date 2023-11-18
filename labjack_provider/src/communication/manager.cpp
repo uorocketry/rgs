@@ -32,7 +32,7 @@ void CommunicationManager::readInput()
 {
     try
     {
-        const char *output = "../../dbmim/main --record LabjackWrite";
+        const char *output = "../../pbcat/main --record LabjackWrite";
         std::array<char, 1024> buffer;
         std::string result;
         std::unique_ptr<FILE, decltype(&pclose)> pipe(popen(output, "r"), pclose);

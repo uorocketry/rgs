@@ -6,6 +6,7 @@
     "eslint.workingDirectories": ["./web", "./pb", "./scripts", "./bindings"],
     "eslint.validate": ["javascript"],
     "files.associations": {
-        "array": "cpp"
+        "array": "cpp",
+        "ostream": "cpp"
     }
 }
