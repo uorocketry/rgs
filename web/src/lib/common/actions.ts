@@ -3,6 +3,7 @@ import { LayoutConfig, ResolvedLayoutConfig } from 'golden-layout';
 import { get, writable, type Writable } from 'svelte/store';
 import { flightDirector } from '../realtime/flightDirector';
 import { layoutComponentsString, layoutConfig, virtualLayout } from './layoutStore';
+import type { FlightDirectorResponse } from './pocketbase-types';
 
 export interface CommandAction {
 	name: string;
@@ -108,7 +109,7 @@ export const commandActions: Writable<CommandAction[]> = writable([
 				longitude: lng,
 				targetAltitude: prevFD.targetAltitude,
 				relativeAltitude: prevFD.relativeAltitude
-			});
+			} as FlightDirectorResponse);
 		}
 	},
 	{
