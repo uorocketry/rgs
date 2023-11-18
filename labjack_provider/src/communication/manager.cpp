@@ -32,7 +32,7 @@ void CommunicationManager::readInput()
 {
     try
     {
-        const char *output = "../../dbmim/main --record Labjack";
+        const char *output = "../../dbmim/main --record LabjackWrite";
         std::array<char, 1024> buffer;
         std::string result;
         std::unique_ptr<FILE, decltype(&pclose)> pipe(popen(output, "r"), pclose);
@@ -104,9 +104,9 @@ struct Messages::Data CommunicationManager::read()
     lock.unlock();
 
     Messages::Data data;
-    data.timestamp = jMsg["timestamp"].asDouble();
-    data.value = jMsg["value"].asDouble();
-    data.peripheral = static_cast<Messages::periphrals>(jMsg["peripheral"].asInt());
+    data.timestamp = jMsg["record"]["timestamp"].asDouble();
+    data.value = jMsg["record"]["value"].asDouble();
+    data.peripheral = static_cast<Messages::periphrals>(jMsg["record"]["peripheral"].asInt());
 
     return data;
     // implement proper read function

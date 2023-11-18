@@ -4,31 +4,6 @@ int main()
 {
     CommunicationManager manager = CommunicationManager();
     std::thread t(&CommunicationManager::readInput, &manager);
-    while (true)
-    {
-        Messages::Data msg = manager.read();
-        std::cout << "msg: " << msg.value << std::endl;
-        Json::Value jMsg;
-        jMsg["timestamp"] = msg.timestamp;
-        jMsg["data"] = msg.value;
-        jMsg["peripheral"] = msg.peripheral;
-        std::cout << "jMsg: " << jMsg.toStyledString() << std::endl;
-    }
-    t.join();
-    // try
-    // {
-    //     std::string output = exec("../../dbmim/main --record Air");
-    //     std::cout << jMsg.toStyledString() << std::endl;
-
-    //     std::cout << "Output of the program:\n"
-    //               << output << std::endl;
-    // }
-    // catch (const std::exception &e)
-    // {
-    //     std::cerr << "Error: " << e.what() << std::endl;
-    // }
-
-    // return 0;
 
     float load;
     double temp;
@@ -86,6 +61,7 @@ int main()
 
     // Wait for the input thread to finish
     inputThread.join();
+    t.join();
 
     std::cout << "Exiting the program." << std::endl;
     return 0;
