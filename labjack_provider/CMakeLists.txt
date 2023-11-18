@@ -7,7 +7,6 @@ set(CMAKE_CXX_STANDARD 17)
 # Specify the source files
 file(GLOB_RECURSE SOURCES src/*.cpp)
 
-
 # Include directories
 include_directories(
     src
@@ -16,11 +15,12 @@ include_directories(
     vendor/labjack/include
 )
 
-# find_package jsoncpp
-find_package(jsoncpp REQUIRED)
+include(FetchContent)
+FetchContent_Declare(cpr GIT_REPOSITORY https://github.com/libcpr/cpr.git/ GIT_TAG 1.10.5)
+FetchContent_MakeAvailable(cpr)
 
-# find cpr
-find_package(cpr REQUIRED)
+FetchContent_Declare(jsoncpp GIT_REPOSITORY https://github.com/open-source-parsers/jsoncpp GIT_TAG 1.9.5)
+FetchContent_MakeAvailable(jsoncpp)
 
 # Set the LabJackM library path
 link_directories(vendor/labjack/lib)
