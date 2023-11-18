@@ -89,8 +89,6 @@ bool CommunicationManager::log(Messages::Data msg)
     {
         return false;
     }
-
-    // cpr::Response r = cpr::Get(cpr::Url{"http://www.httpbin.org/get"});
 }
 
 struct Messages::Data CommunicationManager::read()
