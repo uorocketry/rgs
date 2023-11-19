@@ -12,9 +12,11 @@
 	let pauseDisabled = false;
 
 	onMount(() => {
-		pb.collection('raw').getList(1, 100, {
+		pb.collection('raw')
+			.getList(1, 100, {
 				sort: '-created'
-			}).then((l) => {
+			})
+			.then((l) => {
 				logs = l.items;
 				updatedLogs = logs.slice();
 			});
@@ -31,11 +33,10 @@
 			if (!paused && !pauseDisabled) {
 				logs = updatedLogs.slice();
 			}
-		
 		});
 		return () => {
 			unsub();
-		}
+		};
 	});
 
 	const handleSearch = async (e: KeyboardEvent) => {
