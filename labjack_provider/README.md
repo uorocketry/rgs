@@ -10,6 +10,10 @@ Allows interfacing with the Labjack T7-Pro DAQ.
   - `sudo apt update`
 - LJM (Labjack driver)
   - For LJM you need to go to the [./vendor/labjack](./vendor/labjack) folder and run `./install.sh`, which will install required files to your `share` folder (there is also an equivalent `uninstall.sh` script).
+- Jsoncpp
+  - This is automatically installed in cmake
+- cpr
+  - This is automatically installed in cmake
 
 In summary:
 

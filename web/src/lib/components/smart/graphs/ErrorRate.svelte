@@ -2,7 +2,6 @@
 	import { Collections, type RocketLinkResponse } from '$lib/common/pocketbase-types';
 	import { onCollectionCreated } from '$lib/common/utils';
 	import { modeCurrent } from '@skeletonlabs/skeleton';
-	import { onDestroy } from 'svelte';
 	import Speedometer from 'svelte-speedometer';
 
 	let radio_msg: RocketLinkResponse[] = [];
@@ -11,11 +10,6 @@
 
 	onCollectionCreated(Collections.RocketLink, async (msg) => {
 		radio_msg = [...radio_msg, msg];
-	});
-
-	onDestroy(() => {
-		radio_msg = [];
-		sub();
 	});
 
 	let clientHeight = 0;
@@ -37,7 +31,7 @@
 			needleTransitionDuration={750}
 			needleTransition="easeCubicInOut"
 			currentValueText="Packet Loss: {(
-				radio_msg[radio_msg.length - 1]?.recent_error_rate * 100
+				(radio_msg[radio_msg.length - 1]?.recent_error_rate ?? 0) * 100
 			).toFixed(2)}%"
 			fluidWidth={true}
 			forceRender={true}

@@ -8,5 +8,7 @@
 #include <atomic>
 #include <chrono>
 #include "peripherals/peripherals.hpp"
+#include "communication/manager.hpp"
+#include <json/json.h>
 
 #endif // MAIN_HPP

@@ -31,13 +31,13 @@ Make sure you have installed the following installed:
 - [Rust](https://www.rust-lang.org/tools/install)
 - libudev-dev
 - inotify-tools
-- [bun](https://bun.sh/)
-  - pm2 (process manager) - `bun install -g pm2`
+- pnpm
+- pm2 (process manager)
 
 Then run the following commands:
 
 ```bash
-bun install
+pnpm install
 pm2 start
 ```
 

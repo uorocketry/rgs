@@ -1,7 +1,7 @@
 <script lang="ts">
+	import type { RocketLinkResponse } from '$lib/common/pocketbase-types';
 	import { linkStatus } from '$lib/realtime/sensors';
 	import { Bar } from 'svelte-chartjs';
-	import type { RocketLinkResponse } from '../../../common/pocketbase-types';
 
 	let timestamp: number[] = [];
 	let missed_msgs: number[] = [];
@@ -45,12 +45,12 @@
 			if (messages.length > 1) {
 				timestamp.push(Date.now());
 				let diff =
-					messages[messages.length - 1].missed_messages -
-					messages[messages.length - 2].missed_messages;
+					(messages[messages.length - 1].missed_messages ?? 0) -
+					(messages[messages.length - 2].missed_messages ?? 0);
 				missed_msgs.push(diff);
 			}
 			data = data;
-			totalMessages = $linkStatus.missed_messages;
+			totalMessages = $linkStatus.missed_messages ?? -1;
 		}
 	}
 

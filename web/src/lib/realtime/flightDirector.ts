@@ -6,7 +6,6 @@ export const defaultLaunchCoords = {
 	lat: defaultLaunchCoordinates[0],
 	lng: defaultLaunchCoordinates[1]
 };
-
 export const defaultTargetAltitude = 7000;
 export const defaultRelativeAltitude = 360;
 
