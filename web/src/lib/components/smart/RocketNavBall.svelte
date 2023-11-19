@@ -27,9 +27,7 @@
 	);
 
 	$: {
-		console.log($quat);
 		if ($quat && $quat.quaternion) {
-			console.log($quat.quaternion);
 			const rot = $quat.quaternion;
 			latestReportedRotation = new Quaternion(rot[1], rot[2], rot[3], rot[0]);
 			// The IMU is placed flat on the rocket, so the up vector is the x axis
