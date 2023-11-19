@@ -18,9 +18,9 @@ import (
 // It takes a context for cancellation, a record string to subscribe to, and a channel to send the events to.
 // The function returns an error if there's an issue with the SSE subscription or sending the events to the channel.
 func sseProducer(ctx context.Context, base_url string, record string, c chan *sse.Event) error {
-	// client := sse.NewClient("http://127.0.0.1:8090/api/realtime/")
+	// client := sse.NewClient("http://127.0.0.1:3001/api/realtime/")
 	// fix me
-	client := sse.NewClient("http://127.0.0.1:8090/api/realtime/")
+	client := sse.NewClient("http://127.0.0.1:3001/api/realtime/")
 	events := make(chan *sse.Event)
 	client.SubscribeChan("PB_CONNECT", events)
 	defer client.Unsubscribe(events)
@@ -42,7 +42,7 @@ func sseProducer(ctx context.Context, base_url string, record string, c chan *ss
 	}
 
 	req, err := http.NewRequest(
-		"POST", "http://127.0.0.1:8090/api/realtime/",
+		"POST", "http://127.0.0.1:3001/api/realtime/",
 		strings.NewReader(fmt.Sprintf(`{"clientId":"%s","subscriptions":["%s"]}`, jsonObj.ClientId, record)))
 	req.Header = headers
 
