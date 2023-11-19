@@ -28,7 +28,6 @@ vite.config.ts.*.mjs
 # database
 pocketbase/pb_data/*
 
-
 db/dist/
 
 # labjack provider build
@@ -52,5 +51,5 @@ CMakeHelloWorld
 **/*.a
 build/**
 
-#vs code settings 
+#vs code settings
 .vscode\settings.json

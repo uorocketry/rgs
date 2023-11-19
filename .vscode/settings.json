@@ -4,10 +4,5 @@
         "source.organizeImports": true
     },
     "eslint.workingDirectories": ["./web", "./pb", "./scripts", "./bindings"],
-    "eslint.validate": [
-        "javascript"
-    ],
-    "files.associations": {
-        "array": "cpp"
-    },
+    "eslint.validate": ["javascript"]
 }
