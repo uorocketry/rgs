@@ -18,9 +18,8 @@ import (
 // It takes a context for cancellation, a record string to subscribe to, and a channel to send the events to.
 // The function returns an error if there's an issue with the SSE subscription or sending the events to the channel.
 func sseProducer(ctx context.Context, base_url string, record string, c chan *sse.Event) error {
-	// client := sse.NewClient("http://127.0.0.1:3001/api/realtime/")
-	// fix me
-	client := sse.NewClient("http://127.0.0.1:3001/api/realtime/")
+	fullBaseUrl := base_url + "/api/realtime/"
+	client := sse.NewClient(fullBaseUrl)
 	events := make(chan *sse.Event)
 	client.SubscribeChan("PB_CONNECT", events)
 	defer client.Unsubscribe(events)
@@ -41,9 +40,12 @@ func sseProducer(ctx context.Context, base_url string, record string, c chan *ss
 		"Accept":       []string{"application/json"},
 	}
 
+	bodyStr := fmt.Sprintf(`{"clientId":"%s","subscriptions":["%s"]}`, jsonObj.ClientId, record)
+	bodyReader := strings.NewReader(bodyStr)
+
 	req, err := http.NewRequest(
-		"POST", "http://127.0.0.1:3001/api/realtime/",
-		strings.NewReader(fmt.Sprintf(`{"clientId":"%s","subscriptions":["%s"]}`, jsonObj.ClientId, record)))
+		"POST", fullBaseUrl,
+		bodyReader)
 	req.Header = headers
 
 	if err != nil {
@@ -74,17 +76,19 @@ func sseProducer(ctx context.Context, base_url string, record string, c chan *ss
 }
 
 func main() {
-	recordPtr := flag.String("record", "", "name of the record to subscribe to")
-	// urlPtr := flag.String("url", "", "base URL of the API")
+	recordFlag := flag.String("record", "", "name of the record to subscribe to")
+	portFlag := flag.String("port", "3001", "port of the API")
+	baseUrlFlag := flag.String("base-url", "http://localhost", "base URL of the API")
+
 	flag.Parse()
 
 	// if *recordPtr == "" || *urlPtr == "" {
-	if *recordPtr == "" {
+	if *recordFlag == "" {
 		log.Fatal("record flags are required")
 	}
 
-	record := *recordPtr
-	// base_url := *urlPtr
+	record := *recordFlag
+	baseUrl := *baseUrlFlag + ":" + *portFlag
 
 	ctx, cancel := context.WithCancel(context.Background())
 
@@ -94,8 +98,7 @@ func main() {
 
 	wg.Add(1)
 	go func() {
-		// sseProducer(ctx, base_url, record, sseChan)
-		sseProducer(ctx, "", record, sseChan)
+		sseProducer(ctx, baseUrl, record, sseChan)
 		wg.Done()
 	}()
 
