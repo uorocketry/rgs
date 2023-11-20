@@ -14,7 +14,7 @@ envRequired("DB_ADMIN_PASSWORD");
 console.info("Started PB Service");
 
 import { spawn } from "child_process";
-let platformName = process.platform;
+const platformName = process.platform;
 const binName = `./bin/${platformName}/pocketbase`;
 console.log(`Starting PocketBase server with ${binName}`);
 const child = spawn(binName, [
