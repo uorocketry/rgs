@@ -1,7 +1,8 @@
+import { DB_REST_PORT } from '$env/static/private';
 import PocketBase from 'pocketbase';
 
 export async function GET() {
-	const pb = new PocketBase('http://127.0.0.1:8090');
+	const pb = new PocketBase(`http://localhost:${DB_REST_PORT}`);
 	await pb.admins.authWithPassword('admin@admin.com', 'admin');
 
 	const res = (

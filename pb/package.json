@@ -1,24 +1,24 @@
 {
-  "name": "@rgs/db",
-  "version": "0.0.1",
-  "type": "module",
-  "main": "dist/index.cjs",
-  "scripts": {
-    "dev": "tsup --watch  --onSuccess 'node dist/index.js'",
-    "build": "tsup --clean --dts src/index.ts",
-    "preview": "vite preview",
-    "lint": "prettier --plugin-search-dir . --check . && eslint .",
-    "format": "prettier --plugin-search-dir . --write .",
-    "bump": "ncu -u"
-  },
-  "devDependencies": {
-    "@types/cookie": "^0.5.1",
-    "@types/three": "^0.154.0",
-    "@types/zeromq": "^5.2.2",
-    "pocketbase": "^0.15.3",
-    "tslib": "^2.6.0",
-    "tsup": "^7.1.0",
-    "typescript": "^5.1.6",
-    "zeromq": "^6.0.0-beta.17"
-  }
+    "name": "@rgs/db",
+    "version": "0.0.1",
+    "type": "module",
+    "main": "dist/index.cjs",
+    "scripts": {
+        "dev": "tsup --watch  --onSuccess 'node dist/index.js'",
+        "build": "tsup --clean --dts src/index.ts",
+        "preview": "vite preview",
+        "lint": "prettier --plugin-search-dir . --check . && eslint .",
+        "format": "prettier --plugin-search-dir . --write .",
+        "bump": "ncu -u"
+    },
+    "devDependencies": {
+        "@types/cookie": "^0.5.1",
+        "@types/three": "^0.154.0",
+        "@types/zeromq": "^5.2.2",
+        "pocketbase": "^0.15.3",
+        "tslib": "^2.6.0",
+        "tsup": "^7.1.0",
+        "typescript": "^5.1.6",
+        "zeromq": "^6.0.0-beta.17"
+    }
 }

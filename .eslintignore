@@ -13,5 +13,6 @@ svelte.config.js
 pnpm-lock.yaml
 package-lock.json
 yarn.lock
+Cargo.lock
 
 target/

@@ -1,9 +1,9 @@
 <script lang="ts">
-	import { layoutConfig } from '$lib/common/layoutStore';
 	import { Collections, type LayoutsResponse } from '$lib/common/pocketbase-types';
-	import { LayoutConfig, ResolvedLayoutConfig } from 'golden-layout';
+	import type { ResolvedLayoutConfig } from 'golden-layout';
 	import type { UnsubscribeFunc } from 'pocketbase';
 	import { onDestroy, onMount } from 'svelte';
+	import { resolvedLayout } from '../../../common/dashboard';
 	import { pb } from '../../../stores';
 
 	let layouts = new Map<string, { name: string; data: ResolvedLayoutConfig }>();
@@ -16,23 +16,25 @@
 		layouts = new Map(
 			allLayouts.map((l) => [l.id, { name: l.name, data: l.data }])
 		) as typeof layouts;
-		unsubscribeF = await pb.collection('layouts').subscribe('*', (data) => {
-			// data.action is create, update, delete
-			if (data.action === 'create') {
-				layouts.set(data.record.id, {
-					name: data.record.collectionName,
-					data: data.record.data as ResolvedLayoutConfig
-				});
-			} else if (data.action === 'update') {
-				layouts.set(data.record.id, {
-					name: data.record.collectionName,
-					data: data.record.data as ResolvedLayoutConfig
-				});
-			} else if (data.action === 'delete') {
-				layouts.delete(data.record.id);
-			}
-			layouts = layouts;
-		});
+		unsubscribeF = await pb
+			.collection(Collections.Layouts)
+			.subscribe<LayoutsResponse<ResolvedLayoutConfig>>('*', (data) => {
+				if (data.action === 'update' || data.action === 'create') {
+					if (!data.record.data) {
+						console.error(
+							`Layout ${data.record.name} (${data.record.id}) of the layouts doesn't have data`
+						);
+					} else {
+						layouts.set(data.record.id, {
+							name: data.record.name,
+							data: data.record.data
+						});
+					}
+				} else if (data.action === 'delete') {
+					layouts.delete(data.record.id);
+				}
+				layouts = layouts;
+			});
 	});
 
 	onDestroy(() => {
@@ -41,8 +43,9 @@
 
 	function loadLayout(layoutId: string) {
 		let layout = layouts.get(layoutId);
+		console.log(layout);
 		if (!layout) return;
-		layoutConfig.set(LayoutConfig.fromResolved(layout.data));
+		resolvedLayout.set(layout.data);
 	}
 
 	let toDelete: string | undefined = undefined;
@@ -50,7 +53,7 @@
 	function deletePanel(id: string) {
 		if (timeout) clearTimeout(timeout);
 		if (id === toDelete) {
-			pb.collection('layouts').delete(id);
+			pb.collection(Collections.Layouts).delete(id);
 			toDelete = undefined;
 			return;
 		}
@@ -76,7 +79,7 @@
 			{#if layouts.size > 0}
 				{#each [...layouts] as [key, val]}
 					<!-- On click, copy the value to the clipboard and add a visual effect -->
-					<tr on:click={() => loadLayout(key)} class="clicky">
+					<tr class="cursor-pointer" on:click={() => loadLayout(key)}>
 						<td>
 							<button
 								on:click={(e) => {

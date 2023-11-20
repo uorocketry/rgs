@@ -18,7 +18,7 @@ public:
     void readInput();
 
 private:
-    const std::string BASE_URL = "http://127.0.0.1:8090";
+    const std::string BASE_URL = "http://127.0.0.1:3001";
     std::string token;
     std::queue<Json::Value> messageQueue;
     std::mutex queueMutex;

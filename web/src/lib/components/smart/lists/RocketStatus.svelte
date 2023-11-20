@@ -1,6 +1,5 @@
 <script lang="ts">
 	import { flightDirector } from '$lib/realtime/flightDirector';
-	import { air, imu, linkStatus, state } from '$lib/realtime/linkStatus';
 	import {
 		current_position,
 		distance_from_target,
@@ -10,6 +9,7 @@
 		max_g_force,
 		total_traveled_distance
 	} from '$lib/realtime/metrics';
+	import { air, imu, linkStatus, state } from '$lib/realtime/sensors';
 </script>
 
 <div class="w-full h-full overflow-x-auto">
@@ -38,7 +38,7 @@
 					</td>
 				</div>
 				<td>
-					<span class="text-right">{$state?.status}</span>
+					<span class="text-right">{$state?.state ?? 'Unknown'}</span>
 				</td>
 			</tr>
 			<tr class="hover clicky cursor-pointer">
@@ -48,7 +48,7 @@
 					</td>
 				</div>
 				<td>
-					<span class="text-right">{$linkStatus?.missed_messages}</span>
+					<span class="text-right">{$linkStatus?.missed_messages ?? '?'}</span>
 				</td>
 			</tr>
 			<tr class="hover clicky cursor-pointer">
@@ -58,7 +58,7 @@
 					</td>
 				</div>
 				<td>
-					<span class="text-right">{$air?.pressure_abs}</span>
+					<span class="text-right">{$air?.pressure_abs ?? '?'}</span>
 				</td>
 			</tr>
 
@@ -104,7 +104,7 @@
 					</td>
 				</div>
 				<td>
-					<span class="text-right">{$air?.altitude}</span>
+					<span class="text-right">{$air?.altitude ?? '?'}</span>
 				</td>
 			</tr>
 			<tr class="hover clicky cursor-pointer">

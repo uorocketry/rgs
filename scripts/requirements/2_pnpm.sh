@@ -1,10 +1,11 @@
-# bin/bash -i
+#!/bin/bash -i
 
 export SHELL=/bin/bash
-export NVM_DIR="$HOME/.nvm"
-[ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"
-nvm use node
 
 echo '📥 Installing PNPM'
-npm install -g pnpm
-pnpm setup
+curl -fsSL https://get.pnpm.io/install.sh | sh -
+
+# Adding pnpm to PATH
+export PATH="$HOME/.local/share/pnpm:$PATH"
+
+# source ~/.bashrc or source ~/.zshrc, depending on your shell

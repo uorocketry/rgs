@@ -10,6 +10,15 @@ Before tuning in with `pbcat`, make sure you have the following:
 
 - PocketBase up and running (see `pb` README).
 
+## Build 🏗️
+
+To build `pbcat`, run the following command:
+
+```bash
+go mod download
+go build -o pbcat/main pbcat/main.go
+```
+
 ## Usage 🚀
 
 To start listening to your PocketBase records, use the following command:

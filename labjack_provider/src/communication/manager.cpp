@@ -32,7 +32,7 @@ void CommunicationManager::readInput()
 {
     try
     {
-        const char *output = "../../pbcat/main --record LabjackWrite";
+        const char *output = "../../pbcat/pbcat --record labjack_in";
         std::array<char, 1024> buffer;
         std::string result;
         std::unique_ptr<FILE, decltype(&pclose)> pipe(popen(output, "r"), pclose);
@@ -76,7 +76,7 @@ bool CommunicationManager::log(Messages::Data msg)
     j["timestamp"] = msg.timestamp;
     j["value"] = msg.value;
     j["peripheral"] = msg.peripheral;
-    cpr::Response r = cpr::Post(cpr::Url{BASE_URL + "/api/collections/labjackLog/records"},
+    cpr::Response r = cpr::Post(cpr::Url{BASE_URL + "/api/collections/labjack_log/records"},
                                 cpr::Body{j.toStyledString()},
                                 cpr::Header{{"Content-Type", "application/json"}},
                                 cpr::Bearer{token});

@@ -13,13 +13,15 @@
 </script>
 
 <div class="card py-2" data-popup="popupCombobox-{dropdownLabel}">
-	<ListBox multiple>
-		{#each options as option}
-			<ListBoxItem bind:group={selected} name="{dropdownLabel}-{option}" value={option}
-				>{option}</ListBoxItem
-			>
-		{/each}
-	</ListBox>
+	<div class="overflow-auto max-h-64">
+		<ListBox multiple>
+			{#each options as option}
+				<ListBoxItem bind:group={selected} name="{dropdownLabel}-{option}" value={option}
+					>{option}</ListBoxItem
+				>
+			{/each}
+		</ListBox>
+	</div>
 	<div class="arrow bg-surface-100-800-token" />
 </div>
 

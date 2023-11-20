@@ -6,22 +6,28 @@ import type PocketBase from 'pocketbase';
 import type { RecordService } from 'pocketbase';
 
 export enum Collections {
-	Air = 'Air',
-	CalculatedMetrics = 'CalculatedMetrics',
-	EkfNav1 = 'EkfNav1',
-	EkfNav2 = 'EkfNav2',
-	EkfQuat = 'EkfQuat',
 	FlightDirector = 'FlightDirector',
-	GpsPos1 = 'GpsPos1',
-	GpsPos2 = 'GpsPos2',
-	GpsVel = 'GpsVel',
-	Imu1 = 'Imu1',
-	Imu2 = 'Imu2',
-	LinkStatus = 'LinkStatus',
-	Log = 'Log',
-	State = 'State',
 	Layouts = 'layouts',
-	Raw = 'raw',
+	RocketAir = 'rocket_air',
+	RocketCommand = 'rocket_command',
+	RocketCurrent = 'rocket_current',
+	RocketImu1 = 'rocket_imu1',
+	RocketImu2 = 'rocket_imu2',
+	RocketLink = 'rocket_link',
+	RocketLog = 'rocket_log',
+	RocketMessage = 'rocket_message',
+	RocketNav1 = 'rocket_nav1',
+	RocketNav2 = 'rocket_nav2',
+	RocketPos1 = 'rocket_pos1',
+	RocketPos2 = 'rocket_pos2',
+	RocketQuat = 'rocket_quat',
+	RocketRegulator = 'rocket_regulator',
+	RocketSensor = 'rocket_sensor',
+	RocketState = 'rocket_state',
+	RocketTemperature = 'rocket_temperature',
+	RocketTime = 'rocket_time',
+	RocketVel = 'rocket_vel',
+	RocketVoltage = 'rocket_voltage',
 	Users = 'users'
 }
 
@@ -49,61 +55,6 @@ export type AuthSystemFields<T = never> = {
 
 // Record types for each collection
 
-export type AirRecord = {
-	air_temperature?: number;
-	altitude?: number;
-	pressure_abs?: number;
-	pressure_diff?: number;
-	status?: number;
-	timestamp?: number;
-	true_airspeed?: number;
-};
-
-export type CalculatedMetricsRecord = {
-	distance_from_target?: number;
-	g_force?: number;
-	ground_altitude?: number;
-	max_altitude?: number;
-	max_g_force?: number;
-	max_true_air_speed?: number;
-	max_velocity_1?: number;
-	max_velocity_2?: number;
-	max_velocity_3?: number;
-	total_traveled_distance?: number;
-};
-
-export type EkfNav1Record = {
-	time_stamp?: number;
-	velocity_0?: number;
-	velocity_1?: number;
-	velocity_2?: number;
-	velocity_std_dev_0?: number;
-	velocity_std_dev_1?: number;
-	velocity_std_dev_2?: number;
-};
-
-export type EkfNav2Record = {
-	position_0?: number;
-	position_1?: number;
-	position_2?: number;
-	position_std_dev_0?: number;
-	position_std_dev_1?: number;
-	position_std_dev_2?: number;
-	status?: number;
-};
-
-export type EkfQuatRecord = {
-	euler_std_dev_0?: number;
-	euler_std_dev_1?: number;
-	euler_std_dev_2?: number;
-	quaternion_0?: number;
-	quaternion_1?: number;
-	quaternion_2?: number;
-	quaternion_3?: number;
-	status?: number;
-	time_stamp?: number;
-};
-
 export type FlightDirectorRecord = {
 	latitude?: number;
 	longitude?: number;
@@ -111,60 +62,49 @@ export type FlightDirectorRecord = {
 	targetAltitude?: number;
 };
 
-export type GpsPos1Record = {
+export type LayoutsRecord<Tdata = unknown> = {
+	data: null | Tdata;
+	name: string;
+};
+
+export type RocketAirRecord = {
+	air_temperature?: number;
 	altitude?: number;
-	latitude?: number;
-	longitude?: number;
-	status?: number;
-	timeOfWeek?: number;
-	timestamp?: number;
-	undulation?: number;
-};
-
-export type GpsPos2Record = {
-	altitudeAccuracy?: number;
-	baseStationId?: number;
-	differentialAge?: number;
-	latitudeAccuracy?: number;
-	longitudeAccuracy?: number;
-	numSvUsed?: number;
-};
-
-export type GpsVelRecord = {
-	course?: number;
-	course_acc?: number;
+	parent: RecordIdString;
+	pressure_abs?: number;
+	pressure_diff?: number;
 	status?: number;
 	time_stamp?: number;
-	velocity_0?: number;
-	velocity_1?: number;
-	velocity_2?: number;
-	velocity_acc_0?: number;
-	velocity_acc_1?: number;
-	velocity_acc_2?: number;
+	true_airspeed?: number;
 };
 
-export type Imu1Record = {
-	accelerometers_0?: number;
-	accelerometers_1?: number;
-	accelerometers_2?: number;
-	gyroscopes_0?: number;
-	gyroscopes_1?: number;
-	gyroscopes_2?: number;
+export type RocketCommandRecord<Tdata = unknown> = {
+	data?: null | Tdata;
+	parent: RecordIdString;
+};
+
+export type RocketCurrentRecord = {
+	current?: number;
+	parent: RecordIdString;
+	rolling_avg?: number;
+};
+
+export type RocketImu1Record<Taccelerometers = unknown, Tgyroscopes = unknown> = {
+	accelerometers: null | Taccelerometers;
+	gyroscopes: null | Tgyroscopes;
+	parent: RecordIdString;
 	status?: number;
 	time_stamp?: number;
 };
 
-export type Imu2Record = {
-	delta_angle_0?: number;
-	delta_angle_1?: number;
-	delta_angle_2?: number;
-	delta_velocity_0?: number;
-	delta_velocity_1?: number;
-	delta_velocity_2?: number;
+export type RocketImu2Record<Tdelta_angle = unknown, Tdelta_velocity = unknown> = {
+	delta_angle: null | Tdelta_angle;
+	delta_velocity: null | Tdelta_velocity;
+	parent: RecordIdString;
 	temperature?: number;
 };
 
-export type LinkStatusRecord = {
+export type RocketLinkRecord = {
 	connected?: number;
 	fixed?: number;
 	missed_messages?: number;
@@ -174,35 +114,155 @@ export type LinkStatusRecord = {
 	remrssi?: number;
 	rssi?: number;
 	rxerrors?: number;
+	timestamp?: number;
 	txbuf?: number;
 };
 
-export type LogRecord<Tevent = unknown> = {
-	event?: null | Tevent;
+export type RocketLogRecord<Tevent = unknown> = {
+	event: null | Tevent;
 	level?: string;
+	parent: RecordIdString;
 };
 
-export enum StateStatusOptions {
+export enum RocketMessageDiscriminatorOptions {
+	'rocket_state' = 'rocket_state',
+	'rocket_sensor' = 'rocket_sensor',
+	'rocket_log' = 'rocket_log',
+	'rocket_command' = 'rocket_command'
+}
+
+export enum RocketMessageSenderOptions {
+	'GroundStation' = 'GroundStation',
+	'SensorBoard' = 'SensorBoard',
+	'RecoveryBoard' = 'RecoveryBoard',
+	'CommunicationBoard' = 'CommunicationBoard',
+	'PowerBoard' = 'PowerBoard',
+	'CameraBoard' = 'CameraBoard'
+}
+export type RocketMessageRecord = {
+	discriminator: RocketMessageDiscriminatorOptions;
+	sender: RocketMessageSenderOptions;
+	timestamp?: number;
+};
+
+export type RocketNav1Record<Tvelocity = unknown, Tvelocity_std_dev = unknown> = {
+	parent: RecordIdString;
+	time_stamp?: number;
+	velocity: null | Tvelocity;
+	velocity_std_dev: null | Tvelocity_std_dev;
+};
+
+export type RocketNav2Record<Tposition = unknown, Tposition_std_dev = unknown> = {
+	parent: RecordIdString;
+	position: null | Tposition;
+	position_std_dev: null | Tposition_std_dev;
+	status?: number;
+};
+
+export type RocketPos1Record = {
+	altitude?: number;
+	latitude?: number;
+	longitude?: number;
+	parent: RecordIdString;
+	status?: number;
+	timeOfWeek?: number;
+	timestamp?: number;
+	undulation?: number;
+};
+
+export type RocketPos2Record = {
+	altitudeAccuracy?: number;
+	baseStationId?: number;
+	differentialAge?: number;
+	latitudeAccuracy?: number;
+	longitudeAccuracy?: number;
+	numSvUsed?: number;
+	parent: RecordIdString;
+};
+
+export type RocketQuatRecord<Teuler_std_dev = unknown, Tquaternion = unknown> = {
+	euler_std_dev: null | Teuler_std_dev;
+	parent: RecordIdString;
+	quaternion: null | Tquaternion;
+	status?: number;
+	time_stamp?: number;
+};
+
+export type RocketRegulatorRecord = {
+	parent: RecordIdString;
+	status?: boolean;
+};
+
+export enum RocketSensorDiscriminatorOptions {
+	'rocket_time' = 'rocket_time',
+	'rocket_air' = 'rocket_air',
+	'rocket_quat' = 'rocket_quat',
+	'rocket_nav1' = 'rocket_nav1',
+	'rocket_nav2' = 'rocket_nav2',
+	'rocket_imu1' = 'rocket_imu1',
+	'rocket_imu2' = 'rocket_imu2',
+	'rocket_vel' = 'rocket_vel',
+	'rocket_pos1' = 'rocket_pos1',
+	'rocket_pos2' = 'rocket_pos2',
+	'rocket_current' = 'rocket_current',
+	'rocket_voltage' = 'rocket_voltage',
+	'rocket_regulator' = 'rocket_regulator',
+	'rocket_temperature' = 'rocket_temperature'
+}
+export type RocketSensorRecord = {
+	component_id?: number;
+	discriminator: RocketSensorDiscriminatorOptions;
+	parent: RecordIdString;
+};
+
+export enum RocketStateStateOptions {
 	'Initializing' = 'Initializing',
 	'WaitForTakeoff' = 'WaitForTakeoff',
 	'Ascent' = 'Ascent',
 	'Descent' = 'Descent',
 	'TerminalDescent' = 'TerminalDescent',
-	'Abort' = 'Abort',
-	'WaitForRecovery' = 'WaitForRecovery'
+	'WaitForRecovery' = 'WaitForRecovery',
+	'Abort' = 'Abort'
 }
-export type StateRecord = {
-	status?: StateStatusOptions;
+export type RocketStateRecord = {
+	parent: RecordIdString;
+	state: RocketStateStateOptions;
 };
 
-export type LayoutsRecord<Tdata = unknown> = {
-	data: null | Tdata;
-	name: string;
+export type RocketTemperatureRecord = {
+	parent: RecordIdString;
+	rolling_avg?: number;
+	temperature?: number;
 };
 
-export type RawRecord<Tdata = unknown> = {
-	data?: null | Tdata;
-	timestamp?: number;
+export type RocketTimeRecord = {
+	day?: number;
+	gps_time_of_week?: number;
+	hour?: number;
+	minute?: number;
+	month?: number;
+	nano_second?: number;
+	parent: RecordIdString;
+	second?: number;
+	status?: number;
+	time_stamp?: number;
+	year?: number;
+};
+
+export type RocketVelRecord<Tvelocity = unknown, Tvelocity_acc = unknown> = {
+	course?: number;
+	course_acc?: number;
+	parent: RecordIdString;
+	status?: number;
+	time_stamp?: number;
+	velocity: null | Tvelocity;
+	velocity_acc: null | Tvelocity_acc;
+};
+
+export type RocketVoltageRecord = {
+	parent: RecordIdString;
+	rolling_avg?: number;
+	voltage?: number;
 };
 
 export type UsersRecord = {
@@ -211,74 +271,125 @@ export type UsersRecord = {
 };
 
 // Response types include system fields and match responses from the PocketBase API
-export type AirResponse<Texpand = unknown> = Required<AirRecord> & BaseSystemFields<Texpand>;
-export type CalculatedMetricsResponse<Texpand = unknown> = Required<CalculatedMetricsRecord> &
-	BaseSystemFields<Texpand>;
-export type EkfNav1Response<Texpand = unknown> = Required<EkfNav1Record> &
-	BaseSystemFields<Texpand>;
-export type EkfNav2Response<Texpand = unknown> = Required<EkfNav2Record> &
-	BaseSystemFields<Texpand>;
-export type EkfQuatResponse<Texpand = unknown> = Required<EkfQuatRecord> &
-	BaseSystemFields<Texpand>;
 export type FlightDirectorResponse<Texpand = unknown> = Required<FlightDirectorRecord> &
 	BaseSystemFields<Texpand>;
-export type GpsPos1Response<Texpand = unknown> = Required<GpsPos1Record> &
-	BaseSystemFields<Texpand>;
-export type GpsPos2Response<Texpand = unknown> = Required<GpsPos2Record> &
-	BaseSystemFields<Texpand>;
-export type GpsVelResponse<Texpand = unknown> = Required<GpsVelRecord> & BaseSystemFields<Texpand>;
-export type Imu1Response<Texpand = unknown> = Required<Imu1Record> & BaseSystemFields<Texpand>;
-export type Imu2Response<Texpand = unknown> = Required<Imu2Record> & BaseSystemFields<Texpand>;
-export type LinkStatusResponse<Texpand = unknown> = Required<LinkStatusRecord> &
-	BaseSystemFields<Texpand>;
-export type LogResponse<Tevent = unknown, Texpand = unknown> = Required<LogRecord<Tevent>> &
-	BaseSystemFields<Texpand>;
-export type StateResponse<Texpand = unknown> = Required<StateRecord> & BaseSystemFields<Texpand>;
 export type LayoutsResponse<Tdata = unknown, Texpand = unknown> = Required<LayoutsRecord<Tdata>> &
 	BaseSystemFields<Texpand>;
-export type RawResponse<Tdata = unknown, Texpand = unknown> = Required<RawRecord<Tdata>> &
+export type RocketAirResponse<Texpand = unknown> = Required<RocketAirRecord> &
+	BaseSystemFields<Texpand>;
+export type RocketCommandResponse<Tdata = unknown, Texpand = unknown> = Required<
+	RocketCommandRecord<Tdata>
+> &
+	BaseSystemFields<Texpand>;
+export type RocketCurrentResponse<Texpand = unknown> = Required<RocketCurrentRecord> &
+	BaseSystemFields<Texpand>;
+export type RocketImu1Response<
+	Taccelerometers = unknown,
+	Tgyroscopes = unknown,
+	Texpand = unknown
+> = Required<RocketImu1Record<Taccelerometers, Tgyroscopes>> & BaseSystemFields<Texpand>;
+export type RocketImu2Response<
+	Tdelta_angle = unknown,
+	Tdelta_velocity = unknown,
+	Texpand = unknown
+> = Required<RocketImu2Record<Tdelta_angle, Tdelta_velocity>> & BaseSystemFields<Texpand>;
+export type RocketLinkResponse<Texpand = unknown> = Required<RocketLinkRecord> &
+	BaseSystemFields<Texpand>;
+export type RocketLogResponse<Tevent = unknown, Texpand = unknown> = Required<
+	RocketLogRecord<Tevent>
+> &
+	BaseSystemFields<Texpand>;
+export type RocketMessageResponse<Texpand = unknown> = Required<RocketMessageRecord> &
+	BaseSystemFields<Texpand>;
+export type RocketNav1Response<
+	Tvelocity = unknown,
+	Tvelocity_std_dev = unknown,
+	Texpand = unknown
+> = Required<RocketNav1Record<Tvelocity, Tvelocity_std_dev>> & BaseSystemFields<Texpand>;
+export type RocketNav2Response<
+	Tposition = unknown,
+	Tposition_std_dev = unknown,
+	Texpand = unknown
+> = Required<RocketNav2Record<Tposition, Tposition_std_dev>> & BaseSystemFields<Texpand>;
+export type RocketPos1Response<Texpand = unknown> = Required<RocketPos1Record> &
+	BaseSystemFields<Texpand>;
+export type RocketPos2Response<Texpand = unknown> = Required<RocketPos2Record> &
+	BaseSystemFields<Texpand>;
+export type RocketQuatResponse<
+	Teuler_std_dev = unknown,
+	Tquaternion = unknown,
+	Texpand = unknown
+> = Required<RocketQuatRecord<Teuler_std_dev, Tquaternion>> & BaseSystemFields<Texpand>;
+export type RocketRegulatorResponse<Texpand = unknown> = Required<RocketRegulatorRecord> &
+	BaseSystemFields<Texpand>;
+export type RocketSensorResponse<Texpand = unknown> = Required<RocketSensorRecord> &
+	BaseSystemFields<Texpand>;
+export type RocketStateResponse<Texpand = unknown> = Required<RocketStateRecord> &
+	BaseSystemFields<Texpand>;
+export type RocketTemperatureResponse<Texpand = unknown> = Required<RocketTemperatureRecord> &
+	BaseSystemFields<Texpand>;
+export type RocketTimeResponse<Texpand = unknown> = Required<RocketTimeRecord> &
+	BaseSystemFields<Texpand>;
+export type RocketVelResponse<
+	Tvelocity = unknown,
+	Tvelocity_acc = unknown,
+	Texpand = unknown
+> = Required<RocketVelRecord<Tvelocity, Tvelocity_acc>> & BaseSystemFields<Texpand>;
+export type RocketVoltageResponse<Texpand = unknown> = Required<RocketVoltageRecord> &
 	BaseSystemFields<Texpand>;
 export type UsersResponse<Texpand = unknown> = Required<UsersRecord> & AuthSystemFields<Texpand>;
 
 // Types containing all Records and Responses, useful for creating typing helper functions
 
 export type CollectionRecords = {
-	Air: AirRecord;
-	CalculatedMetrics: CalculatedMetricsRecord;
-	EkfNav1: EkfNav1Record;
-	EkfNav2: EkfNav2Record;
-	EkfQuat: EkfQuatRecord;
 	FlightDirector: FlightDirectorRecord;
-	GpsPos1: GpsPos1Record;
-	GpsPos2: GpsPos2Record;
-	GpsVel: GpsVelRecord;
-	Imu1: Imu1Record;
-	Imu2: Imu2Record;
-	LinkStatus: LinkStatusRecord;
-	Log: LogRecord;
-	State: StateRecord;
 	layouts: LayoutsRecord;
-	raw: RawRecord;
+	rocket_air: RocketAirRecord;
+	rocket_command: RocketCommandRecord;
+	rocket_current: RocketCurrentRecord;
+	rocket_imu1: RocketImu1Record;
+	rocket_imu2: RocketImu2Record;
+	rocket_link: RocketLinkRecord;
+	rocket_log: RocketLogRecord;
+	rocket_message: RocketMessageRecord;
+	rocket_nav1: RocketNav1Record;
+	rocket_nav2: RocketNav2Record;
+	rocket_pos1: RocketPos1Record;
+	rocket_pos2: RocketPos2Record;
+	rocket_quat: RocketQuatRecord;
+	rocket_regulator: RocketRegulatorRecord;
+	rocket_sensor: RocketSensorRecord;
+	rocket_state: RocketStateRecord;
+	rocket_temperature: RocketTemperatureRecord;
+	rocket_time: RocketTimeRecord;
+	rocket_vel: RocketVelRecord;
+	rocket_voltage: RocketVoltageRecord;
 	users: UsersRecord;
 };
 
 export type CollectionResponses = {
-	Air: AirResponse;
-	CalculatedMetrics: CalculatedMetricsResponse;
-	EkfNav1: EkfNav1Response;
-	EkfNav2: EkfNav2Response;
-	EkfQuat: EkfQuatResponse;
 	FlightDirector: FlightDirectorResponse;
-	GpsPos1: GpsPos1Response;
-	GpsPos2: GpsPos2Response;
-	GpsVel: GpsVelResponse;
-	Imu1: Imu1Response;
-	Imu2: Imu2Response;
-	LinkStatus: LinkStatusResponse;
-	Log: LogResponse;
-	State: StateResponse;
 	layouts: LayoutsResponse;
-	raw: RawResponse;
+	rocket_air: RocketAirResponse;
+	rocket_command: RocketCommandResponse;
+	rocket_current: RocketCurrentResponse;
+	rocket_imu1: RocketImu1Response;
+	rocket_imu2: RocketImu2Response;
+	rocket_link: RocketLinkResponse;
+	rocket_log: RocketLogResponse;
+	rocket_message: RocketMessageResponse;
+	rocket_nav1: RocketNav1Response;
+	rocket_nav2: RocketNav2Response;
+	rocket_pos1: RocketPos1Response;
+	rocket_pos2: RocketPos2Response;
+	rocket_quat: RocketQuatResponse;
+	rocket_regulator: RocketRegulatorResponse;
+	rocket_sensor: RocketSensorResponse;
+	rocket_state: RocketStateResponse;
+	rocket_temperature: RocketTemperatureResponse;
+	rocket_time: RocketTimeResponse;
+	rocket_vel: RocketVelResponse;
+	rocket_voltage: RocketVoltageResponse;
 	users: UsersResponse;
 };
 
@@ -286,21 +397,27 @@ export type CollectionResponses = {
 // https://github.com/pocketbase/js-sdk#specify-typescript-definitions
 
 export type TypedPocketBase = PocketBase & {
-	collection(idOrName: 'Air'): RecordService<AirResponse>;
-	collection(idOrName: 'CalculatedMetrics'): RecordService<CalculatedMetricsResponse>;
-	collection(idOrName: 'EkfNav1'): RecordService<EkfNav1Response>;
-	collection(idOrName: 'EkfNav2'): RecordService<EkfNav2Response>;
-	collection(idOrName: 'EkfQuat'): RecordService<EkfQuatResponse>;
 	collection(idOrName: 'FlightDirector'): RecordService<FlightDirectorResponse>;
-	collection(idOrName: 'GpsPos1'): RecordService<GpsPos1Response>;
-	collection(idOrName: 'GpsPos2'): RecordService<GpsPos2Response>;
-	collection(idOrName: 'GpsVel'): RecordService<GpsVelResponse>;
-	collection(idOrName: 'Imu1'): RecordService<Imu1Response>;
-	collection(idOrName: 'Imu2'): RecordService<Imu2Response>;
-	collection(idOrName: 'LinkStatus'): RecordService<LinkStatusResponse>;
-	collection(idOrName: 'Log'): RecordService<LogResponse>;
-	collection(idOrName: 'State'): RecordService<StateResponse>;
 	collection(idOrName: 'layouts'): RecordService<LayoutsResponse>;
-	collection(idOrName: 'raw'): RecordService<RawResponse>;
+	collection(idOrName: 'rocket_air'): RecordService<RocketAirResponse>;
+	collection(idOrName: 'rocket_command'): RecordService<RocketCommandResponse>;
+	collection(idOrName: 'rocket_current'): RecordService<RocketCurrentResponse>;
+	collection(idOrName: 'rocket_imu1'): RecordService<RocketImu1Response>;
+	collection(idOrName: 'rocket_imu2'): RecordService<RocketImu2Response>;
+	collection(idOrName: 'rocket_link'): RecordService<RocketLinkResponse>;
+	collection(idOrName: 'rocket_log'): RecordService<RocketLogResponse>;
+	collection(idOrName: 'rocket_message'): RecordService<RocketMessageResponse>;
+	collection(idOrName: 'rocket_nav1'): RecordService<RocketNav1Response>;
+	collection(idOrName: 'rocket_nav2'): RecordService<RocketNav2Response>;
+	collection(idOrName: 'rocket_pos1'): RecordService<RocketPos1Response>;
+	collection(idOrName: 'rocket_pos2'): RecordService<RocketPos2Response>;
+	collection(idOrName: 'rocket_quat'): RecordService<RocketQuatResponse>;
+	collection(idOrName: 'rocket_regulator'): RecordService<RocketRegulatorResponse>;
+	collection(idOrName: 'rocket_sensor'): RecordService<RocketSensorResponse>;
+	collection(idOrName: 'rocket_state'): RecordService<RocketStateResponse>;
+	collection(idOrName: 'rocket_temperature'): RecordService<RocketTemperatureResponse>;
+	collection(idOrName: 'rocket_time'): RecordService<RocketTimeResponse>;
+	collection(idOrName: 'rocket_vel'): RecordService<RocketVelResponse>;
+	collection(idOrName: 'rocket_voltage'): RecordService<RocketVoltageResponse>;
 	collection(idOrName: 'users'): RecordService<UsersResponse>;
 };

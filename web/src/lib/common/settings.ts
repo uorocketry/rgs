@@ -39,7 +39,7 @@ type SettingsGroup = {
 
 // Settings
 
-const uiSettings: SettingsGroup = {
+const uiSettings = {
 	name: 'ui',
 	settings: [
 		{
@@ -55,9 +55,9 @@ const uiSettings: SettingsGroup = {
 			value: localStorageStore('ui.lightMode', true)
 		}
 	]
-};
+} satisfies SettingsGroup;
 
-const notificationSettings: SettingsGroup = {
+const notificationSettings = {
 	name: 'notifications',
 	settings: [
 		{
@@ -67,9 +67,9 @@ const notificationSettings: SettingsGroup = {
 			value: localStorageStore('notifications.consoleNotifications', false)
 		}
 	]
-};
+} satisfies SettingsGroup;
 
-export const settings: SettingsGroup[] = [uiSettings, notificationSettings];
+export const settings = [uiSettings, notificationSettings];
 
 // ui.sidebarLeft
 export const findSetting = (name: string): Setting | undefined => {
