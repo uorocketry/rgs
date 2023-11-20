@@ -14,11 +14,9 @@
     "devDependencies": {
         "@types/cookie": "^0.5.1",
         "@types/three": "^0.154.0",
-        "@types/zeromq": "^5.2.2",
         "pocketbase": "^0.15.3",
         "tslib": "^2.6.0",
         "tsup": "^7.1.0",
-        "typescript": "^5.1.6",
-        "zeromq": "^6.0.0-beta.17"
+        "typescript": "^5.1.6"
     }
 }
