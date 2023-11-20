@@ -9,7 +9,6 @@ CommunicationManager::CommunicationManager()
     cpr::Response r = cpr::Post(cpr::Url{BASE_URL + "/api/admins/auth-with-password"},
                                 cpr::Body{"{\"identity\":\"admin@admin.com\",\"password\":\"admin\"}"},
                                 cpr::Header{{"Content-Type", "application/json"}});
-    std::cout << "text returned: " + r.text << std::endl;
     Json::Value auth_json;
     Json::CharReaderBuilder builder;
     Json::CharReader *reader = builder.newCharReader();
@@ -23,11 +22,6 @@ CommunicationManager::CommunicationManager()
     token = auth_json["token"].asString();
 }
 
-CommunicationManager::~CommunicationManager()
-{
-    std::cout << "CommunicationManager destructor called" << std::endl;
-}
-
 void CommunicationManager::readInput()
 {
     try
@@ -36,7 +30,6 @@ void CommunicationManager::readInput()
         std::array<char, 1024> buffer;
         std::string result;
         std::unique_ptr<FILE, decltype(&pclose)> pipe(popen(output, "r"), pclose);
-        std::cout << "Pipe: called application should be runnung" << std::endl;
 
         if (!pipe)
         {
@@ -80,7 +73,6 @@ bool CommunicationManager::log(Messages::Data msg)
                                 cpr::Body{j.toStyledString()},
                                 cpr::Header{{"Content-Type", "application/json"}},
                                 cpr::Bearer{token});
-    std::cout << r.text << std::endl;
     if (r.status_code == 200)
     {
         return true;
