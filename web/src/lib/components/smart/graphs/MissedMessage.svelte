@@ -1,11 +1,11 @@
 <script lang="ts">
-	import { linkStatus } from '$lib/realtime/linkStatus';
+	import type { RocketLinkResponse } from '$lib/common/pocketbase-types';
+	import { linkStatus } from '$lib/realtime/sensors';
 	import { Bar } from 'svelte-chartjs';
-	import type { LinkStatusRecord } from '../../../common/pocketbase-types';
 
 	let timestamp: number[] = [];
 	let missed_msgs: number[] = [];
-	let messages: LinkStatusRecord[] = [];
+	let messages: RocketLinkResponse[] = [];
 	let totalMessages = 0;
 
 	let data = {

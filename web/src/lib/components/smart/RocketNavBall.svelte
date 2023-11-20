@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { ekf } from '$lib/realtime/linkStatus';
+	import { quat } from '$lib/realtime/sensors';
 	import { SlideToggle } from '@skeletonlabs/skeleton';
 	import { tweened } from 'svelte/motion';
 	import { Euler, MathUtils, Matrix4, Quaternion, Vector3, type EulerOrder } from 'three';
@@ -27,15 +27,12 @@
 	);
 
 	$: {
-		const ekfVal = $ekf;
-		latestReportedRotation = new Quaternion(
-			ekfVal.quaternion_1 ?? 0,
-			ekfVal.quaternion_2 ?? 0,
-			ekfVal.quaternion_3 ?? 0,
-			ekfVal.quaternion_0 ?? 0
-		);
-		// The IMU is placed flat on the rocket, so the up vector is the x axis
-		// https://support.sbg-systems.com/sc/qd/latest/reference-manual/conventions
+		if ($quat && $quat.quaternion) {
+			const rot = $quat.quaternion;
+			latestReportedRotation = new Quaternion(rot[1], rot[2], rot[3], rot[0]);
+			// The IMU is placed flat on the rocket, so the up vector is the x axis
+			// https://support.sbg-systems.com/sc/qd/latest/reference-manual/conventions
+		}
 	}
 
 	setInterval(() => {

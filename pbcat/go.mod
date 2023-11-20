@@ -1,4 +1,4 @@
-module rgs/rocketbase
+module rgs/pbcat
 
 go 1.18
 

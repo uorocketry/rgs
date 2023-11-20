@@ -1,9 +1,14 @@
 import { pb } from '$lib/stores';
-import { LayoutConfig, ResolvedLayoutConfig } from 'golden-layout';
+import type { ResolvedLayoutConfig } from 'golden-layout';
 import { get, writable, type Writable } from 'svelte/store';
 import { flightDirector } from '../realtime/flightDirector';
-import { layoutComponentsString, layoutConfig, virtualLayout } from './layoutStore';
-import type { FlightDirectorResponse } from './pocketbase-types';
+import { layoutComponentsString, resolvedLayout, virtualLayout } from './dashboard';
+import {
+	Collections,
+	type FlightDirectorRecord,
+	type LayoutsRecord,
+	type LayoutsResponse
+} from './pocketbase-types';
 
 export interface CommandAction {
 	name: string;
@@ -34,13 +39,12 @@ export const commandActions: Writable<CommandAction[]> = writable([
 			const layoutName = await cmd.string('Layout name?', 'Recovery Layout');
 			if (!layoutName) return;
 			console.log('Saving layout: ' + layoutName);
-			const vLayout = get(virtualLayout);
-			if (!vLayout) return;
-			const saved = vLayout.saveLayout();
-			pb.collection('layouts').create({
+			const saved = get(resolvedLayout);
+			if (!saved) return;
+			pb.collection(Collections.Layouts).create({
 				name: layoutName,
-				data: JSON.stringify(saved)
-			});
+				data: saved
+			} satisfies LayoutsRecord);
 		}
 	},
 	{
@@ -50,13 +54,19 @@ export const commandActions: Writable<CommandAction[]> = writable([
 			if (!cmd) return;
 
 			// Load layouts from server
-			const layouts = await pb.collection('layouts').getFullList();
+			const layouts = await pb
+				.collection('layouts')
+				.getFullList<LayoutsResponse<ResolvedLayoutConfig>>();
 			const layoutNames = layouts.map((l) => l.name);
 
 			const layoutIndex = await cmd.select('Layout name?', layoutNames, 'Recovery Layout');
 			if (layoutIndex === undefined) return;
 			const layout = layouts[layoutIndex];
-			layoutConfig.set(LayoutConfig.fromResolved(layout.data as ResolvedLayoutConfig));
+			if (layout.data) {
+				resolvedLayout.set(layout.data);
+			} else {
+				console.error('Failed to load layout: ' + layout.name);
+			}
 		}
 	},
 	{
@@ -92,24 +102,12 @@ export const commandActions: Writable<CommandAction[]> = writable([
 			const lng = parseFloat(launchPointSplit[1]);
 			if (isNaN(lng) || isNaN(lat)) return;
 			const prevFD = get(flightDirector);
-			if (!prevFD) {
-				await cmd.select("Couldn't find flight director, please report this bug", ['Ok']);
-				return;
-			}
-			pb.collection('FlightDirector').create({
+			pb.collection(Collections.FlightDirector).create({
 				latitude: lat,
 				longitude: lng,
-				targetAltitude: prevFD.targetAltitude,
-				relativeAlt: prevFD.relativeAltitude
-			});
-
-			// Update the store with the new values
-			flightDirector.set({
-				latitude: lat,
-				longitude: lng,
-				targetAltitude: prevFD.targetAltitude,
-				relativeAltitude: prevFD.relativeAltitude
-			} as FlightDirectorResponse);
+				targetAltitude: prevFD?.targetAltitude,
+				relativeAltitude: prevFD?.relativeAltitude
+			} satisfies FlightDirectorRecord);
 		}
 	},
 	{
@@ -123,16 +121,12 @@ export const commandActions: Writable<CommandAction[]> = writable([
 			const targetAltNum = parseFloat(targetAlt);
 			if (isNaN(targetAltNum)) return;
 			const prevFD = get(flightDirector);
-			if (!prevFD) {
-				await cmd.select("Couldn't find flight director, please report this bug", ['Ok']);
-				return;
-			}
-			pb.collection('FlightDirector').create({
-				latitude: prevFD.latitude,
-				longitude: prevFD.longitude,
+			pb.collection(Collections.FlightDirector).create({
+				latitude: prevFD?.latitude,
+				longitude: prevFD?.longitude,
 				targetAltitude: targetAltNum,
-				relativeAltitude: prevFD.relativeAltitude
-			});
+				relativeAltitude: prevFD?.relativeAltitude
+			} satisfies FlightDirectorRecord);
 		}
 	},
 	{
@@ -146,16 +140,12 @@ export const commandActions: Writable<CommandAction[]> = writable([
 			const targetAltNum = parseFloat(relativeAlt);
 			if (isNaN(targetAltNum)) return;
 			const prevFD = get(flightDirector);
-			if (!prevFD) {
-				await cmd.select("Couldn't find flight director, please report this bug", ['Ok']);
-				return;
-			}
-			pb.collection('FlightDirector').create({
-				latitude: prevFD.latitude,
-				longitude: prevFD.longitude,
-				targetAltitude: prevFD.targetAltitude,
+			pb.collection(Collections.FlightDirector).create({
+				latitude: prevFD?.latitude,
+				longitude: prevFD?.longitude,
+				targetAltitude: prevFD?.targetAltitude,
 				relativeAltitude: targetAltNum
-			});
+			} satisfies FlightDirectorRecord);
 		}
 	}
 ]);

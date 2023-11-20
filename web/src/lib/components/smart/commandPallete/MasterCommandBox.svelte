@@ -24,7 +24,7 @@
 			inputElement.focus();
 
 			return new Promise((resolve) => {
-				cmdBox?.onEnter((err) => {
+				cmdBox.onEnter((err) => {
 					if (err) {
 						resolve(undefined);
 						console.log('Resolving to undefined');
@@ -46,7 +46,7 @@
 			inputElement.focus();
 
 			return new Promise((resolve) => {
-				cmdBox?.onClick((item, err) => {
+				cmdBox.onClick((item, err) => {
 					if (err) {
 						resolve(undefined);
 						return;

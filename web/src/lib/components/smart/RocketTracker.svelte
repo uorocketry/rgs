@@ -1,7 +1,7 @@
 <script defer lang="ts" type="module">
 	import { browser } from '$app/environment';
-	import { launchPoint } from '$lib/realtime/flightDirector';
-	import { gpsPos1 } from '$lib/realtime/gps';
+	import { flightDirector } from '$lib/realtime/flightDirector';
+	import { rocketPos } from '$lib/realtime/gps';
 	import L from 'leaflet';
 	import { onDestroy, onMount } from 'svelte';
 	import { spring } from 'svelte/motion';
@@ -11,7 +11,10 @@
 
 	let rocketMarker: L.Marker<unknown>;
 
-	let launchPointMarker = L.marker($launchPoint, {
+	$: rocketXY = { x: $rocketPos.latitude ?? 0, y: $rocketPos.longitude ?? 0 };
+	$: rocketLatLng = { lat: rocketXY.x, lng: rocketXY.y };
+
+	let launchPointMarker = L.marker(rocketLatLng, {
 		icon: L.divIcon({
 			// Maybe some custom checkpoints?
 			html: '🏠',
@@ -22,10 +25,8 @@
 	const MAX_ZOOM = 14;
 	const MIN_ZOOM = 5;
 	const INITIAL_ZOOM = 10;
-	$: gpsLatLng = { lat: $gpsPos1?.latitude ?? 0, lng: $gpsPos1?.longitude ?? 0 };
-	$: gpsXY = { x: $gpsPos1?.latitude ?? 0, y: $gpsPos1?.longitude ?? 0 };
 
-	let sprintCoords = spring(gpsXY, {
+	let sprintCoords = spring(rocketXY, {
 		stiffness: 0.1,
 		damping: 0.25
 	});
@@ -37,26 +38,25 @@
 		});
 	});
 
-	if (browser) {
-		rocketMarker = L.marker(gpsLatLng, {
-			icon: L.divIcon({
-				html: '🚀',
-				className: 'bg-transparent text-3xl '
-			})
+	rocketMarker = L.marker(rocketLatLng, {
+		icon: L.divIcon({
+			html: '🚀',
+			className: 'bg-transparent text-3xl '
+		})
+	});
+
+	// Subscribe to the store
+	$: {
+		launchPointMarker.setLatLng({
+			lat: $flightDirector?.latitude ?? 0,
+			lng: $flightDirector?.longitude ?? 0
 		});
 	}
 
-	// Subscribe to the store
-	launchPoint.subscribe(({ lat, lng }) => {
-		if (lat && lng) {
-			launchPointMarker.setLatLng({ lat, lng });
-		}
-	});
-
 	$: {
-		sprintCoords.set(gpsXY);
+		sprintCoords.set(rocketXY);
 		if (map) {
-			map.setView(gpsLatLng, map.getZoom());
+			map.setView(rocketLatLng, map.getZoom());
 		}
 	}
 
@@ -65,7 +65,7 @@
 			preferCanvas: true,
 			worldCopyJump: true,
 			minZoom: MIN_ZOOM
-		}).setView(gpsLatLng, INITIAL_ZOOM);
+		}).setView(rocketLatLng, INITIAL_ZOOM);
 
 		L.tileLayer(urlTemplate, {
 			maxNativeZoom: MAX_ZOOM,
@@ -111,13 +111,13 @@
 	<div class="variant-glass p-2 absolute top-0 right-0 z-10">
 		<ul class="menu-xs bg-base-100 !p-0">
 			<li>
-				<button on:click={() => navigator.clipboard.writeText(`${$gpsPos1?.latitude}`)}>
-					Lat: {$gpsPos1?.latitude?.toFixed(5)}
+				<button on:click={() => navigator.clipboard.writeText(`${rocketLatLng.lat}`)}>
+					Lat: {rocketLatLng.lat.toFixed(5)}
 				</button>
 			</li>
 			<li>
-				<button on:click={() => navigator.clipboard.writeText(`${$gpsPos1?.longitude}`)}>
-					Lng: {$gpsPos1?.longitude?.toFixed(5)}
+				<button on:click={() => navigator.clipboard.writeText(`${rocketLatLng.lng}`)}>
+					Lng: {rocketLatLng.lng.toFixed(5)}
 				</button>
 			</li>
 		</ul>

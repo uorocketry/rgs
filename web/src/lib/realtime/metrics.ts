@@ -1,17 +1,21 @@
 import { haversineDistance, max } from '$lib/common/utils';
 import type { Readable } from 'svelte/motion';
 import { derived } from 'svelte/store';
-import { flightDirector, launchPoint } from './flightDirector';
-import { gpsPos1, rocketAltitude, rocketPosition } from './gps';
-import { air, ekf } from './linkStatus';
+import { flightDirector } from './flightDirector';
+import { rocketPos } from './gps';
+import { air, nav } from './sensors';
 
 const _velocity = [0, 0, 0];
-export const max_velocity: Readable<[number, number, number]> = derived([ekf], ([$ekf]) => {
-	return [
-		max(_velocity[0], $ekf.velocity_0 ?? 0),
-		max(_velocity[1], $ekf.velocity_1 ?? 0),
-		max(_velocity[2], $ekf.velocity_2 ?? 0)
-	] satisfies [number, number, number];
+export const max_velocity: Readable<[number, number, number]> = derived([nav], ([$nav]) => {
+	if ($nav.velocity) {
+		return [
+			max(_velocity[0], $nav.velocity[0]),
+			max(_velocity[1], $nav.velocity[1]),
+			max(_velocity[2], $nav.velocity[2])
+		] satisfies [number, number, number];
+	} else {
+		return [0, 0, 0] satisfies [number, number, number];
+	}
 });
 
 // ground_altitude = ($air?.altitude ?? 0) - $flightDirector.relativeAltitude;
@@ -39,27 +43,30 @@ export const max_altitude: Readable<number> = derived(air, ($air) => {
 type CurrentPositionType = ArrayLike<number> & { lat: number; lng: number; altitude: number };
 // $: current_position = [$rocketPosition.lat, $rocketPosition.lng, $rocketAltitude];
 export const current_position: Readable<CurrentPositionType> = derived(
-	[gpsPos1, rocketAltitude],
-	([$rocketPosition, $rocketAltitude]) => {
+	[rocketPos],
+	([$rocketPos]) => {
 		const x = [1, 2, 3];
 		x.length;
 		return {
-			0: $rocketPosition?.latitude ?? 0,
-			1: $rocketPosition?.longitude ?? 0,
-			2: $rocketAltitude,
+			0: $rocketPos.latitude ?? 0,
+			1: $rocketPos.longitude ?? 0,
+			2: $rocketPos.altitude ?? 0,
 			length: 3,
-			lat: $rocketPosition?.latitude ?? 0,
-			lng: $rocketPosition?.longitude ?? 0,
-			altitude: $rocketAltitude
+			lat: $rocketPos.latitude ?? 0,
+			lng: $rocketPos.longitude ?? 0,
+			altitude: $rocketPos.altitude ?? 0
 		} satisfies CurrentPositionType;
 	}
 );
 
 // $: total_traveled_distance = haversineDistance($rocketPosition, $launchPoint);
 export const total_traveled_distance: Readable<number> = derived(
-	[rocketPosition, launchPoint],
-	([$rocketPosition, $launchPoint]) => {
-		return haversineDistance($rocketPosition, $launchPoint);
+	[rocketPos, flightDirector],
+	([$rocketPos, $flightDirector]) => {
+		return haversineDistance(
+			{ lat: $rocketPos?.latitude ?? 0, lng: $rocketPos?.longitude ?? 0 },
+			{ lat: $flightDirector?.latitude ?? 0, lng: $flightDirector?.longitude ?? 0 }
+		);
 	}
 );
 
@@ -68,8 +75,11 @@ function calcGForce(vf: number, t: number) {
 }
 
 // FIXME: The G-Force calculation is wrong since it's not given a proper time delta
-export const g_force: Readable<number> = derived(ekf, ($ekf) => {
-	return calcGForce($ekf.velocity_1 ?? 0, 0.1);
+export const g_force: Readable<number> = derived(nav, ($nav) => {
+	if ($nav.velocity) {
+		return calcGForce($nav.velocity[1], 0.1);
+	}
+	return 0;
 });
 
 const _g_force = 0;

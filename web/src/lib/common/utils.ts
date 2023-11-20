@@ -3,7 +3,7 @@ import type { LatLngLiteral } from 'leaflet';
 import type { RecordSubscription } from 'pocketbase';
 import { onDestroy, onMount } from 'svelte';
 import { writable, type Writable } from 'svelte/store';
-import type { CollectionRecords, CollectionResponses, Collections } from './pocketbase-types';
+import type { CollectionResponses, Collections } from './pocketbase-types';
 
 export const theme: Writable<string> = writable();
 
@@ -24,13 +24,13 @@ export function onInterval(callback: () => void, milliseconds: number) {
 	});
 }
 
-export function onCollection<T>(
-	collection: string,
-	callback: (msg: RecordSubscription<T>) => void
+export function onCollection<T extends Collections>(
+	collection: T,
+	callback: (msg: RecordSubscription<CollectionResponses[T]>) => void
 ) {
 	onMount(() => {
-		const unsubscribe = pb.collection(collection).subscribe('*', (msg) => {
-			callback(msg as RecordSubscription<T>);
+		const unsubscribe = pb.collection(collection).subscribe<CollectionResponses[T]>('*', (msg) => {
+			callback(msg);
 		});
 		return async () => {
 			(await unsubscribe)();
@@ -38,9 +38,12 @@ export function onCollection<T>(
 	});
 }
 
-export function onCollectionCreated<T>(collection: string, callback: (msg: T) => void) {
-	const createdFilter = (msg: RecordSubscription<T>) => {
-		if (msg.action === 'create') {
+export function onCollectionCreated<T extends Collections>(
+	collection: T,
+	callback: (msg: CollectionResponses[T]) => void
+) {
+	const createdFilter = (msg: RecordSubscription<CollectionResponses[T]>) => {
+		if (msg.action === 'crete') {
 			callback(msg.record);
 		}
 	};
@@ -49,7 +52,7 @@ export function onCollectionCreated<T>(collection: string, callback: (msg: T) =>
 
 export async function lastCollectionRecord<T extends Collections>(
 	collection: T
-): Promise<CollectionRecords[T] | undefined> {
+): Promise<CollectionResponses[T] | undefined> {
 	const ret = await pb.collection(collection).getList<CollectionResponses[T]>(1, 1, {
 		sort: '-created',
 		$autoCancel: false
@@ -57,8 +60,7 @@ export async function lastCollectionRecord<T extends Collections>(
 	if (ret.items.length === 0) {
 		return undefined;
 	} else {
-		const rec = ret.items[0];
-		return rec as CollectionRecords[T];
+		return ret.items[0];
 	}
 }
 

@@ -32,7 +32,7 @@ add_executable(${PROJECT_NAME} ${SOURCES})
 target_link_libraries(${PROJECT_NAME} PRIVATE ${CMAKE_SOURCE_DIR}/vendor/labjack/lib/libLabJackM.so)
 
 # Link against JsconCpp library
-target_link_libraries(${PROJECT_NAME} PRIVATE jsoncpp)
+target_link_libraries(${PROJECT_NAME} PRIVATE jsoncpp_lib)
 
 target_link_libraries(${PROJECT_NAME} PRIVATE cpr::cpr)
 

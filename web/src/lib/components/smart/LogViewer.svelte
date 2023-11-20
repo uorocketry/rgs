@@ -1,100 +1,136 @@
 <script lang="ts">
-	import { Collections, type RawResponse } from '$lib/common/pocketbase-types';
-	import { latestCollectionWritable } from '$lib/realtime/lastestCollectionWritable';
+	import { Collections } from '$lib/common/pocketbase-types';
 	import { pb } from '$lib/stores';
-	import { onMount } from 'svelte';
+	import type { RecordModel, UnsubscribeFunc } from 'pocketbase';
+	import { onDestroy, onMount } from 'svelte';
+	import { writable } from 'svelte/store';
+	import CheckboxSelect from '../dumb/CheckboxSelect.svelte';
 	import GenericLogCard from '../dumb/GenericLogCard.svelte';
 
-	let logs: RawResponse[] = []; // logs to display
-	let updatedLogs: RawResponse[] = []; // up to date logs
-	let search = '';
-	let paused = false;
-	let pauseDisabled = false;
+	// Collections is a string->string enum
+	// we want to get all keys separatelly
+	const viewLimit = 100;
+	let selected: string[] = [];
+	let logs: RecordModel[] = [];
 
-	onMount(() => {
-		pb.collection('raw').getList(1, 100, {
-				sort: '-created'
-			}).then((l) => {
-				logs = l.items;
-				updatedLogs = logs.slice();
-			});
-
-		const unsub = latestCollectionWritable(Collections.Raw).subscribe((r) => {
-			if (!r) {
-				return;
+	function writableManager(collection: Collections) {
+		let unsub: UnsubscribeFunc | undefined = undefined;
+		let state = writable(false);
+		let oldState = false;
+		state.subscribe(async (s) => {
+			if (!oldState && s) {
+				// from disabled to enabled
+				pb.collection(collection)
+					.subscribe('*', (d) => {
+						if (d.action === 'create') {
+							logs = [d.record, ...logs];
+							logs.length = logs.length > viewLimit ? viewLimit : logs.length;
+						}
+					})
+					.then((u) => {
+						unsub = u;
+					});
+			} else if (oldState && !s) {
+				// from enabled to disabled
+				unsub?.();
+				unsub = undefined;
 			}
-
-			// append new logs to top of list
-			updatedLogs = [r, ...updatedLogs];
-			// make sure the list doesn't go over 1000 (prevent memory leak)
-			updatedLogs.length = updatedLogs.length > 1000 ? 1000 : updatedLogs.length;
-			if (!paused && !pauseDisabled) {
-				logs = updatedLogs.slice();
-			}
-		
+			oldState = s;
 		});
-		return () => {
-			unsub();
-		}
+
+		onDestroy(() => {
+			unsub?.();
+		});
+
+		return state;
+	}
+
+	const collections = Object.values(Collections);
+	// Key(string) -> Value(writable) map of collections
+	const collectionManagers = new Map<string, ReturnType<typeof writableManager>>();
+	collections.forEach((c) => {
+		collectionManagers.set(c, writableManager(c));
 	});
 
-	const handleSearch = async (e: KeyboardEvent) => {
-		if (e.key == 'Enter') {
-			if (search.length == 0) {
-				logs = (
-					await pb.collection('raw').getList(1, 100, {
-						sort: '-created'
-					})
-				).items;
-				pauseDisabled = false;
+	function enableAll() {
+		collectionManagers.forEach((c) => c.set(true));
+	}
+
+	function disableAll() {
+		collectionManagers.forEach((c) => c.set(false));
+	}
+
+	let paused = false;
+
+	onMount(() => {
+		// enableAll();
+	});
+
+	$: if (selected) {
+		// Disable all collections not selected
+		for (let c of collections) {
+			if (!selected.includes(c)) {
+				collectionManagers.get(c)?.set(false);
 			} else {
-				logs = (
-					await pb.collection('raw').getList(1, 30, {
-						filter: `data ~ '${search}'`,
-						sort: `-created`
-					})
-				).items;
-				pauseDisabled = true;
+				collectionManagers.get(c)?.set(true);
 			}
 		}
-	};
+	}
 
 	const handlePause = () => {
 		paused = !paused;
 		if (!paused) {
-			logs = updatedLogs.slice();
+			// Enable all selected collections
+			for (let c of selected) {
+				collectionManagers.get(c)?.set(true);
+			}
+		} else {
+			for (let c of selected) {
+				collectionManagers.get(c)?.set(false);
+			}
 		}
 	};
 </script>
 
-<div class="flex justify-center">
-	<div class="w-8/12 overflow-auto">
-		{#if !logs}
-			<span class="loading loading-spinner loading-lg"></span>
-		{:else}
-			<div class="h-screen grid grid-cols-3 gap-1 overflow-auto">
-				<div class="">Type</div>
-				<div class="">Time</div>
-				<div class="flex">
-					<input
-						on:keypress={handleSearch}
-						type="text"
-						placeholder="Search"
-						class="input input-bordered input-xs w-full max-w-xs"
-						bind:value={search}
-					/>
-					<button type="button" class="btn" on:click={handlePause} disabled={pauseDisabled}>
-						{#if !paused}
-							<i class="text-surface-800-100-token fas fa-solid fa-pause text-xl" />
-						{:else}
-							<i class="text-surface-800-100-token fas fa-solid fa-play text-xl" />
-						{/if}
-					</button>
-				</div>
-				{#each logs as log, idx (log.id)}
-					<GenericLogCard data={log.data} timestamp={log.updated} />
+<div class="h-full flex flex-col">
+	<div class="p-2 flex gap-2">
+		<button
+			title="Pause/Resume Logs"
+			class="btn
+		{paused ? 'variant-soft-success' : 'variant-soft-error'}
+		"
+			on:click={handlePause}
+		>
+			<i class=" fas fa-solid {paused ? 'fa-play' : 'fa-pause'}" />
+		</button>
+
+		<button title="Clear Logs" class="btn variant-filled" on:click={() => (logs = [])}>
+			<i class="fas fa-solid fa-trash" />
+		</button>
+
+		<CheckboxSelect dropdownLabel="Collections" options={collections ?? []} bind:selected />
+
+		<!-- Button for enable and disable all -->
+		<button class="btn variant-filled" on:click={enableAll}> Enable All </button>
+
+		<button class="btn variant-filled" on:click={disableAll}> Disable All </button>
+	</div>
+
+	<!-- Clear -->
+
+	<div class="table-container">
+		<table class="table table-compact table-hover">
+			<thead>
+				<tr>
+					<th>Type</th>
+					<th>Time</th>
+				</tr>
+			</thead>
+			<tbody>
+				{#each logs as log}
+					<GenericLogCard record={log} />
 				{/each}
-			</div>
-		{/if}
+			</tbody>
+		</table>
 	</div>
 </div>
