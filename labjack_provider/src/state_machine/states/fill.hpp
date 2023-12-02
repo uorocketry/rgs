@@ -6,12 +6,11 @@
 
 class FillContext : public StateContext {
 public:
-    FillContext(std::vector<std::shared_ptr<Peripheral>> peripherals, LabJack labjack);
+    FillContext(LabJack labjack);
     ~FillContext();
-    std::vector<std::shared_ptr<Peripheral>> get_peripherals();
     LabJack get_labjack();
 private:
-    std::vector<std::shared_ptr<Peripheral>> peripherals;
+    std::lock_guard<std::mutex> peripheral_manager_mutex;
     LabJack labjack; // should be a reference
 };
 

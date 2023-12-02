@@ -18,6 +18,7 @@ public:
     // PeripheralStatus close_main_valve();
     double read_thermocouple1(LabJack handle);
     double read_thermocouple2(LabJack handle);
+    
     double read_thermocouple3(LabJack handle);
     float read_main_load_cell(LabJack handle);
     float read_side_load_cell(LabJack handle);

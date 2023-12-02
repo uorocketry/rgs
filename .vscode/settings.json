@@ -11,5 +11,8 @@
     ],
     "eslint.validate": [
         "javascript"
-    ]
+    ],
+    "files.associations": {
+        "*.tcc": "cpp"
+    }
 }

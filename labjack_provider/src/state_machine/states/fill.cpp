@@ -1,15 +1,10 @@
 #include "fill.hpp"
 
-FillContext::FillContext(std::vector<std::shared_ptr<Peripheral>>, LabJack labjack) {
-    this->peripherals = peripherals;
+FillContext::FillContext(LabJack labjack) {
     this->labjack = labjack;
 }
 
 FillContext::~FillContext() {
-}
- 
-std::vector<std::shared_ptr<Peripheral>> FillContext::get_peripherals() {
-    return this->peripherals;
 }
 
 LabJack FillContext::get_labjack() {

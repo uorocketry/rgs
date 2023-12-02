@@ -201,6 +201,30 @@ src/peripherals/load_cell.cpp.s:
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/labjack.dir/build.make CMakeFiles/labjack.dir/src/peripherals/load_cell.cpp.s
 .PHONY : src/peripherals/load_cell.cpp.s
 
+src/peripherals/peripheral_manager.o: src/peripherals/peripheral_manager.cpp.o
+.PHONY : src/peripherals/peripheral_manager.o
+
+# target to build an object file
+src/peripherals/peripheral_manager.cpp.o:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/labjack.dir/build.make CMakeFiles/labjack.dir/src/peripherals/peripheral_manager.cpp.o
+.PHONY : src/peripherals/peripheral_manager.cpp.o
+
+src/peripherals/peripheral_manager.i: src/peripherals/peripheral_manager.cpp.i
+.PHONY : src/peripherals/peripheral_manager.i
+
+# target to preprocess a source file
+src/peripherals/peripheral_manager.cpp.i:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/labjack.dir/build.make CMakeFiles/labjack.dir/src/peripherals/peripheral_manager.cpp.i
+.PHONY : src/peripherals/peripheral_manager.cpp.i
+
+src/peripherals/peripheral_manager.s: src/peripherals/peripheral_manager.cpp.s
+.PHONY : src/peripherals/peripheral_manager.s
+
+# target to generate assembly for a file
+src/peripherals/peripheral_manager.cpp.s:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/labjack.dir/build.make CMakeFiles/labjack.dir/src/peripherals/peripheral_manager.cpp.s
+.PHONY : src/peripherals/peripheral_manager.cpp.s
+
 src/peripherals/servo.o: src/peripherals/servo.cpp.o
 .PHONY : src/peripherals/servo.o
 
@@ -363,6 +387,9 @@ help:
 	@echo "... src/peripherals/load_cell.o"
 	@echo "... src/peripherals/load_cell.i"
 	@echo "... src/peripherals/load_cell.s"
+	@echo "... src/peripherals/peripheral_manager.o"
+	@echo "... src/peripherals/peripheral_manager.i"
+	@echo "... src/peripherals/peripheral_manager.s"
 	@echo "... src/peripherals/servo.o"
 	@echo "... src/peripherals/servo.i"
 	@echo "... src/peripherals/servo.s"

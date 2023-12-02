@@ -2,6 +2,8 @@
 #define STATE_MACHINE_HPP
 
 #include "state.hpp"
+#include "event.hpp"
+#include <queue>
 
 class StateMachine {
 public:
@@ -12,6 +14,7 @@ public:
 
 private:
     State *currentState;
+    std::queue<Event*> eventQueue;
 };
 
 #endif // STATE_MACHINE_HPP

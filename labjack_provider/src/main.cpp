@@ -1,18 +1,35 @@
 #include "main.hpp"
 
+// Global variables
+std::mutex event_mutex;
+bool event_occurred = false;
+
+void server_thread() {
+    std::unique_lock<std::mutex> lock(event_mutex);
+    while(!event_occurred) {
+
+    }
+    // Wait for event aka command. 
+}
+
+struct Message {
+
+};
+
+void sender_thread(Message msg) {
+    // send msg from message queue 
+    // lock my message queue and then use it.  
+    while (true) {
+        
+    }
+}
+
+
 int main() {
-    float load;
-    double temp;
-    int angle;
-    LoadCell load_cell = LoadCell("AIN2", "AIN3", 0.02);
-    Thermocouple thermocouple = Thermocouple("AIN0", ThermocoupleType::K);
-    Servo servo = Servo("DAC0", 500, 2500);
     LabJack labjack = LabJack();
-    servo.setup_servo(labjack);
-    servo.write_angle(labjack, 0.0);
-	// MillisecondSleep(5000);
-    servo.write_angle(labjack, 180.0);
-    // Set up a flag to control the loop
+
+    PeripheralManager peripheral_manager = PeripheralManager();
+
     std::atomic<bool> exitFlag = false;
 
     // Create a thread for non-blocking input
@@ -42,23 +59,14 @@ int main() {
     double i = 0.0;
     // Main loop
     while (!exitFlag) {
-        // Your main loop logic here
-        // temp = thermocouple.read_temperature(handle);
-        // load = load_cell.read_weight(handle);
-        // std::cout << "Temp: " << temp << std::endl;
-        // if (i >= 180.0) {
-        //     i = 0.0;
-        // }
-        // servo.write_angle(handle, i);
-        // std::this_thread::sleep_for(std::chrono::milliseconds(100));
-        // i++;
-
+        // step state machine 
+        // Get data from sensors 
+        // Send data to server 
+        peripheral_manager.open_feed_valve(labjack);
     }
 
     // Wait for the input thread to finish
     inputThread.join();
-
-
 
     std::cout << "Exiting the program." << std::endl;
     return 0;

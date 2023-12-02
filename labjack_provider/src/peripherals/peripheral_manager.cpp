@@ -37,3 +37,12 @@ PeripheralStatus PeripheralManager::open_fill_valve(LabJack handle) {
 PeripheralStatus PeripheralManager::close_fill_valve(LabJack handle) {
     return fill_valve->write_angle(handle, 0.0);
 }
+
+// Why use pointer if not using pointer for LabJack? 
+double static read_thermocouple(LabJack handle, Thermocouple* thermocouple) {
+    return thermocouple->read_temperature(handle);
+}
+
+double PeripheralManager::read_thermocouple1(LabJack handle) {
+    return thermocouple1->read_temperature(handle);
+}
