@@ -2,5 +2,6 @@
 resolver = "2"
 members = [
     "hydra_provider",
-    "zmq_proxy"
+    "zmq_proxy",
+    "labjack_provider"
 ]

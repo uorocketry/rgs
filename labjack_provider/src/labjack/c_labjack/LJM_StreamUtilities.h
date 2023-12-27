@@ -6,12 +6,11 @@
 #ifndef LJM_STREAM_UTILITIES
 #define LJM_STREAM_UTILITIES
 
-
 #include "LJM_Utilities.h"
+#include <stdlib.h>
 
 // Limit how many scans should be printed for each call to PrintScans
 enum { MAX_SCANS_TO_PRINT = 4 };
-
 
 // STREAM_OUT#(0:3)_LOOP_SIZE
 enum { SET_LOOP_USE_NEW_DATA_IMMEDIATELY = 1 };
@@ -52,12 +51,12 @@ int CalculateNumReads(int numSeconds, double scanRate, int scansPerRead);
 void DisableStreamIfEnabled(int handle);
 
 /**
- * Iterates through aData, totaling LJM_DUMMY_VALUE values. Returns the total.
+ * Iterates through aData and returns the number of autorecovery scans.
  * Para: numInChannels, the number of stream in channels.
  *       scansPerRead, the number of scans in one LJM_eStreamRead
  *       aData, the results of one LJM_eStreamRead
 **/
-int CountAndOutputNumSkippedSamples(int numInChannels, int scansPerRead, double * aData);
+int CountAndOutputNumSkippedScans(int numInChannels, int scansPerRead, double * aData);
 
 /**
  * Prints the iteration number, and prints the backlog values if they are greater than their
@@ -78,8 +77,8 @@ double CalculateSleepFactor(int scansPerRead, int LJMScanBacklog);
 void VariableStreamSleep(int scansPerRead, int scanRate, int LJMScanBacklog);
 
 /**
- * Enables externally clocked stream on the device. On the T7, externally clocked
- * stream is read by pulses input to CIO3.
+ * Enables externally clocked stream on the device. On the T7 and T8, externally
+ * clocked stream is read by pulses input to CIO3.
 **/
 void SetupExternalClockStream(int handle);
 
@@ -91,6 +90,13 @@ void SetupExternalClockStream(int handle);
  * pulses needed because clock shift may occur.
 **/
 void EnableFIO0PulseOut(int handle, int pulseRate, int numPulses);
+
+/**
+ * Does a printf of the message then outputs the text to the debug
+ * logger. Requires C99 or later standard and LABJACK_DEBUG_LOG_OUTPUT must be
+ * defined and set to 1
+**/
+void PrintAndLog(const char * outputString, ...);
 
 
 // Source
@@ -104,7 +110,7 @@ void PrintScans(int numScans, int numChannels, const char ** channelNames,
 	const int MAX_NUM = MAX_SCANS_TO_PRINT;
 	int limitScans = numScans > MAX_NUM;
 	int maxScansPerChannel = limitScans ? MAX_NUM : numScans;
-	char * formatString;
+	char const * formatString;
 	unsigned short temp;
 	unsigned char * bytes;
 
@@ -190,7 +196,7 @@ void DisableStreamIfEnabled(int handle)
 	ErrorCheck(err, "LJM_eReadName(Handle=%d, Name=%s, ...)", handle, fwname);
 
 	// T7 FW 1.0024 and lower does not allow read of STREAM_ENABLE
-	if (firmwareVersion < 1.0025) {
+	if (GetDeviceType(handle) == LJM_dtT7 && firmwareVersion < 1.0025) {
 		printf("Forcing disable of stream for handle: %d\n", handle);
 		err = LJM_eStreamStop(handle);
 		if (err != LJME_NOERROR && err != STREAM_NOT_RUNNING) {
@@ -209,7 +215,7 @@ void DisableStreamIfEnabled(int handle)
 	}
 }
 
-int CountAndOutputNumSkippedSamples(int numInChannels, int scansPerRead, double * aData)
+int CountAndOutputNumSkippedScans(int numInChannels, int scansPerRead, double * aData)
 {
 	int j;
 	int numSkippedSamples = 0;
@@ -219,13 +225,13 @@ int CountAndOutputNumSkippedSamples(int numInChannels, int scansPerRead, double 
 		}
 	}
 	if (numSkippedSamples) {
-		printf("****** %d data values were placeholders for scans that were skipped ******\n",
-			numSkippedSamples);
+		printf("****** %d data scans were placeholders for scans that were skipped ******\n",
+			numSkippedSamples / numInChannels);
 		printf("****** %.01f %% of the scans were skipped ******\n",
 			100 * (double)numSkippedSamples / scansPerRead / numInChannels);
 	}
 
-	return numSkippedSamples;
+	return numSkippedSamples / numInChannels;
 }
 
 void OutputStreamIterationInfo(int iteration, int deviceScanBacklog, int deviceScanBacklogThreshold,
@@ -290,5 +296,21 @@ void EnableFIO0PulseOut(int handle, int pulseRate, int numPulses)
 	WriteNameOrDie(handle, "DIO0_EF_ENABLE", 1);
 }
 
+#ifdef LABJACK_DEBUG_LOG_OUTPUT
+void PrintAndLog(const char * outputString, ...)
+{
+	char formattedString[256];
+	va_list myArgs, logArgs;
+	const char * logOutput = getenv("LABJACK_DEBUG_LOG_OUTPUT");
+	va_start(myArgs, outputString);
+	if(logOutput != NULL && strcmp(logOutput, "1") == 0) {
+		va_copy(logArgs, myArgs);
+		vsprintf(formattedString, outputString, logArgs);
+		LJM_Log(LJM_DEBUG, formattedString);
+	}
+	vprintf(outputString, myArgs);
+	va_end(myArgs);
+}
+#endif
 
 #endif // #define LJM_STREAM_UTILITIES

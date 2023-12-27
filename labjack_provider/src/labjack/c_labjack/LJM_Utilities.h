@@ -5,7 +5,7 @@
 
 #ifndef LJM_UTILITIES
 #define LJM_UTILITIES
-
+#include <time.h> // For timestamp info
 
 #ifdef _WIN32
 	#include <Winsock2.h>
@@ -14,11 +14,13 @@
 	#include <unistd.h> // For sleep() (with Mac OS or Linux).
 	#include <arpa/inet.h>  // For inet_ntoa()
 	#include <sys/time.h>
+	
 #endif
 
-#include <stdlib.h>
-#include <stdio.h>
 #include <stdarg.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
 
 #include <LabJackM.h>
 
@@ -237,6 +239,11 @@ int IsNetwork(int connectionType);
 **/
 int DoesDeviceHaveWiFi(int handle);
 
+/**
+ * Desc: Print a timestamp using UTC time
+**/
+void PrintTimeStamp();
+
 
 // Source
 
@@ -268,6 +275,7 @@ const char * NumberToConnectionType(int connectionType)
 	case LJM_ctTCP:          return "LJM_ctTCP";
 	case LJM_ctETHERNET:     return "LJM_ctETHERNET";
 	case LJM_ctWIFI:         return "LJM_ctWIFI";
+	case 11:                 return "LJM_ctANY_UDP";
 	case LJM_ctNETWORK_UDP:  return "LJM_ctNETWORK_UDP";
 	case LJM_ctETHERNET_UDP: return "LJM_ctETHERNET_UDP";
 	case LJM_ctWIFI_UDP:     return "LJM_ctWIFI_UDP";
@@ -282,9 +290,10 @@ const char * NumberToDeviceType(int deviceType)
 {
 	switch (deviceType) {
 	case LJM_dtANY:     return "LJM_dtANY";
-	case 4:             return "LJM_dtT4";
+	case LJM_dtT4:      return "LJM_dtT4";
 	case LJM_dtT7:      return "LJM_dtT7";
-	case 84:            return "LJM_dtTSERIES";
+	case 8:             return "LJM_dtT8";
+	case LJM_dtTSERIES: return "LJM_dtTSERIES";
 	case LJM_dtDIGIT:   return "LJM_dtDIGIT";
 	case -4:            return "Demo fake usb";
 	default:
@@ -406,21 +415,26 @@ void _ErrorCheckWithAddress(int err, int errAddress, ErrorAction action,
 	const char * description, va_list args)
 {
 	char errName[LJM_MAX_NAME_SIZE];
+	time_t t = time(NULL);
+	char * timestamp = asctime(localtime(&t));
+	LJM_ErrorToString(err, errName);
+	timestamp[strlen(timestamp)-1] = ' ';
 	if (err >= LJME_WARNINGS_BEGIN && err <= LJME_WARNINGS_END) {
-		LJM_ErrorToString(err, errName);
+		fprintf(stdout, "%s", timestamp);
 		vfprintf (stdout, description, args);
 		printf(" warning: \"%s\" (Warning code: %d)\n", errName, err);
 		PrintErrorAddressHelper(errAddress);
 	}
 	else if (err != LJME_NOERROR)
 	{
-		LJM_ErrorToString(err, errName);
+		fprintf(stdout, "%s", timestamp);
 		vfprintf (stdout, description, args);
-		printf(" error: \"%s\" (ErrorCode: %d)\n", errName, err);
+		printf(" error: \"%s\" (ErrorCode: %d)\n",errName, err);
 		PrintErrorAddressHelper(errAddress);
 
 		if (action == ACTION_PRINT_AND_EXIT) {
 			printf("Closing all devices and exiting now\n");
+			MillisecondSleep(100); // Allow the debug logger to finish output.
 			WaitForUserIfWindows();
 			LJM_CloseAll();
 			exit(err);
@@ -822,4 +836,9 @@ int GetAddressFromNameOrDie(const char * name)
 	return address;
 }
 
+void PrintTimeStamp()
+{
+	time_t t = time(NULL);
+	printf("%s", asctime(localtime(&t)));
+}
 #endif // #define LJM_UTILITIES
