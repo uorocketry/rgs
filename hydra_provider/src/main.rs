@@ -172,27 +172,27 @@ fn start_processing(
         .unwrap()
 }
 
-// fn start_client(args: Args, recv: Receiver<ProcessedMessage>) -> JoinHandle<()> {
-//     thread::Builder::new()
-//         .name("Pocketbase Client".to_string())
-//         .spawn(move || {
-//             info!(
-//                 "Starting Pocketbase client on port {}",
-//                 args.pocketbase_port
-//             );
-//             let server = PBClient::new(args.pocketbase_port);
+fn start_client(args: Args, recv: Receiver<ProcessedMessage>) -> JoinHandle<()> {
+    thread::Builder::new()
+        .name("Pocketbase Client".to_string())
+        .spawn(move || {
+            info!(
+                "Starting Pocketbase client on port {}",
+                args.pocketbase_port
+            );
+            let server = PBClient::new(args.pocketbase_port);
 
-//             loop {
-//                 let msg = recv
-//                     .recv()
-//                     .expect("Failed to receive message. Are all senders closed?");
+            loop {
+                let msg = recv
+                    .recv()
+                    .expect("Failed to receive message. Are all senders closed?");
 
-//                 trace!("Sending processed message: {:?}", msg);
+                trace!("Sending processed message: {:?}", msg);
 
-//                 if let Err(e) = server.send(&msg) {
-//                     error!("Failed to send message: {:?}", e);
-//                 }
-//             }
-//         })
-//         .unwrap()
-// }
+                if let Err(e) = server.send(&msg) {
+                    error!("Failed to send message: {:?}", e);
+                }
+            }
+        })
+        .unwrap()
+}

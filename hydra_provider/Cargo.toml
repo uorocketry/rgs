@@ -2,12 +2,11 @@
 [package]
 name = "hydra_provider"
 version = "0.1.0"
-publish = false
 edition = "2021"
 
 [[bin]]
 name = "server"
-path = "src/server.rs"
+path = "src/main.rs"
 
 [[bin]]
 name = "client"
