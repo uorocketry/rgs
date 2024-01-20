@@ -1,7 +1,6 @@
 use derive_more::From;
 use messages::mavlink;
 use serde::{Deserialize, Serialize};
-use ts_rs::TS;
 
 mod link_status;
 mod rocket_processing;
@@ -17,8 +16,7 @@ pub enum InputData {
     MavlinkHeartbeat(),
 }
 
-#[derive(Serialize, Deserialize, Clone, Debug, From, TS)]
-#[ts(export)]
+#[derive(Serialize, Deserialize, Clone, Debug, From)]
 pub enum ProcessedMessage {
     RocketMessage(messages::Message),
     LinkStatus(LinkStatus),

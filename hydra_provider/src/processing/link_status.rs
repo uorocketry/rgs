@@ -6,10 +6,8 @@ use serde::{Deserialize, Serialize};
 use std::sync::mpsc::{Receiver, Sender};
 use std::time::{Duration, Instant};
 use std::time::{SystemTime, UNIX_EPOCH};
-use ts_rs::TS;
 
-#[derive(Serialize, Deserialize, Clone, Debug, TS)]
-#[ts(export)]
+#[derive(Serialize, Deserialize, Clone, Debug)]
 pub struct LinkStatus {
     pub rssi: Option<u8>,
     pub remrssi: Option<u8>,

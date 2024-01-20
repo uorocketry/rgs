@@ -8,10 +8,10 @@ pub mod hello_world {
 }
 
 #[derive(Default)]
-pub struct MyGreeter {}
+pub struct GreeterImpl {}
 
 #[tonic::async_trait]
-impl Greeter for MyGreeter {
+impl Greeter for GreeterImpl {
     async fn say_hello(
         &self,
         request: Request<HelloRequest>,
@@ -24,12 +24,4 @@ impl Greeter for MyGreeter {
         Ok(Response::new(reply))
     }
 }
-
-// Export alias GreeterService as GreeterServer<MyGreeter>
-pub type GreeterService = GreeterServer<MyGreeter>;
-
-impl GreeterService {
-    pub fn instantiate() -> GreeterServer<MyGreeter> {
-        return GreeterServer::new(MyGreeter::default());
-    }
-}
+pub type GreeterService = GreeterServer<GreeterImpl>;

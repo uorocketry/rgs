@@ -20,7 +20,6 @@ tonic-build = { version = "0.10.2" }
 [dependencies]
 messages = { git = "https://github.com/uorocketry/hydra", branch = "master", features = [
     "std",
-    "ts",
 ], default-features = false }
 tokio = { version = "1", features = ["full"] }
 prost = "0.12"
@@ -38,6 +37,4 @@ env_logger = "0.10.0"
 reqwest = { version = "0.11", features = ["blocking", "json"] }
 rand = "0.8.5"
 fugit = "0.3.6"
-ts-rs = "6.2.1"
-heapless = "0.7.6"
 csv = "1.2.2"
