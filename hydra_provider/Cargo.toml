@@ -7,11 +7,11 @@ edition = "2021"
 
 [[bin]]
 name = "server"
-path = "bin/server.rs"
+path = "src/server.rs"
 
 [[bin]]
 name = "client"
-path = "bin/client.rs"
+path = "src/client.rs"
 
 
 [build-dependencies]
