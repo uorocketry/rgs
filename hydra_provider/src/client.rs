@@ -10,37 +10,37 @@ pub mod hello_world {
 
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
-    let mut client = GreeterClient::connect("http://[::1]:50051").await?;
+    // Set up transport
+    let transport = tonic::transport::Channel::from_static("http://[::1]:50051")
+        .connect()
+        .await?;
 
-    let request = tonic::Request::new(HelloRequest {
-        name: "AAAAA".into(),
-    });
+    //##########################################################################
 
-    let response = client.say_hello(request).await?;
+    // Connect to the services
+    let mut greeter_client = GreeterClient::new(transport.clone());
+    let mut health_client = HealthClient::new(transport.clone());
 
-    println!("RESPONSE={:?}", response);
-    println!("");
-    println!("");
+    //##########################################################################
 
-    println!("RESPONSE={:?}", response);
+    // Greeter service
+    let request = HelloRequest {
+        name: "world".into(),
+    };
 
-    let mut healthClient = HealthClient::from(client);
+    let response = greeter_client.say_hello(request).await?;
 
-    loop {
-        let request = tonic::Request::new(HealthCheckRequest {
-            service: "helloworld.Greeter".into(),
-        });
-        let response = healthClient.check(request).await;
+    println!("RESPONSE={:?}", response); // Should be "Hello world!"
 
-        match response {
-            Ok(response) => {
-                println!("RESPONSE={:?}", response);
-            }
-            Err(e) => {
-                println!("ERROR={:?}", e);
-            }
-        }
+    //##########################################################################
 
-        tokio::time::sleep(std::time::Duration::from_secs(1)).await;
-    }
+    // Check for Greeter service health
+    let request = HealthCheckRequest {
+        service: "helloworld.Greeter".into(),
+    };
+    let response = health_client.check(request).await;
+
+    println!("RESPONSE={:?}", response); // Should be "Serving"
+
+    Ok(())
 }
