@@ -6,6 +6,5 @@ use serde::{Deserialize, Serialize};
 pub enum HydraInput {
     RocketData(messages::Message),
     MavlinkRadioStatus(mavlink::uorocketry::RADIO_STATUS_DATA),
-    MavlinkHeader(mavlink::MavHeader),
     MavlinkHeartbeat(),
 }

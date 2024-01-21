@@ -1,6 +1,5 @@
 use crate::hydra_iterator::HydraInput;
 use messages::command::Command;
-use messages::mavlink::MavHeader;
 use messages::sender::Sender;
 use messages::sensor::Air;
 use messages::sensor::Current;
@@ -206,14 +205,7 @@ pub fn process_random_input() -> Box<dyn Iterator<Item = HydraInput> + Send> {
         fn next(&mut self) -> Option<Self::Item> {
             std::thread::sleep(Duration::from_millis(45));
 
-            let msg = match self.rng.gen_range(0..=1) {
-                0 => HydraInput::RocketData(random_sensor(&mut self.rng)),
-                _ => HydraInput::MavlinkHeader(MavHeader {
-                    system_id: 0,
-                    component_id: 0,
-                    sequence: self.rng.gen(),
-                }),
-            };
+            let msg = HydraInput::RocketData(random_sensor(&mut self.rng));
             Some(msg)
         }
     }

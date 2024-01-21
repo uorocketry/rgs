@@ -77,11 +77,7 @@ async fn run(args: &Args) -> Result<()> {
 
     println!("Hydra Provider listening on {}", addr);
 
-    info!(
-        "Starting Pocketbase client on port {}",
-        args.pocketbase_port
-    );
-    let db_client = PBClient::new(args.pocketbase_port).await;
+    let db_client = PBClient::new().await;
     let input_iter: Box<dyn Iterator<Item = HydraInput> + Send> = start_input(args.clone());
 
     let processing_handle = tokio::task::spawn(async move {
