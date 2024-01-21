@@ -1,0 +1,28 @@
+{
+    "name": "@rgs/db",
+    "version": "1.0.0",
+    "description": "",
+    "main": "index.js",
+    "scripts": {
+        "dk": "drizzle-kit",
+        "generate": "drizzle-kit generate:pg",
+        "check": "drizzle-kit check:pg",
+        "up": "drizzle-kit up:pg",
+        "introspect": "drizzle-kit introspect:pg",
+        "drop": "drizzle-kit drop",
+        "push": "drizzle-kit push:pg",
+        "studio": "drizzle-kit studio",
+        "help": "drizzle-kit help"
+    },
+    "keywords": [],
+    "author": "",
+    "license": "ISC",
+    "devDependencies": {
+        "drizzle-kit": "^0.20.13"
+    },
+    "dependencies": {
+        "drizzle-orm": "^0.29.3",
+        "pg": "^8.11.3",
+        "postgres": "^3.4.3"
+    }
+}

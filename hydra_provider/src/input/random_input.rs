@@ -1,4 +1,4 @@
-use crate::processing::InputData;
+use crate::hydra_iterator::HydraInput;
 use messages::command::Command;
 use messages::mavlink::MavHeader;
 use messages::sender::Sender;
@@ -22,33 +22,18 @@ use messages::state::StateData;
 use messages::Data;
 use messages::Log;
 use messages::Message;
-use rand::rngs::ThreadRng;
+use rand::rngs::StdRng;
 use rand::Rng;
+use rand::SeedableRng;
 use std::time::Duration;
 use std::time::SystemTime;
 
-pub struct RandomInput {
-    rng: ThreadRng,
-}
-
-impl RandomInput {
-    pub fn new() -> Self {
-        let rng = rand::thread_rng();
-        RandomInput { rng }
-    }
-}
-
-impl RandomInput {
-    pub fn read_loop(&mut self, send: std::sync::mpsc::Sender<InputData>) -> ! {
-        loop {
-            std::thread::sleep(Duration::from_millis(45));
-
-            let msg = self.read_message();
-            send.send(msg).unwrap();
-        }
+pub fn process_random_input() -> Box<dyn Iterator<Item = HydraInput> + Send> {
+    struct IteratorObj {
+        rng: StdRng,
     }
 
-    fn random_sensor(&mut self) -> Message {
+    fn random_sensor(rng: &mut StdRng) -> Message {
         let time: fugit::Instant<u64, 1, 1000> = fugit::Instant::<u64, 1, 1000>::from_ticks(
             SystemTime::now()
                 .duration_since(SystemTime::UNIX_EPOCH)
@@ -72,100 +57,95 @@ impl RandomInput {
         };
 
         let air = Air {
-            air_temperature: self.rng.gen(),
-            altitude: self.rng.gen(),
-            pressure_abs: self.rng.gen(),
-            pressure_diff: self.rng.gen(),
-            status: self.rng.gen(),
+            air_temperature: rng.gen(),
+            altitude: rng.gen(),
+            pressure_abs: rng.gen(),
+            pressure_diff: rng.gen(),
+            status: rng.gen(),
             time_stamp: time.ticks() as u32,
-            true_airspeed: self.rng.gen(),
+            true_airspeed: rng.gen(),
         };
 
         let ekf_quat = EkfQuat {
-            euler_std_dev: [self.rng.gen(), self.rng.gen(), self.rng.gen()],
-            quaternion: [
-                self.rng.gen(),
-                self.rng.gen(),
-                self.rng.gen(),
-                self.rng.gen(),
-            ],
-            status: self.rng.gen(),
+            euler_std_dev: [rng.gen(), rng.gen(), rng.gen()],
+            quaternion: [rng.gen(), rng.gen(), rng.gen(), rng.gen()],
+            status: rng.gen(),
             time_stamp: time.ticks() as u32,
         };
 
         let ekf_nav1 = EkfNav1 {
             time_stamp: time.ticks() as u32,
-            velocity: [self.rng.gen(), self.rng.gen(), self.rng.gen()],
-            velocity_std_dev: [self.rng.gen(), self.rng.gen(), self.rng.gen()],
+            velocity: [rng.gen(), rng.gen(), rng.gen()],
+            velocity_std_dev: [rng.gen(), rng.gen(), rng.gen()],
         };
 
         let ekf_nav2 = EkfNav2 {
-            position: [self.rng.gen(), self.rng.gen(), self.rng.gen()],
-            position_std_dev: [self.rng.gen(), self.rng.gen(), self.rng.gen()],
-            status: self.rng.gen(),
-            undulation: self.rng.gen(),
+            position: [rng.gen(), rng.gen(), rng.gen()],
+            position_std_dev: [rng.gen(), rng.gen(), rng.gen()],
+            status: rng.gen(),
+            undulation: rng.gen(),
         };
 
         let imu1 = Imu1 {
-            accelerometers: [self.rng.gen(), self.rng.gen(), self.rng.gen()],
-            gyroscopes: [self.rng.gen(), self.rng.gen(), self.rng.gen()],
-            status: self.rng.gen(),
+            accelerometers: [rng.gen(), rng.gen(), rng.gen()],
+            gyroscopes: [rng.gen(), rng.gen(), rng.gen()],
+            status: rng.gen(),
             time_stamp: time.ticks() as u32,
         };
 
         let imu2 = Imu2 {
-            delta_angle: [self.rng.gen(), self.rng.gen(), self.rng.gen()],
-            delta_velocity: [self.rng.gen(), self.rng.gen(), self.rng.gen()],
-            temperature: self.rng.gen(),
+            delta_angle: [rng.gen(), rng.gen(), rng.gen()],
+            delta_velocity: [rng.gen(), rng.gen(), rng.gen()],
+            temperature: rng.gen(),
         };
 
         let gps_vel = GpsVel {
-            course: self.rng.gen(),
-            course_acc: self.rng.gen(),
-            status: self.rng.gen(),
-            time_of_week: self.rng.gen(),
+            course: rng.gen(),
+            course_acc: rng.gen(),
+            status: rng.gen(),
+            time_of_week: rng.gen(),
             time_stamp: time.ticks() as u32,
-            velocity: [self.rng.gen(), self.rng.gen(), self.rng.gen()],
-            velocity_acc: [self.rng.gen(), self.rng.gen(), self.rng.gen()],
+            velocity: [rng.gen(), rng.gen(), rng.gen()],
+            velocity_acc: [rng.gen(), rng.gen(), rng.gen()],
         };
 
         let gps_pos1 = GpsPos1 {
             time_stamp: time.ticks() as u32,
-            status: self.rng.gen(),
-            time_of_week: self.rng.gen(),
-            latitude: self.rng.gen(),
-            longitude: self.rng.gen(),
-            altitude: self.rng.gen(),
-            undulation: self.rng.gen(),
+            status: rng.gen(),
+            time_of_week: rng.gen(),
+            latitude: rng.gen(),
+            longitude: rng.gen(),
+            altitude: rng.gen(),
+            undulation: rng.gen(),
         };
 
         let gps_pos2 = GpsPos2 {
-            latitude_accuracy: self.rng.gen(),
-            longitude_accuracy: self.rng.gen(),
-            altitude_accuracy: self.rng.gen(),
-            num_sv_used: self.rng.gen(),
-            base_station_id: self.rng.gen(),
-            differential_age: self.rng.gen(),
+            latitude_accuracy: rng.gen(),
+            longitude_accuracy: rng.gen(),
+            altitude_accuracy: rng.gen(),
+            num_sv_used: rng.gen(),
+            base_station_id: rng.gen(),
+            differential_age: rng.gen(),
         };
 
         let current = Current {
-            current: self.rng.gen(),
-            rolling_avg: self.rng.gen(),
+            current: rng.gen(),
+            rolling_avg: rng.gen(),
         };
 
         let voltage = Voltage {
-            rolling_avg: self.rng.gen(),
-            voltage: self.rng.gen(),
+            rolling_avg: rng.gen(),
+            voltage: rng.gen(),
         };
 
         let regulator = Regulator {
             // true or false
-            status: self.rng.gen::<f32>() > 0.5f32,
+            status: rng.gen::<f32>() > 0.5f32,
         };
 
         let temperature = Temperature {
-            rolling_avg: self.rng.gen(),
-            temperature: self.rng.gen(),
+            rolling_avg: rng.gen(),
+            temperature: rng.gen(),
         };
 
         // Array of sensor messages (we will select one of it)
@@ -186,7 +166,7 @@ impl RandomInput {
             Sensor::new(temperature),
         ];
 
-        let status = match self.rng.gen_range(0..=6) {
+        let status = match rng.gen_range(0..=6) {
             0 => StateData::Initializing,
             1 => StateData::WaitForTakeoff,
             2 => StateData::Ascent,
@@ -197,7 +177,7 @@ impl RandomInput {
         };
 
         // Return a random sensor message
-        let sensor = sensors[self.rng.gen_range(0..sensors.len())].to_owned();
+        let sensor = sensors[rng.gen_range(0..sensors.len())].to_owned();
 
         let state = State { data: status };
 
@@ -209,7 +189,7 @@ impl RandomInput {
             }),
         };
 
-        let data = match self.rng.gen_range(0..=3) {
+        let data = match rng.gen_range(0..=3) {
             0 => Data::State(state),
             1 => Data::Log(log),
             2 => Data::Command(command),
@@ -220,18 +200,25 @@ impl RandomInput {
         Message::new(&time, Sender::GroundStation, data)
     }
 
-    fn random_mavheader(&mut self) -> MavHeader {
-        MavHeader {
-            system_id: 0,
-            component_id: 0,
-            sequence: self.rng.gen(),
+    impl Iterator for IteratorObj {
+        type Item = HydraInput;
+
+        fn next(&mut self) -> Option<Self::Item> {
+            std::thread::sleep(Duration::from_millis(45));
+
+            let msg = match self.rng.gen_range(0..=1) {
+                0 => HydraInput::RocketData(random_sensor(&mut self.rng)),
+                _ => HydraInput::MavlinkHeader(MavHeader {
+                    system_id: 0,
+                    component_id: 0,
+                    sequence: self.rng.gen(),
+                }),
+            };
+            Some(msg)
         }
     }
 
-    fn read_message(&mut self) -> InputData {
-        match self.rng.gen_range(0..=1) {
-            0 => InputData::RocketData(self.random_sensor()),
-            _ => InputData::MavlinkHeader(self.random_mavheader()),
-        }
-    }
+    return Box::from(IteratorObj {
+        rng: StdRng::from_entropy(),
+    });
 }

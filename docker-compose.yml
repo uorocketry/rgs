@@ -1,0 +1,16 @@
+version: "3.1"
+
+services:
+    timescaledb:
+        image: timescale/timescaledb:latest-pg16
+        environment:
+            POSTGRES_DB: uorocketry
+            POSTGRES_USER: uorocketry
+            POSTGRES_PASSWORD: uorocketry
+        volumes:
+            - timescaledb_volume:/var/lib/postgresql/data
+        ports:
+            - "5432:5432"
+
+volumes:
+    timescaledb_volume:
