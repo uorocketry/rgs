@@ -1,0 +1,1469 @@
+{
+  "id": "0d025219-1da7-4be7-8d19-ab94cabec08a",
+  "prevId": "00000000-0000-0000-0000-000000000000",
+  "version": "5",
+  "dialect": "pg",
+  "tables": {
+    "data_quaternion": {
+      "name": "data_quaternion",
+      "schema": "",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "serial",
+          "primaryKey": true,
+          "notNull": true
+        },
+        "w": {
+          "name": "w",
+          "type": "real",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "x": {
+          "name": "x",
+          "type": "real",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "y": {
+          "name": "y",
+          "type": "real",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "z": {
+          "name": "z",
+          "type": "real",
+          "primaryKey": false,
+          "notNull": true
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {},
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {}
+    },
+    "data_vec3": {
+      "name": "data_vec3",
+      "schema": "",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "serial",
+          "primaryKey": true,
+          "notNull": true
+        },
+        "x": {
+          "name": "x",
+          "type": "real",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "y": {
+          "name": "y",
+          "type": "real",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "z": {
+          "name": "z",
+          "type": "real",
+          "primaryKey": false,
+          "notNull": true
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {},
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {}
+    },
+    "rocket_heartbeat": {
+      "name": "rocket_heartbeat",
+      "schema": "",
+      "columns": {
+        "custom_mode": {
+          "name": "custom_mode",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "mavtype": {
+          "name": "mavtype",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "autopilot": {
+          "name": "autopilot",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "base_mode": {
+          "name": "base_mode",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "system_status": {
+          "name": "system_status",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "mavlink_version": {
+          "name": "mavlink_version",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {},
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {}
+    },
+    "rocket_message": {
+      "name": "rocket_message",
+      "schema": "",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "serial",
+          "primaryKey": true,
+          "notNull": true
+        },
+        "timestamp": {
+          "name": "timestamp",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "sender": {
+          "name": "sender",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "type": {
+          "name": "type",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {},
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {}
+    },
+    "rocket_radio_status": {
+      "name": "rocket_radio_status",
+      "schema": "",
+      "columns": {
+        "rxerrors": {
+          "name": "rxerrors",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "fixed": {
+          "name": "fixed",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "rssi": {
+          "name": "rssi",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "remrssi": {
+          "name": "remrssi",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "txbuf": {
+          "name": "txbuf",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "noise": {
+          "name": "noise",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "remnoise": {
+          "name": "remnoise",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {},
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {}
+    },
+    "rocket_command": {
+      "name": "rocket_command",
+      "schema": "",
+      "columns": {
+        "rocket_message_id": {
+          "name": "rocket_message_id",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "id": {
+          "name": "id",
+          "type": "serial",
+          "primaryKey": true,
+          "notNull": true
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {
+        "rocket_command_rocket_message_id_rocket_message_id_fk": {
+          "name": "rocket_command_rocket_message_id_rocket_message_id_fk",
+          "tableFrom": "rocket_command",
+          "tableTo": "rocket_message",
+          "columnsFrom": [
+            "rocket_message_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {}
+    },
+    "rocket_deploy_drogue_command": {
+      "name": "rocket_deploy_drogue_command",
+      "schema": "",
+      "columns": {
+        "rocket_command_id": {
+          "name": "rocket_command_id",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "val": {
+          "name": "val",
+          "type": "boolean",
+          "primaryKey": false,
+          "notNull": true
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {
+        "rocket_deploy_drogue_command_rocket_command_id_rocket_command_id_fk": {
+          "name": "rocket_deploy_drogue_command_rocket_command_id_rocket_command_id_fk",
+          "tableFrom": "rocket_deploy_drogue_command",
+          "tableTo": "rocket_command",
+          "columnsFrom": [
+            "rocket_command_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {}
+    },
+    "rocket_deploy_main_command": {
+      "name": "rocket_deploy_main_command",
+      "schema": "",
+      "columns": {
+        "rocket_command_id": {
+          "name": "rocket_command_id",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "val": {
+          "name": "val",
+          "type": "boolean",
+          "primaryKey": false,
+          "notNull": true
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {
+        "rocket_deploy_main_command_rocket_command_id_rocket_command_id_fk": {
+          "name": "rocket_deploy_main_command_rocket_command_id_rocket_command_id_fk",
+          "tableFrom": "rocket_deploy_main_command",
+          "tableTo": "rocket_command",
+          "columnsFrom": [
+            "rocket_command_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {}
+    },
+    "rocket_power_down_command": {
+      "name": "rocket_power_down_command",
+      "schema": "",
+      "columns": {
+        "rocket_command_id": {
+          "name": "rocket_command_id",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "sender": {
+          "name": "sender",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {
+        "rocket_power_down_command_rocket_command_id_rocket_command_id_fk": {
+          "name": "rocket_power_down_command_rocket_command_id_rocket_command_id_fk",
+          "tableFrom": "rocket_power_down_command",
+          "tableTo": "rocket_command",
+          "columnsFrom": [
+            "rocket_command_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {}
+    },
+    "rocket_radio_rate_change_command": {
+      "name": "rocket_radio_rate_change_command",
+      "schema": "",
+      "columns": {
+        "rocket_command_id": {
+          "name": "rocket_command_id",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "rate": {
+          "name": "rate",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {
+        "rocket_radio_rate_change_command_rocket_command_id_rocket_command_id_fk": {
+          "name": "rocket_radio_rate_change_command_rocket_command_id_rocket_command_id_fk",
+          "tableFrom": "rocket_radio_rate_change_command",
+          "tableTo": "rocket_command",
+          "columnsFrom": [
+            "rocket_command_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {}
+    },
+    "rocket_log": {
+      "name": "rocket_log",
+      "schema": "",
+      "columns": {
+        "rocket_message_id": {
+          "name": "rocket_message_id",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "level": {
+          "name": "level",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "event": {
+          "name": "event",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {
+        "rocket_log_rocket_message_id_rocket_message_id_fk": {
+          "name": "rocket_log_rocket_message_id_rocket_message_id_fk",
+          "tableFrom": "rocket_log",
+          "tableTo": "rocket_message",
+          "columnsFrom": [
+            "rocket_message_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {}
+    },
+    "rocket_sensor_air": {
+      "name": "rocket_sensor_air",
+      "schema": "",
+      "columns": {
+        "rocket_sensor_message_id": {
+          "name": "rocket_sensor_message_id",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "time_stamp": {
+          "name": "time_stamp",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "status": {
+          "name": "status",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "pressure_abs": {
+          "name": "pressure_abs",
+          "type": "real",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "altitude": {
+          "name": "altitude",
+          "type": "real",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "pressure_diff": {
+          "name": "pressure_diff",
+          "type": "real",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "true_airspeed": {
+          "name": "true_airspeed",
+          "type": "real",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "air_temperature": {
+          "name": "air_temperature",
+          "type": "real",
+          "primaryKey": false,
+          "notNull": true
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {
+        "rocket_sensor_air_rocket_sensor_message_id_rocket_sensor_message_id_fk": {
+          "name": "rocket_sensor_air_rocket_sensor_message_id_rocket_sensor_message_id_fk",
+          "tableFrom": "rocket_sensor_air",
+          "tableTo": "rocket_sensor_message",
+          "columnsFrom": [
+            "rocket_sensor_message_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {}
+    },
+    "rocket_sensor_current": {
+      "name": "rocket_sensor_current",
+      "schema": "",
+      "columns": {
+        "rocket_sensor_message_id": {
+          "name": "rocket_sensor_message_id",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "current": {
+          "name": "current",
+          "type": "real",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "rolling_avg": {
+          "name": "rolling_avg",
+          "type": "real",
+          "primaryKey": false,
+          "notNull": true
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {
+        "rocket_sensor_current_rocket_sensor_message_id_rocket_sensor_message_id_fk": {
+          "name": "rocket_sensor_current_rocket_sensor_message_id_rocket_sensor_message_id_fk",
+          "tableFrom": "rocket_sensor_current",
+          "tableTo": "rocket_sensor_message",
+          "columnsFrom": [
+            "rocket_sensor_message_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {}
+    },
+    "rocket_sensor_ekf_quat": {
+      "name": "rocket_sensor_ekf_quat",
+      "schema": "",
+      "columns": {
+        "rocket_sensor_message_id": {
+          "name": "rocket_sensor_message_id",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "time_stamp": {
+          "name": "time_stamp",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "quaternion": {
+          "name": "quaternion",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "euler_std_dev": {
+          "name": "euler_std_dev",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "status": {
+          "name": "status",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {
+        "rocket_sensor_ekf_quat_rocket_sensor_message_id_rocket_sensor_message_id_fk": {
+          "name": "rocket_sensor_ekf_quat_rocket_sensor_message_id_rocket_sensor_message_id_fk",
+          "tableFrom": "rocket_sensor_ekf_quat",
+          "tableTo": "rocket_sensor_message",
+          "columnsFrom": [
+            "rocket_sensor_message_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        },
+        "rocket_sensor_ekf_quat_quaternion_data_quaternion_id_fk": {
+          "name": "rocket_sensor_ekf_quat_quaternion_data_quaternion_id_fk",
+          "tableFrom": "rocket_sensor_ekf_quat",
+          "tableTo": "data_quaternion",
+          "columnsFrom": [
+            "quaternion"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        },
+        "rocket_sensor_ekf_quat_euler_std_dev_data_vec3_id_fk": {
+          "name": "rocket_sensor_ekf_quat_euler_std_dev_data_vec3_id_fk",
+          "tableFrom": "rocket_sensor_ekf_quat",
+          "tableTo": "data_vec3",
+          "columnsFrom": [
+            "euler_std_dev"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {}
+    },
+    "rocket_sensor_ekv_nav_1": {
+      "name": "rocket_sensor_ekv_nav_1",
+      "schema": "",
+      "columns": {
+        "rocket_sensor_message_id": {
+          "name": "rocket_sensor_message_id",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "time_stamp": {
+          "name": "time_stamp",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "velocity": {
+          "name": "velocity",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "velocity_std_dev": {
+          "name": "velocity_std_dev",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {
+        "rocket_sensor_ekv_nav_1_rocket_sensor_message_id_rocket_sensor_message_id_fk": {
+          "name": "rocket_sensor_ekv_nav_1_rocket_sensor_message_id_rocket_sensor_message_id_fk",
+          "tableFrom": "rocket_sensor_ekv_nav_1",
+          "tableTo": "rocket_sensor_message",
+          "columnsFrom": [
+            "rocket_sensor_message_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        },
+        "rocket_sensor_ekv_nav_1_velocity_data_vec3_id_fk": {
+          "name": "rocket_sensor_ekv_nav_1_velocity_data_vec3_id_fk",
+          "tableFrom": "rocket_sensor_ekv_nav_1",
+          "tableTo": "data_vec3",
+          "columnsFrom": [
+            "velocity"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        },
+        "rocket_sensor_ekv_nav_1_velocity_std_dev_data_vec3_id_fk": {
+          "name": "rocket_sensor_ekv_nav_1_velocity_std_dev_data_vec3_id_fk",
+          "tableFrom": "rocket_sensor_ekv_nav_1",
+          "tableTo": "data_vec3",
+          "columnsFrom": [
+            "velocity_std_dev"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {}
+    },
+    "rocket_sensor_ekv_nav_2": {
+      "name": "rocket_sensor_ekv_nav_2",
+      "schema": "",
+      "columns": {
+        "rocket_sensor_message_id": {
+          "name": "rocket_sensor_message_id",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "time_stamp": {
+          "name": "time_stamp",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "position": {
+          "name": "position",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "position_std_dev": {
+          "name": "position_std_dev",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {
+        "rocket_sensor_ekv_nav_2_rocket_sensor_message_id_rocket_sensor_message_id_fk": {
+          "name": "rocket_sensor_ekv_nav_2_rocket_sensor_message_id_rocket_sensor_message_id_fk",
+          "tableFrom": "rocket_sensor_ekv_nav_2",
+          "tableTo": "rocket_sensor_message",
+          "columnsFrom": [
+            "rocket_sensor_message_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        },
+        "rocket_sensor_ekv_nav_2_position_data_vec3_id_fk": {
+          "name": "rocket_sensor_ekv_nav_2_position_data_vec3_id_fk",
+          "tableFrom": "rocket_sensor_ekv_nav_2",
+          "tableTo": "data_vec3",
+          "columnsFrom": [
+            "position"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        },
+        "rocket_sensor_ekv_nav_2_position_std_dev_data_vec3_id_fk": {
+          "name": "rocket_sensor_ekv_nav_2_position_std_dev_data_vec3_id_fk",
+          "tableFrom": "rocket_sensor_ekv_nav_2",
+          "tableTo": "data_vec3",
+          "columnsFrom": [
+            "position_std_dev"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {}
+    },
+    "rocket_sensor_gps_pos1": {
+      "name": "rocket_sensor_gps_pos1",
+      "schema": "",
+      "columns": {
+        "rocket_sensor_message_id": {
+          "name": "rocket_sensor_message_id",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "time_stamp": {
+          "name": "time_stamp",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "status": {
+          "name": "status",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "time_of_week": {
+          "name": "time_of_week",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "latitude": {
+          "name": "latitude",
+          "type": "real",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "longitude": {
+          "name": "longitude",
+          "type": "real",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "altitude": {
+          "name": "altitude",
+          "type": "real",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "undulation": {
+          "name": "undulation",
+          "type": "real",
+          "primaryKey": false,
+          "notNull": true
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {
+        "rocket_sensor_gps_pos1_rocket_sensor_message_id_rocket_sensor_message_id_fk": {
+          "name": "rocket_sensor_gps_pos1_rocket_sensor_message_id_rocket_sensor_message_id_fk",
+          "tableFrom": "rocket_sensor_gps_pos1",
+          "tableTo": "rocket_sensor_message",
+          "columnsFrom": [
+            "rocket_sensor_message_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {}
+    },
+    "rocket_sensor_gps_pos2": {
+      "name": "rocket_sensor_gps_pos2",
+      "schema": "",
+      "columns": {
+        "rocket_sensor_message_id": {
+          "name": "rocket_sensor_message_id",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "latitude_accuracy": {
+          "name": "latitude_accuracy",
+          "type": "real",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "longitude_accuracy": {
+          "name": "longitude_accuracy",
+          "type": "real",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "altitude_accuracy": {
+          "name": "altitude_accuracy",
+          "type": "real",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "num_sv_used": {
+          "name": "num_sv_used",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "base_station_id": {
+          "name": "base_station_id",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "differential_age": {
+          "name": "differential_age",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {
+        "rocket_sensor_gps_pos2_rocket_sensor_message_id_rocket_sensor_message_id_fk": {
+          "name": "rocket_sensor_gps_pos2_rocket_sensor_message_id_rocket_sensor_message_id_fk",
+          "tableFrom": "rocket_sensor_gps_pos2",
+          "tableTo": "rocket_sensor_message",
+          "columnsFrom": [
+            "rocket_sensor_message_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {}
+    },
+    "rocket_sensor_gps_vel": {
+      "name": "rocket_sensor_gps_vel",
+      "schema": "",
+      "columns": {
+        "rocket_sensor_message_id": {
+          "name": "rocket_sensor_message_id",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "time_stamp": {
+          "name": "time_stamp",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "status": {
+          "name": "status",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "time_of_week": {
+          "name": "time_of_week",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "velocity": {
+          "name": "velocity",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "velocity_acc": {
+          "name": "velocity_acc",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "course": {
+          "name": "course",
+          "type": "real",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "course_acc": {
+          "name": "course_acc",
+          "type": "real",
+          "primaryKey": false,
+          "notNull": true
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {
+        "rocket_sensor_gps_vel_rocket_sensor_message_id_rocket_sensor_message_id_fk": {
+          "name": "rocket_sensor_gps_vel_rocket_sensor_message_id_rocket_sensor_message_id_fk",
+          "tableFrom": "rocket_sensor_gps_vel",
+          "tableTo": "rocket_sensor_message",
+          "columnsFrom": [
+            "rocket_sensor_message_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        },
+        "rocket_sensor_gps_vel_velocity_data_vec3_id_fk": {
+          "name": "rocket_sensor_gps_vel_velocity_data_vec3_id_fk",
+          "tableFrom": "rocket_sensor_gps_vel",
+          "tableTo": "data_vec3",
+          "columnsFrom": [
+            "velocity"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        },
+        "rocket_sensor_gps_vel_velocity_acc_data_vec3_id_fk": {
+          "name": "rocket_sensor_gps_vel_velocity_acc_data_vec3_id_fk",
+          "tableFrom": "rocket_sensor_gps_vel",
+          "tableTo": "data_vec3",
+          "columnsFrom": [
+            "velocity_acc"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {}
+    },
+    "rocket_sensor_imu_1": {
+      "name": "rocket_sensor_imu_1",
+      "schema": "",
+      "columns": {
+        "rocket_sensor_message_id": {
+          "name": "rocket_sensor_message_id",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "time_stamp": {
+          "name": "time_stamp",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "status": {
+          "name": "status",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "accelerometers": {
+          "name": "accelerometers",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "gyroscopes": {
+          "name": "gyroscopes",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {
+        "rocket_sensor_imu_1_rocket_sensor_message_id_rocket_sensor_message_id_fk": {
+          "name": "rocket_sensor_imu_1_rocket_sensor_message_id_rocket_sensor_message_id_fk",
+          "tableFrom": "rocket_sensor_imu_1",
+          "tableTo": "rocket_sensor_message",
+          "columnsFrom": [
+            "rocket_sensor_message_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        },
+        "rocket_sensor_imu_1_accelerometers_data_vec3_id_fk": {
+          "name": "rocket_sensor_imu_1_accelerometers_data_vec3_id_fk",
+          "tableFrom": "rocket_sensor_imu_1",
+          "tableTo": "data_vec3",
+          "columnsFrom": [
+            "accelerometers"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        },
+        "rocket_sensor_imu_1_gyroscopes_data_vec3_id_fk": {
+          "name": "rocket_sensor_imu_1_gyroscopes_data_vec3_id_fk",
+          "tableFrom": "rocket_sensor_imu_1",
+          "tableTo": "data_vec3",
+          "columnsFrom": [
+            "gyroscopes"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {}
+    },
+    "rocket_sensor_imu_2": {
+      "name": "rocket_sensor_imu_2",
+      "schema": "",
+      "columns": {
+        "rocket_sensor_message_id": {
+          "name": "rocket_sensor_message_id",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "time_stamp": {
+          "name": "time_stamp",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "temperature": {
+          "name": "temperature",
+          "type": "real",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "delta_velocity": {
+          "name": "delta_velocity",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "delta_angle": {
+          "name": "delta_angle",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {
+        "rocket_sensor_imu_2_rocket_sensor_message_id_rocket_sensor_message_id_fk": {
+          "name": "rocket_sensor_imu_2_rocket_sensor_message_id_rocket_sensor_message_id_fk",
+          "tableFrom": "rocket_sensor_imu_2",
+          "tableTo": "rocket_sensor_message",
+          "columnsFrom": [
+            "rocket_sensor_message_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        },
+        "rocket_sensor_imu_2_delta_velocity_data_vec3_id_fk": {
+          "name": "rocket_sensor_imu_2_delta_velocity_data_vec3_id_fk",
+          "tableFrom": "rocket_sensor_imu_2",
+          "tableTo": "data_vec3",
+          "columnsFrom": [
+            "delta_velocity"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        },
+        "rocket_sensor_imu_2_delta_angle_data_vec3_id_fk": {
+          "name": "rocket_sensor_imu_2_delta_angle_data_vec3_id_fk",
+          "tableFrom": "rocket_sensor_imu_2",
+          "tableTo": "data_vec3",
+          "columnsFrom": [
+            "delta_angle"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {}
+    },
+    "rocket_sensor_message": {
+      "name": "rocket_sensor_message",
+      "schema": "",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "serial",
+          "primaryKey": true,
+          "notNull": true
+        },
+        "rocket_message_id": {
+          "name": "rocket_message_id",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "component_id": {
+          "name": "component_id",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {
+        "rocket_sensor_message_rocket_message_id_rocket_message_id_fk": {
+          "name": "rocket_sensor_message_rocket_message_id_rocket_message_id_fk",
+          "tableFrom": "rocket_sensor_message",
+          "tableTo": "rocket_message",
+          "columnsFrom": [
+            "rocket_message_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {}
+    },
+    "rocket_sensor_regulator": {
+      "name": "rocket_sensor_regulator",
+      "schema": "",
+      "columns": {
+        "rocket_sensor_message_id": {
+          "name": "rocket_sensor_message_id",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "status": {
+          "name": "status",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {
+        "rocket_sensor_regulator_rocket_sensor_message_id_rocket_sensor_message_id_fk": {
+          "name": "rocket_sensor_regulator_rocket_sensor_message_id_rocket_sensor_message_id_fk",
+          "tableFrom": "rocket_sensor_regulator",
+          "tableTo": "rocket_sensor_message",
+          "columnsFrom": [
+            "rocket_sensor_message_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {}
+    },
+    "rocket_sensor_temperature": {
+      "name": "rocket_sensor_temperature",
+      "schema": "",
+      "columns": {
+        "rocket_sensor_message_id": {
+          "name": "rocket_sensor_message_id",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "temperature": {
+          "name": "temperature",
+          "type": "real",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "rolling_avg": {
+          "name": "rolling_avg",
+          "type": "real",
+          "primaryKey": false,
+          "notNull": true
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {
+        "rocket_sensor_temperature_rocket_sensor_message_id_rocket_sensor_message_id_fk": {
+          "name": "rocket_sensor_temperature_rocket_sensor_message_id_rocket_sensor_message_id_fk",
+          "tableFrom": "rocket_sensor_temperature",
+          "tableTo": "rocket_sensor_message",
+          "columnsFrom": [
+            "rocket_sensor_message_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {}
+    },
+    "rocket_sensor_utc_time": {
+      "name": "rocket_sensor_utc_time",
+      "schema": "",
+      "columns": {
+        "rocket_sensor_message_id": {
+          "name": "rocket_sensor_message_id",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "time_stamp": {
+          "name": "time_stamp",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "status": {
+          "name": "status",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "year": {
+          "name": "year",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "month": {
+          "name": "month",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "day": {
+          "name": "day",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "hour": {
+          "name": "hour",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "minute": {
+          "name": "minute",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "second": {
+          "name": "second",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "nano_second": {
+          "name": "nano_second",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "gps_time_of_week": {
+          "name": "gps_time_of_week",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {
+        "rocket_sensor_utc_time_rocket_sensor_message_id_rocket_sensor_message_id_fk": {
+          "name": "rocket_sensor_utc_time_rocket_sensor_message_id_rocket_sensor_message_id_fk",
+          "tableFrom": "rocket_sensor_utc_time",
+          "tableTo": "rocket_sensor_message",
+          "columnsFrom": [
+            "rocket_sensor_message_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {}
+    },
+    "rocket_sensor_voltage": {
+      "name": "rocket_sensor_voltage",
+      "schema": "",
+      "columns": {
+        "rocket_sensor_message_id": {
+          "name": "rocket_sensor_message_id",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "voltage": {
+          "name": "voltage",
+          "type": "real",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "rolling_avg": {
+          "name": "rolling_avg",
+          "type": "real",
+          "primaryKey": false,
+          "notNull": true
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {
+        "rocket_sensor_voltage_rocket_sensor_message_id_rocket_sensor_message_id_fk": {
+          "name": "rocket_sensor_voltage_rocket_sensor_message_id_rocket_sensor_message_id_fk",
+          "tableFrom": "rocket_sensor_voltage",
+          "tableTo": "rocket_sensor_message",
+          "columnsFrom": [
+            "rocket_sensor_message_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {}
+    },
+    "rocket_state": {
+      "name": "rocket_state",
+      "schema": "",
+      "columns": {
+        "rocket_message_id": {
+          "name": "rocket_message_id",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "state": {
+          "name": "state",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {
+        "rocket_state_rocket_message_id_rocket_message_id_fk": {
+          "name": "rocket_state_rocket_message_id_rocket_message_id_fk",
+          "tableFrom": "rocket_state",
+          "tableTo": "rocket_message",
+          "columnsFrom": [
+            "rocket_message_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {}
+    }
+  },
+  "enums": {},
+  "schemas": {},
+  "_meta": {
+    "columns": {},
+    "schemas": {},
+    "tables": {}
+  }
+}

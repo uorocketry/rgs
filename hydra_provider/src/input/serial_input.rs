@@ -50,9 +50,9 @@ pub fn process_serial(
                     trace!("Received radio status: {:?}", data);
                     HydraInput::MavlinkRadioStatus(data.clone())
                 }
-                uorocketry::MavMessage::HEARTBEAT(_) => {
+                uorocketry::MavMessage::HEARTBEAT(heartbeat) => {
                     trace!("Received heartbeat");
-                    HydraInput::MavlinkHeartbeat()
+                    HydraInput::MavlinkHeartbeat(heartbeat.clone())
                 }
             };
 

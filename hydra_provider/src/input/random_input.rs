@@ -1,5 +1,7 @@
 use crate::hydra_iterator::HydraInput;
 use messages::command::Command;
+use messages::mavlink::uorocketry::HEARTBEAT_DATA;
+use messages::mavlink::uorocketry::RADIO_STATUS_DATA;
 use messages::sender::Sender;
 use messages::sensor::Air;
 use messages::sensor::Current;
@@ -205,8 +207,38 @@ pub fn process_random_input() -> Box<dyn Iterator<Item = HydraInput> + Send> {
         fn next(&mut self) -> Option<Self::Item> {
             std::thread::sleep(Duration::from_millis(45));
 
-            let msg = HydraInput::RocketData(random_sensor(&mut self.rng));
-            Some(msg)
+            let roll = self.rng.gen_range(0..=2);
+            match roll {
+                0 => {
+                    let msg = HydraInput::RocketData(random_sensor(&mut self.rng));
+                    return Some(msg);
+                }
+                1 => {
+                    let msg = HydraInput::MavlinkRadioStatus(RADIO_STATUS_DATA {
+                        rxerrors: self.rng.gen(),
+                        fixed: self.rng.gen(),
+                        rssi: self.rng.gen(),
+                        remrssi: self.rng.gen(),
+                        txbuf: self.rng.gen(),
+                        noise: self.rng.gen(),
+                        remnoise: self.rng.gen(),
+                    });
+                    return Some(msg);
+                }
+
+                2 => {
+                    let msg = HydraInput::MavlinkHeartbeat(HEARTBEAT_DATA {
+                        custom_mode: self.rng.gen(),
+                        mavlink_version: self.rng.gen(),
+                        mavtype: self.rng.gen(),
+                        autopilot: self.rng.gen(),
+                        base_mode: self.rng.gen(),
+                        system_status: self.rng.gen(),
+                    });
+                    return Some(msg);
+                }
+                _ => return None,
+            };
         }
     }
 

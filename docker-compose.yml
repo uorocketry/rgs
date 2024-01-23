@@ -8,9 +8,21 @@ services:
             POSTGRES_USER: uorocketry
             POSTGRES_PASSWORD: uorocketry
         volumes:
-            - timescaledb_volume:/var/lib/postgresql/data
+            - ./tmp/timescaledb:/var/lib/postgresql/data
         ports:
             - "5432:5432"
+
+    hasura:
+        image: hasura/graphql-engine:latest
+        ports:
+            - "8080:8080"
+        depends_on:
+            - "timescaledb"
+        environment:
+            HASURA_GRAPHQL_DATABASE_URL: postgres://uorocketry:uorocketry@timescaledb:5432/postgres
+            HASURA_GRAPHQL_ADMIN_SECRET: uorocketry
+            HASURA_GRAPHQL_ENABLE_CONSOLE: "true"
+            HASURA_GRAPHQL_METADATA_DATABASE_URL: postgres://uorocketry:uorocketry@timescaledb:5432/postgres
 
 volumes:
     timescaledb_volume:

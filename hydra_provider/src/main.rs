@@ -1,15 +1,17 @@
+use std::sync::Arc;
+
 use greeter::GreeterService;
 use hydra_iterator::HydraInput;
+use sqlx::PgPool;
 use tokio::join;
 use tonic::transport::Server;
+mod db;
 mod input;
-mod pb_client;
 mod processing;
+use crate::db::db_save_hydra_input;
 use crate::input::process_file;
 use crate::input::process_random_input;
 use crate::input::process_serial;
-use crate::pb_client::PBClient;
-
 use anyhow::Result;
 use clap::ArgGroup;
 use clap::Parser;
@@ -27,7 +29,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         .filter(None, args.log)
         .init();
 
-    if let Err(err) = run(&args).await {
+    if let Err(err) = run(args).await {
         error!("{:?}", err)
     }
 
@@ -69,20 +71,25 @@ struct Args {
     log: LevelFilter,
 }
 
-async fn run(args: &Args) -> Result<()> {
+async fn run(args: Args) -> Result<()> {
     let (mut health_reporter, health_service) = tonic_health::server::health_reporter();
     health_reporter.set_serving::<GreeterService>().await;
 
-    let addr: std::net::SocketAddr = "[::1]:50051".parse().unwrap();
+    let addr = "[::1]:50051".parse().unwrap();
 
     println!("Hydra Provider listening on {}", addr);
+    let db_client = PgPool::connect("postgres://uorocketry:uorocketry@localhost:5432/postgres")
+        .await
+        .unwrap();
 
-    let db_client = PBClient::new().await;
-    let input_iter: Box<dyn Iterator<Item = HydraInput> + Send> = start_input(args.clone());
+    let db_arc = Arc::new(db_client);
 
-    let processing_handle = tokio::task::spawn(async move {
-        for msg in input_iter {
-            db_client.send(msg).await;
+    let message_receiver_handle = tokio::task::spawn_blocking(move || {
+        for msg in start_input(args) {
+            let db_arc_clone = Arc::clone(&db_arc);
+            tokio::task::spawn(async move {
+                db_save_hydra_input(&db_arc_clone, msg).await;
+            });
         }
     });
 
@@ -91,16 +98,17 @@ async fn run(args: &Args) -> Result<()> {
         .add_service(GreeterServer::new(GreeterImpl::default()))
         .serve(addr);
 
-    let result = join!(server, processing_handle);
+    let result = join!(server, message_receiver_handle);
 
     match result {
         (Err(e), _) => {
-            error!("Server error: {:?}", e);
+            error!("Server error: {}", e);
         }
         (_, Err(e)) => {
-            error!("Server error: {:?}", e);
+            error!("Processing error: {}", e);
         }
-        (_, _) => {}
+
+        _ => {}
     }
 
     Ok(())
