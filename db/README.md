@@ -15,6 +15,10 @@ Our database needs to be set up before we can run the application. This is done 
 
 **This is the recommended way**, the [docker-compose.yml](../docker-compose.yml) file contains a `timescaledb-setup` service that runs the `bootstrap.sh` script. This script will automatically set up the database and run the migrations.
 
+## Development
+
+Changing the database schema is pretty easy. Just edit the files in the `schema/` folder and run `pnpm run push` to update the database schema. Don't forget that database changes can break the application, so make sure to test your changes by rebuilding the application.
+
 ## Folder Structure
 
 - `drizzle/` - Drizzle ORM metadata
@@ -37,6 +41,7 @@ The Hasura dump shall be updated when any schema changes are made in order to ke
 
 Since you're reading this section you probably changed the Hasura configuration and need to update the dump. To do this, you may do the following in order:
 
-1. Reset the database schema here <http://localhost:8080/console/settings/metadata-actions>
+1. Reset the database metadata here <http://localhost:8080/console/settings/metadata-actions>
 2. Click on the `Data` tab then `default`->`public` and click `Track All` for both **Untracked tables or views** and **Untracked foreign-key relationships**
-3. Run `pnpm run dump_hasura` on the console
+3. Run `pnpm run dump_hasura` on the console.
+4. Commit the changes.

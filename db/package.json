@@ -12,7 +12,8 @@
         "introspect": "drizzle-kit introspect:pg",
         "drop": "drizzle-kit drop",
         "dump_hasura": "chmod u+x ./dump_hasura.sh && ./dump_hasura.sh",
-        "restore_hasura": "chmod u+x ./restore_hasura.sh && ./restore_hasura.sh"
+        "restore_hasura": "chmod u+x ./restore_hasura.sh && ./restore_hasura.sh",
+        "purge_db": "sudo rm -rf ../data"
     },
     "dependencies": {
         "drizzle-kit": "^0.20.13",

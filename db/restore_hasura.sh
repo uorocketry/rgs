@@ -1,4 +1,4 @@
-DATABASE_URL=${DATABASE_URL:-"postgres://uorocketry:uorocketry@0.0.0.0:5432/postgres"}
+DATABASE_URL=${DATABASE_URL:-"postgres://postgres:postgres@localhost:5432/postgres"}
 SCHEMA_NAME="hdb_catalog"
 FILE="dump/$SCHEMA_NAME.sql"
 
@@ -7,7 +7,7 @@ mkdir -p dump
 # Restore Hasua schema from file
 if [ -x "$(command -v docker)" ]; then
 	echo "Using docker"
-	docker exec -i rgs_timescaledb_1 sh -c "psql $DATABASE_URL" <$FILE
+	docker exec -i rgs_db_1 sh -c "psql $DATABASE_URL" <$FILE
 	exit 0
 fi
 

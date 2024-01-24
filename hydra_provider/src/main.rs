@@ -81,7 +81,7 @@ async fn run(args: Args) -> Result<()> {
 
     println!("Hydra Provider listening on {}", addr);
     let db_client = Arc::new(
-        PgPool::connect("postgres://uorocketry:uorocketry@localhost:5432/postgres")
+        PgPool::connect("postgres://postgres:postgres@localhost:5432/postgres")
             .await
             .unwrap(),
     );
