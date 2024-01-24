@@ -8,21 +8,60 @@ services:
             POSTGRES_USER: uorocketry
             POSTGRES_PASSWORD: uorocketry
         volumes:
-            - ./tmp/timescaledb:/var/lib/postgresql/data
+            - ./app/timescaledb:/var/lib/postgresql/data
         ports:
             - "5432:5432"
+        healthcheck:
+            test: ["CMD", "pg_isready", "-U", "uorocketry", "-d", "postgres"]
+            interval: 1s
+            timeout: 1s
+            retries: 25
+
+    timescaledb-setup:
+        build:
+            context: ./db
+        depends_on:
+            timescaledb:
+                condition: service_healthy
+        volumes:
+            - ./db/dump:/app/dump
+        command: ["npm", "run", "bootstrap"]
+        # Keep alive
+        # command: ["tail", "-f", "/dev/null"]
+        # tty: true
+        # stdin_open: true
+        environment:
+            DATABASE_URL: postgres://uorocketry:uorocketry@timescaledb:5432/postgres
 
     hasura:
         image: hasura/graphql-engine:latest
         ports:
             - "8080:8080"
         depends_on:
-            - "timescaledb"
+            timescaledb-setup:
+                condition: service_completed_successfully
         environment:
             HASURA_GRAPHQL_DATABASE_URL: postgres://uorocketry:uorocketry@timescaledb:5432/postgres
             HASURA_GRAPHQL_ADMIN_SECRET: uorocketry
+            HASURA_GRAPHQL_LOG_LEVEL: warn
             HASURA_GRAPHQL_ENABLE_CONSOLE: "true"
             HASURA_GRAPHQL_METADATA_DATABASE_URL: postgres://uorocketry:uorocketry@timescaledb:5432/postgres
+        healthcheck:
+            test: ["CMD", "curl", "-f", "http://localhost:8080/healthz"]
+            interval: 1s
+            timeout: 1s
+            retries: 25
+
+    # hasura-setup:
+    #     build:
+    #         context: ./db
+    #     depends_on:
+    #         hasura:
+    #             condition: service_healthy
+    #     command: ["npm", "run", "hasura"]
+    #     environment:
+    #         DATABASE_URL: postgres://uorocketry:uorocketry@timescaledb:5432/postgres
+    #         HASURA_GRAPHQL_ADMIN_SECRET: uorocketry
 
 volumes:
     timescaledb_volume:

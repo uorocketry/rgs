@@ -5,13 +5,14 @@
     "main": "index.js",
     "type": "module",
     "scripts": {
-        "bootstrap": "node ./bootstrap.js",
+        "bootstrap": "echo $npm_execpath > ./.npm_execpath && chmod u+x ./bootstrap.sh && ./bootstrap.sh",
         "dk": "drizzle-kit",
         "up": "drizzle-kit up:pg",
-        "introspect": "drizzle-kit introspect:pg",
         "push": "drizzle-kit push:pg",
+        "introspect": "drizzle-kit introspect:pg",
         "drop": "drizzle-kit drop",
-        "studio": "drizzle-kit studio"
+        "dump_hasura": "chmod u+x ./dump_hasura.sh && ./dump_hasura.sh",
+        "restore_hasura": "chmod u+x ./restore_hasura.sh && ./restore_hasura.sh"
     },
     "dependencies": {
         "drizzle-kit": "^0.20.13",
