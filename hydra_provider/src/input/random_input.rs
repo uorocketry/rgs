@@ -1,10 +1,10 @@
 use crate::hydra_iterator::HydraInput;
 use messages::command::Command;
+use messages::health::Health;
 use messages::mavlink::uorocketry::HEARTBEAT_DATA;
 use messages::mavlink::uorocketry::RADIO_STATUS_DATA;
 use messages::sender::Sender;
 use messages::sensor::Air;
-use messages::sensor::Current;
 use messages::sensor::EkfNav1;
 use messages::sensor::EkfNav2;
 use messages::sensor::EkfQuat;
@@ -13,11 +13,8 @@ use messages::sensor::GpsPos2;
 use messages::sensor::GpsVel;
 use messages::sensor::Imu1;
 use messages::sensor::Imu2;
-use messages::sensor::Regulator;
 use messages::sensor::Sensor;
-use messages::sensor::Temperature;
 use messages::sensor::UtcTime;
-use messages::sensor::Voltage;
 use messages::state::State;
 use messages::state::StateData;
 use messages::Data;
@@ -129,26 +126,6 @@ pub fn process_random_input() -> Box<dyn Iterator<Item = HydraInput> + Send> {
             differential_age: rng.gen(),
         };
 
-        let current = Current {
-            current: rng.gen(),
-            rolling_avg: rng.gen(),
-        };
-
-        let voltage = Voltage {
-            rolling_avg: rng.gen(),
-            voltage: rng.gen(),
-        };
-
-        let regulator = Regulator {
-            // true or false
-            status: rng.gen::<f32>() > 0.5f32,
-        };
-
-        let temperature = Temperature {
-            rolling_avg: rng.gen(),
-            temperature: rng.gen(),
-        };
-
         // Array of sensor messages (we will select one of it)
         let sensors = [
             Sensor::new(utc_time),
@@ -174,7 +151,8 @@ pub fn process_random_input() -> Box<dyn Iterator<Item = HydraInput> + Send> {
         };
 
         // Return a random sensor message
-        let sensor = sensors[rng.gen_range(0..sensors.len())].to_owned();
+        let mut sensor = sensors[rng.gen_range(0..sensors.len())].to_owned();
+        sensor.component_id = rng.gen();
 
         let state = State { data: status };
 
@@ -186,11 +164,25 @@ pub fn process_random_input() -> Box<dyn Iterator<Item = HydraInput> + Send> {
             }),
         };
 
-        let data = match rng.gen_range(0..=3) {
+        let data = match rng.gen_range(0..=4) {
             0 => Data::State(state),
             1 => Data::Log(log),
             2 => Data::Command(command),
             3 => Data::Sensor(sensor),
+            4 => Data::Health(Health {
+                data: messages::health::HealthData::HealthStatus(messages::health::HealthStatus {
+                    v5: Some(1),
+                    v3_3: rng.gen(),
+                    pyro_sense: rng.gen(),
+                    vcc_sense: rng.gen(),
+                    int_v5: rng.gen(),
+                    int_v3_3: rng.gen(),
+                    ext_v5: rng.gen(),
+                    ext_3v3: rng.gen(),
+                    failover_sense: rng.gen(),
+                }),
+                status: messages::health::HealthState::Nominal,
+            }),
             _ => Data::Sensor(sensor),
         };
 

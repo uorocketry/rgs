@@ -45,7 +45,7 @@ pub async fn db_save_rocket_message(
     let mut transaction = pool.begin().await.unwrap();
     let message_id = db_save_rocket_message_base(rocket_message.clone(), &mut transaction).await?;
 
-    let r = match rocket_message.data {
+    match rocket_message.data {
         Data::Health(health) => db_save_rocket_health(message_id, health, &mut transaction).await?,
         Data::State(state) => db_save_rocket_state(message_id, state, &mut transaction).await?,
         Data::Sensor(sensor) => db_save_rocket_sensor(sensor, message_id, &mut transaction).await?,

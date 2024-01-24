@@ -14,16 +14,17 @@ export const rocket_health = pgTable("rocket_health", {
 export const rocket_health_status = pgTable("rocket_health_status", {
     rocket_health_id: integer("rocket_health_id")
         .references(() => rocket_health.rocket_message_id)
-        .notNull(),
-    v5: integer("v5").notNull(),
-    v3_3: integer("v3_3").notNull(),
-    pyro_sense: integer("pyro_sense").notNull(),
-    vcc_sense: integer("vcc_sense").notNull(),
-    int_v5: integer("int_v5").notNull(),
-    int_v3_3: integer("int_v3_3").notNull(),
-    ext_v5: integer("ext_v5").notNull(),
-    ext_3v3: integer("ext_3v3").notNull(),
-    failover_sense: integer("failover_sense").notNull(),
+        .notNull()
+        .primaryKey(),
+    v5: integer("v5"),
+    v3_3: integer("v3_3"),
+    pyro_sense: integer("pyro_sense"),
+    vcc_sense: integer("vcc_sense"),
+    int_v5: integer("int_v5"),
+    int_v3_3: integer("int_v3_3"),
+    ext_v5: integer("ext_v5"),
+    ext_3v3: integer("ext_3v3"),
+    failover_sense: integer("failover_sense"),
 });
 
 export const rocket_health_relations = relations(rocket_health, ({ one }) => ({
