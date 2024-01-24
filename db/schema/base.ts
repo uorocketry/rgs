@@ -1,12 +1,19 @@
 import { relations } from "drizzle-orm";
-import { pgTable, integer, serial, text, real } from "drizzle-orm/pg-core";
+import {
+    pgTable,
+    integer,
+    serial,
+    text,
+    real,
+    timestamp,
+} from "drizzle-orm/pg-core";
 import { rocket_command } from "./rocket_command";
 import { rocket_log } from "./rocket_log";
 import { rocket_state } from "./rocket_state";
 import { rocket_sensor_message } from "./rocket_sensor";
 
 export const rocket_radio_status = pgTable("rocket_radio_status", {
-    timestamp: integer("timestamp").notNull(),
+    created_at: timestamp("created_at").notNull().defaultNow(),
     rxerrors: integer("rxerrors").notNull(),
     fixed: integer("fixed").notNull(),
     rssi: integer("rssi").notNull(),
@@ -17,6 +24,7 @@ export const rocket_radio_status = pgTable("rocket_radio_status", {
 });
 
 export const rocket_heartbeat = pgTable("rocket_heartbeat", {
+    created_at: timestamp("created_at").notNull().defaultNow(),
     custom_mode: integer("custom_mode").notNull(),
     mavtype: integer("mavtype").notNull(),
     autopilot: integer("autopilot").notNull(),
@@ -26,6 +34,7 @@ export const rocket_heartbeat = pgTable("rocket_heartbeat", {
 });
 
 export const rocket_message = pgTable("rocket_message", {
+    created_at: timestamp("created_at").notNull().defaultNow(),
     id: serial("id").primaryKey(),
     timestamp: integer("timestamp").notNull(),
     sender: text("sender").notNull(),

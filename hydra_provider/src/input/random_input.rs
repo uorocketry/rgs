@@ -161,10 +161,6 @@ pub fn process_random_input() -> Box<dyn Iterator<Item = HydraInput> + Send> {
             Sensor::new(gps_vel),
             Sensor::new(gps_pos1),
             Sensor::new(gps_pos2),
-            Sensor::new(current),
-            Sensor::new(voltage),
-            Sensor::new(regulator),
-            Sensor::new(temperature),
         ];
 
         let status = match rng.gen_range(0..=6) {

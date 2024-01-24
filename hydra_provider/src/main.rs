@@ -7,7 +7,6 @@ use tokio::join;
 use tonic::transport::Server;
 mod db;
 mod input;
-mod processing;
 use crate::db::db_save_hydra_input;
 use crate::input::process_file;
 use crate::input::process_random_input;
@@ -19,6 +18,9 @@ use log::*;
 
 mod greeter;
 mod hydra_iterator;
+mod rocket_command;
+mod rocket_data;
+mod rocket_sensor;
 
 use crate::greeter::{hello_world::greeter_server::GreeterServer, GreeterImpl};
 
@@ -78,17 +80,17 @@ async fn run(args: Args) -> Result<()> {
     let addr = "[::1]:50051".parse().unwrap();
 
     println!("Hydra Provider listening on {}", addr);
-    let db_client = PgPool::connect("postgres://uorocketry:uorocketry@localhost:5432/postgres")
-        .await
-        .unwrap();
-
-    let db_arc = Arc::new(db_client);
+    let db_client = Arc::new(
+        PgPool::connect("postgres://uorocketry:uorocketry@localhost:5432/postgres")
+            .await
+            .unwrap(),
+    );
 
     let message_receiver_handle = tokio::task::spawn_blocking(move || {
         for msg in start_input(args) {
-            let db_arc_clone = Arc::clone(&db_arc);
+            let db_client = db_client.clone();
             tokio::task::spawn(async move {
-                db_save_hydra_input(&db_arc_clone, msg).await;
+                db_save_hydra_input(&db_client, msg).await.unwrap();
             });
         }
     });

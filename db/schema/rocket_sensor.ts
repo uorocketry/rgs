@@ -1,25 +1,18 @@
-import { integer, pgTable, real, serial } from "drizzle-orm/pg-core";
+import { integer, pgTable, real } from "drizzle-orm/pg-core";
 import { data_vec3, data_quaternion, rocket_message } from "./base";
 import { relations } from "drizzle-orm";
 
 export const rocket_sensor_message = pgTable("rocket_sensor_message", {
-    id: serial("id").primaryKey(),
     rocket_message_id: integer("rocket_message_id")
         .references(() => rocket_message.id)
-        .notNull(),
+        .notNull()
+        .primaryKey(),
     component_id: integer("component_id").notNull(),
 });
 
-export const rocket_sensor_relations = relations(
-    rocket_sensor_message,
-    ({ one }) => ({
-        rocket_sensor_utc_time: one(rocket_sensor_utc_time),
-    })
-);
-
 export const rocket_sensor_utc_time = pgTable("rocket_sensor_utc_time", {
     rocket_sensor_message_id: integer("rocket_sensor_message_id")
-        .references(() => rocket_sensor_message.id)
+        .references(() => rocket_sensor_message.rocket_message_id)
         .notNull(),
     time_stamp: integer("time_stamp").notNull(),
     status: integer("status").notNull(),
@@ -35,7 +28,7 @@ export const rocket_sensor_utc_time = pgTable("rocket_sensor_utc_time", {
 
 export const rocket_sensor_air = pgTable("rocket_sensor_air", {
     rocket_sensor_message_id: integer("rocket_sensor_message_id")
-        .references(() => rocket_sensor_message.id)
+        .references(() => rocket_sensor_message.rocket_message_id)
         .notNull(),
 
     time_stamp: integer("time_stamp").notNull(),
@@ -47,9 +40,9 @@ export const rocket_sensor_air = pgTable("rocket_sensor_air", {
     air_temperature: real("air_temperature").notNull(),
 });
 
-export const rocket_sensor_ekf_quat = pgTable("rocket_sensor_ekf_quat", {
+export const rocket_sensor_quat = pgTable("rocket_sensor_quat", {
     rocket_sensor_message_id: integer("rocket_sensor_message_id")
-        .references(() => rocket_sensor_message.id)
+        .references(() => rocket_sensor_message.rocket_message_id)
         .notNull(),
 
     time_stamp: integer("time_stamp").notNull(),
@@ -62,9 +55,9 @@ export const rocket_sensor_ekf_quat = pgTable("rocket_sensor_ekf_quat", {
     status: integer("status").notNull(),
 });
 
-export const rocket_sensor_ekv_nav_1 = pgTable("rocket_sensor_ekv_nav_1", {
+export const rocket_sensor_nav_1 = pgTable("rocket_sensor_nav_1", {
     rocket_sensor_message_id: integer("rocket_sensor_message_id")
-        .references(() => rocket_sensor_message.id)
+        .references(() => rocket_sensor_message.rocket_message_id)
         .notNull(),
 
     time_stamp: integer("time_stamp").notNull(),
@@ -76,23 +69,23 @@ export const rocket_sensor_ekv_nav_1 = pgTable("rocket_sensor_ekv_nav_1", {
         .notNull(),
 });
 
-export const rocket_sensor_ekv_nav_2 = pgTable("rocket_sensor_ekv_nav_2", {
+export const rocket_sensor_nav_2 = pgTable("rocket_sensor_nav_2", {
     rocket_sensor_message_id: integer("rocket_sensor_message_id")
-        .references(() => rocket_sensor_message.id)
+        .references(() => rocket_sensor_message.rocket_message_id)
         .notNull(),
-
-    time_stamp: integer("time_stamp").notNull(),
     position: integer("position")
         .references(() => data_vec3.id)
         .notNull(),
     position_std_dev: integer("position_std_dev")
         .references(() => data_vec3.id)
         .notNull(),
+    undulation: real("undulation").notNull(),
+    status: integer("status").notNull(),
 });
 
 export const rocket_sensor_imu_1 = pgTable("rocket_sensor_imu_1", {
     rocket_sensor_message_id: integer("rocket_sensor_message_id")
-        .references(() => rocket_sensor_message.id)
+        .references(() => rocket_sensor_message.rocket_message_id)
         .notNull(),
 
     time_stamp: integer("time_stamp").notNull(),
@@ -108,10 +101,8 @@ export const rocket_sensor_imu_1 = pgTable("rocket_sensor_imu_1", {
 
 export const rocket_sensor_imu_2 = pgTable("rocket_sensor_imu_2", {
     rocket_sensor_message_id: integer("rocket_sensor_message_id")
-        .references(() => rocket_sensor_message.id)
+        .references(() => rocket_sensor_message.rocket_message_id)
         .notNull(),
-
-    time_stamp: integer("time_stamp").notNull(),
     temperature: real("temperature").notNull(),
     delta_velocity: integer("delta_velocity")
         .references(() => data_vec3.id)
@@ -123,7 +114,7 @@ export const rocket_sensor_imu_2 = pgTable("rocket_sensor_imu_2", {
 
 export const rocket_sensor_gps_vel = pgTable("rocket_sensor_gps_vel", {
     rocket_sensor_message_id: integer("rocket_sensor_message_id")
-        .references(() => rocket_sensor_message.id)
+        .references(() => rocket_sensor_message.rocket_message_id)
         .notNull(),
 
     time_stamp: integer("time_stamp").notNull(),
@@ -139,9 +130,9 @@ export const rocket_sensor_gps_vel = pgTable("rocket_sensor_gps_vel", {
     course_acc: real("course_acc").notNull(),
 });
 
-export const rocket_sensor_gps_pos1 = pgTable("rocket_sensor_gps_pos1", {
+export const rocket_sensor_gps_pos_1 = pgTable("rocket_sensor_gps_pos_1", {
     rocket_sensor_message_id: integer("rocket_sensor_message_id")
-        .references(() => rocket_sensor_message.id)
+        .references(() => rocket_sensor_message.rocket_message_id)
         .notNull(),
 
     time_stamp: integer("time_stamp").notNull(),
@@ -153,9 +144,9 @@ export const rocket_sensor_gps_pos1 = pgTable("rocket_sensor_gps_pos1", {
     undulation: real("undulation").notNull(),
 });
 
-export const rocket_sensor_gps_pos2 = pgTable("rocket_sensor_gps_pos2", {
+export const rocket_sensor_gps_pos_2 = pgTable("rocket_sensor_gps_pos_2", {
     rocket_sensor_message_id: integer("rocket_sensor_message_id")
-        .references(() => rocket_sensor_message.id)
+        .references(() => rocket_sensor_message.rocket_message_id)
         .notNull(),
 
     latitude_accuracy: real("latitude_accuracy").notNull(),
@@ -168,7 +159,7 @@ export const rocket_sensor_gps_pos2 = pgTable("rocket_sensor_gps_pos2", {
 
 export const rocket_sensor_current = pgTable("rocket_sensor_current", {
     rocket_sensor_message_id: integer("rocket_sensor_message_id")
-        .references(() => rocket_sensor_message.id)
+        .references(() => rocket_sensor_message.rocket_message_id)
         .notNull(),
 
     current: real("current").notNull(),
@@ -177,7 +168,7 @@ export const rocket_sensor_current = pgTable("rocket_sensor_current", {
 
 export const rocket_sensor_voltage = pgTable("rocket_sensor_voltage", {
     rocket_sensor_message_id: integer("rocket_sensor_message_id")
-        .references(() => rocket_sensor_message.id)
+        .references(() => rocket_sensor_message.rocket_message_id)
         .notNull(),
 
     voltage: real("voltage").notNull(),
@@ -186,7 +177,7 @@ export const rocket_sensor_voltage = pgTable("rocket_sensor_voltage", {
 
 export const rocket_sensor_regulator = pgTable("rocket_sensor_regulator", {
     rocket_sensor_message_id: integer("rocket_sensor_message_id")
-        .references(() => rocket_sensor_message.id)
+        .references(() => rocket_sensor_message.rocket_message_id)
         .notNull(),
 
     status: integer("status").notNull(),
@@ -194,9 +185,29 @@ export const rocket_sensor_regulator = pgTable("rocket_sensor_regulator", {
 
 export const rocket_sensor_temperature = pgTable("rocket_sensor_temperature", {
     rocket_sensor_message_id: integer("rocket_sensor_message_id")
-        .references(() => rocket_sensor_message.id)
+        .references(() => rocket_sensor_message.rocket_message_id)
         .notNull(),
 
     temperature: real("temperature").notNull(),
     rolling_avg: real("rolling_avg").notNull(),
 });
+
+export const rocket_sensor_relations = relations(
+    rocket_sensor_message,
+    ({ one }) => ({
+        rocket_sensor_utc_time: one(rocket_sensor_utc_time),
+        rocket_sensor_air: one(rocket_sensor_air),
+        rocket_sensor_quat: one(rocket_sensor_quat),
+        rocket_sensor_nav_1: one(rocket_sensor_nav_1),
+        rocket_sensor_nav_2: one(rocket_sensor_nav_2),
+        rocket_sensor_imu_1: one(rocket_sensor_imu_1),
+        rocket_sensor_imu_2: one(rocket_sensor_imu_2),
+        rocket_sensor_gps_vel: one(rocket_sensor_gps_vel),
+        rocket_sensor_gps_pos_1: one(rocket_sensor_gps_pos_1),
+        rocket_sensor_gps_pos_2: one(rocket_sensor_gps_pos_2),
+        rocket_sensor_current: one(rocket_sensor_current),
+        rocket_sensor_voltage: one(rocket_sensor_voltage),
+        rocket_sensor_regulator: one(rocket_sensor_regulator),
+        rocket_sensor_temperature: one(rocket_sensor_temperature),
+    })
+);

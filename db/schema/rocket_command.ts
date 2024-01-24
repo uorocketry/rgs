@@ -1,19 +1,19 @@
-import { boolean, integer, pgTable, serial, text } from "drizzle-orm/pg-core";
+import { boolean, integer, pgTable, text } from "drizzle-orm/pg-core";
 import { rocket_message } from "./base";
 import { relations } from "drizzle-orm";
 
 export const rocket_command = pgTable("rocket_command", {
     rocket_message_id: integer("rocket_message_id")
         .references(() => rocket_message.id)
-        .notNull(),
-    id: serial("id").primaryKey(),
+        .notNull()
+        .primaryKey(),
 });
 
 export const rocket_deploy_drogue_command = pgTable(
     "rocket_deploy_drogue_command",
     {
         rocket_command_id: integer("rocket_command_id")
-            .references(() => rocket_command.id)
+            .references(() => rocket_command.rocket_message_id)
             .notNull(),
         val: boolean("val").notNull(),
     }
@@ -23,7 +23,7 @@ export const rocket_deploy_main_command = pgTable(
     "rocket_deploy_main_command",
     {
         rocket_command_id: integer("rocket_command_id")
-            .references(() => rocket_command.id)
+            .references(() => rocket_command.rocket_message_id)
             .notNull(),
         val: boolean("val").notNull(),
     }
@@ -31,16 +31,16 @@ export const rocket_deploy_main_command = pgTable(
 
 export const rocket_power_down_command = pgTable("rocket_power_down_command", {
     rocket_command_id: integer("rocket_command_id")
-        .references(() => rocket_command.id)
+        .references(() => rocket_command.rocket_message_id)
         .notNull(),
-    sender: text("sender").notNull(),
+    board: text("board").notNull(),
 });
 
 export const rocket_radio_rate_change_command = pgTable(
     "rocket_radio_rate_change_command",
     {
         rocket_command_id: integer("rocket_command_id")
-            .references(() => rocket_command.id)
+            .references(() => rocket_command.rocket_message_id)
             .notNull(),
         rate: text("rate").notNull(),
     }
