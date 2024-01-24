@@ -36,9 +36,9 @@ export const rocket_heartbeat = pgTable("rocket_heartbeat", {
 export const rocket_message = pgTable("rocket_message", {
     created_at: timestamp("created_at").notNull().defaultNow(),
     id: serial("id").primaryKey(),
-    timestamp: integer("timestamp").notNull(),
+    time_stamp: integer("time_stamp").notNull(),
     sender: text("sender").notNull(),
-    type: text("type").notNull(),
+    message_type: text("message_type").notNull(),
 });
 
 export const rocket_message_relations = relations(

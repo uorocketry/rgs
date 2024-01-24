@@ -18,7 +18,7 @@ async fn db_save_rocket_message_base(
 
     let result = sqlx::query!(
         "INSERT INTO rocket_message
-                (timestamp, sender, type)
+                (time_stamp, sender, message_type)
                 VALUES ($1, $2, $3)
                 RETURNING id",
         rocket_message.timestamp as i32,
