@@ -103,6 +103,14 @@ export const rocket_sensor_imu_1 = pgTable("rocket_sensor_imu_1", {
         .notNull(),
 });
 
+export const rocket_sensor_imu_1_relation = relations(
+    rocket_sensor_imu_1,
+    ({ one }) => ({
+        accelerometers: one(data_vec3),
+        gyroscopes: one(data_vec3),
+    })
+);
+
 export const rocket_sensor_imu_2 = pgTable("rocket_sensor_imu_2", {
     rocket_sensor_message_id: integer("rocket_sensor_message_id")
         .references(() => rocket_sensor_message.rocket_message_id)
@@ -116,6 +124,14 @@ export const rocket_sensor_imu_2 = pgTable("rocket_sensor_imu_2", {
         .references(() => data_vec3.id)
         .notNull(),
 });
+
+export const rocket_sensor_imu_2_relation = relations(
+    rocket_sensor_imu_2,
+    ({ one }) => ({
+        delta_velocity: one(data_vec3),
+        delta_angle: one(data_vec3),
+    })
+);
 
 export const rocket_sensor_gps_vel = pgTable("rocket_sensor_gps_vel", {
     rocket_sensor_message_id: integer("rocket_sensor_message_id")
@@ -135,6 +151,14 @@ export const rocket_sensor_gps_vel = pgTable("rocket_sensor_gps_vel", {
     course: real("course").notNull(),
     course_acc: real("course_acc").notNull(),
 });
+
+export const rocket_sensor_gps_vel_relation = relations(
+    rocket_sensor_gps_vel,
+    ({ one }) => ({
+        velocity: one(data_vec3),
+        velocity_acc: one(data_vec3),
+    })
+);
 
 export const rocket_sensor_gps_pos_1 = pgTable("rocket_sensor_gps_pos_1", {
     rocket_sensor_message_id: integer("rocket_sensor_message_id")

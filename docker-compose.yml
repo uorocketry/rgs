@@ -6,6 +6,7 @@ services:
         environment:
             POSTGRES_USER: postgres
             POSTGRES_PASSWORD: postgres
+
         volumes:
             - ./data:/var/lib/postgresql/data
         ports:
@@ -25,23 +26,19 @@ services:
         volumes:
             - ./db/dump:/app/dump
         command: ["npm", "run", "bootstrap"]
-        # Keep alive
-        # command: ["tail", "-f", "/dev/null"]
-        # tty: true
-        # stdin_open: true
         environment:
             DATABASE_URL: postgres://postgres:postgres@db:5432/postgres
 
     hasura:
         image: hasura/graphql-engine:latest
         ports:
-            - "8080:8080"
+            - "4000:4000"
         depends_on:
             db-setup:
                 condition: service_completed_successfully
         environment:
+            HASURA_GRAPHQL_SERVER_PORT: 4000
             HASURA_GRAPHQL_DATABASE_URL: postgres://postgres:postgres@db:5432/postgres
-            HASURA_GRAPHQL_ADMIN_SECRET: uorocketry
             HASURA_GRAPHQL_LOG_LEVEL: warn
             HASURA_GRAPHQL_ENABLE_CONSOLE: "true"
             HASURA_GRAPHQL_METADATA_DATABASE_URL: postgres://postgres:postgres@db:5432/postgres
@@ -50,3 +47,20 @@ services:
             interval: 1s
             timeout: 1s
             retries: 25
+
+    # web:
+    #     build:
+    #         context: ./web
+    #     depends_on:
+    #         hasura:
+    #             condition: service_healthy
+    #     ports:
+    #         - "3000:3000"
+    #     environment:
+    #         GRAPHQL_ENDPOINT: http://hasura:4000/v1/graphql
+    #         GRAPHQL_ADMIN_SECRET: uorocketry
+    # healthcheck:
+    #     test: ["CMD", "curl", "-f", "http://localhost:3000"]
+    #     interval: 1s
+    #     timeout: 1s
+    #     retries: 25

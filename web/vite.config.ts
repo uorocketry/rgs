@@ -1,6 +1,7 @@
 import { sveltekit } from '@sveltejs/kit/vite';
 import { loadEnv } from 'vite';
 import { defineConfig } from 'vitest/config';
+import gql_codegen from 'vite-plugin-graphql-codegen';
 
 const config = (mode: string) => {
 	// Make environment variables available from .env available
@@ -22,9 +23,12 @@ const config = (mode: string) => {
 				}
 			}
 		},
-		plugins: [sveltekit()],
+		plugins: [sveltekit(), gql_codegen()],
 		ssr: {
 			noExternal: ['three']
+		},
+		optimizeDeps: {
+			exclude: ['@urql/svelte']
 		}
 	});
 };

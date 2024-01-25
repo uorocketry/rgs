@@ -80,11 +80,9 @@ async fn run(args: Args) -> Result<()> {
     let addr = "[::1]:50051".parse().unwrap();
 
     println!("Hydra Provider listening on {}", addr);
-    let db_client = Arc::new(
-        PgPool::connect("postgres://postgres:postgres@localhost:5432/postgres")
-            .await
-            .unwrap(),
-    );
+    let db_url = std::env::var("DATABASE_URL")
+        .unwrap_or("postgres://postgres:postgres@localhost:5432/postgres".to_string());
+    let db_client = Arc::new(PgPool::connect(&db_url).await.unwrap());
 
     let message_receiver_handle = tokio::task::spawn_blocking(move || {
         for msg in start_input(args) {

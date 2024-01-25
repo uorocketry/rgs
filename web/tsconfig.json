@@ -6,6 +6,13 @@
 		"esModuleInterop": true,
 		"forceConsistentCasingInFileNames": true,
 		"strict": true,
-		"moduleResolution": "Bundler"
+		"moduleResolution": "Bundler",
+		"plugins": [
+			{
+				"name": "ts-graphql-plugin",
+				"schema": "localhost:4000/v1/graphql",
+				"tag": "gql"
+			}
+		]
 	}
 }

@@ -14,6 +14,7 @@
 		storePopup
 	} from '@skeletonlabs/skeleton';
 
+	import { QueryClient, QueryClientProvider } from '@tanstack/svelte-query';
 	import { findSetting } from '$lib/common/settings';
 	import SideBar from '$lib/components/smart/SideBar.svelte';
 	import MasterCommandBox from '$lib/components/smart/commandPallete/MasterCommandBox.svelte';
@@ -79,6 +80,41 @@
 			oldConsoleError(...args);
 		};
 	});
+
+	import { PUBLIC_GRAPHQL_ENDPOINT } from '$env/static/public';
+	import {
+		Client,
+		cacheExchange,
+		fetchExchange,
+		setContextClient,
+		subscriptionExchange
+	} from '@urql/svelte';
+	import { createClient as createWSClient } from 'graphql-ws';
+
+	const graphQLWSEndpoint = PUBLIC_GRAPHQL_ENDPOINT.replace('http', 'ws');
+	const wsClient = createWSClient({
+		url: graphQLWSEndpoint
+	});
+
+	const client = new Client({
+		url: PUBLIC_GRAPHQL_ENDPOINT,
+		exchanges: [
+			cacheExchange,
+			fetchExchange,
+			subscriptionExchange({
+				forwardSubscription(request) {
+					const input = { ...request, query: request.query || '' };
+					return {
+						subscribe(sink) {
+							const unsubscribe = wsClient.subscribe(input, sink);
+							return { unsubscribe };
+						}
+					};
+				}
+			})
+		]
+	});
+	setContextClient(client);
 </script>
 
 <!-- theme mode classes -->
