@@ -12,7 +12,10 @@ export const dashboard_components: Record<string, () => Promise<ComponentType>> 
 		return (await import('$lib/components/smart/RocketTracker.svelte')).default;
 	},
 	Map: async () => {
-		return (await import('$lib/components/smart/Map.svelte')).default;
+		return (await import('$lib/components/Dashboard/Map/Map.svelte')).default;
+	},
+	'3DMap': async () => {
+		return (await import('$lib/components/Dashboard/3DMap/3DMap.svelte')).default;
 	},
 	ErrorRate: async () => {
 		return (await import('$lib/components/smart/graphs/ErrorRate.svelte')).default;
@@ -24,7 +27,7 @@ export const dashboard_components: Record<string, () => Promise<ComponentType>> 
 		return (await import('$lib/components/smart/graphs/MissedMessage.svelte')).default;
 	},
 	LayoutList: async () => {
-		return (await import('$lib/components/smart/lists/LayoutList.svelte')).default;
+		return (await import('$lib/components/Dashboard/LayoutList/LayoutList.svelte')).default;
 	},
 	RadioStatus: async () => {
 		return (await import('$lib/components/smart/lists/RadioStatus.svelte')).default;

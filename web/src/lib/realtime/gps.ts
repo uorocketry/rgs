@@ -1,5 +1,4 @@
 import { derived } from 'svelte/store';
-import { Collections } from '../common/pocketbase-types';
 import { latestCollectionWritable } from './lastestCollectionWritable';
 
 const rocketPos1 = latestCollectionWritable(Collections.RocketPos1);

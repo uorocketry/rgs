@@ -55,6 +55,7 @@
 		});
 
 		const sub = resolvedLayout.subscribe((layout) => {
+			console.log('Layout changed', layout);
 			if (!layout) return;
 			if (!layout.ignoreReload) {
 				goldenLayout.loadLayout(LayoutConfig.fromResolved(layout));

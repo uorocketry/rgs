@@ -17,7 +17,7 @@ Our database needs to be set up before we can run the application. This is done 
 
 ## Development
 
-Changing the database schema is pretty easy. Just edit the files in the `schema/` folder and run `pnpm run push` to update the database schema. Don't forget that database changes can break the application, so make sure to test your changes by rebuilding the application.
+Changing the database schema is pretty easy. Just edit the files in the `schema/` folder and run `pnpm run push` to **update the database schema**. Don't forget that database changes can break the application, so make sure to test your changes by rebuilding the application.
 
 ## Folder Structure
 

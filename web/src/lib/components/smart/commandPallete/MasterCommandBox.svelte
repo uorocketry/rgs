@@ -27,11 +27,11 @@
 				cmdBox.onEnter((err) => {
 					if (err) {
 						resolve(undefined);
-						console.log('Resolving to undefined');
+						console.warn('Command input resolved to: undefined');
 						return;
 					}
 					resolve(inputValue);
-					console.log('Resolving to', inputValue);
+					console.log('Command input resolved to:', inputValue);
 					visible = false;
 				});
 			});

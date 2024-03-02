@@ -1,30 +1,30 @@
 <script lang="ts">
-	import { LatestImu1Document } from '$lib/gql/graphql';
 	import { getContextClient, subscriptionStore } from '@urql/svelte';
+	import { LatestImu1Document } from './types';
 
-	const messages = subscriptionStore({
+	export const LatestImu1 = subscriptionStore({
 		client: getContextClient(),
 		query: LatestImu1Document
 	});
 
-	$: if ($messages) {
-		let d = $messages.data;
+	$: if ($LatestImu1) {
+		let d = $LatestImu1.data;
 		if (d) {
 		}
 	}
 
 	setInterval(() => {
-		console.log($messages);
+		console.log($LatestImu1);
 	}, 2000);
 </script>
 
 Imu Messages
-{#if $messages.fetching && !$messages.data}
+{#if $LatestImu1.fetching && !$LatestImu1.data}
 	<p>Fetching</p>
-{:else if $messages.error}
-	<p>Error: {$messages.error.message}</p>
-{:else if $messages.data}
-	{@const messagesData = $messages.data.rocket_message}
+{:else if $LatestImu1.error}
+	<p>Error: {$LatestImu1.error.message}</p>
+{:else if $LatestImu1.data}
+	{@const messagesData = $LatestImu1.data.rocket_message}
 	<p>Num messages: {messagesData.length}</p>
 	{#each messagesData as message}
 		{@const accelerometer = message.rocket_sensor_message?.rocket_sensor_imu_1}

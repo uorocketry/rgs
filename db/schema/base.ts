@@ -65,3 +65,9 @@ export const data_vec3 = pgTable("data_vec3", {
     y: real("y").notNull(),
     z: real("z").notNull(),
 });
+
+export const web_layout = pgTable("web_layout", {
+    id: serial("id").primaryKey(),
+    name: text("name").notNull().default("Untitled Layout"),
+    layout: text("layout").notNull().default("{}"),
+});
