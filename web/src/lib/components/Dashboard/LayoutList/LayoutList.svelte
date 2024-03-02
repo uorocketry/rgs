@@ -1,9 +1,8 @@
 <script lang="ts">
 	import { resolvedLayout } from '$lib/common/dashboard';
-	import { DeleteLayoutDocument, LayoutList } from './types';
 	import { gqlClient } from '$lib/stores';
 	import { getToastStore } from '@skeletonlabs/skeleton';
-	import { onMount } from 'svelte';
+	import { DeleteLayoutDocument, LayoutList } from './types';
 
 	// let layouts = new Map<string, { name: string; data: ResolvedLayoutConfig }>();
 	$: layouts = $LayoutList.data?.web_layout?.reduce((acc, val) => {

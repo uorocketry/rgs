@@ -14,12 +14,6 @@
 				"schema": "http://localhost:4000/v1/graphql",
 				"tadaOutputLocation": "./src/graphql-env.d.ts"
 			}
-		],
-		"paths": {
-			"$lib": ["../src/lib"],
-			"$lib/*": ["../src/lib/*"],
-			"@node_modules/*": ["./node_modules/*"],
-			"@node_modules": ["./node_modules"]
-		}
+		]
 	}
 }

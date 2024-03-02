@@ -11,6 +11,7 @@ export const dashboard_components: Record<string, () => Promise<ComponentType>> 
 	RocketTracker: async () => {
 		return (await import('$lib/components/smart/RocketTracker.svelte')).default;
 	},
+	// Deprecated in favor of 3DMap
 	Map: async () => {
 		return (await import('$lib/components/Dashboard/Map/Map.svelte')).default;
 	},
