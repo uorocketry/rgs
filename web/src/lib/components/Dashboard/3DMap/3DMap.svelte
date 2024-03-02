@@ -3,10 +3,9 @@
 	import { Viewer } from 'cesium';
 	import '../../../../../node_modules/cesium/Build/Cesium/Widgets/widgets.css';
 	import * as Cesium from 'cesium';
-	import { PUBLIC_CESIUM_TERRAIN_ENDPOINT, PUBLIC_CESIUM_TOKEN } from '$env/static/public';
 
 	// @ts-expect-error Custom window property
-	window.CESIUM_BASE_URL = './Cesium/';
+	window.CESIUM_BASE_URL = 'node_modules/cesium/Build/Cesium';
 
 	console.log('Cesium', Cesium);
 	let viewer: Viewer;
