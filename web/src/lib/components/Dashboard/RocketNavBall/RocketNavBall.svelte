@@ -1,9 +1,11 @@
 <script lang="ts">
-	import { quat } from '$lib/realtime/sensors';
+	// import { quat } from '$lib/realtime/sensors';
 	import { SlideToggle } from '@skeletonlabs/skeleton';
 	import { tweened } from 'svelte/motion';
 	import { Euler, MathUtils, Matrix4, Quaternion, Vector3, type EulerOrder } from 'three';
-	import NavBall from '../dumb/NavBall/NavBall.svelte';
+	import NavBall from './NavBall/NavBall.svelte';
+	import { RocketQuat } from './types';
+	import Timeline from '$lib/components/Common/Timeline/Timeline.svelte';
 
 	let ninetyDegVerticalRot = new Quaternion();
 	let useRocketModel = false;
@@ -27,9 +29,10 @@
 	);
 
 	$: {
-		if ($quat && $quat.quaternion) {
-			const rot = $quat.quaternion;
-			latestReportedRotation = new Quaternion(rot[1], rot[2], rot[3], rot[0]);
+		if ($RocketQuat.data && $RocketQuat.data.rocket_sensor_quat[0]) {
+			let data_rot = $RocketQuat.data.rocket_sensor_quat[0];
+			let rot = data_rot.data_quaternion;
+			latestReportedRotation = new Quaternion(rot.y, rot.y, rot.z, rot.w);
 			// The IMU is placed flat on the rocket, so the up vector is the x axis
 			// https://support.sbg-systems.com/sc/qd/latest/reference-manual/conventions
 		}
@@ -80,10 +83,15 @@
 	<span class="text-right">{upright(latestReportedRotation) ? 'Up' : 'Down'}</span>
 </div>
 
-<div class="z-10 absolute bottom-2 left-2 variant-glass p-2 flex gap-2 items-center">
+<!-- Flex horizontal center -->
+<div class="z-10 absolute top-2 right-2 variant-glass p-2 flex gap-2 place-items-center">
 	<i class="fa-solid fa-globe"></i>
 	<SlideToggle name="slide" bind:checked={useRocketModel}></SlideToggle>
 	<i class="fa-solid fa-rocket"></i>
+</div>
+
+<div class="z-10 absolute bottom-0 left-0 right-0 variant-glass h-12">
+	<Timeline></Timeline>
 </div>
 
 <div class="z-0 absolute w-full h-full">

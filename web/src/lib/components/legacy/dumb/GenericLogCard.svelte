@@ -1,7 +1,5 @@
 <script lang="ts">
-	import type { RecordModel } from 'pocketbase';
-
-	export let record: RecordModel;
+	export let record: { [key: string]: any } = {};
 	let expanded = false;
 	const onLogItemClick = () => (expanded = !expanded);
 </script>

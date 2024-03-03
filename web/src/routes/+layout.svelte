@@ -17,8 +17,8 @@
 	} from '@skeletonlabs/skeleton';
 
 	import { findSetting } from '$lib/common/settings';
-	import SideBar from '$lib/components/smart/SideBar.svelte';
-	import MasterCommandBox from '$lib/components/smart/commandPallete/MasterCommandBox.svelte';
+	import SideBar from '$lib/components/Common/SideBar.svelte';
+	import MasterCommandBox from '$lib/components/Common/CommandBox/MasterCommandBox.svelte';
 	import { gqlClient, commandBoxToggle } from '$lib/stores';
 	import { arrow, autoUpdate, computePosition, flip, offset, shift } from '@floating-ui/dom';
 	import { getToastStore, initializeStores, setInitialClassState } from '@skeletonlabs/skeleton';

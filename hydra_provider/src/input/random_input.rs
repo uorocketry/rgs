@@ -14,6 +14,7 @@ use messages::sensor::GpsVel;
 use messages::sensor::Imu1;
 use messages::sensor::Imu2;
 use messages::sensor::Sensor;
+use messages::sensor::SensorData;
 use messages::sensor::UtcTime;
 use messages::state::State;
 use messages::state::StateData;

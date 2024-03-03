@@ -1,148 +1,149 @@
-<script defer lang="ts" type="module">
-	import { browser } from '$app/environment';
-	// import { defaultLaunchCoords, flightDirector } from '$lib/realtime/flightDirector';
-	// import { rocketPos } from '$lib/realtime/gps';
-	import { localStorageStore } from '@skeletonlabs/skeleton';
-	import L from 'leaflet';
-	import { onDestroy, onMount } from 'svelte';
-	import { tweened } from 'svelte/motion';
-	import { writable } from 'svelte/store';
+<script lang="ts">
+	import { onMount } from 'svelte';
+	import { Viewer } from 'cesium';
+	import '../../../../../node_modules/cesium/Build/Cesium/Widgets/widgets.css';
+	import * as Cesium from 'cesium';
 
-	let map: L.Map | null;
+	// TODOS:
+	// - Add launch coordinates
+	// - Get rocket position from GQL
+	// - Add rocket model
+	// - Add rocket trajectory
 
-	const urlTemplate = '/api/tiles/{z}/{x}/{y}.png';
+	// @ts-expect-error Custom window property
+	window.CESIUM_BASE_URL = 'node_modules/cesium/Build/Cesium';
 
-	const initialX = browser ? localStorageStore('mapX', 45.4215) : writable(0);
-	const initialY = browser ? localStorageStore('mapY', -75.6972) : writable(0);
+	console.log('Cesium', Cesium);
+	let viewer: Viewer;
+	onMount(async () => {
+		viewer = new Viewer('cesiumContainer', {
+			navigationHelpButton: false,
+			baseLayerPicker: false,
+			fullscreenButton: false,
+			vrButton: false,
+			homeButton: false,
+			geocoder: false,
+			sceneModePicker: false,
 
-	const initialView: L.LatLngTuple = [$initialX, $initialY];
+			baseLayer: new Cesium.ImageryLayer(
+				new Cesium.UrlTemplateImageryProvider({
+					url: window.location.origin + '/api/tiles/{z}/{x}/{y}'
+				})
+			)
+			// Terrain only works with an internet connection so that's a no go
+			// until we have a way to cache the tiles
+			// terrain: Cesium.Terrain.fromWorldTerrain()
+		});
 
-	export const defaultLaunchCoordinates = [45.4215, -75.6972];
-	export const defaultLaunchCoords = {
-		lat: defaultLaunchCoordinates[0],
-		lng: defaultLaunchCoordinates[1]
-	};
+		// add entity to ottawa (45.42, -75.69)
+		var ottawa = viewer.entities.add({
+			position: Cesium.Cartesian3.fromDegrees(-75.69, 45.42, 1000),
+			point: {
+				pixelSize: 10,
+				color: Cesium.Color.RED
+			},
+			label: {
+				text: 'Ottawa',
+				verticalOrigin: Cesium.VerticalOrigin.BOTTOM
+			}
+		});
 
-	let rocketMarker = L.marker(defaultLaunchCoords, {
-		icon: L.divIcon({
-			// Maybe some custom checkpoints?
-			html: '🚀',
-			className: 'bg-transparent text-3xl '
-		})
-	});
+		viewer.flyTo(ottawa);
 
-	let launchPointMarker = L.marker(defaultLaunchCoords, {
-		icon: L.divIcon({
-			// Maybe some custom checkpoints?
-			html: '🏠',
-			className: 'bg-transparent text-3xl '
-		})
-	});
+		// Create an arc between Ottawa and Toronto
+		var ottawaPosition = Cesium.Cartesian3.fromDegrees(-75.69, 45.42, 1000);
+		var torontoPosition = Cesium.Cartesian3.fromDegrees(-79.38, 43.65, 1000);
 
-	const MAX_ZOOM = 16;
-	const MIN_ZOOM = 5;
-	const INITIAL_ZOOM = 10;
+		// Define the height of the arc
+		var height = 50_000;
 
-	const target = tweened(defaultLaunchCoords, {
-		interpolate: (a, b) => {
-			return (t) => {
-				return {
-					lat: a.lat + t * (b.lat - a.lat),
-					lng: a.lng + t * (b.lng - a.lng)
-				};
-			};
+		// Generate the arc points
+		var arcPoints = [];
+		for (var i = 0; i <= 100; i++) {
+			var t = i / 100.0;
+			var position = Cesium.Cartesian3.lerp(
+				ottawaPosition,
+				torontoPosition,
+				t,
+				new Cesium.Cartesian3()
+			);
+			position = Cesium.Cartesian3.fromElements(
+				position.x,
+				position.y,
+				position.z + height * Math.sin(Math.PI * t)
+			);
+			arcPoints.push(position);
 		}
+
+		var polyline = new Cesium.PolylineGeometry({
+			positions: arcPoints,
+			width: 10.0
+		});
+
+		viewer.scene.primitives.add(
+			new Cesium.Primitive({
+				geometryInstances: new Cesium.GeometryInstance({
+					geometry: polyline,
+					attributes: {
+						color: Cesium.ColorGeometryInstanceAttribute.fromColor(
+							new Cesium.Color(1.0, 0.5, 1.0, 0.75)
+						)
+					}
+				}),
+				appearance: new Cesium.PolylineColorAppearance({
+					translucent: true
+				})
+			})
+		);
+
+		// Add a marker on toronto'
+		var toronto = viewer.entities.add({
+			position: torontoPosition,
+			point: {
+				pixelSize: 10,
+				color: Cesium.Color.BLUE
+			},
+			label: {
+				text: 'Toronto',
+				verticalOrigin: Cesium.VerticalOrigin.BOTTOM
+			}
+		});
+
+		const sampledPos = new Cesium.SampledPositionProperty();
+		var circlingPoint = viewer.entities.add({
+			position: sampledPos,
+			point: {
+				pixelSize: 10,
+				color: Cesium.Color.GREEN
+			}
+		});
+
+		setInterval(() => {
+			let time = Cesium.JulianDate.now();
+			let in1Seconds = Cesium.JulianDate.addSeconds(time, 0.2, time);
+
+			sampledPos.addSample(
+				in1Seconds,
+				new Cesium.Cartesian3(
+					ottawaPosition.x + Math.sin(time.secondsOfDay) * 100,
+					ottawaPosition.y,
+					ottawaPosition.z
+				)
+			);
+		}, 100);
+
+		viewer.trackedEntity = circlingPoint;
+
+		// viewer.zoomTo(arc);
+
+		// Delete "cesium-widget-credits" after the viewer is created
+		setTimeout(() => {
+			const credits = document.getElementsByClassName('cesium-widget-credits');
+			if (credits.length > 0) {
+				credits[0].remove();
+			}
+		}, 1000);
 	});
-
-	const home = tweened(defaultLaunchCoords, {
-		interpolate: (a, b) => {
-			return (t) => {
-				return {
-					lat: a.lat + t * (b.lat - a.lat),
-					lng: a.lng + t * (b.lng - a.lng)
-				};
-			};
-		}
-	});
-
-	// $: {
-	// 	target.set({
-	// 		lat: $rocketPos.latitude ?? 0,
-	// 		lng: $rocketPos.longitude ?? 0
-	// 	});
-	// 	home.set({
-	// 		lat: $flightDirector?.latitude ?? 0,
-	// 		lng: $flightDirector?.longitude ?? 0
-	// 	});
-	// }
-
-	$: {
-		rocketMarker.setLatLng($target);
-		launchPointMarker.setLatLng($home);
-	}
-
-	function createMap(container: string | HTMLElement) {
-		let m = L.map(container, {
-			preferCanvas: true,
-			worldCopyJump: true,
-			minZoom: MIN_ZOOM
-			// Uncomment to restrict the map to the bounds
-			// maxBounds: bounds
-		}).setView(initialView, INITIAL_ZOOM);
-
-		L.tileLayer(urlTemplate, {
-			maxNativeZoom: MAX_ZOOM,
-			minNativeZoom: MIN_ZOOM
-		}).addTo(m); // The actual satellite imagery
-
-		return m;
-	}
-
-	let toolbar = new L.Control({ position: 'topright' });
-	toolbar.onAdd = () => {
-		let div = L.DomUtil.create('div');
-		return div;
-	};
-
-	let mapEl: HTMLElement;
-	onMount(() => {
-		map = createMap(mapEl);
-		toolbar.addTo(map);
-		launchPointMarker.addTo(map);
-		rocketMarker.addTo(map);
-
-		mapEl.onmouseup = () => {
-			// Save the map position
-			$initialX = map?.getCenter().lat ?? 0;
-			$initialY = map?.getCenter().lng ?? 0;
-		};
-	});
-
-	onDestroy(() => {
-		toolbar.remove();
-		map?.remove();
-		map = null;
-	});
-
-	let clientHeight = 0;
-	let clientWidth = 0;
-	$: if (browser) {
-		clientHeight;
-		clientWidth;
-		if (map) {
-			map.invalidateSize();
-		}
-	}
-
-	function onMouseUp() {
-		console.log('drag');
-	}
 </script>
 
-<div
-	class="h-full w-full isolate"
-	bind:this={mapEl}
-	bind:clientHeight
-	bind:clientWidth
-	role="application"
-/>
+<div id="cesiumContainer" class="h-full"></div>

@@ -1,16 +1,16 @@
 <script lang="ts">
-	import { Collections, type RocketLinkResponse } from '$lib/common/pocketbase-types';
+	// import { Collections, type RocketLinkResponse } from '$lib/common/pocketbase-types';
 	import { onCollectionCreated } from '$lib/common/utils';
 	import { modeCurrent } from '@skeletonlabs/skeleton';
 	import Speedometer from 'svelte-speedometer';
 
-	let radio_msg: RocketLinkResponse[] = [];
+	let radio_msg: any[] = [];
 	$: text_color = $modeCurrent ? 'black' : 'white';
 	let sub = () => {};
 
-	onCollectionCreated(Collections.RocketLink, async (msg) => {
-		radio_msg = [...radio_msg, msg];
-	});
+	// onCollectionCreated(Collections.RocketLink, async (msg) => {
+	// 	radio_msg = [...radio_msg, msg];
+	// });
 
 	let clientHeight = 0;
 	let clientWidth = 0;

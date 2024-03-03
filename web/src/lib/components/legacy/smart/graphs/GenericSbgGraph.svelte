@@ -2,11 +2,9 @@
 	import { formatVariableName, getRandomHexColorFromString } from '$lib/common/utils';
 
 	import { collectionFields } from '$lib/common/dao';
-	import { pb } from '$lib/stores';
 	import type { ChartDataset, Point } from 'chart.js/auto';
-	import type { UnsubscribeFunc } from 'pocketbase';
 	import { Scatter } from 'svelte-chartjs';
-	import CheckboxSelect from '../../dumb/CheckboxSelect.svelte';
+	import CheckboxSelect from '../../Common/CheckboxSelect.svelte';
 
 	export let selected: { [key: string]: string[] } = {};
 
@@ -29,7 +27,7 @@
 		}
 	};
 
-	let subscriptions: UnsubscribeFunc[] = [];
+	let subscriptions: (() => void)[] = [];
 
 	let datasetsRef: ChartDataset<'scatter', (number | Point)[]>[] = [];
 

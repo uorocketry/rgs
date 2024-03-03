@@ -3,7 +3,7 @@
 	import { OrbitControls, useTexture } from '@threlte/extras';
 	import { tweened, type Tweened } from 'svelte/motion';
 	import { Euler, Quaternion, type EulerOrder } from 'three';
-	import Lazy from '../../smart/Lazy.svelte';
+	import Lazy from '../../../Common/Lazy.svelte';
 	const map = useTexture('textures/navball.png');
 	map.then((tex) => {
 		tex.anisotropy = 32;
