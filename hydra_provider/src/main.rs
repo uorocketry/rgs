@@ -1,10 +1,11 @@
 use std::sync::Arc;
 
-use greeter::GreeterService;
 use hydra_iterator::HydraInput;
 use sqlx::PgPool;
 use tokio::join;
 use tonic::transport::Server;
+use tonic_health::pb::health_server::HealthServer;
+use tonic_health::server::HealthService;
 mod db;
 mod input;
 use crate::db::db_save_hydra_input;
@@ -16,13 +17,10 @@ use clap::ArgGroup;
 use clap::Parser;
 use log::*;
 
-mod greeter;
 mod hydra_iterator;
 mod rocket_command;
 mod rocket_data;
 mod rocket_sensor;
-
-use crate::greeter::{hello_world::greeter_server::GreeterServer, GreeterImpl};
 
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
@@ -75,7 +73,9 @@ struct Args {
 
 async fn run(args: Args) -> Result<()> {
     let (mut health_reporter, health_service) = tonic_health::server::health_reporter();
-    health_reporter.set_serving::<GreeterService>().await;
+    health_reporter
+        .set_serving::<HealthServer<HealthService>>()
+        .await;
 
     let addr = "[::1]:50051".parse().unwrap();
 
@@ -93,10 +93,7 @@ async fn run(args: Args) -> Result<()> {
         }
     });
 
-    let server = Server::builder()
-        .add_service(health_service)
-        .add_service(GreeterServer::new(GreeterImpl::default()))
-        .serve(addr);
+    let server = Server::builder().add_service(health_service).serve(addr);
 
     let result = join!(server, message_receiver_handle);
 
