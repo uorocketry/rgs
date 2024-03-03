@@ -43,7 +43,7 @@ services:
             HASURA_GRAPHQL_ENABLE_CONSOLE: "true"
             HASURA_GRAPHQL_METADATA_DATABASE_URL: postgres://postgres:postgres@db:5432/postgres
         healthcheck:
-            test: ["CMD", "curl", "-f", "http://localhost:8080/healthz"]
+            test: ["CMD", "curl", "-f", "http://localhost:4000/healthz"]
             interval: 1s
             timeout: 1s
             retries: 25

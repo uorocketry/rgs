@@ -1,5 +1,6 @@
 #!/bin/sh
 
+echo "Running bootstrap.sh"
 drizzleFolderPath="./drizzle"
 
 # Create "./drizzle" folder if it doesn't exist

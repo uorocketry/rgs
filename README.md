@@ -32,7 +32,6 @@ Make sure you have installed the following installed:
 - libudev-dev
 - inotify-tools
 - pnpm
-- pm2 (process manager)
 
 Then run the following commands:
 
