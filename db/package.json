@@ -2,25 +2,22 @@
     "name": "@rgs/db",
     "version": "1.0.0",
     "description": "",
-    "main": "index.js",
-    "type": "module",
+    "type": "commonjs",
     "scripts": {
-        "bootstrap": "echo $npm_execpath > ./.npm_execpath && chmod u+x ./bootstrap.sh && ./bootstrap.sh",
+        "bootstrap": "node ./scripts/bootstrap",
+        "dump_hasura": "node ./scripts/dump_hasura",
+        "restore_hasura": "node ./scripts/restore_hasura",
         "dk": "drizzle-kit",
         "up": "drizzle-kit up:pg",
         "push": "drizzle-kit push:pg",
         "introspect": "drizzle-kit introspect:pg",
         "drop": "drizzle-kit drop",
-        "dump_hasura": "chmod u+x ./dump_hasura.sh && ./dump_hasura.sh",
-        "restore_hasura": "chmod u+x ./restore_hasura.sh && ./restore_hasura.sh",
         "purge_db": "sudo rm -rf ../data"
     },
-    "dependencies": {
-        "drizzle-kit": "^0.20.13",
-        "drizzle-orm": "^0.29.3",
-        "pg": "^8.11.3"
-    },
     "devDependencies": {
+        "drizzle-kit": "^0.20.14",
+        "drizzle-orm": "^0.29.4",
+        "pg": "^8.11.3",
         "@types/node": "^20.11.24"
     }
 }

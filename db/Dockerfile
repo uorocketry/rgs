@@ -1,12 +1,13 @@
-FROM node:current-alpine
+FROM node:current-alpine as base
+RUN apk --update add postgresql-client
+
+FROM base as dev
 WORKDIR /app
 
-COPY ./dump/ ./dump/
+COPY ./hasura_dump/ ./hasura_dump/
 COPY ./schema/ ./schema/
-COPY ./bootstrap.sh ./bootstrap.sh
-COPY ./restore_hasura.sh ./restore_hasura.sh
+COPY ./scripts/ ./scripts/
 COPY ./package.json ./package.json
-COPY ./drizzle.config.ts ./drizzle.config.ts
+COPY ./drizzle.config.js ./drizzle.config.js
 
 RUN npm install
-RUN apk --update add postgresql-client

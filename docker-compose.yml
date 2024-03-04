@@ -17,14 +17,14 @@ services:
             timeout: 1s
             retries: 25
 
-    db-setup:
+    migration:
         build:
             context: ./db
         depends_on:
             db:
                 condition: service_healthy
         volumes:
-            - ./db/dump:/app/dump
+            - ./db/hasura_dump:/app/hasura_dump
         command: ["npm", "run", "bootstrap"]
         environment:
             DATABASE_URL: postgres://postgres:postgres@db:5432/postgres
@@ -34,7 +34,7 @@ services:
         ports:
             - "4000:4000"
         depends_on:
-            db-setup:
+            migration:
                 condition: service_completed_successfully
         environment:
             HASURA_GRAPHQL_SERVER_PORT: 4000
