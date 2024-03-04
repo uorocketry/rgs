@@ -17,10 +17,13 @@ use clap::ArgGroup;
 use clap::Parser;
 use log::*;
 
+mod greeter;
 mod hydra_iterator;
 mod rocket_command;
 mod rocket_data;
 mod rocket_sensor;
+
+use crate::greeter::{hydra_provider_proto::greeter_server::GreeterServer, GreeterImpl};
 
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
@@ -77,12 +80,21 @@ async fn run(args: Args) -> Result<()> {
         .set_serving::<HealthServer<HealthService>>()
         .await;
 
-    let addr = "[::1]:50051".parse().unwrap();
+    let addr = format!("[::1]:{}", args.pocketbase_port).parse().unwrap();
+    let server = Server::builder()
+        .add_service(health_service)
+        .add_service(GreeterServer::new(GreeterImpl::default()))
+        .serve(addr);
 
-    println!("Hydra Provider listening on {}", addr);
+
+    info!("Hydra Provider listening on {}", addr);
     let db_url = std::env::var("DATABASE_URL")
         .unwrap_or("postgres://postgres:postgres@localhost:5432/postgres".to_string());
+    
+    info!("Connecting to database...");
     let db_client = Arc::new(PgPool::connect(&db_url).await.unwrap());
+    info!("Connected to database");
+
 
     let message_receiver_handle = tokio::task::spawn_blocking(move || {
         for msg in start_input(args) {
@@ -92,8 +104,6 @@ async fn run(args: Args) -> Result<()> {
             });
         }
     });
-
-    let server = Server::builder().add_service(health_service).serve(addr);
 
     let result = join!(server, message_receiver_handle);
 
