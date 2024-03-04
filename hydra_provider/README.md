@@ -1,6 +1,11 @@
 # Hydra Provider
 
-Hydra Provider is a server that 
+Hydra Provider is a server that listens to the Hydra Rocket's radio messages via a serial port and broadcasts the data to the rest of the infrastructure.
+
+## Requirements
+
+- Make sure you have [Rust](https://www.rust-lang.org/tools/install) installed
+- This project also requires: `libudev-dev` or the equivalent for your system.
 
 ## Build and run
 

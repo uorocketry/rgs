@@ -6,6 +6,10 @@ The RGS repository contains the main infrastructure for the uORocketry Ground St
 
 The infrastructure is composed of the following components:
 
+### Database
+
+We are using a TimescaleDB instance for the database. The database schema is defined using the [Drizzle ORM](https://orm.drizzle.team) and we also use Hasura to expose a GraphQL API for consuming the data.
+
 ### Providers
 
 The providers are the components that receive data from an external source (eg: The rocket or a sensor) and broadcast it to the rest of the infrastructure.
@@ -16,40 +20,30 @@ These are the `hydra_provider`, which receives data from the Hydra rocket and th
 
 The frontends are the components that allow the user to interact with the infrastructure. At the moment only being the `web` frontend.
 
-### Other
-
-We also have a `.devcontainer` folder which contains the configuration for a development container. You can use this if you don't want to install the dependencies on your machine.
-
-The `scripts` folder contains miscellaneous scripts that are used for development.
-
-The `bindings` folder contains the typescript bindings for the rocket messages backend.
-
 ## How to run
 
-Make sure you have installed the following installed:
+There are a few things of interest that you might want to have running on your machine:
 
-- [Rust](https://www.rust-lang.org/tools/install)
-- libudev-dev
-- inotify-tools
-- pnpm
+- [Docker + Docker Compose](https://docs.docker.com/get-docker/)
+- The backend Database/Hasura instance which can be run with `docker-compose up`
+- The web frontend application. See its [README](web/README.md) for more information.
+- The `hydra_provider` project which can provide usefull serial/development-random-data for the web frontend. See its [README](hydra_provider/README.md) for more information.
+- Labjack Provider has not been implemented yet.
 
-Then run the following commands:
+## Running with PM2
 
-```bash
-pnpm install
-pm2 start
-```
+In addition, you can use [PM2](https://pm2.keymetrics.io/) as a process manager to run the stack. This is useful for running the ground station in case a process crashes.
 
-If you want to monitor the running processes you can run `pm2 monit` or install the [Pm2 Explorer](https://marketplace.visualstudio.com/items?itemName=alex-young.pm2-explorer) extension for VSCode.
+- Run `pm2 start` to start the processes defined in the ecosystem file.
+- See [PM2 Quick Start](https://pm2.keymetrics.io/docs/usage/quick-start/) for more information.
 
-To stop `pm2` and its processes run `pm2 kill`.
-
-For development convenience `hydra_provider` isn't included in the `pm2` ecosystem file. Check its [README](https://github.com/uorocketry/rgs/blob/24ee2dd0feac205fe080345babce9c57cf63626b/hydra_provider/README.md) for more information.
+Note: For development purposes `hydra_provider` isn't included in the `pm2` ecosystem file. Check its [README](hydra_provider/README.md) for more information on how to run it.
 
 ## Troubleshooting
 
 Please refer to each of the following for more information.
 
-- [uORocketry Wiki - Ground Station](https://avwiki.uorocketry.ca/en/Avionics/HYDRA/Software/Ground-Station) (Project Documentation)
 - [SvelteKit](https://kit.svelte.dev/docs/introduction) (Web Framework)
-- [PM2](https://pm2.keymetrics.io/docs/usage/pm2-doc-single-page/) (Process Manager)
+- [Hasura](https://hasura.io/docs/latest/index/) (GraphQL API)
+- [Drizzle ORM](https://orm.drizzle.team/docs/overview) (Database Schema)
+- Slack (For general questions)
