@@ -7,7 +7,7 @@ mod test_mavlink {
     use messages::mavlink;
     use messages::mavlink::uorocketry;
     use messages::sender::Sender;
-    use messages::sensor::{Sensor, EkfQuat};
+    use messages::sensor::{EkfQuat, Sensor};
     use messages::Message;
     use postcard::{from_bytes, to_vec};
     use rand::Rng;
@@ -21,14 +21,9 @@ mod test_mavlink {
     fn create_message() -> Message {
         let mut rng = rand::thread_rng();
 
-         let ekf_quat = EkfQuat {
+        let ekf_quat = EkfQuat {
             euler_std_dev: [rng.gen(), rng.gen(), rng.gen()],
-            quaternion: [
-                rng.gen(),
-                rng.gen(),
-                rng.gen(),
-                rng.gen(),
-            ],
+            quaternion: [rng.gen(), rng.gen(), rng.gen(), rng.gen()],
             status: rng.gen(),
             time_stamp: rng.gen(),
         };

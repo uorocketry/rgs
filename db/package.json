@@ -1,0 +1,23 @@
+{
+    "name": "@rgs/db",
+    "version": "1.0.0",
+    "description": "",
+    "type": "commonjs",
+    "scripts": {
+        "bootstrap": "node ./scripts/bootstrap",
+        "dump_hasura": "node ./scripts/dump_hasura",
+        "restore_hasura": "node ./scripts/restore_hasura",
+        "dk": "drizzle-kit",
+        "up": "drizzle-kit up:pg",
+        "push": "drizzle-kit push:pg",
+        "introspect": "drizzle-kit introspect:pg",
+        "drop": "drizzle-kit drop",
+        "purge_db": "sudo rm -rf ../data"
+    },
+    "devDependencies": {
+        "drizzle-kit": "^0.20.14",
+        "drizzle-orm": "^0.29.4",
+        "pg": "^8.11.3",
+        "@types/node": "^20.11.24"
+    }
+}

@@ -1,23 +1,48 @@
+use std::sync::Arc;
+
+use hydra_iterator::HydraInput;
+use sqlx::PgPool;
+use tokio::join;
+use tonic::transport::Server;
+use tonic_health::pb::health_server::HealthServer;
+use tonic_health::server::HealthService;
+mod db;
 mod input;
-mod pb_client;
-mod processing;
-
-use crate::input::FileInput;
-use crate::input::RandomInput;
-use crate::input::SerialInput;
-use crate::pb_client::PBClient;
-use crate::processing::{
-    InputData, LinkData, LinkStatusProcessing, ProcessedMessage, RocketProcessing,
-};
-
+use crate::connection_manager::ConnectionManagerImpl;
+use crate::connection_manager_server::ConnectionManagerServer;
+use crate::db::db_save_hydra_input;
+use crate::greeter::GreeterImpl;
+use crate::greeter_server::GreeterServer;
+use crate::hydra_provider_proto::hydra_provider_proto::*;
+use crate::input::process_file;
+use crate::input::process_random_input;
+use crate::input::process_serial;
 use anyhow::Result;
 use clap::ArgGroup;
 use clap::Parser;
 use log::*;
-use std::sync::mpsc;
-use std::sync::mpsc::{Receiver, Sender};
-use std::thread;
-use std::thread::JoinHandle;
+
+mod connection_manager;
+mod greeter;
+mod hydra_iterator;
+mod hydra_provider_proto;
+mod rocket_command;
+mod rocket_data;
+mod rocket_sensor;
+
+#[tokio::main]
+async fn main() -> Result<(), Box<dyn std::error::Error>> {
+    let args = Args::parse();
+    env_logger::Builder::from_default_env()
+        .filter(None, args.log)
+        .init();
+
+    if let Err(err) = run(args).await {
+        error!("{:?}", err)
+    }
+
+    Ok(())
+}
 
 /// Program to read and parse data from a HYDRA system
 #[derive(Parser, Debug, Clone)]
@@ -54,123 +79,63 @@ struct Args {
     log: LevelFilter,
 }
 
-fn main() {
-    let args = Args::parse();
-    env_logger::Builder::from_default_env()
-        .filter(None, args.log)
-        .init();
+async fn run(args: Args) -> Result<()> {
+    let (mut health_reporter, health_service) = tonic_health::server::health_reporter();
+    health_reporter
+        .set_serving::<HealthServer<HealthService>>()
+        .await;
 
-    if let Err(err) = run(&args) {
-        error!("{:?}", err)
+    let addr = format!("[::1]:{}", args.pocketbase_port).parse().unwrap();
+    let server = Server::builder()
+        .add_service(health_service)
+        .add_service(GreeterServer::new(GreeterImpl::default()))
+        .add_service(ConnectionManagerServer::new(
+            ConnectionManagerImpl::default(),
+        ))
+        .serve(addr);
+
+    info!("Hydra Provider listening on {}", addr);
+    let db_url = std::env::var("DATABASE_URL")
+        .unwrap_or("postgres://postgres:postgres@localhost:5432/postgres".to_string());
+
+    info!("Connecting to database...");
+    let db_client = Arc::new(PgPool::connect(&db_url).await.unwrap());
+    info!("Connected to database");
+
+    let message_receiver_handle = tokio::task::spawn_blocking(move || {
+        for msg in start_input(args) {
+            let db_client = db_client.clone();
+            tokio::task::spawn(async move {
+                db_save_hydra_input(&db_client, msg).await.unwrap();
+            });
+        }
+    });
+
+    let result = join!(server, message_receiver_handle);
+
+    match result {
+        (Err(e), _) => {
+            error!("Server error: {}", e);
+        }
+        (_, Err(e)) => {
+            error!("Processing error: {}", e);
+        }
+
+        _ => {}
     }
-}
-
-fn run(args: &Args) -> Result<()> {
-    let (input_send, input_recv) = mpsc::channel();
-    let (server_send, server_rcv) = mpsc::channel();
-
-    let input_handle = start_input(args.clone(), input_send);
-    let processing_handle = start_processing(input_recv, server_send);
-    let server_handle = start_client(args.clone(), server_rcv);
-
-    input_handle.join().unwrap();
-    processing_handle.join().unwrap();
-    server_handle.join().unwrap();
 
     Ok(())
 }
 
-fn start_input(args: Args, send: Sender<InputData>) -> JoinHandle<()> {
-    thread::Builder::new()
-        .name("Input".to_string())
-        .spawn(move || {
-            if !args.file_input.is_empty() {
-                info!("Reading from file");
-                FileInput::new(args.file_input)
-                    .process_file(send)
-                    .expect("Could not process file");
-            } else if !args.random_input {
-                info!("Using serial input");
-                SerialInput::new(&args.serial_port, args.baud_rate)
-                    .expect("Could not start serial input")
-                    .read_write_loop(send);
-            } else {
-                info!("Using random input");
-                RandomInput::new().read_loop(send);
-            }
-        })
-        .unwrap()
-}
-
-fn start_processing(
-    recv: Receiver<InputData>,
-    server_send: Sender<ProcessedMessage>,
-) -> JoinHandle<()> {
-    let (link_send, link_recv) = mpsc::channel();
-    let send2 = server_send.clone();
-    thread::Builder::new()
-        .name("Radio Status Processing".to_string())
-        .spawn(move || {
-            let mut link_status = LinkStatusProcessing::new();
-
-            link_status.process_loop(link_recv, send2);
-        })
-        .unwrap();
-
-    thread::Builder::new()
-        .name("Processing".to_string())
-        .spawn(move || {
-            let rocket_processing = RocketProcessing::new();
-            loop {
-                let msg = recv.recv();
-                match msg {
-                    Ok(msg) => {
-                        trace!("Received data: {:?}", msg);
-                        match msg {
-                            InputData::RocketData(data) => {
-                                server_send.send(rocket_processing.process(data)).unwrap();
-                            }
-                            InputData::MavlinkRadioStatus(status) => {
-                                link_send.send(LinkData::RadioStatus(status)).unwrap()
-                            }
-                            InputData::MavlinkHeader(header) => {
-                                link_send.send(LinkData::MavlinkHeader(header)).unwrap()
-                            }
-                            InputData::MavlinkHeartbeat() => {
-                                link_send.send(LinkData::MavlinkHeartbeat()).unwrap()
-                            }
-                        }
-                    }
-                    Err(_) => {
-                        continue;
-                    }
-                };
-            }
-        })
-        .unwrap()
-}
-
-fn start_client(args: Args, recv: Receiver<ProcessedMessage>) -> JoinHandle<()> {
-    thread::Builder::new()
-        .name("Pocketbase Client".to_string())
-        .spawn(move || {
-            info!(
-                "Starting Pocketbase client on port {}",
-                args.pocketbase_port
-            );
-            let server = PBClient::new(args.pocketbase_port);
-
-            loop {
-                let msg = recv
-                    .recv()
-                    .expect("Failed to receive message. Are all senders closed?");
-
-                trace!("Sending processed message: {:?}", msg);
-
-                if let Err(e) = server.send(&msg) {
-                    error!("Failed to send message: {:?}", e);
-                }
-            }
-        })
-        .unwrap()
+fn start_input(args: Args) -> Box<dyn Iterator<Item = HydraInput> + Send> {
+    if !args.file_input.is_empty() {
+        info!("Reading from file");
+        return process_file(args.file_input);
+    } else if !args.random_input {
+        info!("Using serial input");
+        return process_serial(&args.serial_port, args.baud_rate);
+    } else {
+        info!("Using random input");
+        return process_random_input();
+    }
 }
