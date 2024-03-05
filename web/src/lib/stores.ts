@@ -1,11 +1,30 @@
-import PocketBase from 'pocketbase';
+import { PUBLIC_GRAPHQL_ENDPOINT } from '$env/static/public';
+import { cacheExchange, Client, fetchExchange, subscriptionExchange } from '@urql/svelte';
 import { writable, type Writable } from 'svelte/store';
-import type { TypedPocketBase } from './common/pocketbase-types';
-
-// [url]/db/ is proxied to the DB server
-//http://0.0.0.0:3001/_/
-// export const pb = new PocketBase(window.location.origin + '/db/');
-export const pb = new PocketBase('http://localhost:3001/') as TypedPocketBase;
-pb.admins.authWithPassword('admin@admin.com', 'admin');
+import { createClient as createWSClient } from 'graphql-ws';
 
 export const commandBoxToggle: Writable<unknown> = writable();
+
+const graphQLWSEndpoint = PUBLIC_GRAPHQL_ENDPOINT.replace('http', 'ws');
+const wsClient = createWSClient({
+	url: graphQLWSEndpoint
+});
+
+export const gqlClient = new Client({
+	url: PUBLIC_GRAPHQL_ENDPOINT,
+	exchanges: [
+		cacheExchange,
+		fetchExchange,
+		subscriptionExchange({
+			forwardSubscription(request) {
+				const input = { ...request, query: request.query || '' };
+				return {
+					subscribe(sink) {
+						const unsubscribe = wsClient.subscribe(input, sink);
+						return { unsubscribe };
+					}
+				};
+			}
+		})
+	]
+});

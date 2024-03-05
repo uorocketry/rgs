@@ -1,0 +1,14 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "INSERT INTO rocket_command\n                        (rocket_message_id)\n                        VALUES ($1)",
+  "describe": {
+    "columns": [],
+    "parameters": {
+      "Left": [
+        "Int4"
+      ]
+    },
+    "nullable": []
+  },
+  "hash": "860b21e9726795d654a046117f6360c79431680f5f4ee753f1dd06043fb9a903"
+}

@@ -5,6 +5,8 @@
 	import '../leaflet.css';
 
 	import 'chart.js/auto'; // Import everything from chart.js
+	// TODO: Don't do this, have it self contained
+
 	import {
 		AppBar,
 		AppShell,
@@ -15,9 +17,9 @@
 	} from '@skeletonlabs/skeleton';
 
 	import { findSetting } from '$lib/common/settings';
-	import SideBar from '$lib/components/smart/SideBar.svelte';
-	import MasterCommandBox from '$lib/components/smart/commandPallete/MasterCommandBox.svelte';
-	import { commandBoxToggle } from '$lib/stores';
+	import SideBar from '$lib/components/Common/SideBar.svelte';
+	import MasterCommandBox from '$lib/components/Common/CommandBox/MasterCommandBox.svelte';
+	import { gqlClient, commandBoxToggle } from '$lib/stores';
 	import { arrow, autoUpdate, computePosition, flip, offset, shift } from '@floating-ui/dom';
 	import { getToastStore, initializeStores, setInitialClassState } from '@skeletonlabs/skeleton';
 	import { onMount } from 'svelte';
@@ -79,6 +81,10 @@
 			oldConsoleError(...args);
 		};
 	});
+
+	import { setContextClient } from '@urql/svelte';
+
+	setContextClient(gqlClient);
 </script>
 
 <!-- theme mode classes -->

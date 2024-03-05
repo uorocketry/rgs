@@ -25,4 +25,8 @@ export class LRUCache<K, V> {
 			this.cache.delete(this.cache.keys().next().value);
 		}
 	}
+
+	clear(): void {
+		this.cache.clear();
+	}
 }

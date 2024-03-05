@@ -1,5 +1,3 @@
-import { Collections } from '../common/pocketbase-types';
-import { latestCollectionWritable } from './lastestCollectionWritable';
 
 export const defaultLaunchCoordinates = [45.4215, -75.6972];
 export const defaultLaunchCoords = {
@@ -9,4 +7,4 @@ export const defaultLaunchCoords = {
 export const defaultTargetAltitude = 7000;
 export const defaultRelativeAltitude = 360;
 
-export const flightDirector = latestCollectionWritable(Collections.FlightDirector);
+// export const flightDirector = latestCollectionWritable(Collections.FlightDirector);

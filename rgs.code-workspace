@@ -1,19 +1,18 @@
 {
-  "folders": [
-    {
-      "name": "root",
-      "path": "."
-    },
-    {
-      "path": "./web"
-    },
- 
-    {
-      "path": "./db"
-    },
-    {
-      "path": "./hydra_provider"
-    }
-  ],
-  "settings": {}
+    "folders": [
+        {
+            "name": "root",
+            "path": "."
+        },
+        {
+            "path": "./web"
+        },
+        {
+            "path": "./db"
+        },
+        {
+            "path": "./hydra_provider"
+        }
+    ],
+    "settings": {}
 }

@@ -1,14 +1,7 @@
-import { pb } from '$lib/stores';
-import type { ResolvedLayoutConfig } from 'golden-layout';
 import { get, writable, type Writable } from 'svelte/store';
-import { flightDirector } from '../realtime/flightDirector';
 import { layoutComponentsString, resolvedLayout, virtualLayout } from './dashboard';
-import {
-	Collections,
-	type FlightDirectorRecord,
-	type LayoutsRecord,
-	type LayoutsResponse
-} from './pocketbase-types';
+import { graphql } from 'gql.tada';
+import { gqlClient } from '$lib/stores';
 
 export interface CommandAction {
 	name: string;
@@ -41,10 +34,18 @@ export const commandActions: Writable<CommandAction[]> = writable([
 			console.log('Saving layout: ' + layoutName);
 			const saved = get(resolvedLayout);
 			if (!saved) return;
-			pb.collection(Collections.Layouts).create({
-				name: layoutName,
-				data: saved
-			} satisfies LayoutsRecord);
+			delete saved.ignoreReload;
+
+			await gqlClient.mutation(
+				graphql(`
+					mutation InsertLayout($layout: String = "", $name: String = "") {
+						insert_web_layout(objects: { layout: $layout, name: $name }) {
+							affected_rows
+						}
+					}
+				`),
+				{ layout: JSON.stringify(saved), name: layoutName }
+			);
 		}
 	},
 	{
@@ -54,19 +55,20 @@ export const commandActions: Writable<CommandAction[]> = writable([
 			if (!cmd) return;
 
 			// Load layouts from server
-			const layouts = await pb
-				.collection('layouts')
-				.getFullList<LayoutsResponse<ResolvedLayoutConfig>>();
-			const layoutNames = layouts.map((l) => l.name);
+			// TODO: Reimplement me
+			// const layouts = await pb
+			// 	.collection('layouts')
+			// 	.getFullList<LayoutsResponse<ResolvedLayoutConfig>>();
+			// const layoutNames = layouts.map((l) => l.name);
 
-			const layoutIndex = await cmd.select('Layout name?', layoutNames, 'Recovery Layout');
-			if (layoutIndex === undefined) return;
-			const layout = layouts[layoutIndex];
-			if (layout.data) {
-				resolvedLayout.set(layout.data);
-			} else {
-				console.error('Failed to load layout: ' + layout.name);
-			}
+			// const layoutIndex = await cmd.select('Layout name?', layoutNames, 'Recovery Layout');
+			// if (layoutIndex === undefined) return;
+			// const layout = layouts[layoutIndex];
+			// if (layout.data) {
+			// 	resolvedLayout.set(layout.data);
+			// } else {
+			// 	console.error('Failed to load layout: ' + layout.name);
+			// }
 		}
 	},
 	{
@@ -101,13 +103,14 @@ export const commandActions: Writable<CommandAction[]> = writable([
 			const lat = parseFloat(launchPointSplit[0]);
 			const lng = parseFloat(launchPointSplit[1]);
 			if (isNaN(lng) || isNaN(lat)) return;
-			const prevFD = get(flightDirector);
-			pb.collection(Collections.FlightDirector).create({
-				latitude: lat,
-				longitude: lng,
-				targetAltitude: prevFD?.targetAltitude,
-				relativeAltitude: prevFD?.relativeAltitude
-			} satisfies FlightDirectorRecord);
+			// const prevFD = get(flightDirector);
+			// TODO: Reimplement me
+			// pb.collection(Collections.FlightDirector).create({
+			// 	latitude: lat,
+			// 	longitude: lng,
+			// 	targetAltitude: prevFD?.targetAltitude,
+			// 	relativeAltitude: prevFD?.relativeAltitude
+			// } satisfies FlightDirectorRecord);
 		}
 	},
 	{
@@ -120,13 +123,14 @@ export const commandActions: Writable<CommandAction[]> = writable([
 			if (!targetAlt) return;
 			const targetAltNum = parseFloat(targetAlt);
 			if (isNaN(targetAltNum)) return;
-			const prevFD = get(flightDirector);
-			pb.collection(Collections.FlightDirector).create({
-				latitude: prevFD?.latitude,
-				longitude: prevFD?.longitude,
-				targetAltitude: targetAltNum,
-				relativeAltitude: prevFD?.relativeAltitude
-			} satisfies FlightDirectorRecord);
+			// TODO: Reimplement me
+			// const prevFD = get(flightDirector);
+			// pb.collection(Collections.FlightDirector).create({
+			// 	latitude: prevFD?.latitude,
+			// 	longitude: prevFD?.longitude,
+			// 	targetAltitude: targetAltNum,
+			// 	relativeAltitude: prevFD?.relativeAltitude
+			// } satisfies FlightDirectorRecord);
 		}
 	},
 	{
@@ -139,13 +143,14 @@ export const commandActions: Writable<CommandAction[]> = writable([
 			if (!relativeAlt) return;
 			const targetAltNum = parseFloat(relativeAlt);
 			if (isNaN(targetAltNum)) return;
-			const prevFD = get(flightDirector);
-			pb.collection(Collections.FlightDirector).create({
-				latitude: prevFD?.latitude,
-				longitude: prevFD?.longitude,
-				targetAltitude: prevFD?.targetAltitude,
-				relativeAltitude: targetAltNum
-			} satisfies FlightDirectorRecord);
+			// TODO: Reimplement me
+			// const prevFD = get(flightDirector);
+			// pb.collection(Collections.FlightDirector).create({
+			// 	latitude: prevFD?.latitude,
+			// 	longitude: prevFD?.longitude,
+			// 	targetAltitude: prevFD?.targetAltitude,
+			// 	relativeAltitude: targetAltNum
+			// } satisfies FlightDirectorRecord);
 		}
 	}
 ]);

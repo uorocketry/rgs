@@ -1,9 +1,6 @@
-import { pb } from '$lib/stores';
 import type { LatLngLiteral } from 'leaflet';
-import type { RecordSubscription } from 'pocketbase';
 import { onDestroy, onMount } from 'svelte';
 import { writable, type Writable } from 'svelte/store';
-import type { CollectionResponses, Collections } from './pocketbase-types';
 
 export const theme: Writable<string> = writable();
 
@@ -22,46 +19,6 @@ export function onInterval(callback: () => void, milliseconds: number) {
 			clearInterval(interval);
 		};
 	});
-}
-
-export function onCollection<T extends Collections>(
-	collection: T,
-	callback: (msg: RecordSubscription<CollectionResponses[T]>) => void
-) {
-	onMount(() => {
-		const unsubscribe = pb.collection(collection).subscribe<CollectionResponses[T]>('*', (msg) => {
-			callback(msg);
-		});
-		return async () => {
-			(await unsubscribe)();
-		};
-	});
-}
-
-export function onCollectionCreated<T extends Collections>(
-	collection: T,
-	callback: (msg: CollectionResponses[T]) => void
-) {
-	const createdFilter = (msg: RecordSubscription<CollectionResponses[T]>) => {
-		if (msg.action === 'crete') {
-			callback(msg.record);
-		}
-	};
-	onCollection(collection, createdFilter);
-}
-
-export async function lastCollectionRecord<T extends Collections>(
-	collection: T
-): Promise<CollectionResponses[T] | undefined> {
-	const ret = await pb.collection(collection).getList<CollectionResponses[T]>(1, 1, {
-		sort: '-created',
-		$autoCancel: false
-	});
-	if (ret.items.length === 0) {
-		return undefined;
-	} else {
-		return ret.items[0];
-	}
 }
 
 export function formatVariableName(name: string): string {

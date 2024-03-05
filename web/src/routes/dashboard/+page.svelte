@@ -1,6 +1,6 @@
 <script lang="ts">
 	import { dashboard_components, resolvedLayout, virtualLayout } from '$lib/common/dashboard';
-	import Lazy from '$lib/components/smart/Lazy.svelte';
+	import Lazy from '$lib/components/Common/Lazy.svelte';
 	import {
 		LayoutConfig,
 		ResolvedLayoutConfig,
@@ -55,6 +55,7 @@
 		});
 
 		const sub = resolvedLayout.subscribe((layout) => {
+			console.log('Layout changed', layout);
 			if (!layout) return;
 			if (!layout.ignoreReload) {
 				goldenLayout.loadLayout(LayoutConfig.fromResolved(layout));

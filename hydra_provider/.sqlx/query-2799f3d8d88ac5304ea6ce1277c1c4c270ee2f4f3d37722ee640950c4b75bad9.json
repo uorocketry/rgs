@@ -1,0 +1,17 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "INSERT INTO rocket_sensor_imu_2\n        (rocket_sensor_message_id, temperature, delta_velocity, delta_angle)\n        VALUES ($1, $2, $3, $4)",
+  "describe": {
+    "columns": [],
+    "parameters": {
+      "Left": [
+        "Int4",
+        "Float4",
+        "Int4",
+        "Int4"
+      ]
+    },
+    "nullable": []
+  },
+  "hash": "2799f3d8d88ac5304ea6ce1277c1c4c270ee2f4f3d37722ee640950c4b75bad9"
+}

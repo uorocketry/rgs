@@ -11,3 +11,4 @@ svelte.config.js
 target/
 tailwind.config.ts
 playwright.config.ts
+proto/

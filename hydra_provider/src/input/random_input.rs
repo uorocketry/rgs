@@ -1,9 +1,10 @@
-use crate::processing::InputData;
+use crate::hydra_iterator::HydraInput;
 use messages::command::Command;
-use messages::mavlink::MavHeader;
+use messages::health::Health;
+use messages::mavlink::uorocketry::HEARTBEAT_DATA;
+use messages::mavlink::uorocketry::RADIO_STATUS_DATA;
 use messages::sender::Sender;
 use messages::sensor::Air;
-use messages::sensor::Current;
 use messages::sensor::EkfNav1;
 use messages::sensor::EkfNav2;
 use messages::sensor::EkfQuat;
@@ -12,43 +13,25 @@ use messages::sensor::GpsPos2;
 use messages::sensor::GpsVel;
 use messages::sensor::Imu1;
 use messages::sensor::Imu2;
-use messages::sensor::Regulator;
 use messages::sensor::Sensor;
-use messages::sensor::Temperature;
 use messages::sensor::UtcTime;
-use messages::sensor::Voltage;
 use messages::state::State;
 use messages::state::StateData;
 use messages::Data;
 use messages::Log;
 use messages::Message;
-use rand::rngs::ThreadRng;
+use rand::rngs::StdRng;
 use rand::Rng;
+use rand::SeedableRng;
 use std::time::Duration;
 use std::time::SystemTime;
 
-pub struct RandomInput {
-    rng: ThreadRng,
-}
-
-impl RandomInput {
-    pub fn new() -> Self {
-        let rng = rand::thread_rng();
-        RandomInput { rng }
-    }
-}
-
-impl RandomInput {
-    pub fn read_loop(&mut self, send: std::sync::mpsc::Sender<InputData>) -> ! {
-        loop {
-            std::thread::sleep(Duration::from_millis(45));
-
-            let msg = self.read_message();
-            send.send(msg).unwrap();
-        }
+pub fn process_random_input() -> Box<dyn Iterator<Item = HydraInput> + Send> {
+    struct IteratorObj {
+        rng: StdRng,
     }
 
-    fn random_sensor(&mut self) -> Message {
+    fn random_sensor(rng: &mut StdRng) -> Message {
         let time: fugit::Instant<u64, 1, 1000> = fugit::Instant::<u64, 1, 1000>::from_ticks(
             SystemTime::now()
                 .duration_since(SystemTime::UNIX_EPOCH)
@@ -72,100 +55,75 @@ impl RandomInput {
         };
 
         let air = Air {
-            air_temperature: self.rng.gen(),
-            altitude: self.rng.gen(),
-            pressure_abs: self.rng.gen(),
-            pressure_diff: self.rng.gen(),
-            status: self.rng.gen(),
+            air_temperature: rng.gen(),
+            altitude: rng.gen(),
+            pressure_abs: rng.gen(),
+            pressure_diff: rng.gen(),
+            status: rng.gen(),
             time_stamp: time.ticks() as u32,
-            true_airspeed: self.rng.gen(),
+            true_airspeed: rng.gen(),
         };
 
         let ekf_quat = EkfQuat {
-            euler_std_dev: [self.rng.gen(), self.rng.gen(), self.rng.gen()],
-            quaternion: [
-                self.rng.gen(),
-                self.rng.gen(),
-                self.rng.gen(),
-                self.rng.gen(),
-            ],
-            status: self.rng.gen(),
+            euler_std_dev: [rng.gen(), rng.gen(), rng.gen()],
+            quaternion: [rng.gen(), rng.gen(), rng.gen(), rng.gen()],
+            status: rng.gen(),
             time_stamp: time.ticks() as u32,
         };
 
         let ekf_nav1 = EkfNav1 {
             time_stamp: time.ticks() as u32,
-            velocity: [self.rng.gen(), self.rng.gen(), self.rng.gen()],
-            velocity_std_dev: [self.rng.gen(), self.rng.gen(), self.rng.gen()],
+            velocity: [rng.gen(), rng.gen(), rng.gen()],
+            velocity_std_dev: [rng.gen(), rng.gen(), rng.gen()],
         };
 
         let ekf_nav2 = EkfNav2 {
-            position: [self.rng.gen(), self.rng.gen(), self.rng.gen()],
-            position_std_dev: [self.rng.gen(), self.rng.gen(), self.rng.gen()],
-            status: self.rng.gen(),
-            undulation: self.rng.gen(),
+            position: [rng.gen(), rng.gen(), rng.gen()],
+            position_std_dev: [rng.gen(), rng.gen(), rng.gen()],
+            status: rng.gen(),
+            undulation: rng.gen(),
         };
 
         let imu1 = Imu1 {
-            accelerometers: [self.rng.gen(), self.rng.gen(), self.rng.gen()],
-            gyroscopes: [self.rng.gen(), self.rng.gen(), self.rng.gen()],
-            status: self.rng.gen(),
+            accelerometers: [rng.gen(), rng.gen(), rng.gen()],
+            gyroscopes: [rng.gen(), rng.gen(), rng.gen()],
+            status: rng.gen(),
             time_stamp: time.ticks() as u32,
         };
 
         let imu2 = Imu2 {
-            delta_angle: [self.rng.gen(), self.rng.gen(), self.rng.gen()],
-            delta_velocity: [self.rng.gen(), self.rng.gen(), self.rng.gen()],
-            temperature: self.rng.gen(),
+            delta_angle: [rng.gen(), rng.gen(), rng.gen()],
+            delta_velocity: [rng.gen(), rng.gen(), rng.gen()],
+            temperature: rng.gen(),
         };
 
         let gps_vel = GpsVel {
-            course: self.rng.gen(),
-            course_acc: self.rng.gen(),
-            status: self.rng.gen(),
-            time_of_week: self.rng.gen(),
+            course: rng.gen(),
+            course_acc: rng.gen(),
+            status: rng.gen(),
+            time_of_week: rng.gen(),
             time_stamp: time.ticks() as u32,
-            velocity: [self.rng.gen(), self.rng.gen(), self.rng.gen()],
-            velocity_acc: [self.rng.gen(), self.rng.gen(), self.rng.gen()],
+            velocity: [rng.gen(), rng.gen(), rng.gen()],
+            velocity_acc: [rng.gen(), rng.gen(), rng.gen()],
         };
 
         let gps_pos1 = GpsPos1 {
             time_stamp: time.ticks() as u32,
-            status: self.rng.gen(),
-            time_of_week: self.rng.gen(),
-            latitude: self.rng.gen(),
-            longitude: self.rng.gen(),
-            altitude: self.rng.gen(),
-            undulation: self.rng.gen(),
+            status: rng.gen(),
+            time_of_week: rng.gen(),
+            latitude: rng.gen(),
+            longitude: rng.gen(),
+            altitude: rng.gen(),
+            undulation: rng.gen(),
         };
 
         let gps_pos2 = GpsPos2 {
-            latitude_accuracy: self.rng.gen(),
-            longitude_accuracy: self.rng.gen(),
-            altitude_accuracy: self.rng.gen(),
-            num_sv_used: self.rng.gen(),
-            base_station_id: self.rng.gen(),
-            differential_age: self.rng.gen(),
-        };
-
-        let current = Current {
-            current: self.rng.gen(),
-            rolling_avg: self.rng.gen(),
-        };
-
-        let voltage = Voltage {
-            rolling_avg: self.rng.gen(),
-            voltage: self.rng.gen(),
-        };
-
-        let regulator = Regulator {
-            // true or false
-            status: self.rng.gen::<f32>() > 0.5f32,
-        };
-
-        let temperature = Temperature {
-            rolling_avg: self.rng.gen(),
-            temperature: self.rng.gen(),
+            latitude_accuracy: rng.gen(),
+            longitude_accuracy: rng.gen(),
+            altitude_accuracy: rng.gen(),
+            num_sv_used: rng.gen(),
+            base_station_id: rng.gen(),
+            differential_age: rng.gen(),
         };
 
         // Array of sensor messages (we will select one of it)
@@ -180,13 +138,9 @@ impl RandomInput {
             Sensor::new(gps_vel),
             Sensor::new(gps_pos1),
             Sensor::new(gps_pos2),
-            Sensor::new(current),
-            Sensor::new(voltage),
-            Sensor::new(regulator),
-            Sensor::new(temperature),
         ];
 
-        let status = match self.rng.gen_range(0..=6) {
+        let status = match rng.gen_range(0..=6) {
             0 => StateData::Initializing,
             1 => StateData::WaitForTakeoff,
             2 => StateData::Ascent,
@@ -197,7 +151,8 @@ impl RandomInput {
         };
 
         // Return a random sensor message
-        let sensor = sensors[self.rng.gen_range(0..sensors.len())].to_owned();
+        let mut sensor = sensors[rng.gen_range(0..sensors.len())].to_owned();
+        sensor.component_id = rng.gen();
 
         let state = State { data: status };
 
@@ -209,29 +164,73 @@ impl RandomInput {
             }),
         };
 
-        let data = match self.rng.gen_range(0..=3) {
+        let data = match rng.gen_range(0..=4) {
             0 => Data::State(state),
             1 => Data::Log(log),
             2 => Data::Command(command),
             3 => Data::Sensor(sensor),
+            4 => Data::Health(Health {
+                data: messages::health::HealthData::HealthStatus(messages::health::HealthStatus {
+                    v5: Some(1),
+                    v3_3: rng.gen(),
+                    pyro_sense: rng.gen(),
+                    vcc_sense: rng.gen(),
+                    int_v5: rng.gen(),
+                    int_v3_3: rng.gen(),
+                    ext_v5: rng.gen(),
+                    ext_3v3: rng.gen(),
+                    failover_sense: rng.gen(),
+                }),
+                status: messages::health::HealthState::Nominal,
+            }),
             _ => Data::Sensor(sensor),
         };
 
         Message::new(&time, Sender::GroundStation, data)
     }
 
-    fn random_mavheader(&mut self) -> MavHeader {
-        MavHeader {
-            system_id: 0,
-            component_id: 0,
-            sequence: self.rng.gen(),
+    impl Iterator for IteratorObj {
+        type Item = HydraInput;
+
+        fn next(&mut self) -> Option<Self::Item> {
+            std::thread::sleep(Duration::from_millis(45));
+
+            let roll = self.rng.gen_range(0..=2);
+            match roll {
+                0 => {
+                    let msg = HydraInput::RocketData(random_sensor(&mut self.rng));
+                    return Some(msg);
+                }
+                1 => {
+                    let msg = HydraInput::MavlinkRadioStatus(RADIO_STATUS_DATA {
+                        rxerrors: self.rng.gen(),
+                        fixed: self.rng.gen(),
+                        rssi: self.rng.gen(),
+                        remrssi: self.rng.gen(),
+                        txbuf: self.rng.gen(),
+                        noise: self.rng.gen(),
+                        remnoise: self.rng.gen(),
+                    });
+                    return Some(msg);
+                }
+
+                2 => {
+                    let msg = HydraInput::MavlinkHeartbeat(HEARTBEAT_DATA {
+                        custom_mode: self.rng.gen(),
+                        mavlink_version: self.rng.gen(),
+                        mavtype: self.rng.gen(),
+                        autopilot: self.rng.gen(),
+                        base_mode: self.rng.gen(),
+                        system_status: self.rng.gen(),
+                    });
+                    return Some(msg);
+                }
+                _ => return None,
+            };
         }
     }
 
-    fn read_message(&mut self) -> InputData {
-        match self.rng.gen_range(0..=1) {
-            0 => InputData::RocketData(self.random_sensor()),
-            _ => InputData::MavlinkHeader(self.random_mavheader()),
-        }
-    }
+    return Box::from(IteratorObj {
+        rng: StdRng::from_entropy(),
+    });
 }
