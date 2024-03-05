@@ -1,10 +1,7 @@
-use hydra_provider_proto::greeter_server::Greeter;
-use hydra_provider_proto::{HelloReply, HelloRequest};
+use crate::hydra_provider_proto::hydra_provider_proto::*;
 use tonic::{Request, Response, Status};
 
-pub mod hydra_provider_proto {
-    tonic::include_proto!("hydra_provider");
-}
+use self::greeter_server::Greeter;
 
 #[derive(Default)]
 pub struct GreeterImpl {}
@@ -17,7 +14,7 @@ impl Greeter for GreeterImpl {
     ) -> Result<Response<HelloReply>, Status> {
         println!("Got a request from {:?}", request.remote_addr());
 
-        let reply = hydra_provider_proto::HelloReply {
+        let reply = HelloReply {
             message: format!("Hello {}!", request.into_inner().name),
         };
         Ok(Response::new(reply))

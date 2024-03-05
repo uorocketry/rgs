@@ -2,18 +2,52 @@ syntax = "proto3";
 
 package hydra_provider;
 
-// The greeting service definition.
+message Empty {
+}
+
 service Greeter {
-  // Sends a greeting
   rpc SayHello (HelloRequest) returns (HelloReply) {}
 }
 
-// The request message containing the user's name.
 message HelloRequest {
   string name = 1;
 }
 
-// The response message containing the greetings
 message HelloReply {
   string message = 1;
+}
+
+
+service ConnectionManager {
+  rpc GetConnectionType (Empty) returns (ConnectionTypeMessage) {}
+  rpc SetConnectionType (ConnectionTypeMessage) returns (Empty) {}
+
+  rpc GetSerialPorts (Empty) returns (GetSerialPortsReply) {}
+  rpc SetPreferredSerialPort (SetSerialConnectionRequest) returns (Empty) {}
+
+  rpc CheckConnection (Empty) returns (CheckConnectionReply) {}
+}
+
+message ConnectionTypeMessage {
+  ConnectionType connectionType = 1;
+}
+
+enum ConnectionType {
+  SERIAL = 0;
+  RANDOM = 1;
+}
+
+message GetSerialPortsReply {
+  repeated string ports = 1;
+}
+
+message SetSerialConnectionRequest {
+  string portName = 1;
+}
+
+
+message CheckConnectionReply {
+  bool connected = 1;
+  ConnectionType connectionType = 2;
+  repeated string errors = 3;
 }

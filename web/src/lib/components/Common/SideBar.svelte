@@ -12,11 +12,13 @@
 	<AppRailAnchor href="/health" selected={$page.url.pathname === '/health'} title="System Health">
 		<i class="text-xl text-surface-800-100-token fas fa-heart"></i>
 	</AppRailAnchor>
-
-	<!-- <i class="fa-solid fa-database"></i> -->
+	<AppRailAnchor href="/comm" selected={$page.url.pathname === '/comm'} title="Hydra Provider">
+		<i class="text-xl text-surface-800-100-token fas fa-broadcast-tower"></i>
+	</AppRailAnchor>
 	<AppRailAnchor href="/db" selected={$page.url.pathname === '/db'} title="Data">
 		<i class="text-xl text-surface-800-100-token fas fa-database"></i>
 	</AppRailAnchor>
+
 	<svelte:fragment slot="trail">
 		<AppRailAnchor href="/help" title="Help">
 			<i class="text-xl text-surface-800-100-token fas fa-question"></i>

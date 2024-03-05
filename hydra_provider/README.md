@@ -22,3 +22,9 @@ cargo run -- -r -p 3001
 cargo run -- -p 3001
 # Use "cargo run -- --help" for more options
 ```
+
+This project uses SQLX to type check SQL queries. To build this project without the database running you can add a `SQLX_OFFLINE=tru` environment variable 
+
+```bash
+SQLX_OFFLINE=true cargo build
+```

@@ -1,11 +1,11 @@
 use crate::hydra_iterator::HydraInput;
 use anyhow::Context;
-use log::trace;
+use log::{info, trace};
 use messages::mavlink;
 use messages::mavlink::uorocketry;
 use messages::Message;
 use postcard::from_bytes;
-use serialport::available_ports;
+use serialport::{available_ports, SerialPortType};
 
 pub fn process_serial(
     port: &Option<String>,
@@ -18,13 +18,15 @@ pub fn process_serial(
             .context("No serial port specified and couldn't retrieve available ports")
             .unwrap()
             .iter()
-            .filter(|x| x.port_name.contains("USB"))
+            .filter(|x| matches!(x.port_type, SerialPortType::UsbPort(_)))
             .last()
             .context("No serial port specified and couldn't find any port")
             .unwrap()
             .port_name
             .clone()
     };
+
+    info!("Connecting to serial port: {}", port);
     let link = mavlink::connect::<uorocketry::MavMessage>(
         format!("serial:{}:{}", port, baud_rate).as_str(),
     )

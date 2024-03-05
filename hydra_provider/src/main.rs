@@ -8,7 +8,12 @@ use tonic_health::pb::health_server::HealthServer;
 use tonic_health::server::HealthService;
 mod db;
 mod input;
+use crate::connection_manager::ConnectionManagerImpl;
+use crate::connection_manager_server::ConnectionManagerServer;
 use crate::db::db_save_hydra_input;
+use crate::greeter::GreeterImpl;
+use crate::greeter_server::GreeterServer;
+use crate::hydra_provider_proto::hydra_provider_proto::*;
 use crate::input::process_file;
 use crate::input::process_random_input;
 use crate::input::process_serial;
@@ -17,13 +22,13 @@ use clap::ArgGroup;
 use clap::Parser;
 use log::*;
 
+mod connection_manager;
 mod greeter;
 mod hydra_iterator;
+mod hydra_provider_proto;
 mod rocket_command;
 mod rocket_data;
 mod rocket_sensor;
-
-use crate::greeter::{hydra_provider_proto::greeter_server::GreeterServer, GreeterImpl};
 
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
@@ -84,17 +89,18 @@ async fn run(args: Args) -> Result<()> {
     let server = Server::builder()
         .add_service(health_service)
         .add_service(GreeterServer::new(GreeterImpl::default()))
+        .add_service(ConnectionManagerServer::new(
+            ConnectionManagerImpl::default(),
+        ))
         .serve(addr);
-
 
     info!("Hydra Provider listening on {}", addr);
     let db_url = std::env::var("DATABASE_URL")
         .unwrap_or("postgres://postgres:postgres@localhost:5432/postgres".to_string());
-    
+
     info!("Connecting to database...");
     let db_client = Arc::new(PgPool::connect(&db_url).await.unwrap());
     info!("Connected to database");
-
 
     let message_receiver_handle = tokio::task::spawn_blocking(move || {
         for msg in start_input(args) {
