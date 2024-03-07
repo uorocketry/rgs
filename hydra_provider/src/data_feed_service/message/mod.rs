@@ -1,10 +1,11 @@
 use derive_more::From;
 use messages::mavlink::uorocketry::{HEARTBEAT_DATA, RADIO_STATUS_DATA};
 use serde::{Deserialize, Serialize};
+use messages::Message;
 
 #[derive(Serialize, Deserialize, Clone, Debug, From)]
 pub enum HydraInput {
-    RocketData(messages::Message),
-    MavlinkRadioStatus(RADIO_STATUS_DATA),
-    MavlinkHeartbeat(HEARTBEAT_DATA),
+	Message(Message),
+	RadioStatus(RADIO_STATUS_DATA),
+	Heartbeat(HEARTBEAT_DATA),
 }

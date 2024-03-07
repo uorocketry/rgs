@@ -5,19 +5,6 @@ package hydra_provider;
 message Empty {
 }
 
-service Greeter {
-  rpc SayHello (HelloRequest) returns (HelloReply) {}
-}
-
-message HelloRequest {
-  string name = 1;
-}
-
-message HelloReply {
-  string message = 1;
-}
-
-
 service ConnectionManager {
   rpc GetConnectionType (Empty) returns (ConnectionTypeMessage) {}
   rpc SetConnectionType (ConnectionTypeMessage) returns (Empty) {}

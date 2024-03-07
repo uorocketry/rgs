@@ -1,16 +1,16 @@
-use crate::{hydra_iterator::HydraInput, rocket_data::db_save_rocket_message};
+use crate::{data_feeds::message::HydraInput, rocket_data::db_save_rocket_message};
 use messages::mavlink::uorocketry::{HEARTBEAT_DATA, RADIO_STATUS_DATA};
 use sqlx::postgres::{PgPool, PgQueryResult};
 
 pub async fn db_save_hydra_input(pool: &PgPool, msg: HydraInput) -> Result<(), sqlx::Error> {
     match msg {
-        HydraInput::MavlinkRadioStatus(status) => {
+        HydraInput::RadioStatus(status) => {
             return db_save_radio_status(&pool, status).await.map(|_| ())
         }
-        HydraInput::RocketData(data) => {
+        HydraInput::Message(data) => {
             return db_save_rocket_message(&pool, data).await;
         }
-        HydraInput::MavlinkHeartbeat(heartbeat) => {
+        HydraInput::Heartbeat(heartbeat) => {
             return db_save_rocket_heartbeat(&pool, heartbeat).await.map(|_| ())
         }
     }
