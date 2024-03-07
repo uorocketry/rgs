@@ -1,3 +1,3 @@
 pub trait Sendable {
-	fn send();
+    fn send();
 }

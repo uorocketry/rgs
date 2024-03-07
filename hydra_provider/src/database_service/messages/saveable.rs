@@ -1,5 +1,5 @@
 use sqlx::PgPool;
 
 pub trait Saveable {
-	fn save(pool: &PgPool);
+    fn save(pool: &PgPool);
 }

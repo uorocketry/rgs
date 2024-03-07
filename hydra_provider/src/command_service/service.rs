@@ -1,6 +1,6 @@
 pub struct CommandService {}
 impl CommandService {
-	pub fn new() -> CommandService {
-		CommandService {}
-	}
+    pub fn new() -> CommandService {
+        CommandService {}
+    }
 }
