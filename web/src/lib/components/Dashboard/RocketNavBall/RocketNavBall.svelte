@@ -71,7 +71,7 @@
 	}
 </script>
 
-<div class="z-10 absolute top-2 left-2 variant-glass p-2 grid grid-cols-2">
+<div class="z-10 absolute top-2 left-2 variant-glass p-2 grid grid-cols-2 text-dark-token">
 	<span>Roll</span>
 	<span class="text-right">{MathUtils.radToDeg(eulerRepr.x ?? 0).toFixed(2)}°</span>
 	<span>Pitch</span>
@@ -82,16 +82,16 @@
 	<span class="text-right">{upright(latestReportedRotation) ? 'Up' : 'Down'}</span>
 </div>
 
-<div class="z-10 absolute bottom-0 left-0 right-0 variant-glass h-12">
+<div class="z-10 absolute bottom-0 left-0 right-0 variant-glass h-12 text-dark-token">
 	<Timeline></Timeline>
 </div>
 
 <div class="absolute bg-black h-full w-full"></div>
 
-<div class="z-0 absolute inset-0">
-	<NavBall targetRotation={$targetRotation} />
-</div>
-
 <div class="z-0 absolute h-full w-full">
 	<HeadingCompass heading={$RocketCourse.data?.rocket_sensor_gps_vel[0]?.course ?? 0} />
+</div>
+
+<div class="z-0 absolute inset-0">
+	<NavBall targetRotation={$targetRotation} />
 </div>
