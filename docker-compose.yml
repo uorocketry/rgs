@@ -41,7 +41,7 @@ services:
             HASURA_GRAPHQL_DATABASE_URL: postgres://postgres:postgres@db:5432/postgres
             HASURA_GRAPHQL_LOG_LEVEL: warn
             HASURA_GRAPHQL_ENABLE_CONSOLE: "true"
-            HASURA_GRAPHQL_LIVE_QUERIES_MULTIPLEXED_REFETCH_INTERVAL: 16
+            HASURA_GRAPHQL_LIVE_QUERIES_MULTIPLEXED_REFETCH_INTERVAL: 60
             HASURA_GRAPHQL_METADATA_DATABASE_URL: postgres://postgres:postgres@db:5432/postgres
         healthcheck:
             test: ["CMD", "curl", "-f", "http://localhost:4000/healthz"]
