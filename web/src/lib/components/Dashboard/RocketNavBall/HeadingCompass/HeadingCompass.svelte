@@ -1,10 +1,19 @@
 <script lang="ts">
+	import { backInOut, cubicInOut, elasticIn, elasticInOut } from 'svelte/easing';
+	import { tweened } from 'svelte/motion';
 	import { RAD2DEG } from 'three/src/math/MathUtils.js';
 
 	let w = 100;
 	let h = 100;
 
 	export let heading = 0;
+
+	let headingTweened = tweened(0, {
+		duration: 250,
+		easing: cubicInOut
+	});
+
+	$: headingTweened.set(heading);
 
 	const breaksPoints = {
 		0: 'N',
@@ -94,7 +103,7 @@
 >
 	<svg
 		class="w-full h-full"
-		transform="rotate({-90 - heading * RAD2DEG})"
+		transform="rotate({-90 - $headingTweened * RAD2DEG})"
 		width={w}
 		height={h}
 		xmlns="http://www.w3.org/2000/svg"
@@ -155,7 +164,7 @@
 			alignment-baseline="middle"
 			font-size="24"
 		>
-			{(heading * RAD2DEG).toFixed(2)}°
+			{($headingTweened * RAD2DEG).toFixed(2)}°
 		</text>
 	</svg>
 </div>
