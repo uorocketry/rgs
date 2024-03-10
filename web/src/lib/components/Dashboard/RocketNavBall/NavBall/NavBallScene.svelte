@@ -1,47 +1,45 @@
 <script lang="ts">
 	import { T } from '@threlte/core';
 	import { OrbitControls, useTexture } from '@threlte/extras';
-	import { tweened, type Tweened } from 'svelte/motion';
-	import { Euler, Quaternion, type EulerOrder } from 'three';
+	import { Quaternion, Vector3 } from 'three';
 	import Lazy from '../../../Common/Lazy.svelte';
+
+	import { spring } from 'svelte/motion';
+
 	const map = useTexture('textures/navball.png');
 	map.then((tex) => {
 		tex.anisotropy = 32;
 	});
 
 	export let useRocketModel = false;
+
 	export let targetRotation: Quaternion = new Quaternion();
 
-	let tweenedRotation: Tweened<Quaternion> = tweened(targetRotation, {
-		duration: 100,
-		interpolate: (a, b) => {
-			return (t) => {
-				return a.slerp(b, t);
-			};
-		}
+	let springRotation = spring({
+		x: targetRotation.x,
+		y: targetRotation.y,
+		z: targetRotation.z,
+		w: targetRotation.w
 	});
 
-	let targetRotationEuler: Euler = new Euler();
-	$: {
-		if (targetRotation) {
-			targetRotation = targetRotation;
-		}
-		targetRotationEuler.setFromQuaternion(targetRotation);
-		targetRotationEuler = targetRotationEuler;
-		tweenedRotation.set(targetRotation);
-	}
+	$: springRotation.set({
+		x: targetRotation.x,
+		y: targetRotation.y,
+		z: targetRotation.z,
+		w: targetRotation.w
+	});
 
-	let rot: [number, number, number, EulerOrder];
-	$: {
-		const euler = new Euler().setFromQuaternion($tweenedRotation);
-		rot = [euler.x, euler.y, euler.z, 'YZX'];
-	}
+	$: transformedUpPos = new Vector3(0, 1, 0)
+		.clone()
+		.applyQuaternion(
+			new Quaternion($springRotation.x, $springRotation.y, $springRotation.z, $springRotation.w)
+		);
 </script>
 
 <T.PerspectiveCamera
 	makeDefault
 	fov={60}
-	position={[0, 35, 0]}
+	position={[-0.01, 5, 0]}
 	near={0.1}
 	far={1000}
 	aspect={1}
@@ -57,18 +55,31 @@
 {#if useRocketModel}
 	<Lazy
 		this={async () => (await import('$lib/components/models/Rocket.svelte')).default}
-		rotation={rot}
 		scale={0.75}
 	></Lazy>
 {:else}
 	{#await map then tex}
-		<T.Mesh bind:rotation={rot}>
-			<T.SphereGeometry args={[10, 64, 32]} />
+		<T.Mesh>
+			<T.SphereGeometry args={[1, 64, 32]} />
 			<T.MeshStandardMaterial map={tex} />
 		</T.Mesh>
-		<T.Mesh position.y="10">
-			<T.SphereGeometry args={[0.3, 10, 2]} />
-			<T.MeshStandardMaterial color={[1, 0, 1]} />
+		<T.Mesh position={[0, 0, 3]}>
+			<T.SphereGeometry args={[0.1, 10, 2]} />
+			<T.MeshStandardMaterial color={[1, 0, 0]} />
 		</T.Mesh>
 	{/await}
 {/if}
+
+<T.AxesHelper
+	args={[5]}
+	quaternion={[$springRotation.x, $springRotation.y, $springRotation.z, $springRotation.w]}
+></T.AxesHelper>
+
+<T.ArrowHelper
+	args={[
+		new Vector3(transformedUpPos.x, transformedUpPos.y, transformedUpPos.z),
+		new Vector3(0, 0, 0),
+		5,
+		0x00ff00
+	]}
+></T.ArrowHelper>

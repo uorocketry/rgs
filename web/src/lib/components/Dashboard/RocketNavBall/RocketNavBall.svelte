@@ -13,34 +13,25 @@
 	ninetyDegVerticalRot.setFromAxisAngle(new Vector3(1, 0, 0), Math.PI / 2);
 
 	// Interpolate current rotation to target rotation
-	$: latestReportedRotation = new Quaternion();
-	const targetRotation = tweened(new Quaternion(0, 0, 0, 1), {
-		duration: 300,
-		interpolate: (a, b) => {
-			return (t) => {
-				return a.clone().slerp(b, t).normalize();
-			};
-		}
-	});
+	$: quatData =
+		$RocketQuat.data?.rocket_message[0].rocket_sensor_message?.rocket_sensor_quat?.data_quaternion;
+	$: quatDataOrIdentity = {
+		x: quatData?.x ?? 0,
+		y: quatData?.y ?? 0,
+		z: quatData?.z ?? 0,
+		w: quatData?.w ?? 1
+	};
+	$: latestReportedRotation = new Quaternion(
+		quatDataOrIdentity.y,
+		quatDataOrIdentity.z,
+		quatDataOrIdentity.x,
+		quatDataOrIdentity.w
+	);
 
 	$: eulerRepr = vectorToEuler(
 		new Vector3(0, -1, 0).applyQuaternion(latestReportedRotation),
 		'XYZ'
 	);
-
-	$: {
-		if ($RocketQuat.data && $RocketQuat.data.rocket_sensor_quat[0]) {
-			let data_rot = $RocketQuat.data.rocket_sensor_quat[0];
-			let rot = data_rot.data_quaternion;
-			latestReportedRotation = new Quaternion(rot.y, rot.y, rot.z, rot.w);
-			// The IMU is placed flat on the rocket, so the up vector is the x axis
-			// https://support.sbg-systems.com/sc/qd/latest/reference-manual/conventions
-		}
-	}
-
-	setInterval(() => {
-		targetRotation.set(latestReportedRotation.clone());
-	}, 250);
 
 	// Is the up vector pointing above the horizon?
 	function upright(quaternion: Quaternion) {
@@ -95,5 +86,5 @@
 </div>
 
 <div class="z-0 absolute w-full h-full">
-	<NavBall targetRotation={$targetRotation} bind:useRocketModel />
+	<NavBall targetRotation={latestReportedRotation} bind:useRocketModel />
 </div>
