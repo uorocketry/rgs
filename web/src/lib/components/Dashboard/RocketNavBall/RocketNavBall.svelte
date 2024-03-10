@@ -1,6 +1,5 @@
 <script lang="ts">
 	// import { quat } from '$lib/realtime/sensors';
-	import Timeline from '$lib/components/Common/Timeline/Timeline.svelte';
 	import { tweened } from 'svelte/motion';
 	import { Euler, MathUtils, Matrix4, Quaternion, Vector3, type EulerOrder } from 'three';
 	import HeadingCompass from './HeadingCompass/HeadingCompass.svelte';
@@ -80,10 +79,6 @@
 	<span class="text-right">{MathUtils.radToDeg(eulerRepr.z ?? 0).toFixed(2)}°</span>
 	<span>Pointing</span>
 	<span class="text-right">{upright(latestReportedRotation) ? 'Up' : 'Down'}</span>
-</div>
-
-<div class="z-10 absolute bottom-0 left-0 right-0 variant-glass h-12 text-dark-token">
-	<Timeline></Timeline>
 </div>
 
 <div class="absolute bg-black h-full w-full"></div>
