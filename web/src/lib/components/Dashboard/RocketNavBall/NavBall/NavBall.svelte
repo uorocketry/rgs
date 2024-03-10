@@ -6,7 +6,7 @@
 
 	let w = 500;
 	let h = 500;
-	$: squareSize = Math.min(w - 200, h - 300);
+	$: squareSize = Math.min(w - 80, h - 160);
 </script>
 
 <div bind:clientHeight={h} bind:clientWidth={w} class="grid place-items-center w-full h-full">

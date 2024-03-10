@@ -83,10 +83,9 @@
 
 <div class="absolute bg-black h-full w-full"></div>
 
-<div class="z-0 absolute h-full w-full">
-	<HeadingCompass heading={$RocketCourse.data?.rocket_sensor_gps_vel[0]?.course ?? 0} />
-</div>
-
 <div class="z-0 absolute inset-0">
 	<NavBall targetRotation={$targetRotation} />
+</div>
+<div class="z-0 absolute h-full w-full">
+	<HeadingCompass heading={$RocketCourse.data?.rocket_sensor_gps_vel[0]?.course ?? 0} />
 </div>

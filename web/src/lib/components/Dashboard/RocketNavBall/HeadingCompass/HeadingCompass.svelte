@@ -93,7 +93,7 @@
 	class="w-full h-full flex-col text-center select-none"
 >
 	<svg
-		class="absolute top-0 left-0 w-full h-full"
+		class="w-full h-full"
 		transform="rotate({-90 - heading * RAD2DEG})"
 		width={w}
 		height={h}
@@ -127,7 +127,14 @@
 		height={h}
 		xmlns="http://www.w3.org/2000/svg"
 	>
-		<line x1={w / 2} y1={h / 2} x2={w / 2} y2={h / 2 - radius} stroke="red" stroke-width="2" />
+		<line
+			x1={w / 2}
+			y1={h / 2 - radius * 0.9}
+			x2={w / 2}
+			y2={h / 2 - radius}
+			stroke="red"
+			stroke-width="2"
+		/>
 		<!-- Text -->
 		<rect
 			x={w / 2 - 50}
@@ -153,7 +160,6 @@
 	</svg>
 </div>
 
-<!-- Animate rotatio -->
 <style>
 	svg {
 		transition: transform 0.25s;

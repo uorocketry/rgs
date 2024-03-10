@@ -40,7 +40,7 @@
 	}
 </script>
 
-<T.OrthographicCamera makeDefault={true} position={[0, 0, 10]} zoom={250} />
+<T.OrthographicCamera makeDefault={true} position={[0, 0, 10]} zoom={200} />
 
 {#await map then tex}
 	<T.Mesh bind:rotation={rot}>
