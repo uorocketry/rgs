@@ -19,6 +19,10 @@
 		<i class="text-xl text-surface-800-100-token fas fa-database"></i>
 	</AppRailAnchor>
 
+	<AppRailAnchor href="/mock" selected={$page.url.pathname === '/mock'} title="Mock">
+		<i class="text-xl text-surface-800-100-token fas fa-masks-theater"></i>
+	</AppRailAnchor>
+
 	<svelte:fragment slot="trail">
 		<AppRailAnchor href="/help" title="Help">
 			<i class="text-xl text-surface-800-100-token fas fa-question"></i>
