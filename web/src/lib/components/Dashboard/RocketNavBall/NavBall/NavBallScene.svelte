@@ -2,7 +2,6 @@
 	import { T, useTask } from '@threlte/core';
 	import { useTexture } from '@threlte/extras';
 	import { PerspectiveCamera, Quaternion } from 'three';
-	import Lazy from '../../../Common/Lazy.svelte';
 
 	import { DEG2RAD } from 'three/src/math/MathUtils.js';
 
@@ -19,7 +18,7 @@
 
 	let camera: PerspectiveCamera;
 	useTask((delta) => {
-		displayRotation = displayRotation.slerp(targetRotation, delta * 2);
+		displayRotation = displayRotation.slerp(targetRotation, 5 * delta);
 	});
 </script>
 
@@ -28,7 +27,7 @@
 	bind:ref={camera}
 	makeDefault
 	fov={60}
-	position={[0, 10, 0]}
+	position={[0, 4, 0]}
 	near={0.1}
 	far={1000}
 	aspect={1}
@@ -57,3 +56,8 @@
 	<T.SphereGeometry args={[0.05, 10, 2]} />
 	<T.MeshStandardMaterial color={[1, 0, 0]} />
 </T.Mesh>
+
+<T.AxesHelper
+	args={[5]}
+	quaternion={[displayRotation.x, displayRotation.y, displayRotation.z, displayRotation.w]}
+></T.AxesHelper>

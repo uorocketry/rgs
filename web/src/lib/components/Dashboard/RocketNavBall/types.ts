@@ -2,7 +2,7 @@ import { gqlClient } from '$lib/stores';
 import { subscriptionStore } from '@urql/svelte';
 import { graphql } from 'gql.tada';
 
-export const RocketQuatDocument = graphql(`
+const RocketQuatDocument = graphql(`
 	subscription RocketQuat {
 		rocket_message(
 			where: { rocket_sensor_message: { rocket_sensor_quat: { data_quaternion: {} } } }
