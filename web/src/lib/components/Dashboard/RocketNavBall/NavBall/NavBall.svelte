@@ -4,13 +4,11 @@
 	import { Quaternion } from 'three/src/Three.js';
 	import NavBallScene from './NavBallScene.svelte';
 	export let targetRotation: Quaternion = new Quaternion();
-
-	export let useRocketModel = false;
 </script>
 
 <div class="flex-1 w-full h-full">
 	<Canvas>
 		<Environment path={'/textures/cubemap/'} files={'road.hdr'} isBackground={true} />
-		<NavBallScene bind:targetRotation bind:useRocketModel />
+		<NavBallScene bind:targetRotation />
 	</Canvas>
 </div>
