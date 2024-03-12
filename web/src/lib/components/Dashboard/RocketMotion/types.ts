@@ -5,7 +5,7 @@ import { graphql } from 'gql.tada';
 const AccelerometersDocument = graphql(`
 	subscription Accelerometers {
 		rocket_sensor_imu_1(order_by: { time_stamp: desc }) {
-			data_vec3ByAccelerometers {
+			dataVec3ByGyroscopes {
 				x
 				y
 				z
