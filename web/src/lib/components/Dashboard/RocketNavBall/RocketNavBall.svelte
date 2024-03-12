@@ -1,14 +1,11 @@
 <script lang="ts">
 	// import { quat } from '$lib/realtime/sensors';
-	import { SlideToggle } from '@skeletonlabs/skeleton';
-	import { tweened } from 'svelte/motion';
+	import Timeline from '$lib/components/Common/Timeline/Timeline.svelte';
 	import { Euler, MathUtils, Matrix4, Quaternion, Vector3, type EulerOrder } from 'three';
 	import NavBall from './NavBall/NavBall.svelte';
 	import { RocketQuat } from './types';
-	import Timeline from '$lib/components/Common/Timeline/Timeline.svelte';
 
 	let ninetyDegVerticalRot = new Quaternion();
-	let useRocketModel = false;
 
 	ninetyDegVerticalRot.setFromAxisAngle(new Vector3(1, 0, 0), Math.PI / 2);
 
@@ -74,17 +71,6 @@
 	<span class="text-right">{upright(latestReportedRotation) ? 'Up' : 'Down'}</span>
 </div>
 
-<!-- Flex horizontal center -->
-<div class="z-10 absolute top-2 right-2 variant-glass p-2 flex gap-2 place-items-center">
-	<i class="fa-solid fa-globe"></i>
-	<SlideToggle name="slide" bind:checked={useRocketModel}></SlideToggle>
-	<i class="fa-solid fa-rocket"></i>
-</div>
-
-<div class="z-10 absolute bottom-0 left-0 right-0 variant-glass h-12">
-	<Timeline></Timeline>
-</div>
-
 <div class="z-0 absolute w-full h-full">
-	<NavBall targetRotation={latestReportedRotation} bind:useRocketModel />
+	<NavBall targetRotation={latestReportedRotation} />
 </div>
