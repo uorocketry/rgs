@@ -1,7 +1,7 @@
 <script lang="ts">
 	import { T } from '@threlte/core';
-	import { useTexture } from '@threlte/extras';
-	import { Quaternion } from 'three';
+	import { Billboard, MeshLineGeometry, MeshLineMaterial, useTexture } from '@threlte/extras';
+	import { Quaternion, Vector3 } from 'three';
 	import navballfrag from './NavBallShader/fragment.glsl?raw';
 	import navballvert from './NavBallShader/vertex.glsl?raw';
 
@@ -22,7 +22,33 @@
 	});
 </script>
 
-<T.OrthographicCamera makeDefault={true} position={[0, 0, 10]} zoom={200} />
+<T.OrthographicCamera makeDefault={true} position={[0, 0, 20]} zoom={200} />
+
+<Billboard position={[0, 0, 2]}>
+	<T.Mesh>
+		<T.SphereGeometry args={[0.02]} />
+		<T.MeshBasicMaterial color="orange" />
+	</T.Mesh>
+
+	<T.Mesh>
+		<MeshLineGeometry
+			points={[
+				new Vector3(0, 0.5),
+				new Vector3(0.25, 0.5),
+				new Vector3(0.5, 0.25),
+				new Vector3(0.75, 0.5),
+				new Vector3(1, 0.5)
+			].map((v) => {
+				v.x *= 0.5;
+				v.y *= 0.5;
+				v.x -= 0.25;
+				v.y -= 0.25;
+				return v;
+			})}
+		/>
+		<MeshLineMaterial width={0.015} color="orange" />
+	</T.Mesh>
+</Billboard>
 
 {#await map then tex}
 	<T.Mesh quaternion={[displayRotation.x, displayRotation.y, displayRotation.z, displayRotation.w]}>

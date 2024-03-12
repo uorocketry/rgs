@@ -1,5 +1,6 @@
 <script lang="ts">
 	import { Canvas } from '@threlte/core';
+	import { Environment } from '@threlte/extras';
 	import { Quaternion } from 'three/src/Three.js';
 	import NavBallScene from './NavBallScene.svelte';
 	export let targetRotation: Quaternion = new Quaternion();
@@ -11,11 +12,11 @@
 
 <div bind:clientHeight={h} bind:clientWidth={w} class="grid place-items-center w-full h-full">
 	<div
-		class="navball-wrapper"
+		class="navball-wrapper relative"
 		style="
-		width: {squareSize}px;
-		height: {squareSize}px;
-	"
+	width: {squareSize}px;
+	height: {squareSize}px;
+"
 	>
 		<Canvas
 			size={{
@@ -23,6 +24,8 @@
 				width: 500
 			}}
 		>
+			<Environment path={'/textures/cubemap/'} files={'road.hdr'} isBackground={true} />
+
 			<NavBallScene bind:targetRotation />
 		</Canvas>
 	</div>

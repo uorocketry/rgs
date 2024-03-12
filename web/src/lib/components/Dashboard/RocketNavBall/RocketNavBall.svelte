@@ -1,5 +1,6 @@
 <script lang="ts">
 	import { MathUtils, Quaternion, Vector3 } from 'three';
+	import { DEG2RAD } from 'three/src/math/MathUtils.js';
 	import HeadingCompass from './HeadingCompass/HeadingCompass.svelte';
 	import NavBall from './NavBall/NavBall.svelte';
 	import { RocketQuat } from './types';
@@ -54,6 +55,6 @@
 	<NavBall targetRotation={latestReportedRotation} />
 </div>
 
-<div class="z-0 absolute h-full w-full">
-	<HeadingCompass {heading} />
+<div class="z-0 absolute h-full w-full pointer-events-none">
+	<HeadingCompass heading={heading * DEG2RAD} />
 </div>
