@@ -30,8 +30,7 @@
 	$: upTransformed = new Vector3(0, 1, 0).applyQuaternion(latestReportedRotation);
 	$: pitch = MathUtils.radToDeg(Math.asin(upTransformed.y));
 
-	$: heading =
-		(MathUtils.radToDeg(Math.atan2(upTransformed.x, upTransformed.z)) + 360 + 180 + 90) % 360;
+	$: heading = (MathUtils.radToDeg(Math.atan2(upTransformed.x, upTransformed.z)) + 360 + 90) % 360;
 
 	$: transformed = new Vector3(0, 0, -1).applyQuaternion(latestReportedRotation);
 	$: roll = MathUtils.radToDeg(Math.atan2(transformed.x, transformed.z) + Math.PI);
