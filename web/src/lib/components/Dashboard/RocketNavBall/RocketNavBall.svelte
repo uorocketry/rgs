@@ -41,8 +41,6 @@
 	<span class="text-right">{roll.toFixed(2)}°</span>
 	<span>Pitch</span>
 	<span class="text-right">{pitch.toFixed(2)}°</span>
-	<span>Heading</span>
-	<span class="text-right">{heading.toFixed(2)}°</span>
 
 	<span>Pointing</span>
 	<span class="text-right">{pitch > 0 ? 'Up' : 'Down'}</span>
