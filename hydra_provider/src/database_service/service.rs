@@ -1,7 +1,8 @@
 use std::sync::Arc;
 use sqlx::PgPool;
 
-use crate::data_feed_service::message::HydraInput;
+use crate::hydra_input::HydraInput;
+use crate::database_service::hydra_input::saveable::SaveableData;
 
 pub struct DatabaseService {
 	pool: Arc<PgPool>,
@@ -14,7 +15,21 @@ impl DatabaseService {
 		}
 	}
 
-	pub fn save(&self, message: HydraInput) {
-		
+	pub async fn save(&self, hydra_input: HydraInput) {
+		let mut transaction = self.pool.begin().await.unwrap();
+		let result = match hydra_input {
+			HydraInput::Heartbeat(message) => message.save(&mut transaction, 0).await,
+			HydraInput::RadioStatus(message) => message.save(&mut transaction, 0).await,
+			HydraInput::Message(message) => message.save(&mut transaction, 0).await
+		};
+
+		match result {
+			Ok(_) => transaction.commit().await,
+			Err(error) => {
+				transaction.rollback().await;
+
+				Err(error)
+			}
+		};
 	}
 }

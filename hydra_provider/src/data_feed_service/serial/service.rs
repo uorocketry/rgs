@@ -33,7 +33,7 @@ impl<'a> SerialDataFeedService<'_> {
 }
 
 #[async_trait]
-impl SerialDataFeed for SerialDataFeedService {
+impl SerialDataFeed for SerialDataFeedService<'static> {
 	async fn start(&self, _request: Request<Empty>) -> Result<Response<Empty>, Status> {
 		self.iterator.is_running.store(true, Ordering::Relaxed);
 

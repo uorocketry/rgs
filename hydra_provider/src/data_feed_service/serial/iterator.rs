@@ -4,7 +4,7 @@ use messages::mavlink::MavConnection;
 use postcard::from_bytes;
 use log::info;
 
-use crate::data_feed_service::message::HydraInput;
+use crate::hydra_input::HydraInput;
 use messages::Message;
 use crate::data_feed_service::proto::SerialDataFeedConfig;
 

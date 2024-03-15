@@ -1,2 +1,4 @@
 pub mod service;
-pub mod messages;
+pub mod hydra_input;
+
+pub use service::DatabaseService;

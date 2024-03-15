@@ -4,7 +4,7 @@ use tonic::{async_trait, Request, Response, Status};
 use log::info;
 
 use crate::database_service::DatabaseService;
-use crate::data_feed_service::message::HydraInput;
+use crate::hydra_input::HydraInput;
 use crate::data_feed_service::random::iterator::RandomDataFeedIterator;
 
 use crate::data_feed_service::proto::random_data_feed_server::*;
@@ -29,7 +29,7 @@ impl<'a> RandomDataFeedService<'_> {
 }
 
 #[async_trait]
-impl RandomDataFeed for RandomDataFeedService {
+impl RandomDataFeed for RandomDataFeedService<'static> {
 	async fn start(&self, _request: Request<Empty>) -> Result<Response<Empty>, Status> {
 		self.iterator.is_running.store(true, Ordering::Relaxed);
 

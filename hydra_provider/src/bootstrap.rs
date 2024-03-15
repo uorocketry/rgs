@@ -32,5 +32,6 @@ pub async fn bootstrap(
 		.add_service(health_service)
 		.add_service(SerialDataFeedServer::new(serial_data_feed_service))
 		.add_service(RandomDataFeedServer::new(random_data_feed_service))
-		.serve(server_address);
+		.serve(server_address)
+		.await;
 }
