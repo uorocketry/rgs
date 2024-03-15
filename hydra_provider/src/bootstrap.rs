@@ -14,7 +14,7 @@ use tonic_health::server::HealthService;
 pub async fn bootstrap(
 	server_port: u32,
 	database_address: String,
-) -> () {
+) {
 	let server_address: SocketAddr = format!("[::1]:{}", server_port).parse().unwrap();
 
 	let database_service = DatabaseService::new(&database_address.as_str()).await;
@@ -23,13 +23,13 @@ pub async fn bootstrap(
 
 	let (
 		mut health_reporter, 
-		health_service
+		health_server
 	) = health_reporter();
 
 	health_reporter.set_serving::<HealthServer<HealthService>>().await;
 
 	Server::builder()
-		.add_service(health_service)
+		.add_service(health_server)
 		.add_service(SerialDataFeedServer::new(serial_data_feed_service))
 		.add_service(RandomDataFeedServer::new(random_data_feed_service))
 		.serve(server_address)
