@@ -1,63 +1,64 @@
 <script lang="ts">
-	import { T, useTask } from '@threlte/core';
-	import { useTexture } from '@threlte/extras';
-	import { PerspectiveCamera, Quaternion } from 'three';
+	import { T } from '@threlte/core';
+	import { Billboard, MeshLineGeometry, MeshLineMaterial, useTexture } from '@threlte/extras';
+	import { Quaternion, Vector3 } from 'three';
+	import navballfrag from './NavBallShader/fragment.glsl?raw';
+	import navballvert from './NavBallShader/vertex.glsl?raw';
 
-	import { DEG2RAD } from 'three/src/math/MathUtils.js';
+	import { useTask } from '@threlte/core';
 
 	const map = useTexture('textures/navball.png');
 	map.then((tex) => {
 		tex.anisotropy = 32;
+		tex.colorSpace = 'srgb-linear';
 	});
 
 	export let targetRotation: Quaternion = new Quaternion();
 
 	let displayRotation: Quaternion = targetRotation.clone();
 
-	$: invertDisplayRotation = displayRotation.clone().invert();
-
-	let camera: PerspectiveCamera;
 	useTask((delta) => {
 		displayRotation = displayRotation.slerp(targetRotation, 5 * delta);
 	});
 </script>
 
-<!-- Camera always follows top of axes -->
-<T.PerspectiveCamera
-	bind:ref={camera}
-	makeDefault
-	fov={60}
-	position={[0, 4, 0]}
-	near={0.1}
-	far={1000}
-	aspect={1}
-	on:create={({ ref }) => {
-		ref.lookAt(0, 0, 0);
-		ref.rotation.z = -DEG2RAD * 90;
-	}}
-></T.PerspectiveCamera>
+<T.OrthographicCamera makeDefault={true} position={[0, 0, 20]} zoom={200} />
 
-<T.PolarGridHelper args={[15, 15, 8, 64]} />
+<Billboard position={[0, 0, 2]}>
+	<T.Mesh>
+		<T.SphereGeometry args={[0.02]} />
+		<T.MeshBasicMaterial color="orange" />
+	</T.Mesh>
 
-<T.Mesh
-	quaternion={[
-		invertDisplayRotation.x,
-		invertDisplayRotation.y,
-		invertDisplayRotation.z,
-		invertDisplayRotation.w
-	]}
->
-	<T.SphereGeometry args={[1, 64, 32]} />
-	{#await map then tex}
-		<T.MeshStandardMaterial map={tex} />
-	{/await}
-</T.Mesh>
-<T.Mesh position={[0, 1, 0]}>
-	<T.SphereGeometry args={[0.05, 10, 2]} />
-	<T.MeshStandardMaterial color={[1, 0, 0]} />
-</T.Mesh>
+	<T.Mesh>
+		<MeshLineGeometry
+			points={[
+				new Vector3(0, 0.5),
+				new Vector3(0.25, 0.5),
+				new Vector3(0.5, 0.25),
+				new Vector3(0.75, 0.5),
+				new Vector3(1, 0.5)
+			].map((v) => {
+				v.x *= 0.5;
+				v.y *= 0.5;
+				v.x -= 0.25;
+				v.y -= 0.25;
+				return v;
+			})}
+		/>
+		<MeshLineMaterial width={0.015} color="orange" />
+	</T.Mesh>
+</Billboard>
 
-<T.AxesHelper
-	args={[5]}
-	quaternion={[displayRotation.x, displayRotation.y, displayRotation.z, displayRotation.w]}
-></T.AxesHelper>
+{#await map then tex}
+	<T.Mesh quaternion={[displayRotation.x, displayRotation.y, displayRotation.z, displayRotation.w]}>
+		<T.SphereGeometry />
+		<T.ShaderMaterial
+			fragmentShader={navballfrag}
+			vertexShader={navballvert}
+			uniforms={{
+				uTexture: { value: tex }
+			}}
+		/>
+	</T.Mesh>
+{/await}
