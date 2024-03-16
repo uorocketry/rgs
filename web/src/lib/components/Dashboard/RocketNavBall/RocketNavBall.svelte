@@ -1,9 +1,9 @@
 <script lang="ts">
-	// import { quat } from '$lib/realtime/sensors';
-	import { Euler, MathUtils, Matrix4, Quaternion, Vector3, type EulerOrder } from 'three';
+	import { MathUtils, Quaternion, Vector3 } from 'three';
+	import { DEG2RAD } from 'three/src/math/MathUtils.js';
+	import HeadingCompass from './HeadingCompass/HeadingCompass.svelte';
 	import NavBall from './NavBall/NavBall.svelte';
 	import { RocketQuat } from './types';
-	import { onMount } from 'svelte';
 
 	let ninetyDegVerticalRot = new Quaternion();
 
@@ -30,25 +30,28 @@
 	$: upTransformed = new Vector3(0, 1, 0).applyQuaternion(latestReportedRotation);
 	$: pitch = MathUtils.radToDeg(Math.asin(upTransformed.y));
 
-	$: heading =
-		(MathUtils.radToDeg(Math.atan2(upTransformed.x, upTransformed.z)) + 360 + 180 + 90) % 360;
+	$: heading = (MathUtils.radToDeg(Math.atan2(upTransformed.x, upTransformed.z)) + 360 + 90) % 360;
 
 	$: transformed = new Vector3(0, 0, -1).applyQuaternion(latestReportedRotation);
 	$: roll = MathUtils.radToDeg(Math.atan2(transformed.x, transformed.z) + Math.PI);
 </script>
 
-<div class="z-10 absolute top-2 left-2 variant-glass p-2 grid grid-cols-2">
+<div class="z-10 absolute top-2 left-2 variant-glass p-2 grid grid-cols-2 text-dark-token">
 	<span>Roll</span>
 	<span class="text-right">{roll.toFixed(2)}°</span>
 	<span>Pitch</span>
 	<span class="text-right">{pitch.toFixed(2)}°</span>
-	<span>Heading</span>
-	<span class="text-right">{heading.toFixed(2)}°</span>
 
 	<span>Pointing</span>
 	<span class="text-right">{pitch > 0 ? 'Up' : 'Down'}</span>
 </div>
 
-<div class="z-0 absolute w-full h-full">
+<div class="absolute bg-black h-full w-full"></div>
+
+<div class="z-0 absolute inset-0">
 	<NavBall targetRotation={latestReportedRotation} />
+</div>
+
+<div class="z-0 absolute h-full w-full pointer-events-none">
+	<HeadingCompass heading={heading * DEG2RAD} />
 </div>
