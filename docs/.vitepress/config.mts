@@ -2,6 +2,7 @@ import { defineConfig } from "vitepress";
 
 // https://vitepress.dev/reference/site-config
 export default defineConfig({
+    base: "/rgs/",
     ignoreDeadLinks: true,
     title: "RGS Docs",
     description: "RGS Documentation",
