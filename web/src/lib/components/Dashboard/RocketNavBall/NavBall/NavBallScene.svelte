@@ -1,74 +1,64 @@
 <script lang="ts">
 	import { T } from '@threlte/core';
-	import { OrbitControls, useTexture } from '@threlte/extras';
-	import { tweened, type Tweened } from 'svelte/motion';
-	import { Euler, Quaternion, type EulerOrder } from 'three';
-	import Lazy from '../../../Common/Lazy.svelte';
+	import { Billboard, MeshLineGeometry, MeshLineMaterial, useTexture } from '@threlte/extras';
+	import { Quaternion, Vector3 } from 'three';
+	import navballfrag from './NavBallShader/fragment.glsl?raw';
+	import navballvert from './NavBallShader/vertex.glsl?raw';
+
+	import { useTask } from '@threlte/core';
+
 	const map = useTexture('textures/navball.png');
 	map.then((tex) => {
 		tex.anisotropy = 32;
+		tex.colorSpace = 'srgb-linear';
 	});
 
-	export let useRocketModel = false;
 	export let targetRotation: Quaternion = new Quaternion();
 
-	let tweenedRotation: Tweened<Quaternion> = tweened(targetRotation, {
-		duration: 100,
-		interpolate: (a, b) => {
-			return (t) => {
-				return a.slerp(b, t);
-			};
-		}
+	let displayRotation: Quaternion = targetRotation.clone();
+
+	useTask((delta) => {
+		displayRotation = displayRotation.slerp(targetRotation, 5 * delta);
 	});
-
-	let targetRotationEuler: Euler = new Euler();
-	$: {
-		if (targetRotation) {
-			targetRotation = targetRotation;
-		}
-		targetRotationEuler.setFromQuaternion(targetRotation);
-		targetRotationEuler = targetRotationEuler;
-		tweenedRotation.set(targetRotation);
-	}
-
-	let rot: [number, number, number, EulerOrder];
-	$: {
-		const euler = new Euler().setFromQuaternion($tweenedRotation);
-		rot = [euler.x, euler.y, euler.z, 'YZX'];
-	}
 </script>
 
-<T.PerspectiveCamera
-	makeDefault
-	fov={60}
-	position={[0, 35, 0]}
-	near={0.1}
-	far={1000}
-	aspect={1}
-	on:create={({ ref }) => {
-		ref.lookAt(0, 1, 0);
-	}}
->
-	<OrbitControls enableDamping />
-</T.PerspectiveCamera>
+<T.OrthographicCamera makeDefault={true} position={[0, 0, 20]} zoom={200} />
 
-<T.PolarGridHelper args={[15, 15, 8, 64]} />
+<Billboard position={[0, 0, 2]}>
+	<T.Mesh>
+		<T.SphereGeometry args={[0.02]} />
+		<T.MeshBasicMaterial color="orange" />
+	</T.Mesh>
 
-{#if useRocketModel}
-	<Lazy
-		this={async () => (await import('$lib/components/models/Rocket.svelte')).default}
-		rotation={rot}
-		scale={0.75}
-	></Lazy>
-{:else}
-	{#await map then tex}
-		<T.Mesh bind:rotation={rot}>
-			<T.SphereGeometry args={[10, 64, 32]} />
-			<T.MeshStandardMaterial map={tex} />
-		</T.Mesh>
-		<T.Mesh position.y="10">
-			<T.SphereGeometry args={[0.3, 10, 2]} />
-			<T.MeshStandardMaterial color={[1, 0, 1]} />
-		</T.Mesh>
-	{/await}
-{/if}
+	<T.Mesh>
+		<MeshLineGeometry
+			points={[
+				new Vector3(0, 0.5),
+				new Vector3(0.25, 0.5),
+				new Vector3(0.5, 0.25),
+				new Vector3(0.75, 0.5),
+				new Vector3(1, 0.5)
+			].map((v) => {
+				v.x *= 0.5;
+				v.y *= 0.5;
+				v.x -= 0.25;
+				v.y -= 0.25;
+				return v;
+			})}
+		/>
+		<MeshLineMaterial width={0.015} color="orange" />
+	</T.Mesh>
+</Billboard>
+
+{#await map then tex}
+	<T.Mesh quaternion={[displayRotation.x, displayRotation.y, displayRotation.z, displayRotation.w]}>
+		<T.SphereGeometry />
+		<T.ShaderMaterial
+			fragmentShader={navballfrag}
+			vertexShader={navballvert}
+			uniforms={{
+				uTexture: { value: tex }
+			}}
+		/>
+	</T.Mesh>
+{/await}
