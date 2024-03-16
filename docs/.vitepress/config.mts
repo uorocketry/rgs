@@ -1,15 +1,20 @@
 import { defineConfig } from "vitepress";
 
-// https://vitepress.dev/reference/site-config
 export default defineConfig({
     base: "/rgs/",
     ignoreDeadLinks: true,
     title: "RGS Docs",
     description: "RGS Documentation",
     themeConfig: {
+        search: {
+            provider: "local",
+        },
+        lastUpdated: {},
         logo: "static/icon_bg.png",
+        editLink: {
+            pattern: "https://github.com/uorocketry/rgs/edit/main/docs/:path",
+        },
 
-        // https://vitepress.dev/reference/default-theme-config
         nav: [
             { text: "Home", link: "/" },
             { text: "Guide", link: "/guide/" },
