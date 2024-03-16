@@ -2,9 +2,9 @@
 
 ## Overview
 
-The Rocketry Ground Station (RGS) is a web-based ground station for uORocketry.
+The Rocket Ground Station (RGS) holds the infrastructure for the next generation ground station for the University of Ottawa's Rocketry Team.
 
-It is designed to be extensible and easy to use, with a focus on visualizing and logging data from the rocket.
+It is designed to be extensible and easy to use, with a focus on logging and visualizing data from the rocket.
 
 ## Tech Stack
 

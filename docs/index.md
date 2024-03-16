@@ -4,7 +4,7 @@ layout: home
 
 hero:
   name: "RGS"
-  text: "Rocketry Ground Station"
+  text: "Rocket Ground Station"
   tagline: "uORocketry's next generation ground station"
   actions:
     - theme: brand
