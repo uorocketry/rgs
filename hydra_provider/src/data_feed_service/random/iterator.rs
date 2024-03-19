@@ -6,15 +6,16 @@ use rand::{rngs::StdRng, SeedableRng};
 
 use messages::{command::Command, health::Health, sensor::{Air, EkfNav1, EkfNav2, EkfQuat, GpsPos1, GpsPos2, GpsVel, Imu1, Imu2, Sensor, UtcTime}, state::{State, StateData}, Data, Log, Message};
 
+use crate::hydra_input::HydraInput;
 
+
+#[derive(Clone)]
 pub struct RandomDataFeedIterator {
 	pub is_running: Arc<AtomicBool>,
 }
 
-impl Iterator for RandomDataFeedIterator {
-	type Item = Message;
-
-	fn next(&mut self) -> Option<Message> {
+impl RandomDataFeedIterator {
+	pub async fn next(&mut self) -> Option<HydraInput> {
 		if !self.is_running.load(Ordering::Relaxed) {
 			return None
 		}
@@ -174,7 +175,11 @@ impl Iterator for RandomDataFeedIterator {
 			}),
 			_ => Data::Sensor(sensor),
 		};
-	
-		Some(Message::new(&time, messages::sender::Sender::GroundStation, data))
+
+		Some(
+			HydraInput::Message(
+				Message::new(&time, messages::sender::Sender::GroundStation, data)
+			)
+		)
 	}
 }

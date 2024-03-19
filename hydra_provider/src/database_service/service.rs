@@ -15,7 +15,7 @@ impl DatabaseService {
 		}
 	}
 
-	pub async fn save(&self, hydra_input: HydraInput) {
+	pub async fn save(&self, hydra_input: HydraInput) -> Result<(), sqlx::Error> {
 		let mut transaction = self.pool.begin().await.unwrap();
 		let result = match hydra_input {
 			HydraInput::Heartbeat(message) => message.save(&mut transaction, 0).await,
@@ -26,10 +26,12 @@ impl DatabaseService {
 		match result {
 			Ok(_) => transaction.commit().await,
 			Err(error) => {
-				transaction.rollback().await;
-
+				let rollback_result = transaction.rollback().await;
+				if rollback_result.is_err() {
+					return rollback_result;
+				}
 				Err(error)
 			}
-		};
+		}
 	}
 }

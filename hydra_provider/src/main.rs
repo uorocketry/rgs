@@ -26,10 +26,10 @@ struct CliArgs {
 }
 
 #[tokio::main]
-async fn main() {
+async fn main() -> Result<(), tonic::transport::Error> {
 	let args = CliArgs::parse();
 	bootstrap(
 		args.port,
 		args.database_address
-	).await;
+	).await
 }

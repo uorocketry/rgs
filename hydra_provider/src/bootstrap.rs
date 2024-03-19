@@ -1,4 +1,6 @@
 use std::net::SocketAddr;
+use std::sync::Arc;
+use tokio::sync::Mutex;
 
 // use crate::commands::service::CommandService;
 use crate::data_feed_service::serial::{SerialDataFeedService, SerialDataFeedServer};
@@ -14,12 +16,12 @@ use tonic_health::server::HealthService;
 pub async fn bootstrap(
 	server_port: u32,
 	database_address: String,
-) {
+) -> Result<(), tonic::transport::Error> {
 	let server_address: SocketAddr = format!("[::1]:{}", server_port).parse().unwrap();
 
-	let database_service = DatabaseService::new(&database_address.as_str()).await;
-	let serial_data_feed_service = SerialDataFeedService::new(&database_service);
-	let random_data_feed_service = RandomDataFeedService::new(&database_service);
+	let database_service = Arc::new(Mutex::new(DatabaseService::new(&database_address.as_str()).await));
+	let serial_data_feed_service = SerialDataFeedService::new(database_service.clone());
+	let random_data_feed_service = RandomDataFeedService::new(database_service.clone());
 
 	let (
 		mut health_reporter, 
@@ -33,5 +35,5 @@ pub async fn bootstrap(
 		.add_service(SerialDataFeedServer::new(serial_data_feed_service))
 		.add_service(RandomDataFeedServer::new(random_data_feed_service))
 		.serve(server_address)
-		.await;
+		.await
 }
