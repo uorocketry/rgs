@@ -1,7 +1,7 @@
-mod database_service;
+mod bootstrap;
 mod command_service;
 mod data_feed_service;
-mod bootstrap;
+mod database_service;
 mod hydra_input;
 mod utils;
 
@@ -13,24 +13,21 @@ use clap::Parser;
 #[derive(Parser, Debug)]
 #[command(version, about, long_about = None)]
 struct CliArgs {
-	// Port to serve the gRPC server on
-	#[arg(short, long, default_value_t = 3000)]
-	port: u32,
+    // Port to serve the gRPC server on
+    #[arg(short, long, default_value_t = 3000)]
+    port: u32,
 
-	// Postgres DB Address
-	#[arg(
+    // Postgres DB Address
+    #[arg(
 		short,
 		long = "db",
 		default_value_t = String::from_str("postgres://postgres:postgres@localhost:5432/postgres").unwrap()
 	)]
-	database_address: String,
+    database_address: String,
 }
 
 #[tokio::main]
 async fn main() -> Result<(), tonic::transport::Error> {
-	let args = CliArgs::parse();
-	bootstrap(
-		args.port,
-		args.database_address
-	).await
+    let args = CliArgs::parse();
+    bootstrap(args.port, args.database_address).await
 }

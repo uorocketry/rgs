@@ -1,14 +1,14 @@
-use sqlx::{query, Postgres, Transaction, postgres::PgQueryResult, Error};
-use messages::sensor::UtcTime;
 use crate::database_service::hydra_input::saveable::SaveableData;
+use messages::sensor::UtcTime;
+use sqlx::{postgres::PgQueryResult, query, Error, Postgres, Transaction};
 
 impl SaveableData for UtcTime {
-	async fn save(
-		&self,
-		transaction: &mut Transaction<'_, Postgres>,
-		rocket_message_id: i32,
-	) -> Result<PgQueryResult, Error> {
-		query!(
+    async fn save(
+        &self,
+        transaction: &mut Transaction<'_, Postgres>,
+        rocket_message_id: i32,
+    ) -> Result<PgQueryResult, Error> {
+        query!(
 			"INSERT INTO rocket_sensor_utc_time
 			(rocket_sensor_message_id, time_stamp, status, year, month, day, hour, minute, second, nano_second, gps_time_of_week)
 			VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)",
@@ -26,5 +26,5 @@ impl SaveableData for UtcTime {
 		)
 		.execute(&mut **transaction)
 		.await
-	}
+    }
 }
