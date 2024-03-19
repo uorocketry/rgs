@@ -47,6 +47,7 @@ impl SerialDataFeed for SerialDataFeedService {
 				// SHOULD DO: figure out how to handle database save errors better
 				let _ = database_service.lock().await.save(message).await;
 			}
+			info!("SerialDataFeedService has stopped.");
 		});
 
 		Ok(Response::new(Empty {}))

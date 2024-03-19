@@ -42,6 +42,7 @@ impl RandomDataFeed for RandomDataFeedService {
 				// SHOULD DO: figure out how to handle database save errors better
 				let _ = database_service.lock().await.save(message).await;
 			}
+			info!("RandomDataFeedService has stopped.");
 		});
 
 		Ok(Response::new(Empty {}))
