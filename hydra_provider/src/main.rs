@@ -3,6 +3,7 @@ mod command_service;
 mod data_feed_service;
 mod bootstrap;
 mod hydra_input;
+mod utils;
 
 use std::str::FromStr;
 

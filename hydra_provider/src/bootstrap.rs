@@ -6,6 +6,7 @@ use tokio::sync::Mutex;
 use crate::data_feed_service::serial::{SerialDataFeedService, SerialDataFeedServer};
 use crate::data_feed_service::random::{RandomDataFeedService, RandomDataFeedServer};
 use crate::database_service::DatabaseService;
+use crate::utils::logging::log_request;
 
 use tonic::transport::Server;
 use tonic_health::server::health_reporter;
@@ -30,10 +31,11 @@ pub async fn bootstrap(
 
 	health_reporter.set_serving::<HealthServer<HealthService>>().await;
 
+	println!("gRPC Server running at {}", server_address);
 	Server::builder()
 		.add_service(health_server)
-		.add_service(SerialDataFeedServer::new(serial_data_feed_service))
-		.add_service(RandomDataFeedServer::new(random_data_feed_service))
+		.add_service(SerialDataFeedServer::with_interceptor(serial_data_feed_service, log_request))
+		.add_service(RandomDataFeedServer::with_interceptor(random_data_feed_service, log_request))
 		.serve(server_address)
 		.await
 }
