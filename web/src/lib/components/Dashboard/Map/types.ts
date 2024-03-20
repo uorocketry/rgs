@@ -15,3 +15,6 @@ export const LatestAltitudeMeasurements = subscriptionStore({
 	client: gqlClient,
 	query: LatestAltidudeDocument
 });
+
+//assumption: gps position 1 is latitude
+//assumption: gps position 2 is longitude

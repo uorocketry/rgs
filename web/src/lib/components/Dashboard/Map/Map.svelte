@@ -32,7 +32,7 @@
 			sceneModePicker: false,
 			
 			//extra: enables animation in the viewer
-			shouldAnimate:false,
+			shouldAnimate: true,
 
 			baseLayer: new Cesium.ImageryLayer(
 				new Cesium.UrlTemplateImageryProvider({
@@ -142,8 +142,6 @@
 			);
 		}, 100);
 
-		viewer.trackedEntity = circlingPoint;
-
 
 		var test = viewer.entities.add({
 			position: ottawaPosition,
@@ -167,14 +165,24 @@
 
 		// Subscribe to altitude changes and update label text
 		LatestAltitudeMeasurements.subscribe((data: any) => {
+			console.log('data:', data);
 			var altitude = data.data.rocket_sensor_air[0].altitude;
+			console.log('Altitude:', altitude);
 	
 			if (test.label) {
 				test.label.text = new Cesium.ConstantProperty(`Altitude: ${altitude} meters`);
+				const zPosition = altitude * 1000; //adjust scale factor etc
+				test.position = new Cesium.ConstantPositionProperty(
+					Cesium.Cartesian3.fromDegrees(-75.69, 45.42, zPosition)
+				);
 			}
 		});
-	
+		
+		viewer.trackedEntity = test;
 		//viewer.zoomTo(arc);
+		//viewer.trackedEntity = circlingPoint;
+
+		
 
 		// Delete "cesium-widget-credits" after the viewer is created
 		setTimeout(() => {
