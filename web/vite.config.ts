@@ -26,7 +26,11 @@ const config = (mode: string) => {
 				'/hasura': {
 					target: 'http://localhost:4000/console'
 				}
-			}
+			},
+			// Serve rocket.glb from the public directory
+            fs: {
+                allow: ['./static/models']
+            }
 		},
 
 		plugins: [

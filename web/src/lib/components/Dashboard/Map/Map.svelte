@@ -1,9 +1,9 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
-	//import { Viewer } from 'cesium';	
-	import { Viewer, SampledPositionProperty, Cartesian3, VelocityVectorProperty, Math as CesiumMath, JulianDate, CallbackProperty, Quaternion, NodeTransformationProperty, Color, DistanceDisplayCondition } from 'cesium';
+	import { Viewer } from 'cesium';	
 	import '../../../../../node_modules/cesium/Build/Cesium/Widgets/widgets.css';
 	import * as Cesium from 'cesium';
+	
 
 	//extra
 	//import { LatestAltitudeMeasurements } from "./types"
@@ -58,7 +58,7 @@
 			}
 		});
 
-		viewer.flyTo(ottawa);
+		//viewer.flyTo(ottawa);
 
 		// Create an arc between Ottawa and Toronto
 		var ottawaPosition = Cesium.Cartesian3.fromDegrees(-75.69, 45.42, 1000);
@@ -143,9 +143,16 @@
 			);
 		}, 100);
 
+		//viewer.trackedEntity = circlingPoint;
 
 		var test = viewer.entities.add({
 			position: ottawaPosition,
+			model: {
+				uri: "../../../../../static/models/rocket.glb",
+				runAnimations: false,
+				scale: 1.0, // Optional: Adjust the scale of the model if needed
+       			minimumPixelSize: 50 // Optional: Minimum pixel size for the model*/
+			},
 			label: {
 				text: 'Altitude: 1000 meters', // Initial altitude label
 				font: '14px sans-serif',
@@ -153,16 +160,18 @@
 				outlineColor: Cesium.Color.BLACK,
 				outlineWidth: 2,
 				style: Cesium.LabelStyle.FILL_AND_OUTLINE,
-				pixelOffset: new Cesium.Cartesian2(0, -30), // Offset label position
+				pixelOffset: new Cesium.Cartesian2(0, -100), // Offset label position
 				//heightReference: Cesium.HeightReference.CLAMP_TO_GROUND, // Altitude relative to ground
 				backgroundColor: Cesium.Color.WHITE
 			},
-				point: {
+				/*point: {
 				pixelSize: 10,
 				color: Cesium.Color.BLACK
-			},
+			},*/
 
 		})
+
+		viewer.flyTo(test);
 
 		// Subscribe to altitude changes and update label text
 		/*LatestAltitudeMeasurements.subscribe((data: any) => {
@@ -200,9 +209,9 @@
 			}
 		});
 		
+
 		viewer.trackedEntity = test;
 		//viewer.zoomTo(arc);
-		//viewer.trackedEntity = circlingPoint;
 
 		
 
