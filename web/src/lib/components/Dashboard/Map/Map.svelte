@@ -6,7 +6,8 @@
 	import * as Cesium from 'cesium';
 
 	//extra
-	import { LatestAltitudeMeasurements } from "./types"
+	//import { LatestAltitudeMeasurements } from "./types"
+	import {LatestCoordinates} from "./types"
 
 	// TODOS:
 	// - Add launch coordinates
@@ -164,16 +165,37 @@
 		})
 
 		// Subscribe to altitude changes and update label text
-		LatestAltitudeMeasurements.subscribe((data: any) => {
+		/*LatestAltitudeMeasurements.subscribe((data: any) => {
 			console.log('data:', data);
 			var altitude = data.data.rocket_sensor_air[0].altitude;
 			console.log('Altitude:', altitude);
+
 	
 			if (test.label) {
 				test.label.text = new Cesium.ConstantProperty(`Altitude: ${altitude} meters`);
 				const zPosition = altitude * 1000; //adjust scale factor etc
 				test.position = new Cesium.ConstantPositionProperty(
 					Cesium.Cartesian3.fromDegrees(-75.69, 45.42, zPosition)
+				);
+			}
+		});*/
+
+		LatestCoordinates.subscribe((data: any) => { 
+			console.log('data:', data);
+			var latitude = data.data.rocket_sensor_gps_pos_1[0].latitude;
+			var longitude = data.data.rocket_sensor_gps_pos_1[0].longitude;
+			var altitude = data.data.rocket_sensor_gps_pos_1[0].altitude;
+
+			console.log('Altitude:', altitude);
+			console.log('Latitude:', latitude);
+			console.log('Longitude:', longitude);
+
+	
+			if (test.label) {
+				test.label.text = new Cesium.ConstantProperty(`Latitude: ${latitude}, Longitude: ${longitude}, Altitude: ${altitude} meters`);
+				const zPosition = altitude * 1000; //adjust scale factor etc
+				test.position = new Cesium.ConstantPositionProperty(
+				Cesium.Cartesian3.fromDegrees(longitude, latitude, zPosition)
 				);
 			}
 		});
