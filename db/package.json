@@ -15,9 +15,9 @@
         "purge_db": "sudo rm -rf ../data"
     },
     "devDependencies": {
+        "@types/node": "^20.11.24",
         "drizzle-kit": "^0.20.14",
-        "drizzle-orm": "^0.29.4",
-        "pg": "^8.11.3",
-        "@types/node": "^20.11.24"
+        "drizzle-orm": "^0.29.5",
+        "pg": "^8.11.3"
     }
 }
