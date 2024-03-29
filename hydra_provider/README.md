@@ -23,8 +23,9 @@ cargo run -- -p 3001
 # Use "cargo run -- --help" for more options
 ```
 
-This project uses SQLX to type check SQL queries. To build this project without the database running you can add a `SQLX_OFFLINE=tru` environment variable 
+This project uses SQLX to type check SQL queries. If by any reason you need to work with the database offline, you can first run `cargo sqlx prepare` with the database running. Alternativelly, you can set a `SQLX_OFFLINE` environment variable to `true`.
 
 ```bash
+cargo sqlx prepare
 SQLX_OFFLINE=true cargo build
 ```
