@@ -128,6 +128,19 @@
 			}
 		});
 
+		//add marker for JMTS
+		var JMTS = viewer.entities.add({
+			position : Cesium.Cartesian3.fromDegrees(-75.68033372705948, 45.42010692442428, 100),
+			point: {
+				pixelSize: 10,
+				color: Cesium.Color.BLUE
+			},
+			label: {
+				text: 'JMTS',
+				verticalOrigin: Cesium.VerticalOrigin.BOTTOM
+			}
+		})
+
 		//updates the position of the circling point
 		setInterval(() => {
 			let time = Cesium.JulianDate.now();
@@ -148,7 +161,7 @@
 		var test = viewer.entities.add({
 			position: ottawaPosition,
 			model: {
-				uri: "../../../../../static/models/rocket.glb",
+				uri: "/models/rocket.glb",
 				runAnimations: false,
 				scale: 1.0, // Optional: Adjust the scale of the model if needed
        			minimumPixelSize: 50 // Optional: Minimum pixel size for the model*/
@@ -171,7 +184,8 @@
 
 		})
 
-		viewer.flyTo(test);
+		//viewer.flyTo(test);
+		viewer.flyTo(JMTS);
 
 		// Subscribe to altitude changes and update label text
 		/*LatestAltitudeMeasurements.subscribe((data: any) => {
@@ -189,6 +203,7 @@
 			}
 		});*/
 
+		
 		LatestCoordinates.subscribe((data: any) => { 
 			console.log('data:', data);
 			var latitude = data.data.rocket_sensor_gps_pos_1[0].latitude;
@@ -209,6 +224,35 @@
 			}
 		});
 		
+		
+
+		/*
+		$: {
+			const data = $LatestCoordinates.data; // $LatestCoordinates is the store
+		
+			if (data) {
+				var latitude = data.rocket_sensor_gps_pos_1[0].latitude;
+				var longitude = data.rocket_sensor_gps_pos_1[0].longitude;
+				var altitude = data.rocket_sensor_gps_pos_1[0].altitude;
+
+				console.log('Altitude:', altitude);
+				console.log('Latitude:', latitude);
+				console.log('Longitude:', longitude);
+
+				console.log("Test label:", test.label);
+
+
+				if (test.label) {
+					console.log("Updating label text and position"); //this never updates properly because the actual lat, long and altitude values are updating too fast
+					test.label.text = new Cesium.ConstantProperty(`Latitude: ${latitude}, Longitude: ${longitude}, Altitude: ${altitude} meters`);
+
+					const zPosition = altitude * 1000; // adjust scale factor etc
+					test.position = new Cesium.ConstantPositionProperty(
+						Cesium.Cartesian3.fromDegrees(longitude, latitude, zPosition)
+					);
+				}
+			}
+		}*/
 
 		viewer.trackedEntity = test;
 		//viewer.zoomTo(arc);
