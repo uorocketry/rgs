@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { onMount } from 'svelte';
+	import { onDestroy, onMount } from 'svelte';
 	import { Viewer } from 'cesium';	
 	import '../../../../../node_modules/cesium/Build/Cesium/Widgets/widgets.css';
 	import * as Cesium from 'cesium';
@@ -20,8 +20,10 @@
 
 	console.log('Cesium', Cesium);
 	let viewer: Viewer;
-	
 
+	let LatestCoordinatesSubscription: any;
+	
+	
 	onMount(async () => {
 		viewer = new Viewer('cesiumContainer', {
 			navigationHelpButton: false,
@@ -139,7 +141,7 @@
 				text: 'JMTS',
 				verticalOrigin: Cesium.VerticalOrigin.BOTTOM
 			}
-		})
+		});
 
 		//updates the position of the circling point
 		setInterval(() => {
@@ -182,29 +184,13 @@
 				color: Cesium.Color.BLACK
 			},*/
 
-		})
+		});
 
-		//viewer.flyTo(test);
-		viewer.flyTo(JMTS);
-
-		// Subscribe to altitude changes and update label text
-		/*LatestAltitudeMeasurements.subscribe((data: any) => {
-			console.log('data:', data);
-			var altitude = data.data.rocket_sensor_air[0].altitude;
-			console.log('Altitude:', altitude);
-
-	
-			if (test.label) {
-				test.label.text = new Cesium.ConstantProperty(`Altitude: ${altitude} meters`);
-				const zPosition = altitude * 1000; //adjust scale factor etc
-				test.position = new Cesium.ConstantPositionProperty(
-					Cesium.Cartesian3.fromDegrees(-75.69, 45.42, zPosition)
-				);
-			}
-		});*/
+		viewer.flyTo(test);
+		//viewer.flyTo(JMTS);
 
 		
-		LatestCoordinates.subscribe((data: any) => { 
+		LatestCoordinatesSubscription = LatestCoordinates.subscribe((data: any) => { 
 			console.log('data:', data);
 			var latitude = data.data.rocket_sensor_gps_pos_1[0].latitude;
 			var longitude = data.data.rocket_sensor_gps_pos_1[0].longitude;
@@ -222,37 +208,34 @@
 				Cesium.Cartesian3.fromDegrees(longitude, latitude, zPosition)
 				);
 			}
-		});
+	 });
 		
+		// $: {
+		// 	const data = $LatestCoordinates.data; // $LatestCoordinates is the store
 		
+		// 	if (data) {
+		// 		var latitude = data.rocket_sensor_gps_pos_1[0].latitude;
+		// 		var longitude = data.rocket_sensor_gps_pos_1[0].longitude;
+		// 		var altitude = data.rocket_sensor_gps_pos_1[0].altitude;
 
-		/*
-		$: {
-			const data = $LatestCoordinates.data; // $LatestCoordinates is the store
-		
-			if (data) {
-				var latitude = data.rocket_sensor_gps_pos_1[0].latitude;
-				var longitude = data.rocket_sensor_gps_pos_1[0].longitude;
-				var altitude = data.rocket_sensor_gps_pos_1[0].altitude;
+		// 		console.log('nAltitude:', altitude);
+		// 		console.log('Latitude:', latitude);
+		// 		console.log('Longitude:', longitude);
 
-				console.log('Altitude:', altitude);
-				console.log('Latitude:', latitude);
-				console.log('Longitude:', longitude);
-
-				console.log("Test label:", test.label);
+		// 		console.log("Test label:", test.label);
 
 
-				if (test.label) {
-					console.log("Updating label text and position"); //this never updates properly because the actual lat, long and altitude values are updating too fast
-					test.label.text = new Cesium.ConstantProperty(`Latitude: ${latitude}, Longitude: ${longitude}, Altitude: ${altitude} meters`);
+		// 		if (test.label) {
+		// 			console.log("Updating label text and position"); //this never updates properly because the actual lat, long and altitude values are updating too fast
+		// 			test.label.text = new Cesium.ConstantProperty(`Latitude: ${latitude}, Longitude: ${longitude}, Altitude: ${altitude} meters`);
 
-					const zPosition = altitude * 1000; // adjust scale factor etc
-					test.position = new Cesium.ConstantPositionProperty(
-						Cesium.Cartesian3.fromDegrees(longitude, latitude, zPosition)
-					);
-				}
-			}
-		}*/
+		// 			const zPosition = altitude * 1000; // adjust scale factor etc
+		// 			test.position = new Cesium.ConstantPositionProperty(
+		// 				Cesium.Cartesian3.fromDegrees(longitude, latitude, zPosition)
+		// 			);
+		// 		}
+		// 	}
+		// }
 
 		viewer.trackedEntity = test;
 		//viewer.zoomTo(arc);
@@ -268,6 +251,19 @@
 		}, 1000);
 
 	});
+
+	//unsubscribe from the subscription when the component is destroyed, via svelte unsubscribe
+	onDestroy(() => {
+
+		if (LatestCoordinatesSubscription) {
+			console.log("Unsubscribing from LatestCoordinates subscription");
+			console.log("LatestCoordinatesSubscription:", LatestCoordinatesSubscription);
+			LatestCoordinatesSubscription();
+		}
+
+	});
+
+
 </script>
 
 <div id="cesiumContainer" class="h-full"></div>
