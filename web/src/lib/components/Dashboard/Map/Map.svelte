@@ -7,7 +7,6 @@
 
 	//extra
 	import {LatestCoordinates} from "./types"
-	import Layout from '../../../../routes/+layout.svelte';	
 
 	// TODOS:
 	// - Add launch coordinates
@@ -271,33 +270,6 @@
 	// 			);
 	// 		}
 	//  });
-		
-		$: {
-			const data = $LatestCoordinates.data; // $LatestCoordinates is the store
-		
-			if (data) {
-				var latitude = data.rocket_sensor_gps_pos_1[0].latitude;
-				var longitude = data.rocket_sensor_gps_pos_1[0].longitude;
-				var altitude = data.rocket_sensor_gps_pos_1[0].altitude;
-
-				console.log('nAltitude:', altitude);
-				console.log('Latitude:', latitude);
-				console.log('Longitude:', longitude);
-
-				console.log("Test label:", test.label);
-
-
-				if (test.label) {
-					console.log("Updating label text and position"); //this never updates properly because the actual lat, long and altitude values are updating too fast
-					test.label.text = new Cesium.ConstantProperty(`Latitude: ${latitude}, Longitude: ${longitude}, Altitude: ${altitude} meters`);
-
-					const zPosition = altitude * 1000; // adjust scale factor etc
-					test.position = new Cesium.ConstantPositionProperty(
-						Cesium.Cartesian3.fromDegrees(longitude, latitude, zPosition)
-					);
-				}
-			}
-		}
 
 		viewer.trackedEntity = test;	
 
