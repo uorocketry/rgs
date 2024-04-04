@@ -1,13 +1,13 @@
 <script lang="ts">
-	import { onDestroy, onMount } from 'svelte';
+	import { onMount } from 'svelte';
 	import { Viewer } from 'cesium';	
 	import '../../../../../node_modules/cesium/Build/Cesium/Widgets/widgets.css';
 	import * as Cesium from 'cesium';
 	
 
 	//extra
-	//import { LatestAltitudeMeasurements } from "./types"
 	import {LatestCoordinates} from "./types"
+	import Layout from '../../../../routes/+layout.svelte';	
 
 	// TODOS:
 	// - Add launch coordinates
@@ -21,8 +21,43 @@
 	console.log('Cesium', Cesium);
 	let viewer: Viewer;
 
-	let LatestCoordinatesSubscription: any;
-	
+	let test: any;
+
+	let latestCoordinates = {
+		latitude: 0,
+		longitude: 0,
+		altitude: 0
+	};
+
+	$: latestCoordinatesData = $LatestCoordinates.data;
+
+	// $: latestCoordinates = {
+	// 	latitude: latestCoordinatesData?.rocket_sensor_gps_pos_1[0].latitude ?? 0,
+	// 	longitude: latestCoordinatesData?.rocket_sensor_gps_pos_1[0].longitude ?? 0,
+	// 	altitude: latestCoordinatesData?.rocket_sensor_gps_pos_1[0].altitude ?? 0
+	// };
+
+	$: {
+		latestCoordinates = {
+			latitude: latestCoordinatesData?.rocket_sensor_gps_pos_1[0].latitude ?? 0,
+			longitude: latestCoordinatesData?.rocket_sensor_gps_pos_1[0].longitude ?? 0,
+			altitude: latestCoordinatesData?.rocket_sensor_gps_pos_1[0].altitude ?? 0
+		};
+
+		if (viewer && test) {
+			console.log("Updating label text and position");
+
+			// Update label text
+			test.label.text = new Cesium.ConstantProperty(`Latitude: ${latestCoordinates.latitude}, Longitude: ${latestCoordinates.longitude}, Altitude: ${latestCoordinates.altitude} meters`);
+
+			// Calculate position
+			const zPosition = latestCoordinates.altitude * 1000; // adjust scale factor etc
+			test.position = new Cesium.ConstantPositionProperty(
+				Cesium.Cartesian3.fromDegrees(latestCoordinates.longitude, latestCoordinates.latitude, zPosition)
+			);
+		}
+	}
+		
 	
 	onMount(async () => {
 		viewer = new Viewer('cesiumContainer', {
@@ -70,43 +105,43 @@
 		var height = 50_000;
 
 		// Generate the arc points
-		var arcPoints = [];
-		for (var i = 0; i <= 100; i++) {
-			var t = i / 100.0;
-			var position = Cesium.Cartesian3.lerp(
-				ottawaPosition,
-				torontoPosition,
-				t,
-				new Cesium.Cartesian3()
-			);
-			position = Cesium.Cartesian3.fromElements(
-				position.x,
-				position.y,
-				position.z + height * Math.sin(Math.PI * t)
-			);
-			arcPoints.push(position);
-		}
+		// var arcPoints = [];
+		// for (var i = 0; i <= 100; i++) {
+		// 	var t = i / 100.0;
+		// 	var position = Cesium.Cartesian3.lerp(
+		// 		ottawaPosition,
+		// 		torontoPosition,
+		// 		t,
+		// 		new Cesium.Cartesian3()
+		// 	);
+		// 	position = Cesium.Cartesian3.fromElements(
+		// 		position.x,
+		// 		position.y,
+		// 		position.z + height * Math.sin(Math.PI * t)
+		// 	);
+		// 	arcPoints.push(position);
+		// }
 
-		var polyline = new Cesium.PolylineGeometry({
-			positions: arcPoints,
-			width: 10.0
-		});
+		// var polyline = new Cesium.PolylineGeometry({
+		// 	positions: arcPoints,
+		// 	width: 10.0
+		// });
 
-		viewer.scene.primitives.add(
-			new Cesium.Primitive({
-				geometryInstances: new Cesium.GeometryInstance({
-					geometry: polyline,
-					attributes: {
-						color: Cesium.ColorGeometryInstanceAttribute.fromColor(
-							new Cesium.Color(1.0, 0.5, 1.0, 0.75)
-						)
-					}
-				}),
-				appearance: new Cesium.PolylineColorAppearance({
-					translucent: true
-				})
-			})
-		);
+		// viewer.scene.primitives.add(
+		// 	new Cesium.Primitive({
+		// 		geometryInstances: new Cesium.GeometryInstance({
+		// 			geometry: polyline,
+		// 			attributes: {
+		// 				color: Cesium.ColorGeometryInstanceAttribute.fromColor(
+		// 					new Cesium.Color(1.0, 0.5, 1.0, 0.75)
+		// 				)
+		// 			}
+		// 		}),
+		// 		appearance: new Cesium.PolylineColorAppearance({
+		// 			translucent: true
+		// 		})
+		// 	})
+		// );
 
 		// Add a marker on toronto
 		var toronto = viewer.entities.add({
@@ -121,14 +156,14 @@
 			}
 		});
 
-		const sampledPos = new Cesium.SampledPositionProperty();
-		var circlingPoint = viewer.entities.add({
-			position: sampledPos,
-			point: {
-				pixelSize: 10,
-				color: Cesium.Color.GREEN
-			}
-		});
+		// const sampledPos = new Cesium.SampledPositionProperty();
+		// var circlingPoint = viewer.entities.add({
+		// 	position: sampledPos,
+		// 	point: {
+		// 		pixelSize: 10,
+		// 		color: Cesium.Color.GREEN
+		// 	}
+		// });
 
 		//add marker for JMTS
 		var JMTS = viewer.entities.add({
@@ -143,24 +178,26 @@
 			}
 		});
 
-		//updates the position of the circling point
-		setInterval(() => {
-			let time = Cesium.JulianDate.now();
-			let in1Seconds = Cesium.JulianDate.addSeconds(time, 0.2, time);
+		// //updates the position of the circling point
+		// setInterval(() => {
+		// 	let time = Cesium.JulianDate.now();
+		// 	let in1Seconds = Cesium.JulianDate.addSeconds(time, 0.2, time);
 
-			sampledPos.addSample(
-				in1Seconds,
-				new Cesium.Cartesian3(
-					ottawaPosition.x + Math.sin(time.secondsOfDay) * 100,
-					ottawaPosition.y,
-					ottawaPosition.z
-				)
-			);
-		}, 100);
+		// 	sampledPos.addSample(
+		// 		in1Seconds,
+		// 		new Cesium.Cartesian3(
+		// 			ottawaPosition.x + Math.sin(time.secondsOfDay) * 100,
+		// 			ottawaPosition.y,
+		// 			ottawaPosition.z
+		// 		)
+		// 	);
+		// }, 100);
 
 		//viewer.trackedEntity = circlingPoint;
 
-		var test = viewer.entities.add({
+
+		//const sampledPos = new Cesium.SampledPositionProperty();
+		test = viewer.entities.add({
 			position: ottawaPosition,
 			model: {
 				uri: "/models/rocket.glb",
@@ -186,61 +223,83 @@
 
 		});
 
-		viewer.flyTo(test);
-		//viewer.flyTo(JMTS);
 
-		
-		LatestCoordinatesSubscription = LatestCoordinates.subscribe((data: any) => { 
-			console.log('data:', data);
-			var latitude = data.data.rocket_sensor_gps_pos_1[0].latitude;
-			var longitude = data.data.rocket_sensor_gps_pos_1[0].longitude;
-			var altitude = data.data.rocket_sensor_gps_pos_1[0].altitude;
+		// LatestCoordinatesSubscription = LatestCoordinates.subscribe((data: any) => {
+		// 	const latitude = data.data.rocket_sensor_gps_pos_1[0]?.latitude;
+		// 	const longitude = data.data.rocket_sensor_gps_pos_1[0]?.longitude;
+		// 	const altitude = data.data.rocket_sensor_gps_pos_1[0]?.altitude;
 
-			console.log('Altitude:', altitude);
-			console.log('Latitude:', latitude);
-			console.log('Longitude:', longitude);
+		// 	console.log('Altitude:', altitude);
+		// 	console.log('Latitude:', latitude);
+		// 	console.log('Longitude:', longitude);
 
-	
-			if (test.label) {
-				test.label.text = new Cesium.ConstantProperty(`Latitude: ${latitude}, Longitude: ${longitude}, Altitude: ${altitude} meters`);
-				const zPosition = altitude * 1000; //adjust scale factor etc
-				test.position = new Cesium.ConstantPositionProperty(
-				Cesium.Cartesian3.fromDegrees(longitude, latitude, zPosition)
-				);
-			}
-	 });
-		
-		// $: {
-		// 	const data = $LatestCoordinates.data; // $LatestCoordinates is the store
-		
-		// 	if (data) {
-		// 		var latitude = data.rocket_sensor_gps_pos_1[0].latitude;
-		// 		var longitude = data.rocket_sensor_gps_pos_1[0].longitude;
-		// 		var altitude = data.rocket_sensor_gps_pos_1[0].altitude;
+		// 	if (latitude && longitude && altitude) {
+		// 		const zPosition = altitude * 10000; //adjust scale factor etc
+		// 		const newPosition = Cesium.Cartesian3.fromDegrees(longitude, latitude, zPosition);
+		// 		//const currentTime = Cesium.JulianDate.now();
+		// 		let time = Cesium.JulianDate.now();
+		// 		let in1Seconds = Cesium.JulianDate.addSeconds(time, 5, time);
+		// 		sampledPos.addSample(in1Seconds, newPosition); // Add new sample to SampledPositionProperty
 
-		// 		console.log('nAltitude:', altitude);
-		// 		console.log('Latitude:', latitude);
-		// 		console.log('Longitude:', longitude);
-
-		// 		console.log("Test label:", test.label);
-
-
+		// 		// Update rocket's label
 		// 		if (test.label) {
-		// 			console.log("Updating label text and position"); //this never updates properly because the actual lat, long and altitude values are updating too fast
+		// 			console.log("Updating label text");
 		// 			test.label.text = new Cesium.ConstantProperty(`Latitude: ${latitude}, Longitude: ${longitude}, Altitude: ${altitude} meters`);
-
-		// 			const zPosition = altitude * 1000; // adjust scale factor etc
-		// 			test.position = new Cesium.ConstantPositionProperty(
-		// 				Cesium.Cartesian3.fromDegrees(longitude, latitude, zPosition)
-		// 			);
 		// 		}
 		// 	}
-		// }
+		// });
 
-		viewer.trackedEntity = test;
-		//viewer.zoomTo(arc);
-
+		// viewer.flyTo(test);
+		//viewer.flyTo(JMTS);
 		
+	// 	LatestCoordinatesSubscription = LatestCoordinates.subscribe((data: any) => { 
+	// 		console.log('data:', data);
+	// 		var latitude = data.data.rocket_sensor_gps_pos_1[0].latitude;
+	// 		var longitude = data.data.rocket_sensor_gps_pos_1[0].longitude;
+	// 		var altitude = data.data.rocket_sensor_gps_pos_1[0].altitude;
+
+	// 		console.log('Altitude:', altitude);
+	// 		console.log('Latitude:', latitude);
+	// 		console.log('Longitude:', longitude);
+
+	
+	// 		if (test.label) {
+	// 			test.label.text = new Cesium.ConstantProperty(`Latitude: ${latitude}, Longitude: ${longitude}, Altitude: ${altitude} meters`);
+	// 			const zPosition = altitude * 1000; //adjust scale factor etc
+	// 			test.position = new Cesium.ConstantPositionProperty(
+	// 			Cesium.Cartesian3.fromDegrees(longitude, latitude, zPosition)
+	// 			);
+	// 		}
+	//  });
+		
+		$: {
+			const data = $LatestCoordinates.data; // $LatestCoordinates is the store
+		
+			if (data) {
+				var latitude = data.rocket_sensor_gps_pos_1[0].latitude;
+				var longitude = data.rocket_sensor_gps_pos_1[0].longitude;
+				var altitude = data.rocket_sensor_gps_pos_1[0].altitude;
+
+				console.log('nAltitude:', altitude);
+				console.log('Latitude:', latitude);
+				console.log('Longitude:', longitude);
+
+				console.log("Test label:", test.label);
+
+
+				if (test.label) {
+					console.log("Updating label text and position"); //this never updates properly because the actual lat, long and altitude values are updating too fast
+					test.label.text = new Cesium.ConstantProperty(`Latitude: ${latitude}, Longitude: ${longitude}, Altitude: ${altitude} meters`);
+
+					const zPosition = altitude * 1000; // adjust scale factor etc
+					test.position = new Cesium.ConstantPositionProperty(
+						Cesium.Cartesian3.fromDegrees(longitude, latitude, zPosition)
+					);
+				}
+			}
+		}
+
+		viewer.trackedEntity = test;	
 
 		// Delete "cesium-widget-credits" after the viewer is created
 		setTimeout(() => {
@@ -249,17 +308,6 @@
 				credits[0].remove();
 			}
 		}, 1000);
-
-	});
-
-	//unsubscribe from the subscription when the component is destroyed, via svelte unsubscribe
-	onDestroy(() => {
-
-		if (LatestCoordinatesSubscription) {
-			console.log("Unsubscribing from LatestCoordinates subscription");
-			console.log("LatestCoordinatesSubscription:", LatestCoordinatesSubscription);
-			LatestCoordinatesSubscription();
-		}
 
 	});
 
