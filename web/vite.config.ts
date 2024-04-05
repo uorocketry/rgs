@@ -26,7 +26,7 @@ const config = (mode: string) => {
 				'/hasura': {
 					target: 'http://localhost:4000/console'
 				}
-			},
+			}
 		},
 
 		plugins: [
