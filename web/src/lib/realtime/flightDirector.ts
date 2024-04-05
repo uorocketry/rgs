@@ -1,4 +1,3 @@
-
 export const defaultLaunchCoordinates = [45.4215, -75.6972];
 export const defaultLaunchCoords = {
 	lat: defaultLaunchCoordinates[0],
