@@ -18,6 +18,5 @@ message HealthCheckResponse {
 
 service Health {
   rpc Check(HealthCheckRequest) returns (HealthCheckResponse);
-
   rpc Watch(HealthCheckRequest) returns (stream HealthCheckResponse);
 }
