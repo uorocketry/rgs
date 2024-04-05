@@ -10,7 +10,7 @@ Then, run the following
 
 ```bash
 npm install -g pnpm # Install pnpm (this project's package manager)
-pnpm install # Install the project's 
+pnpm install # Install the project's
 pnpm dev # Start the development server
 ```
 
