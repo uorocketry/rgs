@@ -30,12 +30,6 @@
 
 	$: latestCoordinatesData = $LatestCoordinates.data;
 
-	// $: latestCoordinates = {
-	// 	latitude: latestCoordinatesData?.rocket_sensor_gps_pos_1[0].latitude ?? 0,
-	// 	longitude: latestCoordinatesData?.rocket_sensor_gps_pos_1[0].longitude ?? 0,
-	// 	altitude: latestCoordinatesData?.rocket_sensor_gps_pos_1[0].altitude ?? 0
-	// };
-
 	$: {
 		latestCoordinates = {
 			latitude: latestCoordinatesData?.rocket_sensor_gps_pos_1[0].latitude ?? 0,
@@ -93,8 +87,6 @@
 				verticalOrigin: Cesium.VerticalOrigin.BOTTOM
 			}
 		});
-
-		//viewer.flyTo(ottawa);
 
 		// Create an arc between Ottawa and Toronto
 		var ottawaPosition = Cesium.Cartesian3.fromDegrees(-75.69, 45.42, 1000);
@@ -192,8 +184,6 @@
 		// 	);
 		// }, 100);
 
-		//viewer.trackedEntity = circlingPoint;
-
 
 		//const sampledPos = new Cesium.SampledPositionProperty();
 		test = viewer.entities.add({
@@ -250,26 +240,7 @@
 
 		// viewer.flyTo(test);
 		//viewer.flyTo(JMTS);
-		
-	// 	LatestCoordinatesSubscription = LatestCoordinates.subscribe((data: any) => { 
-	// 		console.log('data:', data);
-	// 		var latitude = data.data.rocket_sensor_gps_pos_1[0].latitude;
-	// 		var longitude = data.data.rocket_sensor_gps_pos_1[0].longitude;
-	// 		var altitude = data.data.rocket_sensor_gps_pos_1[0].altitude;
-
-	// 		console.log('Altitude:', altitude);
-	// 		console.log('Latitude:', latitude);
-	// 		console.log('Longitude:', longitude);
-
 	
-	// 		if (test.label) {
-	// 			test.label.text = new Cesium.ConstantProperty(`Latitude: ${latitude}, Longitude: ${longitude}, Altitude: ${altitude} meters`);
-	// 			const zPosition = altitude * 1000; //adjust scale factor etc
-	// 			test.position = new Cesium.ConstantPositionProperty(
-	// 			Cesium.Cartesian3.fromDegrees(longitude, latitude, zPosition)
-	// 			);
-	// 		}
-	//  });
 
 		viewer.trackedEntity = test;	
 
