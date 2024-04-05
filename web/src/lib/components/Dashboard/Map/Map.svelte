@@ -44,7 +44,7 @@
 			test.label.text = new Cesium.ConstantProperty(`Latitude: ${latestCoordinates.latitude}, Longitude: ${latestCoordinates.longitude}, Altitude: ${latestCoordinates.altitude} meters`);
 
 			// Calculate position
-			const zPosition = latestCoordinates.altitude * 1000; // adjust scale factor etc
+			const zPosition = latestCoordinates.altitude; // adjust scale factor etc
 			test.position = new Cesium.ConstantPositionProperty(
 				Cesium.Cartesian3.fromDegrees(latestCoordinates.longitude, latestCoordinates.latitude, zPosition)
 			);
@@ -76,17 +76,17 @@
 		});
 
 		// add entity to ottawa (45.42, -75.69)
-		var ottawa = viewer.entities.add({
-			position: Cesium.Cartesian3.fromDegrees(-75.69, 45.42, 1000),
-			point: {
-				pixelSize: 10,
-				color: Cesium.Color.RED
-			},
-			label: {
-				text: 'Ottawa',
-				verticalOrigin: Cesium.VerticalOrigin.BOTTOM
-			}
-		});
+		// var ottawa = viewer.entities.add({
+		// 	position: Cesium.Cartesian3.fromDegrees(-75.69, 45.42, 1000),
+		// 	point: {
+		// 		pixelSize: 10,
+		// 		color: Cesium.Color.RED
+		// 	},
+		// 	label: {
+		// 		text: 'Ottawa',
+		// 		verticalOrigin: Cesium.VerticalOrigin.BOTTOM
+		// 	}
+		// });
 
 		// Create an arc between Ottawa and Toronto
 		var ottawaPosition = Cesium.Cartesian3.fromDegrees(-75.69, 45.42, 1000);
