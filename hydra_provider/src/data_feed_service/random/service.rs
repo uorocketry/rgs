@@ -19,7 +19,7 @@ impl RandomDataFeedService {
     pub fn new(database_service: Arc<Mutex<DatabaseService>>) -> RandomDataFeedService {
         RandomDataFeedService {
             iterator: RandomDataFeedIterator {
-                is_running: Arc::new(AtomicBool::new(true)),
+                is_running: Arc::new(AtomicBool::new(false)),
             },
             database_service,
         }
