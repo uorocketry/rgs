@@ -108,9 +108,9 @@ impl RandomDataFeedIterator {
             time_stamp: time.ticks() as u32,
             status: std_rng.gen(),
             time_of_week: std_rng.gen(),
-            latitude: rng.gen::<f64>()  + 45.42010692442428 as f64,
-            longitude: rng.gen::<f64>()  + -75.68033372705948 as f64,
-            altitude: rng.gen::<f64>() + 100 as f64,
+            latitude: std_rng.gen::<f64>() + 45.42010692442428 as f64,
+            longitude: std_rng.gen::<f64>() + -75.68033372705948 as f64,
+            altitude: std_rng.gen::<f64>() + 100 as f64,
             undulation: std_rng.gen(),
         };
 
