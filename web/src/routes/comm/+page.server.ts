@@ -4,6 +4,7 @@ import { SerialDataFeedClient } from '$lib/proto/hydra_provider/proto/data_feed.
 import { RandomDataFeedClient } from '$lib/proto/hydra_provider/proto/data_feed.client';
 import type { RpcError } from '@protobuf-ts/runtime-rpc';
 import { ChannelCredentials } from '@grpc/grpc-js';
+import { classToPOJO } from '$lib/common/utils';
 
 // Load
 const transport = new GrpcTransport({
@@ -13,16 +14,6 @@ const transport = new GrpcTransport({
 
 const serialClient = new SerialDataFeedClient(transport);
 const randomClient = new RandomDataFeedClient(transport);
-
-function classToPOJO<T extends object>(instance: T): { [K in keyof T]: T[K] } {
-	const pojo = {} as { [K in keyof T]: T[K] };
-	for (const key of Object.keys(instance)) {
-		if (typeof instance[key as keyof T] !== 'function') {
-			pojo[key as keyof T] = instance[key as keyof T];
-		}
-	}
-	return pojo;
-}
 
 export const load = async () => {
 	const devices = await serialClient.listAvailablePorts({});
