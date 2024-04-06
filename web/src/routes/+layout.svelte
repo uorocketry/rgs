@@ -2,7 +2,6 @@
 	// CSS
 	import '@fortawesome/fontawesome-free/css/all.min.css';
 	import '../app.css';
-	import '../leaflet.css';
 
 	import 'chart.js/auto'; // Import everything from chart.js
 	// TODO: Don't do this, have it self contained
