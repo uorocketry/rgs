@@ -8,7 +8,6 @@ pub mod gps_velocity;
 pub mod imu1;
 pub mod imu2;
 pub mod utc_time;
-pub mod utils;
 
 use crate::database_service::hydra_input::saveable::SaveableData;
 use messages::sensor::{Sensor, SensorData};

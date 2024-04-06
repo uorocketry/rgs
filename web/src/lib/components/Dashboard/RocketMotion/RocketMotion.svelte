@@ -37,7 +37,7 @@
 				</td>
 				<td>
 					<span class="text-right">
-						{$DeltaV.data?.rocket_sensor_imu_2[0]?.dataVec3ByDeltaVelocity.x}
+						{$DeltaV.data?.rocket_sensor_imu_2[0]?.delta_velocity_x}
 					</span>
 				</td>
 			</tr>
@@ -48,7 +48,7 @@
 				<td>
 					<!-- <span class="text-right">{velocity[1]}</span> -->
 					<span class="text-right">
-						{$DeltaV.data?.rocket_sensor_imu_2[0]?.dataVec3ByDeltaVelocity.y}
+						{$DeltaV.data?.rocket_sensor_imu_2[0]?.delta_velocity_y}
 					</span>
 				</td>
 			</tr>
@@ -58,7 +58,7 @@
 				</td>
 				<td>
 					<span class="text-right">
-						{$DeltaV.data?.rocket_sensor_imu_2[0]?.dataVec3ByDeltaVelocity.z}
+						{$DeltaV.data?.rocket_sensor_imu_2[0]?.delta_velocity_z}
 					</span>
 				</td>
 			</tr>
@@ -69,7 +69,7 @@
 				</td>
 				<td>
 					<span class="text-right">
-						{$MaxDeltaV.data?.data_vec3_aggregate.aggregate?.max?.x}
+						{$MaxDeltaV.data?.rocket_sensor_imu_2_aggregate.aggregate?.max?.delta_velocity_x}
 					</span>
 				</td>
 			</tr>
@@ -79,7 +79,7 @@
 				</td>
 				<td>
 					<span class="text-right">
-						{$MaxDeltaV.data?.data_vec3_aggregate.aggregate?.max?.y}
+						{$MaxDeltaV.data?.rocket_sensor_imu_2_aggregate.aggregate?.max?.delta_velocity_y}
 					</span>
 				</td>
 			</tr>
@@ -89,7 +89,7 @@
 				</td>
 				<td>
 					<span class="text-right">
-						{$MaxDeltaV.data?.data_vec3_aggregate.aggregate?.max?.z}
+						{$MaxDeltaV.data?.rocket_sensor_imu_2_aggregate.aggregate?.max?.delta_velocity_z}
 					</span>
 				</td>
 			</tr>
@@ -99,7 +99,7 @@
 				</td>
 				<td>
 					<span class="text-right">
-						{$Accelerometers.data?.rocket_sensor_imu_1[0].data_vec3ByAccelerometers.x}
+						{$Accelerometers.data?.rocket_sensor_imu_1[0]?.accelorometer_x}
 					</span>
 				</td>
 			</tr>
@@ -109,7 +109,7 @@
 				</td>
 				<td>
 					<span class="text-right">
-						{$Accelerometers.data?.rocket_sensor_imu_1[0].data_vec3ByAccelerometers.y}
+						{$Accelerometers.data?.rocket_sensor_imu_1[0]?.accelorometer_y}
 					</span>
 				</td>
 			</tr>
@@ -119,7 +119,7 @@
 				</td>
 				<td>
 					<span class="text-right">
-						{$Accelerometers.data?.rocket_sensor_imu_1[0].data_vec3ByAccelerometers.z}
+						{$Accelerometers.data?.rocket_sensor_imu_1[0]?.accelorometer_z}
 					</span>
 				</td>
 			</tr>

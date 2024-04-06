@@ -14,7 +14,7 @@
 		console.log('Page data:', data);
 	});
 
-	const selectDeviceFunction = ((input) => {
+	const serialConfigureFunction = ((input) => {
 		console.log('Form submitted');
 
 		return async (result) => {
@@ -35,8 +35,8 @@
 	<form
 		class="card p-4 w-full text-token space-y-4"
 		method="POST"
-		use:enhance={selectDeviceFunction}
-		action="?/select_device"
+		use:enhance={serialConfigureFunction}
+		action="?/serial_configure"
 	>
 		<h4 class="h4">Preferred Serial Device</h4>
 		<!-- string[] select for device -->
@@ -48,19 +48,58 @@
 		<button class="btn variant-soft-primary" type="submit">Submit</button>
 	</form>
 
-	<!-- Select if should use random or serial port -->
-	<form
-		class="card p-4 w-full text-token space-y-4"
-		method="POST"
-		use:enhance={selectModeFunction}
-		action="?/select_mode"
-	>
-		<h4 class="h4">Data Mode</h4>
-		<!-- string[] select for mode -->
-		<select class="select max-w-48" name="mode">
-			<option value="random">Random</option>
-			<option value="serial">Serial</option>
-		</select>
-		<button class="btn variant-soft-primary" type="submit">Submit</button>
-	</form>
+	<div class="card flex flex-col p-4 gap-2">
+		<h4 class="h4 text-success">
+			{#if !data.serialStatus.isRunning}
+				Serial is not running
+			{:else}
+				Serial is currently running
+			{/if}
+		</h4>
+		<div class="flex gap-4 items-center">
+			<form method="POST" action="?/serial_start">
+				<button
+					class="btn variant-soft-primary"
+					type="submit"
+					disabled={data.serialStatus.isRunning}
+				>
+					Start Serial
+				</button>
+			</form>
+
+			<form method="POST" action="?/serial_stop">
+				<button
+					class="btn variant-soft-primary"
+					type="submit"
+					disabled={!data.serialStatus.isRunning}
+				>
+					Stop Serial
+				</button>
+			</form>
+		</div>
+	</div>
+
+	<!-- Now do it for data.randomIsRUnning -->
+	<div class="card flex flex-col p-4 gap-2">
+		<h4 class="h4 text-success">
+			{#if !data.randomIsRunning}
+				Random is not running
+			{:else}
+				Random is currently running
+			{/if}
+		</h4>
+		<div class="flex gap-4 items-center">
+			<form method="POST" action="?/random_start">
+				<button class="btn variant-soft-primary" type="submit" disabled={data.randomIsRunning}>
+					Start Random
+				</button>
+			</form>
+
+			<form method="POST" action="?/random_stop">
+				<button class="btn variant-soft-primary" type="submit" disabled={!data.randomIsRunning}>
+					Stop Random
+				</button>
+			</form>
+		</div>
+	</div>
 </main>
