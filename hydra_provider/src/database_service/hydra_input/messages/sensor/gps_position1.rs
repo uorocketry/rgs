@@ -20,7 +20,6 @@ impl SaveableData for GpsPos1 {
 			self.longitude as f32,
 			self.altitude as f32,
 			self.undulation as f32,
-	
 		)
 		.execute(&mut **transaction)
 		.await
