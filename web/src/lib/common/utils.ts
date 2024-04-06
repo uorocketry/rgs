@@ -1,4 +1,3 @@
-import type { LatLngLiteral } from 'leaflet';
 import { onDestroy, onMount } from 'svelte';
 import { writable, type Writable } from 'svelte/store';
 
@@ -64,6 +63,8 @@ export function getRandomHexColorFromString(str: string, contrastThreshold = 0.8
 export function max(a: number, b: number) {
 	return a > b ? a : b;
 }
+
+type LatLngLiteral = { lat: number; lng: number };
 
 export function haversineDistance(coord1: LatLngLiteral, coord2: LatLngLiteral): number {
 	const R = 6371; // Radius of the Earth in km
