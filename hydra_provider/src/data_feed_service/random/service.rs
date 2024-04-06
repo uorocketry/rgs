@@ -53,11 +53,14 @@ impl RandomDataFeed for RandomDataFeedService {
 
     // is_running
 
-    async fn is_running(
+    async fn get_status(
         &self,
         _request: Request<Empty>,
     ) -> Result<Response<RandomDataFeedStatus>, Status> {
         let is_running = self.iterator.is_running.load(Ordering::Relaxed);
-        Ok(Response::new(RandomDataFeedStatus { is_running }))
+        Ok(Response::new(RandomDataFeedStatus {
+            is_running,
+            config: None,
+        }))
     }
 }

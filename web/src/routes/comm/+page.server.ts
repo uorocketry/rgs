@@ -18,11 +18,11 @@ const randomClient = new RandomDataFeedClient(transport);
 export const load = async () => {
 	const devices = await serialClient.listAvailablePorts({});
 	const serialStatus = await serialClient.getStatus({});
-	const randomIsRunning = await randomClient.isRunning({});
+	const randomStatus = await randomClient.getStatus({});
 	return {
 		devices: devices.response.ports,
 		serialStatus: classToPOJO(serialStatus.response),
-		randomIsRunning: randomIsRunning.response.isRunning
+		randomIsRunning: randomStatus.response.isRunning
 	};
 };
 

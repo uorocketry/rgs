@@ -25,11 +25,15 @@ message SerialDataFeedStatus {
 service RandomDataFeed {
 	rpc start(Empty) returns(Empty);
 	rpc stop(Empty) returns(Empty);
-	rpc is_running(Empty) returns(RandomDataFeedStatus);
+	rpc get_status(Empty) returns(RandomDataFeedStatus);
 }
 
 message RandomDataFeedStatus {
 	bool is_running = 1;
+	RandomDataFeedConfig config = 2;
+}
+
+message RandomDataFeedConfig {
 }
 
 // SHOULD DO: implement

@@ -54,6 +54,15 @@ export interface RandomDataFeedStatus {
      * @generated from protobuf field: bool is_running = 1;
      */
     isRunning: boolean;
+    /**
+     * @generated from protobuf field: data_feed.RandomDataFeedConfig config = 2;
+     */
+    config?: RandomDataFeedConfig;
+}
+/**
+ * @generated from protobuf message data_feed.RandomDataFeedConfig
+ */
+export interface RandomDataFeedConfig {
 }
 // SHOULD DO: implement
 // service FileDataFeed {
@@ -230,7 +239,8 @@ export const SerialDataFeedStatus = new SerialDataFeedStatus$Type();
 class RandomDataFeedStatus$Type extends MessageType<RandomDataFeedStatus> {
     constructor() {
         super("data_feed.RandomDataFeedStatus", [
-            { no: 1, name: "is_running", kind: "scalar", T: 8 /*ScalarType.BOOL*/ }
+            { no: 1, name: "is_running", kind: "scalar", T: 8 /*ScalarType.BOOL*/ },
+            { no: 2, name: "config", kind: "message", T: () => RandomDataFeedConfig }
         ]);
     }
     create(value?: PartialMessage<RandomDataFeedStatus>): RandomDataFeedStatus {
@@ -248,6 +258,9 @@ class RandomDataFeedStatus$Type extends MessageType<RandomDataFeedStatus> {
                 case /* bool is_running */ 1:
                     message.isRunning = reader.bool();
                     break;
+                case /* data_feed.RandomDataFeedConfig config */ 2:
+                    message.config = RandomDataFeedConfig.internalBinaryRead(reader, reader.uint32(), options, message.config);
+                    break;
                 default:
                     let u = options.readUnknownField;
                     if (u === "throw")
@@ -263,6 +276,9 @@ class RandomDataFeedStatus$Type extends MessageType<RandomDataFeedStatus> {
         /* bool is_running = 1; */
         if (message.isRunning !== false)
             writer.tag(1, WireType.Varint).bool(message.isRunning);
+        /* data_feed.RandomDataFeedConfig config = 2; */
+        if (message.config)
+            RandomDataFeedConfig.internalBinaryWrite(message.config, writer.tag(2, WireType.LengthDelimited).fork(), options).join();
         let u = options.writeUnknownFields;
         if (u !== false)
             (u == true ? UnknownFieldHandler.onWrite : u)(this.typeName, message, writer);
@@ -273,6 +289,31 @@ class RandomDataFeedStatus$Type extends MessageType<RandomDataFeedStatus> {
  * @generated MessageType for protobuf message data_feed.RandomDataFeedStatus
  */
 export const RandomDataFeedStatus = new RandomDataFeedStatus$Type();
+// @generated message type with reflection information, may provide speed optimized methods
+class RandomDataFeedConfig$Type extends MessageType<RandomDataFeedConfig> {
+    constructor() {
+        super("data_feed.RandomDataFeedConfig", []);
+    }
+    create(value?: PartialMessage<RandomDataFeedConfig>): RandomDataFeedConfig {
+        const message = globalThis.Object.create((this.messagePrototype!));
+        if (value !== undefined)
+            reflectionMergePartial<RandomDataFeedConfig>(this, message, value);
+        return message;
+    }
+    internalBinaryRead(reader: IBinaryReader, length: number, options: BinaryReadOptions, target?: RandomDataFeedConfig): RandomDataFeedConfig {
+        return target ?? this.create();
+    }
+    internalBinaryWrite(message: RandomDataFeedConfig, writer: IBinaryWriter, options: BinaryWriteOptions): IBinaryWriter {
+        let u = options.writeUnknownFields;
+        if (u !== false)
+            (u == true ? UnknownFieldHandler.onWrite : u)(this.typeName, message, writer);
+        return writer;
+    }
+}
+/**
+ * @generated MessageType for protobuf message data_feed.RandomDataFeedConfig
+ */
+export const RandomDataFeedConfig = new RandomDataFeedConfig$Type();
 // @generated message type with reflection information, may provide speed optimized methods
 class Empty$Type extends MessageType<Empty> {
     constructor() {
@@ -314,5 +355,5 @@ export const SerialDataFeed = new ServiceType("data_feed.SerialDataFeed", [
 export const RandomDataFeed = new ServiceType("data_feed.RandomDataFeed", [
     { name: "start", options: {}, I: Empty, O: Empty },
     { name: "stop", options: {}, I: Empty, O: Empty },
-    { name: "is_running", options: {}, I: Empty, O: RandomDataFeedStatus }
+    { name: "get_status", options: {}, I: Empty, O: RandomDataFeedStatus }
 ]);

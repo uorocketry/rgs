@@ -96,9 +96,9 @@ export interface IRandomDataFeedClient {
      */
     stop(input: Empty, options?: RpcOptions): UnaryCall<Empty, Empty>;
     /**
-     * @generated from protobuf rpc: is_running(data_feed.Empty) returns (data_feed.RandomDataFeedStatus);
+     * @generated from protobuf rpc: get_status(data_feed.Empty) returns (data_feed.RandomDataFeedStatus);
      */
-    isRunning(input: Empty, options?: RpcOptions): UnaryCall<Empty, RandomDataFeedStatus>;
+    getStatus(input: Empty, options?: RpcOptions): UnaryCall<Empty, RandomDataFeedStatus>;
 }
 /**
  * @generated from protobuf service data_feed.RandomDataFeed
@@ -124,9 +124,9 @@ export class RandomDataFeedClient implements IRandomDataFeedClient, ServiceInfo 
         return stackIntercept<Empty, Empty>("unary", this._transport, method, opt, input);
     }
     /**
-     * @generated from protobuf rpc: is_running(data_feed.Empty) returns (data_feed.RandomDataFeedStatus);
+     * @generated from protobuf rpc: get_status(data_feed.Empty) returns (data_feed.RandomDataFeedStatus);
      */
-    isRunning(input: Empty, options?: RpcOptions): UnaryCall<Empty, RandomDataFeedStatus> {
+    getStatus(input: Empty, options?: RpcOptions): UnaryCall<Empty, RandomDataFeedStatus> {
         const method = this.methods[2], opt = this._transport.mergeOptions(options);
         return stackIntercept<Empty, RandomDataFeedStatus>("unary", this._transport, method, opt, input);
     }
