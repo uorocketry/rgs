@@ -98,12 +98,6 @@ export function padFloatToDecimalPlaces(num: number, decimalPlaces: number) {
 	return (Math.round(num * factor) / factor).toFixed(decimalPlaces);
 }
 
-export function classToPOJO<T extends object>(instance: T): { [K in keyof T]: T[K] } {
-	const pojo = {} as { [K in keyof T]: T[K] };
-	for (const key of Object.keys(instance)) {
-		if (typeof instance[key as keyof T] !== 'function') {
-			pojo[key as keyof T] = instance[key as keyof T];
-		}
-	}
-	return pojo;
+export function toPlainObject<T>(instance: T) {
+	return Object.assign({}, instance);
 }

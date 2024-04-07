@@ -6,24 +6,12 @@
 
 	export let data: PageData;
 
-	// 	let data: {
-	//     devices: string[];
-	// }
-
 	onMount(async () => {
 		console.log('Page data:', data);
 	});
 
 	const serialConfigureFunction = ((input) => {
 		console.log('Form submitted');
-
-		return async (result) => {
-			console.log('Form result', result.result);
-		};
-	}) satisfies SubmitFunction;
-
-	const selectModeFunction = ((input) => {
-		console.log('Selecting mode:', input.formData);
 
 		return async (result) => {
 			console.log('Form result', result.result);
@@ -39,7 +27,6 @@
 		action="?/serial_configure"
 	>
 		<h4 class="h4">Preferred Serial Device</h4>
-		<!-- string[] select for device -->
 		<select class="select max-w-48" name="device">
 			{#each data.devices as device}
 				<option value={device}>{device}</option>
@@ -79,7 +66,6 @@
 		</div>
 	</div>
 
-	<!-- Now do it for data.randomIsRUnning -->
 	<div class="card flex flex-col p-4 gap-2">
 		<h4 class="h4 text-success">
 			{#if !data.randomIsRunning}

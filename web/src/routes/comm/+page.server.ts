@@ -4,7 +4,7 @@ import { SerialDataFeedClient } from '$lib/proto/hydra_provider/proto/data_feed.
 import { RandomDataFeedClient } from '$lib/proto/hydra_provider/proto/data_feed.client';
 import type { RpcError } from '@protobuf-ts/runtime-rpc';
 import { ChannelCredentials } from '@grpc/grpc-js';
-import { classToPOJO } from '$lib/common/utils';
+import { toPlainObject } from '$lib/common/utils';
 
 // Load
 const transport = new GrpcTransport({
@@ -21,7 +21,7 @@ export const load = async () => {
 	const randomStatus = await randomClient.getStatus({});
 	return {
 		devices: devices.response.ports,
-		serialStatus: classToPOJO(serialStatus.response),
+		serialStatus: toPlainObject(serialStatus.response),
 		randomIsRunning: randomStatus.response.isRunning
 	};
 };
