@@ -1,6 +1,5 @@
 import { integer, pgTable, text } from "drizzle-orm/pg-core";
 import { rocket_message } from "./base";
-import { relations } from "drizzle-orm";
 
 export const rocket_health = pgTable("rocket_health", {
     rocket_message_id: integer("rocket_message_id")
@@ -26,7 +25,3 @@ export const rocket_health_status = pgTable("rocket_health_status", {
     ext_3v3: integer("ext_3v3"),
     failover_sense: integer("failover_sense"),
 });
-
-export const rocket_health_relations = relations(rocket_health, ({ one }) => ({
-    rocket_health_status: one(rocket_health_status),
-}));

@@ -1,9 +1,10 @@
 import { GrpcTransport } from '@protobuf-ts/grpc-transport';
 import type { Actions } from './$types';
-import { ChannelCredentials } from '@grpc/grpc-js';
-import { ConnectionManagerClient } from '$lib/proto/hydra_provider/proto/hydra_provider.client';
+import { SerialDataFeedClient } from '$lib/proto/hydra_provider/proto/data_feed.client';
+import { RandomDataFeedClient } from '$lib/proto/hydra_provider/proto/data_feed.client';
 import type { RpcError } from '@protobuf-ts/runtime-rpc';
-import { ConnectionType } from '$lib/proto/hydra_provider/proto/hydra_provider';
+import { ChannelCredentials } from '@grpc/grpc-js';
+import { toPlainObject } from '$lib/common/utils';
 
 // Load
 const transport = new GrpcTransport({
@@ -11,18 +12,22 @@ const transport = new GrpcTransport({
 	channelCredentials: ChannelCredentials.createInsecure()
 });
 
-const client = new ConnectionManagerClient(transport);
+const serialClient = new SerialDataFeedClient(transport);
+const randomClient = new RandomDataFeedClient(transport);
 
 export const load = async () => {
-	const devices = await client.getSerialPorts({});
-	console.log(devices.response);
+	const devices = await serialClient.listAvailablePorts({});
+	const serialStatus = await serialClient.getStatus({});
+	const randomStatus = await randomClient.getStatus({});
 	return {
-		devices: devices.response.ports
+		devices: devices.response.ports,
+		serialStatus: toPlainObject(serialStatus.response),
+		randomIsRunning: randomStatus.response.isRunning
 	};
 };
 
 export const actions = {
-	select_device: async (req) => {
+	serial_configure: async (req) => {
 		// device: string
 		const form = await req.request.formData();
 		const device = form.get('device');
@@ -33,8 +38,9 @@ export const actions = {
 			};
 		} else {
 			try {
-				const response = await client.setPreferredSerialPort({
-					portName: device.toString()
+				const response = await serialClient.configure({
+					baudRate: 9600,
+					port: device.toString()
 				});
 				return {
 					response: JSON.parse(JSON.stringify(response.response))
@@ -48,43 +54,17 @@ export const actions = {
 		}
 	},
 
-	select_mode: async (req) => {
-		// device: string
-		const form = await req.request.formData();
-		const mode = form.get('mode');
-		let modeEnum: ConnectionType;
+	serial_start: async () => {
+		await serialClient.start({});
+	},
 
-		if (mode === null) {
-			return {
-				error: 'No mode selected'
-			};
-		}
-
-		switch (mode) {
-			case 'random':
-				modeEnum = ConnectionType.RANDOM;
-				break;
-			case 'serial':
-				modeEnum = ConnectionType.SERIAL;
-				break;
-			default:
-				return {
-					error: 'Invalid mode: ' + mode
-				};
-		}
-
-		try {
-			const response = await client.setConnectionType({
-				connectionType: modeEnum
-			});
-			return {
-				response: JSON.parse(JSON.stringify(response.response))
-			};
-		} catch (error) {
-			const err = error as RpcError;
-			return {
-				error: err.message
-			};
-		}
+	serial_stop: async () => {
+		await serialClient.stop({});
+	},
+	random_start: async () => {
+		await randomClient.start({});
+	},
+	random_stop: async () => {
+		await randomClient.stop({});
 	}
 } satisfies Actions;

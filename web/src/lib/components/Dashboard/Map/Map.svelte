@@ -31,9 +31,9 @@
 
 	$: {
 		latestCoordinates = {
-			latitude: latestCoordinatesData?.rocket_sensor_gps_pos_1[0].latitude ?? 0,
-			longitude: latestCoordinatesData?.rocket_sensor_gps_pos_1[0].longitude ?? 0,
-			altitude: latestCoordinatesData?.rocket_sensor_gps_pos_1[0].altitude ?? 0
+			latitude: latestCoordinatesData?.rocket_sensor_gps_pos_1[0]?.latitude ?? 0,
+			longitude: latestCoordinatesData?.rocket_sensor_gps_pos_1[0]?.longitude ?? 0,
+			altitude: latestCoordinatesData?.rocket_sensor_gps_pos_1[0]?.altitude ?? 0
 		};
 
 		if (viewer && test) {
@@ -120,7 +120,7 @@
 		setTimeout(() => {
 			const credits = document.getElementsByClassName('cesium-widget-credits');
 			if (credits.length > 0) {
-				credits[0].remove();
+				credits[0]?.remove();
 			}
 		}, 1000);
 	});

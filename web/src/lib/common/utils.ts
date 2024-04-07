@@ -97,3 +97,7 @@ export function padFloatToDecimalPlaces(num: number, decimalPlaces: number) {
 	const factor = Math.pow(10, decimalPlaces);
 	return (Math.round(num * factor) / factor).toFixed(decimalPlaces);
 }
+
+export function toPlainObject<T>(instance: T) {
+	return Object.assign({}, instance);
+}
