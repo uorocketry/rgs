@@ -5,11 +5,9 @@ import { graphql } from 'gql.tada';
 const AccelerometersDocument = graphql(`
 	subscription Accelerometers {
 		rocket_sensor_imu_1(order_by: { time_stamp: desc }) {
-			dataVec3ByGyroscopes {
-				x
-				y
-				z
-			}
+			accelorometer_x
+			accelorometer_y
+			accelorometer_z
 		}
 	}
 `);
@@ -25,11 +23,9 @@ const DeltaVDocument = graphql(`
 			order_by: { rocket_sensor_message: { rocket_message: { created_at: desc } } }
 			limit: 1
 		) {
-			dataVec3ByDeltaVelocity {
-				x
-				y
-				z
-			}
+			delta_velocity_x
+			delta_velocity_y
+			delta_velocity_z
 		}
 	}
 `);
@@ -41,12 +37,12 @@ export const DeltaV = subscriptionStore({
 
 const MaxDeltaVDocument = graphql(`
 	subscription MaxDeltaV {
-		data_vec3_aggregate(where: { rocketSensorImu2sByDeltaVelocity: {} }) {
+		rocket_sensor_imu_2_aggregate(where: { rocket_sensor_message: {} }) {
 			aggregate {
 				max {
-					x
-					y
-					z
+					delta_velocity_x
+					delta_velocity_y
+					delta_velocity_z
 				}
 			}
 		}

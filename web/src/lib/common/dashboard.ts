@@ -28,10 +28,10 @@ export const dashboard_components: Record<string, () => Promise<ComponentType>> 
 	},
 	RocketMotion: async () => {
 		return (await import('$lib/components/Dashboard/RocketMotion/RocketMotion.svelte')).default;
+	},
+	RocketStatus: async () => {
+		return (await import('$lib/components/Dashboard/RocketStatus/RocketStatus.svelte')).default;
 	}
-	// RocketStatus: async () => {
-	// 	return (await import('$lib/components/smart/lists/RocketStatus.svelte')).default;
-	// },
 	// LogViewer: async () => {
 	// 	return (await import('$lib/components/smart/LogViewer.svelte')).default;
 	// }

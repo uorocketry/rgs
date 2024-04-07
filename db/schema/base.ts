@@ -1,12 +1,5 @@
 import { relations } from "drizzle-orm";
-import {
-    pgTable,
-    integer,
-    serial,
-    text,
-    real,
-    timestamp,
-} from "drizzle-orm/pg-core";
+import { pgTable, integer, serial, text, timestamp } from "drizzle-orm/pg-core";
 
 import { rocket_command } from "./rocket_command";
 import { rocket_log } from "./rocket_log";
@@ -51,21 +44,6 @@ export const rocket_message_relations = relations(
         rocket_sensor: one(rocket_sensor_message),
     })
 );
-
-export const data_quaternion = pgTable("data_quaternion", {
-    id: serial("id").primaryKey(),
-    x: real("w").notNull(),
-    y: real("x").notNull(),
-    z: real("y").notNull(),
-    w: real("z").notNull(),
-});
-
-export const data_vec3 = pgTable("data_vec3", {
-    id: serial("id").primaryKey(),
-    x: real("x").notNull(),
-    y: real("y").notNull(),
-    z: real("z").notNull(),
-});
 
 export const web_layout = pgTable("web_layout", {
     id: serial("id").primaryKey(),

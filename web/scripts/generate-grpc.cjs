@@ -28,6 +28,11 @@ searchForProtoFiles(baseSearch);
 
 console.log('protoFiles', protoFiles);
 
+if (fs.existsSync(clientOutput)) {
+	fs.rmSync(clientOutput, { recursive: true });
+}
+fs.mkdirSync(clientOutput);
+
 const command = `npx protoc --ts_out ${clientOutput} --proto_path ${baseSearch} ${protoFiles.join(' ')}`;
 
 console.log('command', command);

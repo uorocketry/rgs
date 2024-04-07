@@ -7,8 +7,8 @@ use tonic::{async_trait, Request, Response, Status};
 use crate::data_feed_service::random::iterator::RandomDataFeedIterator;
 use crate::database_service::DatabaseService;
 
-use crate::data_feed_service::proto::random_data_feed_server::*;
 use crate::data_feed_service::proto::Empty;
+use crate::data_feed_service::proto::{random_data_feed_server::*, RandomDataFeedStatus};
 
 pub struct RandomDataFeedService {
     iterator: RandomDataFeedIterator,
@@ -49,5 +49,18 @@ impl RandomDataFeed for RandomDataFeedService {
     async fn stop(&self, _request: Request<Empty>) -> Result<Response<Empty>, Status> {
         self.iterator.is_running.store(false, Ordering::Relaxed);
         Ok(Response::new(Empty {}))
+    }
+
+    // is_running
+
+    async fn get_status(
+        &self,
+        _request: Request<Empty>,
+    ) -> Result<Response<RandomDataFeedStatus>, Status> {
+        let is_running = self.iterator.is_running.load(Ordering::Relaxed);
+        Ok(Response::new(RandomDataFeedStatus {
+            is_running,
+            config: None,
+        }))
     }
 }

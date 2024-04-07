@@ -1,5 +1,4 @@
 <script lang="ts">
-	// import { linkStatus } from '$lib/realtime/sensors';
 	import { clipboard } from '@skeletonlabs/skeleton';
 	import { RadioStatus } from './types';
 	$: data = $RadioStatus.data?.rocket_radio_status[0];

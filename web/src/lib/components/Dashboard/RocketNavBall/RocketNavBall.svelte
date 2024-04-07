@@ -11,13 +11,12 @@
 
 	// Interpolate current rotation to target rotation
 	$: rocketData = $RocketQuat.data;
-	$: quatData =
-		rocketData?.rocket_message[0].rocket_sensor_message?.rocket_sensor_quat?.data_quaternion;
+	$: quatData = rocketData?.rocket_message[0]?.rocket_sensor_message?.rocket_sensor_quat;
 	$: quatDataOrIdentity = {
-		x: quatData?.x ?? 0,
-		y: quatData?.y ?? 0,
-		z: quatData?.z ?? 0,
-		w: quatData?.w ?? 1
+		x: quatData?.quat_x ?? 0,
+		y: quatData?.quat_y ?? 0,
+		z: quatData?.quat_z ?? 0,
+		w: quatData?.quat_w ?? 1
 	};
 	$: latestReportedRotation = new Quaternion(
 		quatDataOrIdentity.y,

@@ -1,4 +1,3 @@
-use super::utils::store_3d_vector;
 use crate::database_service::hydra_input::saveable::SaveableData;
 use messages::sensor::EkfNav1;
 use sqlx::{postgres::PgQueryResult, query, Error, Postgres, Transaction};
@@ -9,16 +8,17 @@ impl SaveableData for EkfNav1 {
         transaction: &mut Transaction<'_, Postgres>,
         rocket_message_id: i32,
     ) -> Result<PgQueryResult, Error> {
-        let velocity = store_3d_vector(self.velocity, transaction).await?;
-        let velocity_std_dev: i32 = store_3d_vector(self.velocity_std_dev, transaction).await?;
         query!(
-            "INSERT INTO rocket_sensor_nav_1
-			(rocket_sensor_message_id, time_stamp, velocity, velocity_std_dev)
-			VALUES ($1, $2, $3, $4)",
+            "INSERT INTO public.rocket_sensor_nav_1 (rocket_sensor_message_id,time_stamp,velocity_x,velocity_y,velocity_z,velocity_std_dev_x,velocity_std_dev_y,velocity_std_dev_z)
+            VALUES ($1, $2, $3, $4, $5, $6, $7, $8)",        
             rocket_message_id,
             self.time_stamp as i32,
-            velocity,
-            velocity_std_dev,
+            self.velocity[0],
+            self.velocity[1],
+            self.velocity[2],
+            self.velocity_std_dev[0],
+            self.velocity_std_dev[1],
+            self.velocity_std_dev[2],
         )
         .execute(&mut **transaction)
         .await

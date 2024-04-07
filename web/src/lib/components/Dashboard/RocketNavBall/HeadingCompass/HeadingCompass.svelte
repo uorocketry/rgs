@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { backInOut, cubicInOut, elasticIn, elasticInOut } from 'svelte/easing';
+	import { cubicInOut } from 'svelte/easing';
 	import { tweened } from 'svelte/motion';
 	import { RAD2DEG } from 'three/src/math/MathUtils.js';
 
@@ -27,7 +27,7 @@
 	} as const;
 
 	let angle = 0;
-	$: radius = Math.min(w, h - 80) / 2;
+	$: radius = Math.abs(Math.min(w, h - 80) / 2);
 
 	type Lines = {
 		x: number;
