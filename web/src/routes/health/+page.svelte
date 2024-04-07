@@ -1,7 +1,7 @@
 <script lang="ts">
 	import hasura_logo from '$lib/assets/hasura_logo.svg';
 	import hydra_provider_logo from '$lib/assets/hydra_provider_logo.svg';
-	import { onMount, tick } from 'svelte';
+	import { onMount } from 'svelte';
 
 	type Service = {
 		name: string;

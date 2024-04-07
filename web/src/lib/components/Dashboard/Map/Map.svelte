@@ -1,16 +1,12 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
 	import { Viewer } from 'cesium';
-	import '../../../../../node_modules/cesium/Build/Cesium/Widgets/widgets.css';
+	import 'cesium/Build/Cesium/Widgets/widgets.css';
 	import * as Cesium from 'cesium';
-
-	//extra
 	import { LatestCoordinates } from './types';
 
 	// TODOS:
 	// - Add launch coordinates
-	// - Get rocket position from GQL
-	// - Add rocket model
 	// - Add rocket trajectory
 
 	// @ts-expect-error Custom window property
@@ -19,7 +15,7 @@
 	console.log('Cesium', Cesium);
 	let viewer: Viewer;
 
-	let test: any;
+	let rocketModel: Cesium.Entity | undefined;
 
 	let latestCoordinates = {
 		latitude: 0,
@@ -36,17 +32,19 @@
 			altitude: latestCoordinatesData?.rocket_sensor_gps_pos_1[0]?.altitude ?? 0
 		};
 
-		if (viewer && test) {
+		if (viewer && rocketModel) {
 			console.log('Updating label text and position');
 
 			// Update label text
-			test.label.text = new Cesium.ConstantProperty(
-				`Latitude: ${latestCoordinates.latitude}, Longitude: ${latestCoordinates.longitude}, Altitude: ${latestCoordinates.altitude} meters`
-			);
+			if (rocketModel.label) {
+				rocketModel.label.text = new Cesium.ConstantProperty(
+					`Latitude: ${latestCoordinates.latitude}, Longitude: ${latestCoordinates.longitude}, Altitude: ${latestCoordinates.altitude} meters`
+				);
+			}
 
 			// Calculate position
 			const zPosition = latestCoordinates.altitude; // adjust scale factor etc
-			test.position = new Cesium.ConstantPositionProperty(
+			rocketModel.position = new Cesium.ConstantPositionProperty(
 				Cesium.Cartesian3.fromDegrees(
 					latestCoordinates.longitude,
 					latestCoordinates.latitude,
@@ -78,7 +76,7 @@
 		const JMTSPosition = Cesium.Cartesian3.fromDegrees(-75.68033372705948, 45.42010692442428, 100);
 
 		//add marker for JMTS
-		var JMTS = viewer.entities.add({
+		viewer.entities.add({
 			position: JMTSPosition,
 			point: {
 				pixelSize: 10,
@@ -91,7 +89,7 @@
 		});
 
 		//add rocket model
-		test = viewer.entities.add({
+		rocketModel = viewer.entities.add({
 			position: JMTSPosition,
 			model: {
 				uri: '/models/rocket.glb',
@@ -111,10 +109,10 @@
 			}
 		});
 
-		viewer.flyTo(test);
+		viewer.flyTo(rocketModel);
 		//viewer.flyTo(JMTS);
 
-		viewer.trackedEntity = test;
+		viewer.trackedEntity = rocketModel;
 
 		// Delete "cesium-widget-credits" after the viewer is created
 		setTimeout(() => {
