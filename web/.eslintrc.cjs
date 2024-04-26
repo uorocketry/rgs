@@ -8,7 +8,7 @@ module.exports = {
 		'plugin:svelte/recommended'
 	],
 	plugins: ['@typescript-eslint'],
-	ignorePatterns: ['*.cjs'],
+	ignorePatterns: ['*.cjs', 'e2e/'],
 	overrides: [
 		{
 			files: ['*.svelte'],

@@ -84,7 +84,6 @@
 
 		leftPixelStart = nonNegativeIncrement(leftPixelStart, pixelPerSecond);
 
-		let iterCnt = 0;
 		ticks = [];
 		let maxTicks = 500;
 
@@ -93,7 +92,6 @@
 			curPixel < clientWidth + pixelPerSecond; // rightPixelStart
 			curPixel += pixelPerSecond
 		) {
-			iterCnt++;
 			if (maxTicks < 0) {
 				console.error('Max ticks reached');
 				break;

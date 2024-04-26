@@ -15,9 +15,14 @@ export const InsertQuaternionDocument = graphql(`
 					data: {
 						rocket_sensor_quat: {
 							data: {
-								data_quaternion: { data: { w: $w, x: $x, y: $y, z: $z } }
-								data_vec3: { data: { x: 0, y: 0, z: 0 } }
 								status: 10
+								quat_w: $w
+								quat_x: $x
+								quat_y: $y
+								quat_z: $z
+								euler_std_dev_x: 0
+								euler_std_dev_y: 0
+								euler_std_dev_z: 0
 								time_stamp: $time_stamp1
 							}
 						}

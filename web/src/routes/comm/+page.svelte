@@ -1,8 +1,8 @@
 <script lang="ts">
 	import { enhance } from '$app/forms';
 	import type { SubmitFunction } from '@sveltejs/kit';
-	import type { PageData } from './$types';
 	import { onMount } from 'svelte';
+	import type { PageData } from './$types';
 
 	export let data: PageData;
 
@@ -10,7 +10,7 @@
 		console.log('Page data:', data);
 	});
 
-	const serialConfigureFunction = ((input) => {
+	const serialConfigureFunction = (() => {
 		console.log('Form submitted');
 
 		return async (result) => {
