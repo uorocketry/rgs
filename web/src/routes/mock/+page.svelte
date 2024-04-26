@@ -1,8 +1,8 @@
 <script lang="ts">
-	import { onMount } from 'svelte';
 	import { gqlClient } from '$lib/stores';
-	import { InsertQuaternionDocument } from './types';
 	import { getToastStore } from '@skeletonlabs/skeleton';
+	import { onMount } from 'svelte';
+	import { InsertQuaternionDocument } from './types';
 
 	let toastStore = getToastStore();
 
@@ -36,17 +36,18 @@
 					alt: position.coords.altitude ?? 0
 				};
 			},
-			(error) => {}
+			() => {}
 		);
 
+		// eslint-disable-next-line no-undef
 		const sensor = new AbsoluteOrientationSensor();
 
 		Promise.all([
-			//@ts-ignore
+			//@ts-expect-error Chrome specific permissions
 			navigator.permissions.query({ name: 'accelerometer' }),
-			//@ts-ignore
+			//@ts-expect-error Chrome specific permissions
 			navigator.permissions.query({ name: 'magnetometer' }),
-			//@ts-ignore
+			//@ts-expect-error Chrome specific permissions
 			navigator.permissions.query({ name: 'gyroscope' })
 		]).then((results) => {
 			if (results.every((result) => result.state === 'granted')) {
@@ -96,7 +97,7 @@
 			}
 		});
 
-		//@ts-ignore
+		//@ts-expect-error Chrome specific permissions
 		navigator.permissions.query({ name: 'accelerometer' }).then((result) => {
 			if (result.state === 'denied') {
 				console.log('Permission to use accelerometer sensor is denied.');
@@ -106,7 +107,7 @@
 			accelerometer_ok = true;
 		});
 
-		//@ts-ignore
+		//@ts-expect-error Chrome specific permissions
 		navigator.permissions.query({ name: 'gyroscope' }).then((result) => {
 			if (result.state === 'denied') {
 				console.log('Permission to use gyroscope sensor is denied.');
@@ -117,7 +118,6 @@
 			gyroscope_ok = true;
 		});
 
-		//@ts-ignore
 		navigator.permissions.query({ name: 'geolocation' }).then((result) => {
 			if (result.state === 'denied') {
 				console.log('Permission to use geolocation sensor is denied.');
@@ -138,7 +138,7 @@
 
 		// Request screen to stay on
 		if ('wakeLock' in navigator) {
-			navigator.wakeLock.request('screen').catch((err) => {
+			navigator.wakeLock.request('screen').catch(() => {
 				toastStore.trigger({
 					background: 'variant-filled-error',
 					classes: 'text-sm',

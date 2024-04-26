@@ -16,11 +16,11 @@
 	} from '@skeletonlabs/skeleton';
 
 	import { findSetting } from '$lib/common/settings';
-	import SideBar from '$lib/components/Common/SideBar.svelte';
 	import MasterCommandBox from '$lib/components/Common/CommandBox/MasterCommandBox.svelte';
-	import { gqlClient, commandBoxToggle } from '$lib/stores';
+	import SideBar from '$lib/components/Common/SideBar.svelte';
+	import { commandBoxToggle, gqlClient } from '$lib/stores';
 	import { arrow, autoUpdate, computePosition, flip, offset, shift } from '@floating-ui/dom';
-	import { getToastStore, initializeStores, setInitialClassState } from '@skeletonlabs/skeleton';
+	import { getToastStore, initializeStores } from '@skeletonlabs/skeleton';
 	import { onMount } from 'svelte';
 	import type { Writable } from 'svelte/store';
 
@@ -48,7 +48,7 @@
 			return `<span class="text-sm">${message}</span>`;
 		};
 
-		console.log = (...args: any[]) => {
+		console.log = (...args: unknown[]) => {
 			if ($consoleNotifications) {
 				toastStore.trigger({
 					background: 'variant-filled-primary',
@@ -59,7 +59,7 @@
 			oldConsoleLog(...args);
 		};
 
-		console.warn = (...args: any[]) => {
+		console.warn = (...args: unknown[]) => {
 			if ($consoleNotifications) {
 				toastStore.trigger({
 					background: 'variant-filled-warning',
@@ -69,7 +69,7 @@
 			oldConsoleWarn(...args);
 		};
 
-		console.error = (...args: any[]) => {
+		console.error = (...args: unknown[]) => {
 			if ($consoleNotifications) {
 				toastStore.trigger({
 					background: 'variant-filled-error',
@@ -85,9 +85,6 @@
 
 	setContextClient(gqlClient);
 </script>
-
-<!-- theme mode classes -->
-<svelte:head>{@html `<script>(${setInitialClassState.toString()})();</script>`}</svelte:head>
 
 <!-- Main toast service -->
 <Toast position="tr" width="max-w-xs" />
