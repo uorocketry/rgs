@@ -8,7 +8,7 @@ module.exports = {
         },
         {
             name: "db",
-            script: "docker-compose up",
+            script: "docker compose up",
             cwd: "./",
         },
     ],
