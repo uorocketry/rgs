@@ -51,8 +51,6 @@ impl RandomDataFeed for RandomDataFeedService {
         Ok(Response::new(Empty {}))
     }
 
-    // is_running
-
     async fn get_status(
         &self,
         _request: Request<Empty>,

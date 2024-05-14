@@ -12,6 +12,7 @@ use crate::data_feed_service::proto::{
 };
 use crate::data_feed_service::serial::iterator::SerialDataFeedIterator;
 use crate::database_service::DatabaseService;
+use crate::mavlink_service::MavlinkService;
 
 use messages::mavlink::uorocketry::MavMessage;
 
@@ -19,17 +20,22 @@ use messages::mavlink::uorocketry::MavMessage;
 pub struct SerialDataFeedService {
     iterator: SerialDataFeedIterator,
     database_service: Arc<Mutex<DatabaseService>>,
+    mavlink_service: Arc<Mutex<MavlinkService>>,
 }
 
 impl SerialDataFeedService {
-    pub fn new(database_service: Arc<Mutex<DatabaseService>>) -> SerialDataFeedService {
+    pub fn new(
+        database_service: Arc<Mutex<DatabaseService>>,
+        mavlink_service: Arc<Mutex<MavlinkService>>,
+    ) -> SerialDataFeedService {
         SerialDataFeedService {
             iterator: SerialDataFeedIterator {
                 is_running: Arc::new(AtomicBool::new(false)),
-                mavlink: Arc::new(Mutex::new(None)),
+                mavlink_service,
                 config: Arc::new(Mutex::new(None)),
             },
             database_service,
+            mavlink_service,
         }
     }
 }

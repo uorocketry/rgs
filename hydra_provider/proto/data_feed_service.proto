@@ -1,6 +1,6 @@
 syntax = "proto3";
 
-package data_feed;
+package data_feed_service;
 
 service SerialDataFeed {
 	rpc start(Empty) returns(Empty);
