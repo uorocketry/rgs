@@ -50,4 +50,4 @@ Also make sure to track the tables in the Data tab of the Hasura console.
 2. Click on the `Data` tab then `default`->`public` [here](http://localhost:4000/console/data/default/schema/public) and click `Track All` for both **Untracked tables or views** and **Untracked foreign-key relationships**
 3. Run `pnpm run dump_hasura` on the console.
 4. Commit the changes.
-5. You might also want to re-run `docker-compose` as `docker-compose up --build` to make sure the changes are persisted.
+5. You might also want to re-run `docker compose` as `docker compose up --build` to make sure the changes are persisted.
