@@ -24,8 +24,8 @@ The frontends are the components that allow the user to interact with the infras
 
 There are a few things of interest that you might want to have running on your machine:
 
-- [Docker + Docker Compose](https://docs.docker.com/get-docker/)
-- The backend Database/Hasura instance which can be run with `docker-compose up`
+- [Docker](https://docs.docker.com/get-docker/) + [Docker Compose](https://docs.docker.com/compose/install/)
+- The backend Database/Hasura instance which can be run with `docker compose up`
 - The web frontend application. See its [README](web/README.md) for more information.
 - The `hydra_provider` project which can provide usefull serial/development-random-data for the web frontend. See its [README](hydra_provider/README.md) for more information.
 - Labjack Provider has not been implemented yet.
