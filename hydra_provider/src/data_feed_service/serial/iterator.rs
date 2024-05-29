@@ -24,7 +24,7 @@ impl SerialDataFeedIterator {
             return None;
         }
 
-        let mavlink_message = self.mavlink_service.lock().await.read_next();
+        let mavlink_message = self.mavlink_service.lock().await.read_next().unwrap();
         let message = match &mavlink_message {
             MavMessage::POSTCARD_MESSAGE(data) => {
                 let data: Message = from_bytes(data.message.as_slice()).unwrap();

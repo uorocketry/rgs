@@ -14,7 +14,7 @@ message ListAvailablePortsResponse {
 	repeated string ports = 1;
 }
 message SerialDataFeedConfig {
-	string port = 1;
+	int32 port = 1;
 	int32 baud_rate = 2;
 }
 message SerialDataFeedStatus {

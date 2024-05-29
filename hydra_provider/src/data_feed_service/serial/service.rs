@@ -14,8 +14,6 @@ use crate::data_feed_service::serial::iterator::SerialDataFeedIterator;
 use crate::database_service::DatabaseService;
 use crate::mavlink_service::MavlinkService;
 
-use messages::mavlink::uorocketry::MavMessage;
-
 #[derive(Clone)]
 pub struct SerialDataFeedService {
     iterator: SerialDataFeedIterator,
@@ -82,12 +80,7 @@ impl SerialDataFeed for SerialDataFeedService {
         request: Request<SerialDataFeedConfig>,
     ) -> Result<Response<Empty>, Status> {
         let config = request.into_inner();
-
-        let address = format!("serial:{}:{}", config.port, config.baud_rate);
-
-        let mut mavlink = self.iterator.mavlink.lock().await;
-        *mavlink = Some(connect::<MavMessage>(address.as_str()).unwrap());
-
+        self.mavlink_service.lock().await.reconnect(config.port, config.baud_rate);
         Ok(Response::new(Empty {}))
     }
 

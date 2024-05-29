@@ -3,26 +3,24 @@ syntax = "proto3";
 package command_service;
 
 service CommandDispatcher {
-	rpc dispatch(Command) returns(Empty);
+	rpc dispatch_deploy_drogue(DeployDrogueData) returns(Empty);
+	rpc dispatch_deploy_main(DeployMainData) returns(Empty);
+	rpc dispatch_power_down(PowerDownData) returns(Empty);
+	rpc dispatch_radio_rate_change(RadioRateChangeData) returns(Empty);
 }
 
-// NOTE: protobuf3 doesn't support inheritance for structuring commands better
-// SHOULD DO: find a more "composition" way of defining CommandData
-message Command {
-	CommandName name = 1;
-	CommandData data = 2;
+message DeployDrogueData {
+	bool val = 1;
+}
+message DeployMainData {
+	bool val = 1;
+}
+message PowerDownData {
+	Board board = 1;
 }
 
-enum CommandName {
-	DeployDrogue = 0;
-	DeployMain = 1;
-	PowerDown = 2;
-	RadioRateChange = 3;
-}
-
-message CommandData {
-	optional Board board = 2; // For PowerDown (Type defined by "Sender" enum internally and casted)
-	optional RadioRate radio_rate = 3; // For RadioRateChange (Type defined by "RadioRate" enum internally and casted)
+message RadioRateChangeData {
+	RadioRate rate = 1;
 }
 
 enum Board {

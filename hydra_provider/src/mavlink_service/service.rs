@@ -1,4 +1,6 @@
 use messages::mavlink::connect;
+use messages::mavlink::error::MessageReadError;
+use messages::mavlink::error::MessageWriteError;
 use messages::mavlink::uorocketry::MavMessage;
 use messages::mavlink::MavConnection;
 use messages::mavlink::MavHeader;
@@ -24,18 +26,18 @@ impl MavlinkService {
         self.mavlink = Some(connect::<MavMessage>(address.as_str()).unwrap());
     }
 
-    pub fn read_next(&self) -> MavMessage {
-        let (_, mavlink_message) = self.mavlink.as_ref().unwrap().recv().unwrap();
-        return mavlink_message;
+    pub fn read_next(&self) -> Result<MavMessage, MessageReadError> {
+        let (_, message) = self.mavlink.as_ref().unwrap().recv()?;
+        Ok(message)
     }
 
-    pub fn write(&self, message: &MavMessage) {
+    pub fn write(&self, message: &MavMessage) -> Result<usize, MessageWriteError> {
         self.message_count = self.message_count.wrapping_add(1);
         let header = MavHeader {
-            system_id: 1,    // Same network between rgs and hydra
+            system_id: 2,
             component_id: 2, // identifier of rgs
             sequence: self.message_count,
         };
-        self.mavlink.unwrap().send(&header, message);
+        return self.mavlink.unwrap().send(&header, message);
     }
 }
