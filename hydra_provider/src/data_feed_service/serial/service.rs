@@ -80,7 +80,10 @@ impl SerialDataFeed for SerialDataFeedService {
         request: Request<SerialDataFeedConfig>,
     ) -> Result<Response<Empty>, Status> {
         let config = request.into_inner();
-        self.mavlink_service.lock().await.reconnect(config.port, config.baud_rate);
+        self.mavlink_service
+            .lock()
+            .await
+            .reconnect(config.port, config.baud_rate);
         Ok(Response::new(Empty {}))
     }
 

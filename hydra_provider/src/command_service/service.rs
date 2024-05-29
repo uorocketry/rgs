@@ -12,7 +12,10 @@ use tonic::{async_trait, Request, Response, Status};
 
 use super::commands;
 use crate::command_service::proto;
-use crate::command_service::proto::{command_dispatcher_server::CommandDispatcher, DeployDrogueData, DeployMainData, PowerDownData, RadioRateChangeData};
+use crate::command_service::proto::{
+    command_dispatcher_server::CommandDispatcher, DeployDrogueData, DeployMainData, PowerDownData,
+    RadioRateChangeData,
+};
 use crate::mavlink_service::MavlinkService; // Import traits
 
 pub struct CommandService {
@@ -21,30 +24,50 @@ pub struct CommandService {
 
 #[async_trait]
 impl CommandDispatcher for CommandService {
-    async fn dispatch_deploy_drogue(&self, request: Request<DeployDrogueData>) -> Result<Response<proto::Empty>, Status> {
+    async fn dispatch_deploy_drogue(
+        &self,
+        request: Request<DeployDrogueData>,
+    ) -> Result<Response<proto::Empty>, Status> {
         self.dispatch_command(Command {
-            data : CommandData::DeployDrogue(DeployDrogue { val : request.into_inner().val })
+            data: CommandData::DeployDrogue(DeployDrogue {
+                val: request.into_inner().val,
+            }),
         });
         Ok(Response::new(proto::Empty {}))
     }
 
-    async fn dispatch_deploy_main(&self, request: Request<DeployMainData>) -> Result<Response<proto::Empty>, Status> {
+    async fn dispatch_deploy_main(
+        &self,
+        request: Request<DeployMainData>,
+    ) -> Result<Response<proto::Empty>, Status> {
         self.dispatch_command(Command {
-            data : CommandData::DeployMain(DeployMain { val : request.into_inner().val })
+            data: CommandData::DeployMain(DeployMain {
+                val: request.into_inner().val,
+            }),
         });
         Ok(Response::new(proto::Empty {}))
     }
 
-    async fn dispatch_power_down(&self, request: Request<PowerDownData>) -> Result<Response<proto::Empty>, Status> {
+    async fn dispatch_power_down(
+        &self,
+        request: Request<PowerDownData>,
+    ) -> Result<Response<proto::Empty>, Status> {
         self.dispatch_command(Command {
-            data : CommandData::PowerDown(PowerDown { board : self.map_proto_board_to_sender(request.into_inner().board()) })
+            data: CommandData::PowerDown(PowerDown {
+                board: self.map_proto_board_to_sender(request.into_inner().board()),
+            }),
         });
         Ok(Response::new(proto::Empty {}))
     }
 
-    async fn dispatch_radio_rate_change(&self, request: Request<RadioRateChangeData>) -> Result<Response<proto::Empty>, Status> {
+    async fn dispatch_radio_rate_change(
+        &self,
+        request: Request<RadioRateChangeData>,
+    ) -> Result<Response<proto::Empty>, Status> {
         self.dispatch_command(Command {
-            data : CommandData::RadioRateChange(RadioRateChange { rate : self.map_proto_radio_rate_to_radio_rate(request.into_inner().rate()) })
+            data: CommandData::RadioRateChange(RadioRateChange {
+                rate: self.map_proto_radio_rate_to_radio_rate(request.into_inner().rate()),
+            }),
         });
         Ok(Response::new(proto::Empty {}))
     }
