@@ -44,7 +44,7 @@ impl MavlinkService {
     }
 
     pub fn write(&mut self, message: &MavMessage) -> Result<usize, MessageWriteError> {
-        let sequence = self.message_count.load(Ordering::Release).wrapping_add(1);
+        let sequence = self.message_count.load(Ordering::Acquire).wrapping_add(1);
         self.message_count.store(sequence, Ordering::Release);
         let header = MavHeader {
             system_id: 2,

@@ -3,7 +3,7 @@ use serialport::{available_ports, SerialPortType};
 use std::sync::atomic::{AtomicBool, Ordering};
 use std::sync::Arc;
 use tokio::sync::Mutex;
-use tonic::{async_trait, Request, Response, Status};
+use tonic::{async_trait, Code, Request, Response, Status};
 
 use crate::data_feed_service::proto::serial_data_feed_server::*;
 use crate::data_feed_service::proto::{
@@ -79,11 +79,15 @@ impl SerialDataFeed for SerialDataFeedService {
         request: Request<SerialDataFeedConfig>,
     ) -> Result<Response<Empty>, Status> {
         let config = request.into_inner();
-        self.mavlink_service
+        let result = self.mavlink_service
             .lock()
             .await
             .reconnect(config.port, config.baud_rate);
-        Ok(Response::new(Empty {}))
+
+        match result {
+            Ok(_) => Ok(Response::new(Empty {})),
+            Err(error) => Err(Status::new(Code::Internal, format!("{error:?}"))),
+        }
     }
 
     async fn get_status(
