@@ -8,6 +8,6 @@ fn main() {
 
     tonic_build::configure()
         .build_server(true)
-        .compile(&protos, &["."])
+        .compile(&protos, &[".", "./proto"])
         .unwrap_or_else(|error| panic!("Failed to compile {:?}", error));
 }

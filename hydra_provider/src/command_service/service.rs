@@ -8,9 +8,8 @@ use messages::mavlink::uorocketry::{MavMessage, POSTCARD_MESSAGE_DATA};
 use messages::sender::Sender;
 use messages::Message;
 use tokio::sync::Mutex;
-use tonic::{async_trait, Request, Response, Status};
+use tonic::{async_trait, Code, Request, Response, Status};
 
-use super::commands;
 use crate::command_service::proto;
 use crate::command_service::proto::{
     command_dispatcher_server::CommandDispatcher, DeployDrogueData, DeployMainData, PowerDownData,
@@ -28,48 +27,81 @@ impl CommandDispatcher for CommandService {
         &self,
         request: Request<DeployDrogueData>,
     ) -> Result<Response<proto::Empty>, Status> {
-        self.dispatch_command(Command {
-            data: CommandData::DeployDrogue(DeployDrogue {
-                val: request.into_inner().val,
-            }),
-        });
-        Ok(Response::new(proto::Empty {}))
+        let result = self
+            .dispatch_command(Command {
+                data: CommandData::DeployDrogue(DeployDrogue {
+                    val: request.into_inner().val,
+                }),
+            })
+            .await;
+
+        match result {
+            Ok(_) => Ok(Response::new(proto::Empty {})),
+            Err(error) => Err(Status::new(Code::Internal, format!("{error:?}"))),
+        }
     }
 
     async fn dispatch_deploy_main(
         &self,
         request: Request<DeployMainData>,
     ) -> Result<Response<proto::Empty>, Status> {
-        self.dispatch_command(Command {
-            data: CommandData::DeployMain(DeployMain {
-                val: request.into_inner().val,
-            }),
-        });
-        Ok(Response::new(proto::Empty {}))
+        let result = self
+            .dispatch_command(Command {
+                data: CommandData::DeployMain(DeployMain {
+                    val: request.into_inner().val,
+                }),
+            })
+            .await;
+
+        match result {
+            Ok(_) => Ok(Response::new(proto::Empty {})),
+            Err(error) => Err(Status::new(Code::Internal, format!("{error:?}"))),
+        }
     }
 
     async fn dispatch_power_down(
         &self,
         request: Request<PowerDownData>,
     ) -> Result<Response<proto::Empty>, Status> {
-        self.dispatch_command(Command {
-            data: CommandData::PowerDown(PowerDown {
-                board: self.map_proto_board_to_sender(request.into_inner().board()),
-            }),
-        });
-        Ok(Response::new(proto::Empty {}))
+        let result = self
+            .dispatch_command(Command {
+                data: CommandData::PowerDown(PowerDown {
+                    board: match request.into_inner().board() {
+                        proto::Board::Sensor => Sender::SensorBoard,
+                        proto::Board::Recovery => Sender::RecoveryBoard,
+                        proto::Board::Communication => Sender::CommunicationBoard,
+                        proto::Board::Power => Sender::PowerBoard,
+                        proto::Board::Camera => Sender::CameraBoard,
+                    },
+                }),
+            })
+            .await;
+
+        match result {
+            Ok(_) => Ok(Response::new(proto::Empty {})),
+            Err(error) => Err(Status::new(Code::Internal, format!("{error:?}"))),
+        }
     }
 
     async fn dispatch_radio_rate_change(
         &self,
         request: Request<RadioRateChangeData>,
     ) -> Result<Response<proto::Empty>, Status> {
-        self.dispatch_command(Command {
-            data: CommandData::RadioRateChange(RadioRateChange {
-                rate: self.map_proto_radio_rate_to_radio_rate(request.into_inner().rate()),
-            }),
-        });
-        Ok(Response::new(proto::Empty {}))
+        let result = self
+            .dispatch_command(Command {
+                data: CommandData::RadioRateChange(RadioRateChange {
+                    rate: match request.into_inner().rate() {
+                        proto::RadioRate::Fast => RadioRate::Fast,
+                        proto::RadioRate::Slow => RadioRate::Slow,
+                    },
+                }),
+            })
+            .await;
+
+        match result {
+            Ok(_) => Ok(Response::new(proto::Empty {})),
+            Err(error) => Err(Status::new(Code::Internal, format!("{error:?}"))),
+        }
     }
 }
 
@@ -90,24 +122,5 @@ impl CommandService {
         });
 
         self.mavlink_service.lock().await.write(&mavlink_message)
-    }
-
-    // Maps the enum from proto for boards to our enum for boards
-    fn map_proto_board_to_sender(&self, board: proto::Board) -> Sender {
-        match board {
-            proto::Board::Sensor => Sender::SensorBoard,
-            proto::Board::Recovery => Sender::RecoveryBoard,
-            proto::Board::Communication => Sender::CommunicationBoard,
-            proto::Board::Power => Sender::PowerBoard,
-            proto::Board::Camera => Sender::CameraBoard,
-        }
-    }
-
-    // Maps the enum from proto for RadioRate to our enum for RadioRate
-    fn map_proto_radio_rate_to_radio_rate(&self, radio_rate: proto::RadioRate) -> RadioRate {
-        match radio_rate {
-            proto::RadioRate::Fast => RadioRate::Fast,
-            proto::RadioRate::Slow => RadioRate::Slow,
-        }
     }
 }

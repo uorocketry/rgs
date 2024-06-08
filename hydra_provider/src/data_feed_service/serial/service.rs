@@ -1,5 +1,4 @@
 use log::info;
-use messages::mavlink::connect;
 use serialport::{available_ports, SerialPortType};
 use std::sync::atomic::{AtomicBool, Ordering};
 use std::sync::Arc;
@@ -29,11 +28,11 @@ impl SerialDataFeedService {
         SerialDataFeedService {
             iterator: SerialDataFeedIterator {
                 is_running: Arc::new(AtomicBool::new(false)),
-                mavlink_service,
+                mavlink_service: mavlink_service.clone(),
                 config: Arc::new(Mutex::new(None)),
             },
             database_service,
-            mavlink_service,
+            mavlink_service: mavlink_service.clone(),
         }
     }
 }
