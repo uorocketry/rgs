@@ -1,10 +1,9 @@
 use log::info;
-use messages::mavlink::connect;
 use serialport::{available_ports, SerialPortType};
 use std::sync::atomic::{AtomicBool, Ordering};
 use std::sync::Arc;
 use tokio::sync::Mutex;
-use tonic::{async_trait, Request, Response, Status};
+use tonic::{async_trait, Code, Request, Response, Status};
 
 use crate::data_feed_service::proto::serial_data_feed_server::*;
 use crate::data_feed_service::proto::{
@@ -12,24 +11,28 @@ use crate::data_feed_service::proto::{
 };
 use crate::data_feed_service::serial::iterator::SerialDataFeedIterator;
 use crate::database_service::DatabaseService;
-
-use messages::mavlink::uorocketry::MavMessage;
+use crate::mavlink_service::MavlinkService;
 
 #[derive(Clone)]
 pub struct SerialDataFeedService {
     iterator: SerialDataFeedIterator,
     database_service: Arc<Mutex<DatabaseService>>,
+    mavlink_service: Arc<Mutex<MavlinkService>>,
 }
 
 impl SerialDataFeedService {
-    pub fn new(database_service: Arc<Mutex<DatabaseService>>) -> SerialDataFeedService {
+    pub fn new(
+        database_service: Arc<Mutex<DatabaseService>>,
+        mavlink_service: Arc<Mutex<MavlinkService>>,
+    ) -> SerialDataFeedService {
         SerialDataFeedService {
             iterator: SerialDataFeedIterator {
                 is_running: Arc::new(AtomicBool::new(false)),
-                mavlink: Arc::new(Mutex::new(None)),
+                mavlink_service: mavlink_service.clone(),
                 config: Arc::new(Mutex::new(None)),
             },
             database_service,
+            mavlink_service: mavlink_service.clone(),
         }
     }
 }
@@ -76,13 +79,15 @@ impl SerialDataFeed for SerialDataFeedService {
         request: Request<SerialDataFeedConfig>,
     ) -> Result<Response<Empty>, Status> {
         let config = request.into_inner();
+        let result = self.mavlink_service
+            .lock()
+            .await
+            .reconnect(config.port, config.baud_rate);
 
-        let address = format!("serial:{}:{}", config.port, config.baud_rate);
-
-        let mut mavlink = self.iterator.mavlink.lock().await;
-        *mavlink = Some(connect::<MavMessage>(address.as_str()).unwrap());
-
-        Ok(Response::new(Empty {}))
+        match result {
+            Ok(_) => Ok(Response::new(Empty {})),
+            Err(error) => Err(Status::new(Code::Internal, format!("{error:?}"))),
+        }
     }
 
     async fn get_status(

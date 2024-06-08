@@ -3,6 +3,7 @@ mod command_service;
 mod data_feed_service;
 mod database_service;
 mod hydra_input;
+mod mavlink_service;
 mod utils;
 
 use std::str::FromStr;

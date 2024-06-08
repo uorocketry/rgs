@@ -2,10 +2,11 @@ use std::net::SocketAddr;
 use std::sync::Arc;
 use tokio::sync::Mutex;
 
-// use crate::commands::service::CommandService;
+use crate::command_service::{CommandDispatcherServer, CommandService};
 use crate::data_feed_service::random::{RandomDataFeedServer, RandomDataFeedService};
 use crate::data_feed_service::serial::{SerialDataFeedServer, SerialDataFeedService};
 use crate::database_service::DatabaseService;
+use crate::mavlink_service::MavlinkService;
 use crate::utils::logging::log_request;
 
 use tonic::transport::Server;
@@ -20,14 +21,17 @@ pub async fn bootstrap(
 ) -> Result<(), tonic::transport::Error> {
     let server_address: SocketAddr = format!("[::1]:{}", server_port).parse().unwrap();
 
+    // Services
+    let mavlink_service = Arc::new(Mutex::new(MavlinkService::new()));
     let database_service = Arc::new(Mutex::new(
         DatabaseService::new(&database_address.as_str()).await,
     ));
-    let serial_data_feed_service = SerialDataFeedService::new(database_service.clone());
+    let serial_data_feed_service =
+        SerialDataFeedService::new(database_service.clone(), mavlink_service.clone());
     let random_data_feed_service = RandomDataFeedService::new(database_service.clone());
+    let command_service = CommandService::new(mavlink_service.clone());
 
     let (mut health_reporter, health_server) = health_reporter();
-
     health_reporter
         .set_serving::<HealthServer<HealthService>>()
         .await;
@@ -41,6 +45,10 @@ pub async fn bootstrap(
         ))
         .add_service(RandomDataFeedServer::with_interceptor(
             random_data_feed_service,
+            log_request,
+        ))
+        .add_service(CommandDispatcherServer::with_interceptor(
+            command_service,
             log_request,
         ))
         .serve(server_address)

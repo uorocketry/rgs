@@ -1,3 +1,9 @@
 {
-	"rust-analyzer.showUnlinkedFileNotification": false
+	"rust-analyzer.showUnlinkedFileNotification": false,
+	"protoc": {
+		"path": "/opt/homebrew/bin/protoc",
+		"options": [
+			"--proto_path=${workspaceRoot}/proto",
+		]
+	}
 }

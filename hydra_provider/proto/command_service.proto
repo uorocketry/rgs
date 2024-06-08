@@ -1,0 +1,39 @@
+syntax = "proto3";
+
+package command_service;
+
+service CommandDispatcher {
+	rpc dispatch_deploy_drogue(DeployDrogueData) returns(Empty);
+	rpc dispatch_deploy_main(DeployMainData) returns(Empty);
+	rpc dispatch_power_down(PowerDownData) returns(Empty);
+	rpc dispatch_radio_rate_change(RadioRateChangeData) returns(Empty);
+}
+
+message DeployDrogueData {
+	bool val = 1;
+}
+message DeployMainData {
+	bool val = 1;
+}
+message PowerDownData {
+	Board board = 1;
+}
+
+message RadioRateChangeData {
+	RadioRate rate = 1;
+}
+
+enum Board {
+	Sensor = 0;
+	Recovery = 1;
+	Communication = 2;
+	Power = 3;
+	Camera = 4;
+}
+
+enum RadioRate {
+	Fast = 0;
+	Slow = 1;
+}
+
+message Empty {}
