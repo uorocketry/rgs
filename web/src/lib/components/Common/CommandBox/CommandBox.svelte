@@ -1,6 +1,5 @@
 <script lang="ts">
 	import { getStringScores } from '$lib/common/stringCmp';
-	import { ListBox, ListBoxItem } from '@skeletonlabs/skeleton';
 	import { onDestroy, onMount } from 'svelte';
 
 	const UNDEF_FUN = () => undefined;
@@ -83,41 +82,79 @@
 	$: selectedIndex = 0;
 </script>
 
-<div
-	class="absolute top-0 right-0 left-0 mx-auto
-	px-2 py-1
-	max-w-sm
-	z-50
-	bg-surface-300-600-token
-    w-full flex flex-col gap-2"
->
-	{#if prompt}
-		<span class="text-sm">{prompt}</span>
-	{/if}
+<div class="prompt-wrapper">
+	<div class="prompt">
+		{#if prompt}
+			<span class="text-sm">{prompt}</span>
+		{/if}
 
-	<div class="flex place-content-center max-h-8">
-		<input
-			bind:this={inputElement}
-			bind:value={inputValue}
-			class="input w-full max-w-sm"
-			{placeholder}
-		/>
+		<input bind:this={inputElement} bind:value={inputValue} {placeholder} />
+
+		<!-- Results -->
+		{#if list.length > 0}
+			<select size={Math.min(10, list.length)} bind:value={selectedIndex}>
+				{#each displayedList as listIndex, i}
+					<option
+						on:click={() => {
+							_onClick(listIndex, false);
+							_onClick = UNDEF_FUN;
+						}}
+						value={i}
+						>{list[listIndex]}
+					</option>
+				{/each}
+			</select>
+		{/if}
 	</div>
-
-	<!-- Results -->
-	{#if list.length > 0}
-		<ListBox>
-			{#each displayedList as listIndex, i}
-				<ListBoxItem
-					on:click={() => {
-						_onClick(listIndex, false);
-						_onClick = UNDEF_FUN;
-					}}
-					bind:group={selectedIndex}
-					name={i.toString()}
-					value={i}>{list[listIndex]}</ListBoxItem
-				>
-			{/each}
-		</ListBox>
-	{/if}
 </div>
+
+<style>
+	.prompt {
+		padding: 0.5rem 1rem;
+		z-index: 50;
+		background-color: var(--color-base);
+		max-width: min(100%, 50rem);
+
+		color: var(--color-on-base);
+		outline: var(--color-on-base) dashed 1px;
+		outline-offset: -1px;
+		display: flex;
+		flex-direction: column;
+		gap: 0.5rem;
+	}
+
+	.prompt-wrapper {
+		position: absolute;
+		inset: 0;
+		display: flex;
+		justify-content: center;
+		align-items: start;
+		padding-left: 3rem;
+	}
+
+	select {
+		background-color: var(--color-base);
+		color: var(--color-on-base);
+		border: none;
+		outline: none;
+	}
+
+	option {
+		background-color: var(--color-base);
+		color: var(--color-on-base);
+	}
+
+	option:checked {
+		background-color: var(--color-on-base);
+		color: var(--color-base);
+	}
+
+	input {
+		background-color: var(--color-base);
+		color: var(--color-on-base);
+		border: none;
+		outline: none;
+		outline-offset: -1px;
+		outline: var(--color-on-base) dashed 1px;
+	}
+</style>

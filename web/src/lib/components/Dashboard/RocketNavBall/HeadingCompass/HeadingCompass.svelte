@@ -108,17 +108,24 @@
 		height={h}
 		xmlns="http://www.w3.org/2000/svg"
 	>
-		<circle cx={w / 2} cy={h / 2} r={radius} stroke="white" stroke-width="2" fill="none" />
+		<circle
+			cx={w / 2}
+			cy={h / 2}
+			r={radius}
+			stroke="var(--color-on-base)"
+			stroke-width="2"
+			fill="none"
+		/>
 
 		{#each lines as line}
-			<line x1={line.x} y1={line.y} x2={line.x2} y2={line.y2} stroke="white" />
+			<line x1={line.x} y1={line.y} x2={line.x2} y2={line.y2} stroke="var(--color-on-base)" />
 		{/each}
 
 		{#each texts as text}
 			<text
 				x={text.x}
 				y={text.y}
-				fill={text.color ?? 'white'}
+				fill={text.color ?? 'var(--color-on-base)'}
 				transform={`rotate(${text.r} ${text.x} ${text.y})`}
 				text-anchor="middle"
 				alignment-baseline="middle"
@@ -146,11 +153,11 @@
 		/>
 		<!-- Text -->
 		<rect
-			x={w / 2 - 50}
+			x={w / 2 - 75}
 			y={h / 2 - radius - 20}
-			width={100}
+			width={150}
 			height={40}
-			fill="white"
+			fill="var(--color-on-base)"
 			stroke-width="2"
 			rx="5"
 			ry="5"
@@ -159,8 +166,8 @@
 		<text
 			x={w / 2}
 			y={h / 2 - radius}
-			fill="black"
 			text-anchor="middle"
+			fill="var(--color-base)"
 			alignment-baseline="middle"
 			font-size="24"
 		>

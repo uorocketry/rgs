@@ -1,6 +1,6 @@
 <script lang="ts">
-	import hasura_logo from '$lib/assets/hasura_logo.svg';
-	import hydra_provider_logo from '$lib/assets/hydra_provider_logo.svg';
+	import hasura_logo from '$lib/assets/hasura_logo.svg?raw';
+	import hydra_provider_logo from '$lib/assets/hydra_provider_logo.svg?raw';
 	import { onMount } from 'svelte';
 
 	type Service = {
@@ -57,19 +57,12 @@
 	// Health endpoint /api/health/hasura
 </script>
 
-<main class="p-4 flex flex-col gap-2">
+<main class="p-2 flex flex-col gap-2">
 	{#each servicesToCheck as service}
-		<div
-			class="card bg card-hover p-4 flex items-center
-			{service.status === 'unknown'
-				? 'variant-filled-warning'
-				: service.status === 'ok'
-					? 'variant-filled-success'
-					: service.status === 'error'
-						? 'variant-filled-error'
-						: 'var'}"
-		>
-			<img class="w-12 h-12 mr-4" src={service.logo} alt={service.name} />
+		<div class="p-4 flex gap-4 items-center status-card">
+			<div class="w-12 h-12 logo {service.status}">
+				{@html service.logo}
+			</div>
 			<div>
 				<h2 class="text-xl font-bold">{service.name}</h2>
 				<p>{service.description}</p>
@@ -77,3 +70,33 @@
 		</div>
 	{/each}
 </main>
+
+<style>
+	.status-card {
+		outline: 1px dashed var(--color-on-base);
+		outline-offset: -1px;
+	}
+
+	.ok {
+		fill: var(--color-success);
+	}
+	.error {
+		fill: var(--color-error);
+		animation: opacity-blink 0.3s infinite;
+	}
+	.unknown {
+		fill: var(--color-warning);
+	}
+
+	@keyframes opacity-blink {
+		0% {
+			opacity: 1;
+		}
+		50% {
+			opacity: 0;
+		}
+		100% {
+			opacity: 1;
+		}
+	}
+</style>

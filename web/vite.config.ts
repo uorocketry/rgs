@@ -1,8 +1,8 @@
 import { sveltekit } from '@sveltejs/kit/vite';
 import { loadEnv } from 'vite';
-import { defineConfig } from 'vitest/config';
 import mkcert from 'vite-plugin-mkcert';
 import { viteStaticCopy } from 'vite-plugin-static-copy';
+import { defineConfig } from 'vitest/config';
 
 const cesiumSource = './node_modules/cesium/Build/Cesium';
 const cesiumBaseUrl = './node_modules/cesium/Build/Cesium';

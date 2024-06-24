@@ -35,7 +35,7 @@
 	$: roll = MathUtils.radToDeg(Math.atan2(transformed.x, transformed.z) + Math.PI);
 </script>
 
-<div class="z-10 absolute top-2 left-2 variant-glass p-2 grid grid-cols-2 text-dark-token">
+<div class="info-box">
 	<span>Roll</span>
 	<span class="text-right">{roll.toFixed(2)}°</span>
 	<span>Pitch</span>
@@ -45,8 +45,6 @@
 	<span class="text-right">{pitch > 0 ? 'Up' : 'Down'}</span>
 </div>
 
-<div class="absolute bg-black h-full w-full"></div>
-
 <div class="z-0 absolute inset-0">
 	<NavBall targetRotation={latestReportedRotation} />
 </div>
@@ -54,3 +52,17 @@
 <div class="z-0 absolute h-full w-full pointer-events-none">
 	<HeadingCompass heading={heading * DEG2RAD} />
 </div>
+
+<style>
+	.info-box {
+		/* z-10 absolute top-2 left-2 variant-glass p-2 grid grid-cols-2 text-dark-token */
+		position: absolute;
+		top: 0.5rem;
+		left: 0.5rem;
+		background-color: var(--color-on-base);
+		color: var(--color-base);
+		padding: 0.5rem;
+		display: grid;
+		grid-template-columns: 1fr 1fr;
+	}
+</style>

@@ -1,3 +1,61 @@
+import { css } from 'lit';
+
+export const UOROCKETRY_THEME = css`
+	:root {
+		--color-sucess: #75bd6c;
+		--color-error: #ff581d;
+		--color-warning: #ffbf00;
+
+		--color-base: #000000;
+		--color-on-base: #ffffff;
+	}
+`;
+
+export const invertBlink = css`
+	@keyframes invert-blink {
+		0% {
+			filter: invert(0);
+		}
+		50% {
+			filter: invert(1);
+		}
+		100% {
+			filter: invert(0);
+		}
+	}
+`;
+
+/**
+ * Adds the `outline-blink` animation to the element
+ */
+export const outlineWarnBlink = css`
+	@keyframes outline-blink {
+		0% {
+			outline-color: var(--color-warning);
+		}
+		50% {
+			outline-color: var(--color-on-base);
+		}
+		100% {
+			outline-color: var(--color-warning);
+		}
+	}
+`;
+
+export const opacityBlink = css`
+	@keyframes opacity-blink {
+		0% {
+			opacity: 0;
+		}
+		50% {
+			opacity: 1;
+		}
+		100% {
+			opacity: 0;
+		}
+	}
+`;
+
 export const uorocketryTheme = {
 	name: 'uorocketry',
 	properties: {
