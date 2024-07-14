@@ -16,7 +16,6 @@
 	import '../tw.css';
 	// Import everything from chart.js
 	// TODO: Don't do this, have it self contained
-
 	import { setModeCurrent, setModeUserPrefers, storePopup } from '@skeletonlabs/skeleton';
 
 	import { findSetting } from '$lib/common/settings';
@@ -29,8 +28,6 @@
 	import type { Writable } from 'svelte/store';
 
 	initializeStores();
-
-	const sideBarLeft = findSetting('ui.sidebarLeft')?.value as Writable<boolean>;
 	const useDarkMode = findSetting('ui.lightMode')?.value as Writable<boolean>;
 	const toastStore = getToastStore();
 	storePopup.set({ computePosition, autoUpdate, offset, shift, flip, arrow });
@@ -137,13 +134,6 @@
 
 	onMount(() => {
 		console.log('mounted');
-		console.log(
-			toastMan.pushToast({
-				duration: 5000,
-				message: 'Hello World',
-				type: 'info'
-			})
-		);
 	});
 </script>
 
@@ -232,31 +222,4 @@
 		outline: var(--color-on-base) solid 1px;
 		outline-offset: -1px;
 	}
-
-	/* nav link with data-tooltip */
-	/* nav a[data-tooltip] {
-		position: relative;
-		transition: all;
-	}
-
-	nav a[data-tooltip]:hover::before {
-		transform: scaleX(1);
-	}
-
-	nav a[data-tooltip]::before {
-		content: attr(data-tooltip);
-		position: absolute;
-		background: rgb(var(--color-surface-900));
-		color: rgb(var(--on-surface));
-		left: 100%;
-		height: 100%;
-		place-content: center;
-		padding: 0rem 0.5rem;
-
-		pointer-events: none;
-		transition: all;
-		transform-origin: left;
-		transform: scaleX(0);
-		transition: all 0.04s;
-	} */
 </style>

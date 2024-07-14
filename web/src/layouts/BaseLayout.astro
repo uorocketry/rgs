@@ -1,0 +1,156 @@
+---
+import BaseHead from "../components/BaseHead.astro";
+import { SITE_DESCRIPTION, SITE_TITLE } from "../consts";
+import "../components/nav-link";
+
+// CSS
+import svgDatabase from "../assets/fa-database.svg?raw";
+import svgHeart from "../assets/fa-heart.svg?raw";
+import svgLineChart from "../assets/fa-line-chart.svg?raw";
+import svgMasksTheater from "../assets/fa-masks-theatre.svg?raw";
+import svgTowerBroadcast from "../assets/fa-tower-broadcast.svg?raw";
+
+import svgCog from "../assets/fa-cog.svg?raw";
+import svgQuestion from "../assets/fa-question.svg?raw";
+
+const topSideLinks = [
+    {
+        name: "Dashboard",
+        icon: svgLineChart,
+        url: "/dashboard",
+    },
+    {
+        name: "Health",
+        icon: svgHeart,
+        url: "/health",
+    },
+    {
+        name: "Communications",
+        icon: svgTowerBroadcast,
+        url: "/comm",
+    },
+    {
+        name: "Database",
+        icon: svgDatabase,
+        url: "/db",
+    },
+    {
+        name: "Mock",
+        icon: svgMasksTheater,
+        url: "/mock",
+    },
+];
+
+const bottomSideLinks = [
+    {
+        name: "Help",
+        icon: svgQuestion,
+        url: "/help",
+    },
+    {
+        name: "Settings",
+        icon: svgCog,
+        url: "/settings",
+    },
+];
+---
+
+<!doctype html>
+<html lang="en">
+    <head>
+        <BaseHead title={SITE_TITLE} description={SITE_DESCRIPTION} />
+        <style>
+            rgs-nav-link::part(base) {
+                width: 2rem;
+                height: 2rem;
+            }
+
+            header {
+                outline: var(--color-on-base) solid 1px;
+                outline-offset: -1px;
+            }
+
+            nav {
+                outline: var(--color-on-base) solid 1px;
+                outline-offset: -1px;
+            }
+        </style>
+    </head>
+    <body>
+        <div class="h-full w-full flex flex-col overflow-hidden">
+            <header class="flex items-center -outline-offset-4">
+                <rgs-nav-link href="/" icon={svgLineChart} name="RGS">
+                    <img src="/logo.svg" alt="logo" />
+                </rgs-nav-link>
+                <div class="flex flex-1 place-content-center max-h-8">
+                    <!-- on:click={() => commandBoxToggle.set({})} -->
+                    <!-- TODO MAKE IT WORK -->
+                    <button
+                        @click
+                        class="flex gap-4 items-center justify-center w-full max-w-sm transition-all hover:shadow"
+                    >
+                        <!-- use:lit={MAGNIFYING_GLASS} -->
+                        <div class="w-4 h-4"></div>
+                        <small>&Tilde; (Tilde)</small>
+                    </button>
+                </div>
+                <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    class="h-6 w-6"
+                    fill="none"
+                    viewBox="0 0 8 8"
+                    stroke="currentColor"
+                >
+                    <circle
+                        cx="4"
+                        cy="4"
+                        r="3"
+                        fill="rgb(var(--color-success-500))"></circle>
+                </svg>
+            </header>
+
+            <div class="flex-1 flex">
+                <aside class="h-full z-10">
+                    <nav class="flex flex-col h-full">
+                        {
+                            topSideLinks.map((sideLink) => (
+                                <rgs-nav-link
+                                    href={sideLink.url}
+                                    icon={sideLink.icon}
+                                    name={sideLink.name}
+                                    style={
+                                        Astro.url.pathname === sideLink.url
+                                            ? "--color-on-base: var(--color-info)"
+                                            : ""
+                                    }
+                                >
+                                    <Fragment set:html={sideLink.icon} />
+                                </rgs-nav-link>
+                            ))
+                        }
+
+                        <span class="flex-1"></span>
+
+                        {
+                            bottomSideLinks.map((sideLink) => (
+                                <rgs-nav-link
+                                    href={sideLink.url}
+                                    icon={sideLink.icon}
+                                    name={sideLink.name}
+                                    style={
+                                        Astro.url.pathname === sideLink.url
+                                            ? "--color-on-base: var(--color-info)"
+                                            : ""
+                                    }
+                                >
+                                    <Fragment set:html={sideLink.icon} />
+                                </rgs-nav-link>
+                            ))
+                        }
+                    </nav>
+                </aside>
+                <slot />
+            </div>
+        </div>
+    </body>
+</html>

@@ -30,27 +30,25 @@ export class NavLink extends LitElement {
 				animation: outline-blink 0.3s infinite;
 			}
 
-			a[data-tooltip]:hover::before {
-				transform: scaleX(1);
+			a:hover::before,
+			a:focus::before {
+				opacity: 1;
 			}
 
-			a[data-tooltip]::before {
+			a:before {
 				content: attr(data-tooltip);
 				outline: var(--color-on-base) solid 1px;
 				outline-offset: -1px;
 				position: absolute;
 				background: var(--color-base);
 				color: var(--color-on-base);
+				inset-inline-start: 100%;
 				left: 100%;
 				height: 100%;
 				place-content: center;
 				padding: 0rem 0.5rem;
-
 				pointer-events: none;
-				transition: all;
-				transform-origin: left;
-				transform: scaleX(0);
-				transition: all 0.04s ease-in-out;
+				opacity: 0;
 			}
 
 			a:focus {
@@ -70,9 +68,7 @@ export class NavLink extends LitElement {
 	render() {
 		// <img src="${this.icon}" alt="${this.name}" class="p-2" />
 		return html`
-			<a part="base" href="${this.href}" data-tooltip="${this.name}">
-				<slot></slot>
-			</a>
+			<a part="base" href="${this.href}" data-tooltip="${this.name}"> <slot></slot> </a>
 		`;
 	}
 }

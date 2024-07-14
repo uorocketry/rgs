@@ -3,6 +3,7 @@ import { loadEnv } from 'vite';
 import mkcert from 'vite-plugin-mkcert';
 import { viteStaticCopy } from 'vite-plugin-static-copy';
 import { defineConfig } from 'vitest/config';
+import { hmrPlugin, presets } from 'vite-plugin-web-components-hmr';
 
 const cesiumSource = './node_modules/cesium/Build/Cesium';
 const cesiumBaseUrl = './node_modules/cesium/Build/Cesium';
@@ -39,6 +40,10 @@ const config = (mode: string) => {
 					{ src: `${cesiumSource}/Assets/**/*`, dest: cesiumBaseUrl },
 					{ src: `${cesiumSource}/Widgets/**/*`, dest: cesiumBaseUrl }
 				]
+			}),
+			hmrPlugin({
+				include: ['./src/**/*.ts'],
+				presets: [presets.lit]
 			})
 		],
 		ssr: {

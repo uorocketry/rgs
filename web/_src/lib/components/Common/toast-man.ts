@@ -128,10 +128,6 @@ export class ToastManager extends LitElement {
 
 	constructor() {
 		super();
-		// Add some toasts for testing
-		this.pushToast({ message: 'Info', duration: 5000, type: 'info' });
-		this.pushToast({ message: 'Success', duration: 1000, type: 'success' });
-		this.pushToast({ message: 'Error', duration: 2000, type: 'error' });
 	}
 
 	render() {

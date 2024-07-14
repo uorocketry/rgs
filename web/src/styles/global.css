@@ -1,0 +1,136 @@
+:root {
+    --color-base: #ffffff;
+    --_color-on-base: #000000;
+    --color-on-base: var(--_color-on-base, #000000);
+
+    --color-success: #75bd6c;
+    --color-on-success: var(--_color-on-success, #ffffff);
+    --_color-on-success: #ffffff;
+
+    --color-error: #f40c1e;
+    --color-on-error: var(--_color-on-error, #ffffff);
+    --_color-on-error: #ffffff;
+
+    --color-info: #5252ff;
+    --_color-on-info: #ffffff;
+    --color-on-info: var(--_color-on-info, #ffffff);
+
+    --color-warning: #ffbf00;
+    --_color-on-warning: #000000;
+    --color-on-warning: var(--_color-on-warning, #ffffff);
+}
+/* If html has class dark flip color base */
+html.dark {
+    --color-base: #000000;
+    --color-on-base: #ffffff;
+}
+
+@font-face {
+    font-family: "MonaspaceKrypton";
+    src: url("fonts/MonaspaceKrypton-Regular.woff") format("woff");
+}
+
+body,
+html {
+    height: 100%;
+    margin: 0px auto;
+    padding: 0px auto;
+    overflow: hidden;
+    font-family: "MonaspaceKrypton", monospace;
+    background: var(--color-base);
+    color: var(--color-on-base);
+}
+
+/* ScrollBar */
+
+::-webkit-scrollbar-thumb:hover {
+    background: rgba(0, 0, 0, 0.6);
+}
+
+::-webkit-scrollbar {
+    overflow-y: overlay;
+}
+
+::-webkit-scrollbar {
+    width: 16px;
+}
+
+::-webkit-scrollbar-track {
+    background-color: transparent;
+    margin: 0;
+    overflow-y: overlay;
+}
+
+::-webkit-scrollbar-thumb {
+    background: hsla(0, 0%, 58%, 0.6);
+    background-clip: padding-box;
+    border: 4px solid transparent;
+    border-radius: 16px;
+    overflow-y: overlay;
+}
+
+::-webkit-scrollbar-thumb:hover {
+    background: rgba(80, 80, 80, 0.8);
+    background-clip: padding-box;
+    border: 3px solid hsla(0, 0%, 58%, 0.7);
+    border-radius: 64px;
+    overflow-x: hidden;
+    overflow-y: overlay;
+}
+
+::-webkit-scrollbar-corner {
+    background: rgba(0, 0, 0, 0);
+}
+
+/* Clicky */
+
+.clicky {
+    cursor: pointer;
+    position: relative;
+    transition-duration: 200ms;
+    transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+    animation: button-pop 0.25s ease-out;
+}
+
+.clicky:active:hover,
+.clicky:active:focus {
+    animation: button-pop 0s ease-out;
+    transform: scale(0.97);
+}
+
+/* Clickboard */
+
+/* Add a clipboard emoji absolutely positioned before the text */
+.clipboard-left::before {
+    position: absolute;
+    content: "📋";
+    left: 0.5rem;
+}
+
+/* Prevent IOS zoom */
+
+@media screen and (-webkit-min-device-pixel-ratio: 0) {
+    select,
+    textarea,
+    input {
+        font-size: 16px !important;
+    }
+}
+
+.sr-only {
+    border: 0;
+    padding: 0;
+    margin: 0;
+    position: absolute !important;
+    height: 1px;
+    width: 1px;
+    overflow: hidden;
+    /* IE6, IE7 - a 0 height clip, off to the bottom right of the visible 1px box */
+    clip: rect(1px 1px 1px 1px);
+    /* maybe deprecated but we need to support legacy browsers */
+    clip: rect(1px, 1px, 1px, 1px);
+    /* modern browsers, clip-path works inwards from each corner */
+    clip-path: inset(50%);
+    /* added line to stop words getting smushed together (as they go onto separate lines and some screen readers do not understand line feeds as a space */
+    white-space: nowrap;
+}
