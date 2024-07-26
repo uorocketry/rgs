@@ -1,0 +1,13 @@
+[package]
+name = "hydra_gateway"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+messages = { git = "https://github.com/uorocketry/hydra", branch = "mavlink-features"}
+tokio = { version = "1", features = ["full"] }
+clap = { version = "4", features = ["derive", "cargo"] }
+postcard = "1"
+serialport = "4"
+serde_json = "1"
+serde = "1"
