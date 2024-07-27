@@ -7,6 +7,7 @@ use std::sync::Arc;
 use tokio::io::{AsyncReadExt, AsyncWriteExt, BufReader};
 use tokio::net::TcpListener;
 use tokio::runtime::Handle;
+use tokio::stream;
 use tokio::sync::Mutex;
 
 #[derive(Parser)]
@@ -57,12 +58,18 @@ async fn main() {
             println!("Listening on {} at {} baud", listen.serial, listen.baud);
 
             // Open the serial port
-            let mut port = serialport::new(&listen.serial, listen.baud)
+            let mut port = match serialport::new(&listen.serial, listen.baud)
                 .timeout(std::time::Duration::from_secs(1))
                 .open()
-                .expect("Failed to open serial port");
+            {
+                Ok(port) => port,
+                Err(e) => {
+                    eprintln!("Error opening serial port: {:?}", e);
+                    return;
+                }
+            };
 
-            // region:Handle serial port read
+            // region Handle serial port read
             let (serial_read_tx, serial_read_rx) = channel();
 
             let port_reader_result = port.try_clone();
@@ -75,17 +82,22 @@ async fn main() {
                 }
             };
 
-            let serial_read_tx_1 = serial_read_tx.clone();
+            let serial_read_tx_clone = serial_read_tx.clone();
 
             std::thread::spawn(move || {
-                let mut buffer: Vec<u8> = vec![0; 1024];
+                let mut buffer = Vec::new();
                 loop {
                     match port_reader.read(&mut buffer) {
                         Ok(bytes_read) => {
                             if bytes_read > 0 {
-                                serial_read_tx_1
-                                    .send(buffer[..bytes_read].to_vec())
-                                    .expect("Failed to send data to main thread");
+                                // FIXME: Remove print
+                                print!("{}", String::from_utf8_lossy(&buffer[..bytes_read]));
+                                match serial_read_tx_clone.send(buffer[..bytes_read].to_vec()) {
+                                    Ok(_) => (),
+                                    Err(e) => {
+                                        eprintln!("Error sending data to main thread: {:?}", e);
+                                    }
+                                }
                             }
                         }
                         Err(ref e) if e.kind() == std::io::ErrorKind::TimedOut => (),
@@ -99,15 +111,20 @@ async fn main() {
 
             println!("Host: {}", listen.host);
 
-            let listener = TcpListener::bind(listen.host.clone())
-                .await
-                .expect("Failed to bind TCP listener");
+            let listener = match TcpListener::bind(listen.host.clone()).await {
+                Ok(listener) => listener,
+                Err(e) => {
+                    eprintln!("Error binding to TCP listener: {:?}", e);
+                    return;
+                }
+            };
 
             // region:Handle TCP connections
-            let connections = Arc::new(Mutex::new(HashMap::new()));
+            let shared_state = Arc::new(Mutex::new(HashMap::new()));
+            let client_txs = Arc::new(Mutex::new(HashMap::new()));
+
             let (cleanup_queue_tx, cleanup_queue_rx) = channel();
 
-            let connections_1 = connections.clone();
             let tcp_handle_task = tokio::spawn(async move {
                 loop {
                     let (stream, addr) = match listener.accept().await {
@@ -117,17 +134,22 @@ async fn main() {
                             continue;
                         }
                     };
+
                     // TODO: Handle requests
+                    let (client_serial_read_tx, client_serial_read_rx) = channel();
+
                     tokio::spawn(async move {
-                        handle_client(stream, addr).await;
+                        handle_client(stream, addr, client_serial_read_rx, serial_read_tx.clone())
+                            .await;
                     });
+
+                    // TODO: serial read redirects to client_serial_read_tx's
                 }
             });
             // endregion
 
-            // region:Write serial rx to TCP connections
-            let connections_2 = connections.clone();
-            let cleanup_queue_tx_1 = cleanup_queue_tx.clone();
+            // regionWrite serial rx to TCP connections
+            let cleanup_queue_tx_clone = cleanup_queue_tx.clone();
             let serial_write_to_tcp_task = tokio::task::spawn(async move {
                 loop {
                     let data_option = serial_read_rx.recv();
@@ -140,12 +162,12 @@ async fn main() {
                         }
                     };
 
-                    for (addr, stream) in connections_2.lock().await.iter_mut() {
+                    for (addr, stream) in connections_clone.lock().await.iter_mut() {
                         match stream.write_all(&data).await {
                             Ok(_) => (),
                             Err(e) => {
                                 eprintln!("Error writing to TCP stream: {:?}", e);
-                                let cleanup_send = cleanup_queue_tx_1.send(*addr);
+                                let cleanup_send = cleanup_queue_tx_clone.send(*addr);
                                 match cleanup_send {
                                     Ok(_) => (),
                                     Err(e) => {
@@ -163,17 +185,17 @@ async fn main() {
 
             // region:Read TCP connections
             let (tcp_read_tx, tcp_read_rx) = channel();
-            let connections_3 = connections.clone();
-            let cleanup_queue_tx_2 = cleanup_queue_tx.clone();
-            let tcp_read_tx_1 = tcp_read_tx.clone();
+            let connections_clone = connections.clone();
+            let cleanup_queue_tx_clone = cleanup_queue_tx.clone();
+            let tcp_read_tx_clone = tcp_read_tx.clone();
             let read_tcp_task = tokio::spawn(async move {
                 loop {
-                    for (addr, stream) in connections_3.lock().await.iter_mut() {
+                    for (addr, stream) in connections_clone.lock().await.iter_mut() {
                         let mut buffer = Vec::new();
                         println!("Reading from TCP connection {}", addr);
                         match stream.read_buf(&mut buffer).await {
                             Ok(0) => {
-                                let cleanup_queue_result = cleanup_queue_tx_2.send(*addr);
+                                let cleanup_queue_result = cleanup_queue_tx_clone.send(*addr);
                                 match cleanup_queue_result {
                                     Ok(_) => (),
                                     Err(e) => {
@@ -187,7 +209,7 @@ async fn main() {
 
                             Ok(_) => {
                                 println!("Read {} bytes from TCP connection", buffer.len());
-                                let tcp_read_result = tcp_read_tx_1.send((*addr, buffer));
+                                let tcp_read_result = tcp_read_tx_clone.send((*addr, buffer));
                                 match tcp_read_result {
                                     Ok(_) => (),
                                     Err(e) => {
@@ -200,7 +222,7 @@ async fn main() {
                             }
                             Err(e) => {
                                 eprintln!("Error reading from TCP stream: {:?}", e);
-                                let cleanup_queue_result = cleanup_queue_tx_2.send(*addr);
+                                let cleanup_queue_result = cleanup_queue_tx_clone.send(*addr);
                                 match cleanup_queue_result {
                                     Ok(_) => (),
                                     Err(e) => {
@@ -218,8 +240,8 @@ async fn main() {
             // endregion
 
             // region:Write TCP rx to serial port
-            let cleanup_queue_tx_3 = cleanup_queue_tx.clone();
-            let tcp_read_tx_2 = tcp_read_tx.clone();
+            let cleanup_queue_tx_clone = cleanup_queue_tx.clone();
+            let tcp_read_tx_clone = tcp_read_tx.clone();
             std::thread::spawn(move || loop {
                 let tcp_read_rx_result = tcp_read_rx.recv();
                 let (addr, data) = match tcp_read_rx_result {
@@ -239,7 +261,7 @@ async fn main() {
                         // sleep for backoff 0.2 s
                         std::thread::sleep(std::time::Duration::from_millis(200));
 
-                        let send_res = tcp_read_tx_2.send((addr, data));
+                        let send_res = tcp_read_tx_clone.send((addr, data.to_vec()));
 
                         match send_res {
                             Ok(_) => (),
@@ -250,7 +272,7 @@ async fn main() {
                     }
                     Err(e) => {
                         eprintln!("Error writing to serial port: {:?}", e);
-                        let cleanup_queue_send_result = cleanup_queue_tx_3.send(addr);
+                        let cleanup_queue_send_result = cleanup_queue_tx_clone.send(addr);
                         match cleanup_queue_send_result {
                             Ok(_) => (),
                             Err(e) => {
@@ -263,49 +285,8 @@ async fn main() {
 
             // endregion
 
-            // region:Cleanup closed connections
-            let connections_4 = connections.clone();
-            let connection_cleanup_task = tokio::spawn(async move {
-                loop {
-                    let addr_maybe = cleanup_queue_rx.recv();
-                    let mut connection_guard = connections_4.lock().await;
-                    let addr = match addr_maybe {
-                        Ok(addr) => addr,
-                        Err(e) => {
-                            eprintln!("Error receiving address from cleanup queue: {:?}", e);
-                            continue;
-                        }
-                    };
-
-                    // print list of connections
-                    println!("Connections: {:?}", connection_guard.keys());
-
-                    let stream = match connection_guard.get_mut(&addr) {
-                        Some(stream) => stream,
-                        None => {
-                            connection_guard.remove(&addr);
-                            continue;
-                        }
-                    };
-
-                    match stream.shutdown().await {
-                        Ok(_) => (),
-                        Err(e) => {
-                            eprintln!("Error shutting down TCP stream: {:?}", e);
-                        }
-                    }
-                    connection_guard.remove(&addr);
-                    println!("Connection {} closed", addr);
-                }
-            });
-
             // Join all tasks
-            let _ = tokio::try_join!(
-                tcp_handle_task,
-                serial_write_to_tcp_task,
-                read_tcp_task,
-                connection_cleanup_task
-            );
+            let _ = tokio::try_join!(tcp_handle_task, serial_write_to_tcp_task, read_tcp_task,);
         }
         None => {
             Cli::parse_from(&["", "--help"]);
@@ -317,86 +298,115 @@ struct SharedState {
     connections: HashMap<std::net::SocketAddr, tokio::net::TcpStream>,
 }
 
-impl SharedState {
-    pub fn new() -> Self {
-        SharedState {
-            connections: HashMap::new(),
-        }
-    }
+// impl SharedState {
+//     pub fn new() -> Self {
+//         SharedState {
+//             connections: HashMap::new(),
+//         }
+//     }
 
-    // Broadcast serial data to all TCP connections
-    async fn broadcast(&self, data: Vec<u8>) {
-        for (_, stream) in self.connections.iter() {
-            match stream.write_all(&data).await {
-                Ok(_) => (),
-                Err(e) => {
-                    eprintln!("Error writing to TCP stream: {:?}", e);
-                }
-            }
-        }
+//     // Broadcast serial data to all TCP connections
+//     async fn broadcast(&self, data: Vec<u8>) {
+//         for (_, stream) in self.connections.iter() {
+//             match stream.write_all(&data).await {
+//                 Ok(_) => (),
+//                 Err(e) => {
+//                     eprintln!("Error writing to TCP stream: {:?}", e);
+//                 }
+//             }
+//         }
 
-    }
-}
+//     }
+// }
 
 async fn handle_client(
     mut stream: tokio::net::TcpStream,
     addr: std::net::SocketAddr,
-    serial_write_tx: std::sync::mpsc::Sender<Vec<u8>>,
     serial_read_rx: std::sync::mpsc::Receiver<Vec<u8>>,
+    serial_write_tx: std::sync::mpsc::Sender<Vec<u8>>,
 ) {
     println!("New connection from {}", addr);
+    let stream_mutex = Arc::new(Mutex::new(stream));
 
-    let (tx, rx) = channel();
+    // Read from serial_read_rx and write to TCP stream in a task
+    let addr_clone = addr.clone();
+    let stream_clone = stream_mutex.clone();
 
-    let (reader, writer) = stream.split();
-    let mut reader = BufReader::new(reader);
-
-    let tx_1 = tx.clone();
-    tokio::spawn(async move {
+    let serial_read_task = std::thread::spawn(move || async move {
         loop {
-            let mut buffer = Vec::new();
-            match reader.read_buf(&mut buffer).await {
-                Ok(0) => {
-                    println!("Connection {} closed", addr);
+            let data = match serial_read_rx.recv() {
+                Ok(data) => data,
+                Err(e) => {
+                    eprintln!(
+                        "Connection {} closed due to serial read error: {:?}",
+                        addr_clone, e
+                    );
                     return;
                 }
-                Ok(_) => {
-                    println!("Read {} bytes from TCP connection", buffer.len());
-                    let tx_result = tx_1.send(buffer);
-                    match tx_result {
-                        Ok(_) => (),
-                        Err(e) => {
-                            eprintln!("Error sending TCP buffer to main thread: {:?}", e);
-                        }
-                    }
-                }
+            };
+
+            match stream_clone.lock().await.write_all(&data).await {
+                Ok(_) => (),
                 Err(e) => {
-                    eprintln!("Error reading from TCP stream: {:?}", e);
+                    eprintln!(
+                        "Connection {} closed due to TCP write error: {:?}",
+                        addr_clone, e
+                    );
                     return;
                 }
             }
         }
     });
 
-    let mut writer = tokio::io::BufWriter::new(writer);
-
-    loop {
-        let data_option = rx.recv();
-        let data = match data_option {
-            Ok(data) => data,
-            Err(e) => {
-                eprintln!("Error receiving data from main thread: {:?}", e);
-                return;
+    // Read from TCP stream and write to serial_write_tx in a task
+    let addr_clone_2 = addr.clone();
+    let stream_clone = Arc::clone(&stream_mutex);
+    let serial_write_result = tokio::spawn(async move {
+        let mut buffer = Vec::new();
+        buffer.reserve(1024);
+        loop {
+            buffer.clear();
+            match stream_clone.lock().await.read_buf(&mut buffer).await {
+                Ok(0) => {
+                    eprintln!("Connection {} closed due to TCP read error", addr_clone_2);
+                    return;
+                }
+                Ok(_) => match serial_write_tx.send(buffer.clone()) {
+                    Ok(_) => (),
+                    Err(e) => {
+                        eprintln!(
+                            "Connection {} closed due to serial write error: {:?}",
+                            addr_clone_2, e
+                        );
+                        return;
+                    }
+                },
+                Err(e) => {
+                    eprintln!(
+                        "Connection {} closed due to TCP read error: {:?}",
+                        addr_clone_2, e
+                    );
+                    return;
+                }
             }
-        };
+        }
+    })
+    .await;
 
-        match writer.write_all(&data).await {
-            Ok(_) => (),
-            Err(e) => {
-                eprintln!("Error writing to TCP stream: {:?}", e);
-                return;
-            }
+    // Join the os tasks
+    let serial_read_result = serial_read_task.join();
+
+    match serial_read_result {
+        Ok(_) => (),
+        Err(e) => {
+            eprintln!("Error joining serial read task: {:?}", e);
+        }
+    }
+
+    match serial_write_result {
+        Ok(_) => (),
+        Err(e) => {
+            eprintln!("Error joining serial write task: {:?}", e);
         }
     }
 }
-)
