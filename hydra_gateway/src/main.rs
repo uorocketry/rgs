@@ -84,13 +84,14 @@ async fn main() {
 
             let serial_read_tx_clone = serial_read_tx.clone();
 
-            std::thread::spawn(move || {
+            let serial_reader = std::thread::spawn(move || {
                 let mut buffer = Vec::new();
                 loop {
                     match port_reader.read(&mut buffer) {
                         Ok(bytes_read) => {
                             if bytes_read > 0 {
                                 // FIXME: Remove print
+                                println!("Read {} bytes from serial port", bytes_read);
                                 print!("{}", String::from_utf8_lossy(&buffer[..bytes_read]));
                                 match serial_read_tx_clone.send(buffer[..bytes_read].to_vec()) {
                                     Ok(_) => (),
@@ -136,7 +137,7 @@ async fn main() {
             };
 
             // region:Handle TCP connections
-            let mut port_clone = port.try_clone().unwrap();
+            let port_clone = port.try_clone().unwrap();
             let shared_state_clone = Arc::clone(&shared_state);
             let tcp_handle_task = tokio::spawn(async move {
                 loop {
@@ -215,6 +216,7 @@ async fn main() {
 
             // Join
             let _ = tcp_handle_task.await;
+            let _ = serial_reader.join();
         }
         None => {
             Cli::parse_from(&["", "--help"]);
@@ -297,7 +299,7 @@ async fn handle_client(
     let stream_clone = Arc::clone(&stream_mutex);
     let serial_write_result = tokio::spawn(async move {
         let mut buffer = Vec::new();
-        buffer.reserve(1024);
+        buffer.reserve(2048);
         loop {
             buffer.clear();
             match stream_clone.lock().await.read_buf(&mut buffer).await {
