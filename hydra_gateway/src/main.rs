@@ -2,13 +2,12 @@ use clap::{Parser, Subcommand};
 use serialport::{available_ports, SerialPortType};
 use std::collections::HashMap;
 use std::io::Write;
-use std::sync::mpsc::{channel, Sender};
-use std::sync::Arc;
-use tokio::io::{AsyncReadExt, AsyncWriteExt, BufReader};
+use std::process::exit;
+use std::sync::{Arc, Mutex};
+use tokio::io::{AsyncReadExt, AsyncWriteExt};
 use tokio::net::TcpListener;
-use tokio::runtime::Handle;
 use tokio::stream;
-use tokio::sync::Mutex;
+use tokio::sync::mpsc::{Sender, UnboundedSender};
 
 #[derive(Parser)]
 #[command(author, version, about, long_about = None)]
@@ -55,9 +54,9 @@ async fn main() {
         Some(Commands::Listen(listen)) => {
             println!("Listening on {} at {} baud", listen.serial, listen.baud);
 
-            // Open the serial port
-            let port = match serialport::new(&listen.serial, listen.baud)
-                .timeout(std::time::Duration::from_secs(1))
+            // region:Open serial
+            let mut port = match serialport::new(&listen.serial, listen.baud)
+                .timeout(std::time::Duration::from_secs(2))
                 .open()
             {
                 Ok(port) => port,
@@ -66,42 +65,34 @@ async fn main() {
                     return;
                 }
             };
+            // endregion
 
             let shared_state = Arc::new(Mutex::new(SharedState::new()));
 
-            // region Handle serial port read
-            let (serial_read_tx, serial_read_rx) = channel();
+            // region:Read & Broadcast
 
-            let port_reader_result = port.try_clone();
+            let mut port_reader = port.try_clone().unwrap();
 
-            let mut port_reader = match port_reader_result {
-                Ok(reader) => reader,
-                Err(e) => {
-                    eprintln!("Error cloning serial port: {:?}", e);
-                    return;
-                }
-            };
-
-            let serial_read_tx_clone = serial_read_tx.clone();
-
+            let shared_state_clone = Arc::clone(&shared_state);
             let serial_reader = std::thread::spawn(move || {
-                let mut buffer = Vec::new();
+                let mut buffer = vec![0; 1024];
                 loop {
                     match port_reader.read(&mut buffer) {
                         Ok(bytes_read) => {
+                            // FIXME: Remove print
+                            println!("Read {} bytes from serial port", bytes_read);
+                            println!("{}", String::from_utf8_lossy(&buffer[..bytes_read]));
                             if bytes_read > 0 {
-                                // FIXME: Remove print
-                                println!("Read {} bytes from serial port", bytes_read);
-                                print!("{}", String::from_utf8_lossy(&buffer[..bytes_read]));
-                                match serial_read_tx_clone.send(buffer[..bytes_read].to_vec()) {
-                                    Ok(_) => (),
-                                    Err(e) => {
-                                        eprintln!("Error sending data to main thread: {:?}", e);
-                                    }
-                                }
+                                shared_state_clone
+                                    .lock()
+                                    .unwrap()
+                                    .broadcast(buffer[..bytes_read].to_vec());
                             }
                         }
                         Err(ref e) if e.kind() == std::io::ErrorKind::TimedOut => (),
+                        Err(ref e) if e.kind() == std::io::ErrorKind::BrokenPipe => {
+                            panic!("{:?}", e);
+                        }
                         Err(e) => {
                             eprintln!("Error reading from serial port: {:?}", e);
                         }
@@ -109,25 +100,11 @@ async fn main() {
                 }
             });
 
-            let shared_state_clone = Arc::clone(&shared_state);
-            tokio::spawn(async move {
-                loop {
-                    let data = match serial_read_rx.recv() {
-                        Ok(data) => data,
-                        Err(e) => {
-                            eprintln!("Error receiving data from serial port: {:?}", e);
-                            continue;
-                        }
-                    };
-
-                    shared_state_clone.lock().await.broadcast(data).await;
-                }
-            });
-
             // endregion
 
             println!("Host: {}", listen.host);
 
+            // region:TCP Listener
             let listener = match TcpListener::bind(listen.host.clone()).await {
                 Ok(listener) => listener,
                 Err(e) => {
@@ -135,6 +112,7 @@ async fn main() {
                     return;
                 }
             };
+            // endregion
 
             // region:Handle TCP connections
             let port_clone = port.try_clone().unwrap();
@@ -149,65 +127,77 @@ async fn main() {
                         }
                     };
 
-                    let (client_serial_read_tx, client_serial_read_rx) = channel();
-                    let (client_serial_write_tx, client_serial_write_rx) = channel();
+                    println!("Accepted connection from: {}", addr);
+                    // Split
+                    let (mut stream_read, mut stream_write) = stream.into_split();
 
-                    let client_serial_write_tx_clone = client_serial_write_tx.clone();
-                    tokio::spawn(async move {
-                        handle_client(
-                            stream,
-                            addr,
-                            client_serial_read_rx,
-                            client_serial_write_tx_clone.clone(),
-                        )
-                        .await;
-                    });
+                    let (client_serial_read_tx, mut client_serial_read_rx) =
+                        tokio::sync::mpsc::unbounded_channel();
 
                     // Add client client_serial_read_tx to shared state
                     shared_state_clone
                         .lock()
-                        .await
+                        .unwrap()
                         .connections
                         .insert(addr, client_serial_read_tx);
 
-                    // Handle Client Writes
-                    let client_serial_write_tx_clone = client_serial_write_tx.clone();
                     let mut port_clone = port_clone.try_clone().unwrap();
-                    std::thread::spawn(move || loop {
-                        let data = match client_serial_write_rx.recv() {
-                            Ok(data) => data,
-                            Err(e) => {
-                                eprintln!("Error receiving data from client: {:?}", e);
-                                return;
-                            }
-                        };
+                    tokio::spawn(async move {
+                        let mut port_clone = port_clone.try_clone().unwrap();
 
-                        match port_clone.write_all(&data) {
-                            Ok(_) => {
-                                println!("Wrote {} bytes to serial port", data.len());
-                            }
-                            Err(ref e) if e.kind() == std::io::ErrorKind::TimedOut => {
-                                eprintln!("Serial port write timed out");
-
-                                // sleep for backoff 0.2 s
-                                std::thread::sleep(std::time::Duration::from_millis(200));
-
-                                let send_res = client_serial_write_tx_clone.send(data);
-
-                                match send_res {
-                                    Ok(_) => (),
+                        // // Handle Client Writes
+                        let write_task = tokio::spawn(async move {
+                            loop {
+                                let mut buffer = Vec::new();
+                                match stream_read.read_buf(&mut buffer).await {
+                                    Ok(_) => match port_clone.write_all(&buffer) {
+                                        Ok(_) => {
+                                            if (buffer.len() == 0) {
+                                                println!("Client disconnected");
+                                                break;
+                                            }
+                                            println!("Wrote {} bytes to serial port", buffer.len());
+                                        }
+                                        Err(e) => {
+                                            eprintln!("Error writing to serial port: {:?}", e);
+                                        }
+                                    },
                                     Err(e) => {
-                                        eprintln!(
-                                            "Error sending serial data back to main thread: {:?}",
-                                            e
-                                        );
+                                        eprintln!("Error reading from TCP connection: {:?}", e);
+                                        break;
                                     }
                                 }
                             }
-                            Err(e) => {
-                                eprintln!("Error writing to serial port: {:?}", e);
+                        });
+                        // endregion
+
+                        // region:Handle Client Reads
+                        let read_task = tokio::spawn(async move {
+                            loop {
+                                match client_serial_read_rx.recv().await {
+                                    Some(data) => match stream_write.write_all(&data).await {
+                                        Ok(_) => {
+                                            println!(
+                                                "Wrote {} bytes to TCP connection",
+                                                data.len()
+                                            );
+                                        }
+                                        Err(e) => {
+                                            eprintln!("Error writing to TCP connection: {:?}", e);
+                                            break;
+                                        }
+                                    },
+                                    None => {
+                                        eprintln!("Error receiving data from serial port");
+                                        break;
+                                    }
+                                }
                             }
-                        }
+                        });
+                        // endregion
+
+                        write_task.await.unwrap();
+                        read_task.await.unwrap();
                     });
                 }
             });
@@ -215,8 +205,8 @@ async fn main() {
             // endregion
 
             // Join
-            let _ = tcp_handle_task.await;
-            let _ = serial_reader.join();
+            tcp_handle_task.await.unwrap();
+            serial_reader.join().unwrap();
         }
         None => {
             Cli::parse_from(&["", "--help"]);
@@ -225,7 +215,7 @@ async fn main() {
 }
 
 struct SharedState {
-    connections: HashMap<std::net::SocketAddr, Sender<Vec<u8>>>,
+    connections: HashMap<std::net::SocketAddr, UnboundedSender<Vec<u8>>>,
 }
 
 impl SharedState {
@@ -235,8 +225,19 @@ impl SharedState {
         }
     }
 
+    fn dispose(&mut self) {
+        for (_, sender) in self.connections.iter_mut() {
+            drop(sender.to_owned())
+        }
+        self.connections.clear();
+    }
+
     // Broadcast serial data to all TCP connections
-    async fn broadcast(&mut self, data: Vec<u8>) {
+    fn broadcast(&mut self, data: Vec<u8>) {
+        println!(
+            "Broadcasting data to {} TCP connections",
+            self.connections.len()
+        );
         let mut to_remove = Vec::new();
         for (_, stream) in self.connections.iter_mut() {
             match stream.send(data.clone()) {
@@ -252,97 +253,5 @@ impl SharedState {
         // Is there a better way to remove elements from a hashmap while iterating?
         self.connections
             .retain(|_, stream| !to_remove.contains(&(stream as *const _)));
-    }
-}
-
-async fn handle_client(
-    stream: tokio::net::TcpStream,
-    addr: std::net::SocketAddr,
-    serial_read_rx: std::sync::mpsc::Receiver<Vec<u8>>,
-    serial_write_tx: std::sync::mpsc::Sender<Vec<u8>>,
-) {
-    println!("New connection from {}", addr);
-    let stream_mutex = Arc::new(Mutex::new(stream));
-
-    // Read from serial_read_rx and write to TCP stream in a task
-    let addr_clone = addr.clone();
-    let stream_clone = stream_mutex.clone();
-
-    let serial_read_task = std::thread::spawn(move || async move {
-        loop {
-            let data = match serial_read_rx.recv() {
-                Ok(data) => data,
-                Err(e) => {
-                    eprintln!(
-                        "Connection {} closed due to serial read error: {:?}",
-                        addr_clone, e
-                    );
-                    return;
-                }
-            };
-
-            match stream_clone.lock().await.write_all(&data).await {
-                Ok(_) => (),
-                Err(e) => {
-                    eprintln!(
-                        "Connection {} closed due to TCP write error: {:?}",
-                        addr_clone, e
-                    );
-                    return;
-                }
-            }
-        }
-    });
-
-    // Read from TCP stream and write to serial_write_tx in a task
-    let addr_clone_2 = addr.clone();
-    let stream_clone = Arc::clone(&stream_mutex);
-    let serial_write_result = tokio::spawn(async move {
-        let mut buffer = Vec::new();
-        buffer.reserve(2048);
-        loop {
-            buffer.clear();
-            match stream_clone.lock().await.read_buf(&mut buffer).await {
-                Ok(0) => {
-                    eprintln!("Connection {} closed due to TCP read error", addr_clone_2);
-                    return;
-                }
-                Ok(_) => match serial_write_tx.send(buffer.clone()) {
-                    Ok(_) => (),
-                    Err(e) => {
-                        eprintln!(
-                            "Connection {} closed due to serial write error: {:?}",
-                            addr_clone_2, e
-                        );
-                        return;
-                    }
-                },
-                Err(e) => {
-                    eprintln!(
-                        "Connection {} closed due to TCP read error: {:?}",
-                        addr_clone_2, e
-                    );
-                    return;
-                }
-            }
-        }
-    })
-    .await;
-
-    // Join the os tasks
-    let serial_read_result = serial_read_task.join();
-
-    match serial_read_result {
-        Ok(_) => (),
-        Err(e) => {
-            eprintln!("Error joining serial read task: {:?}", e);
-        }
-    }
-
-    match serial_write_result {
-        Ok(_) => (),
-        Err(e) => {
-            eprintln!("Error joining serial write task: {:?}", e);
-        }
     }
 }
