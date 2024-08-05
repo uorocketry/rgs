@@ -141,7 +141,7 @@ async fn main() {
                         .connections
                         .insert(addr, client_serial_read_tx);
 
-                    let mut port_clone = port_clone.try_clone().unwrap();
+                    let port_clone = port_clone.try_clone().unwrap();
                     tokio::spawn(async move {
                         let mut port_clone = port_clone.try_clone().unwrap();
 
@@ -251,6 +251,12 @@ impl SharedState {
         }
 
         // Is there a better way to remove elements from a hashmap while iterating?
+
+        // self.connections.clear(); on all to remove
+        to_remove.iter().for_each(|&stream| {
+            self.connections.remove(&(stream as *const _));
+        });
+
         self.connections
             .retain(|_, stream| !to_remove.contains(&(stream as *const _)));
     }
