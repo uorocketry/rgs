@@ -1,19 +1,19 @@
 {
-  "$schema": "https://raw.githubusercontent.com/jetify-com/devbox/0.12.0/.schema/devbox.schema.json",
-  "packages": [
-    "go@latest",
-    "cobra-cli@latest",
-    "rustup@latest",
-    "nodejs@latest",
-    "inotify-tools@latest",
-    "docker-compose@latest",
-    "docker@latest",
-    "starship@latest"
-  ],
-  "shell": {
-    "init_hook": ["echo 'Welcome to devbox!' > /dev/null"],
-    "scripts": {
-      "test": ["echo \"Error: no test specified\" && exit 1"]
+    "$schema": "https://raw.githubusercontent.com/jetify-com/devbox/0.12.0/.schema/devbox.schema.json",
+    "packages": [
+        "go@latest",
+        "cobra-cli@latest",
+        "rustup@latest",
+        "nodejs@latest",
+        "inotify-tools@latest",
+        "docker-compose@latest",
+        "docker@latest",
+        "starship@latest"
+    ],
+    "shell": {
+        "init_hook": ["echo 'Welcome to devbox!' > /dev/null"],
+        "scripts": {
+            "test": ["echo \"Error: no test specified\" && exit 1"]
+        }
     }
-  }
 }
