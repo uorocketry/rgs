@@ -1,5 +1,5 @@
 {
-    "name": "Devbox Remote Container",
+    "name": "RGS Dev Container",
     "build": {
         "dockerfile": "./Dockerfile",
         "context": ".."
@@ -17,9 +17,21 @@
                 "VisualStudioExptTeam.vscodeintellicode",
                 "alex-young.pm2-explorer",
                 "esbenp.prettier-vscode",
-                "dbaeumer.vscode-eslint"
+                "dbaeumer.vscode-eslint",
+                "ms-azuretools.vscode-docker"
             ]
         }
     },
-    "remoteUser": "devbox"
+    "remoteUser": "devbox",
+    "portsAttributes": {
+        "5656": {
+            "label": "hydra_gateway"
+        },
+        "5173": {
+            "label": "web"
+        },
+        "4000": {
+            "label": "hasura"
+        }
+    }
 }
