@@ -18,7 +18,8 @@
                 "alex-young.pm2-explorer",
                 "esbenp.prettier-vscode",
                 "dbaeumer.vscode-eslint",
-                "ms-azuretools.vscode-docker"
+                "ms-azuretools.vscode-docker",
+                "golang.go"
             ]
         }
     },
