@@ -1,0 +1,387 @@
+{
+  "lockfile_version": "1",
+  "packages": {
+    "cobra-cli@latest": {
+      "last_modified": "2024-07-20T09:11:00Z",
+      "resolved": "github:NixOS/nixpkgs/6e14bbce7bea6c4efd7adfa88a40dac750d80100#cobra-cli",
+      "source": "devbox-search",
+      "version": "1.3.0",
+      "systems": {
+        "aarch64-darwin": {
+          "outputs": [
+            {
+              "name": "out",
+              "path": "/nix/store/bnrwqdm676p273hr4gah58dvlanr051c-cobra-cli-1.3.0",
+              "default": true
+            }
+          ],
+          "store_path": "/nix/store/bnrwqdm676p273hr4gah58dvlanr051c-cobra-cli-1.3.0"
+        },
+        "aarch64-linux": {
+          "outputs": [
+            {
+              "name": "out",
+              "path": "/nix/store/cdnaqf0n8jvzrhn8147fk9dyr1w5bq1m-cobra-cli-1.3.0",
+              "default": true
+            }
+          ],
+          "store_path": "/nix/store/cdnaqf0n8jvzrhn8147fk9dyr1w5bq1m-cobra-cli-1.3.0"
+        },
+        "x86_64-darwin": {
+          "outputs": [
+            {
+              "name": "out",
+              "path": "/nix/store/cpllbqv6wdhcx32lc06wkp98l7k3089d-cobra-cli-1.3.0",
+              "default": true
+            }
+          ],
+          "store_path": "/nix/store/cpllbqv6wdhcx32lc06wkp98l7k3089d-cobra-cli-1.3.0"
+        },
+        "x86_64-linux": {
+          "outputs": [
+            {
+              "name": "out",
+              "path": "/nix/store/5css54ypcy2krzkz8m5n5ja392r8aq4h-cobra-cli-1.3.0",
+              "default": true
+            }
+          ],
+          "store_path": "/nix/store/5css54ypcy2krzkz8m5n5ja392r8aq4h-cobra-cli-1.3.0"
+        }
+      }
+    },
+    "docker-compose@latest": {
+      "last_modified": "2024-07-27T00:41:21Z",
+      "resolved": "github:NixOS/nixpkgs/48bacf585a51d953def8bff32087970f273052e2#docker-compose",
+      "source": "devbox-search",
+      "version": "2.29.1",
+      "systems": {
+        "aarch64-darwin": {
+          "outputs": [
+            {
+              "name": "out",
+              "path": "/nix/store/nf3ir18il5rc7bq3fjllj32jcqkwsmnn-docker-compose-2.29.1",
+              "default": true
+            }
+          ],
+          "store_path": "/nix/store/nf3ir18il5rc7bq3fjllj32jcqkwsmnn-docker-compose-2.29.1"
+        },
+        "aarch64-linux": {
+          "outputs": [
+            {
+              "name": "out",
+              "path": "/nix/store/czgxjxgr4v34i0r3kx3xljyxaqdvcixk-docker-compose-2.29.1",
+              "default": true
+            }
+          ],
+          "store_path": "/nix/store/czgxjxgr4v34i0r3kx3xljyxaqdvcixk-docker-compose-2.29.1"
+        },
+        "x86_64-darwin": {
+          "outputs": [
+            {
+              "name": "out",
+              "path": "/nix/store/0gpyxfs3m2a8n07cb6vziz0r7j9nx46w-docker-compose-2.29.1",
+              "default": true
+            }
+          ],
+          "store_path": "/nix/store/0gpyxfs3m2a8n07cb6vziz0r7j9nx46w-docker-compose-2.29.1"
+        },
+        "x86_64-linux": {
+          "outputs": [
+            {
+              "name": "out",
+              "path": "/nix/store/cgdimsgn1w2882pfnfjk1qhhfygxlrkn-docker-compose-2.29.1",
+              "default": true
+            }
+          ],
+          "store_path": "/nix/store/cgdimsgn1w2882pfnfjk1qhhfygxlrkn-docker-compose-2.29.1"
+        }
+      }
+    },
+    "docker@latest": {
+      "last_modified": "2024-07-31T08:48:38Z",
+      "resolved": "github:NixOS/nixpkgs/c3392ad349a5227f4a3464dce87bcc5046692fce#docker",
+      "source": "devbox-search",
+      "version": "27.1.1",
+      "systems": {
+        "aarch64-darwin": {
+          "outputs": [
+            {
+              "name": "out",
+              "path": "/nix/store/j93ipdfilh2s9xrdaaqyk1c279k7a29p-docker-27.1.1",
+              "default": true
+            }
+          ],
+          "store_path": "/nix/store/j93ipdfilh2s9xrdaaqyk1c279k7a29p-docker-27.1.1"
+        },
+        "aarch64-linux": {
+          "outputs": [
+            {
+              "name": "out",
+              "path": "/nix/store/nlp1f5w6wjp6hak0y82lwklk7zys4fy1-docker-27.1.1",
+              "default": true
+            }
+          ],
+          "store_path": "/nix/store/nlp1f5w6wjp6hak0y82lwklk7zys4fy1-docker-27.1.1"
+        },
+        "x86_64-darwin": {
+          "outputs": [
+            {
+              "name": "out",
+              "path": "/nix/store/s64dz3c6pisvp0y3p79k6f1aq73rzmgm-docker-27.1.1",
+              "default": true
+            }
+          ],
+          "store_path": "/nix/store/s64dz3c6pisvp0y3p79k6f1aq73rzmgm-docker-27.1.1"
+        },
+        "x86_64-linux": {
+          "outputs": [
+            {
+              "name": "out",
+              "path": "/nix/store/wjkbv99n0karqjyk1r2sf12njr8qbcnr-docker-27.1.1",
+              "default": true
+            }
+          ],
+          "store_path": "/nix/store/wjkbv99n0karqjyk1r2sf12njr8qbcnr-docker-27.1.1"
+        }
+      }
+    },
+    "go@latest": {
+      "last_modified": "2024-07-20T09:11:00Z",
+      "resolved": "github:NixOS/nixpkgs/6e14bbce7bea6c4efd7adfa88a40dac750d80100#go",
+      "source": "devbox-search",
+      "version": "1.22.5",
+      "systems": {
+        "aarch64-darwin": {
+          "outputs": [
+            {
+              "name": "out",
+              "path": "/nix/store/05saqcgidraqmn4z82prsp7rbj9hjmwm-go-1.22.5",
+              "default": true
+            }
+          ],
+          "store_path": "/nix/store/05saqcgidraqmn4z82prsp7rbj9hjmwm-go-1.22.5"
+        },
+        "aarch64-linux": {
+          "outputs": [
+            {
+              "name": "out",
+              "path": "/nix/store/b97bbxn6kpysysxb8nxn4k39ffxmp4p6-go-1.22.5",
+              "default": true
+            }
+          ],
+          "store_path": "/nix/store/b97bbxn6kpysysxb8nxn4k39ffxmp4p6-go-1.22.5"
+        },
+        "x86_64-darwin": {
+          "outputs": [
+            {
+              "name": "out",
+              "path": "/nix/store/gdyii59c48s4a8q6w584ccgm95qls3lh-go-1.22.5",
+              "default": true
+            }
+          ],
+          "store_path": "/nix/store/gdyii59c48s4a8q6w584ccgm95qls3lh-go-1.22.5"
+        },
+        "x86_64-linux": {
+          "outputs": [
+            {
+              "name": "out",
+              "path": "/nix/store/3v17dij8rvg7q99009swxg52995r7s22-go-1.22.5",
+              "default": true
+            }
+          ],
+          "store_path": "/nix/store/3v17dij8rvg7q99009swxg52995r7s22-go-1.22.5"
+        }
+      }
+    },
+    "inotify-tools@latest": {
+      "last_modified": "2024-07-07T07:43:47Z",
+      "resolved": "github:NixOS/nixpkgs/b60793b86201040d9dee019a05089a9150d08b5b#inotify-tools",
+      "source": "devbox-search",
+      "version": "4.23.9.0",
+      "systems": {
+        "aarch64-linux": {
+          "outputs": [
+            {
+              "name": "out",
+              "path": "/nix/store/aql1zpwfjnwx417zc9cyc2zvfrxcq34s-inotify-tools-4.23.9.0",
+              "default": true
+            }
+          ],
+          "store_path": "/nix/store/aql1zpwfjnwx417zc9cyc2zvfrxcq34s-inotify-tools-4.23.9.0"
+        },
+        "x86_64-linux": {
+          "outputs": [
+            {
+              "name": "out",
+              "path": "/nix/store/gi35f27m538lwymw8xl6agq7bpji439y-inotify-tools-4.23.9.0",
+              "default": true
+            }
+          ],
+          "store_path": "/nix/store/gi35f27m538lwymw8xl6agq7bpji439y-inotify-tools-4.23.9.0"
+        }
+      }
+    },
+    "nodejs@latest": {
+      "last_modified": "2024-07-31T08:48:38Z",
+      "plugin_version": "0.0.2",
+      "resolved": "github:NixOS/nixpkgs/c3392ad349a5227f4a3464dce87bcc5046692fce#nodejs_22",
+      "source": "devbox-search",
+      "version": "22.4.1",
+      "systems": {
+        "aarch64-darwin": {
+          "outputs": [
+            {
+              "name": "out",
+              "path": "/nix/store/z5whjsr6cnqw0ycnylwxmibfr7cdwxrb-nodejs-22.4.1",
+              "default": true
+            },
+            {
+              "name": "libv8",
+              "path": "/nix/store/vzhng0wwbm0r1p9rdq1kspm0j5b9x0va-nodejs-22.4.1-libv8"
+            }
+          ],
+          "store_path": "/nix/store/z5whjsr6cnqw0ycnylwxmibfr7cdwxrb-nodejs-22.4.1"
+        },
+        "aarch64-linux": {
+          "outputs": [
+            {
+              "name": "out",
+              "path": "/nix/store/2c0qimdjslxal42s4m10zj95f9r11l4l-nodejs-22.4.1",
+              "default": true
+            },
+            {
+              "name": "libv8",
+              "path": "/nix/store/aq9wvafy8svx7fgkm2w0yig3aqmkbqc8-nodejs-22.4.1-libv8"
+            }
+          ],
+          "store_path": "/nix/store/2c0qimdjslxal42s4m10zj95f9r11l4l-nodejs-22.4.1"
+        },
+        "x86_64-darwin": {
+          "outputs": [
+            {
+              "name": "out",
+              "path": "/nix/store/5l6flz4fpax64nzivg2r815pvllj2dml-nodejs-22.4.1",
+              "default": true
+            },
+            {
+              "name": "libv8",
+              "path": "/nix/store/5wwl7dh3xmnrah4f98713i93m43d02a5-nodejs-22.4.1-libv8"
+            }
+          ],
+          "store_path": "/nix/store/5l6flz4fpax64nzivg2r815pvllj2dml-nodejs-22.4.1"
+        },
+        "x86_64-linux": {
+          "outputs": [
+            {
+              "name": "out",
+              "path": "/nix/store/w8rva81863ls2ic3qc72mdzpzm0skyrm-nodejs-22.4.1",
+              "default": true
+            },
+            {
+              "name": "libv8",
+              "path": "/nix/store/93cvy69p4g2mrbjjkj5dxh8zin047nl5-nodejs-22.4.1-libv8"
+            }
+          ],
+          "store_path": "/nix/store/w8rva81863ls2ic3qc72mdzpzm0skyrm-nodejs-22.4.1"
+        }
+      }
+    },
+    "rustup@latest": {
+      "last_modified": "2024-07-07T07:43:47Z",
+      "plugin_version": "0.0.1",
+      "resolved": "github:NixOS/nixpkgs/b60793b86201040d9dee019a05089a9150d08b5b#rustup",
+      "source": "devbox-search",
+      "version": "1.26.0",
+      "systems": {
+        "aarch64-darwin": {
+          "outputs": [
+            {
+              "name": "out",
+              "path": "/nix/store/9fcngl4lj7lakajafyfpwddigy5x7xz3-rustup-1.26.0",
+              "default": true
+            }
+          ],
+          "store_path": "/nix/store/9fcngl4lj7lakajafyfpwddigy5x7xz3-rustup-1.26.0"
+        },
+        "aarch64-linux": {
+          "outputs": [
+            {
+              "name": "out",
+              "path": "/nix/store/9zp7146714iwf140fapdi0mgb86yds92-rustup-1.26.0",
+              "default": true
+            }
+          ],
+          "store_path": "/nix/store/9zp7146714iwf140fapdi0mgb86yds92-rustup-1.26.0"
+        },
+        "x86_64-darwin": {
+          "outputs": [
+            {
+              "name": "out",
+              "path": "/nix/store/vj2nv91k8wpk63iyjk93y1b7fflmbjm9-rustup-1.26.0",
+              "default": true
+            }
+          ],
+          "store_path": "/nix/store/vj2nv91k8wpk63iyjk93y1b7fflmbjm9-rustup-1.26.0"
+        },
+        "x86_64-linux": {
+          "outputs": [
+            {
+              "name": "out",
+              "path": "/nix/store/crphpnlzwspccbflgfakqm45hfxw1sdx-rustup-1.26.0",
+              "default": true
+            }
+          ],
+          "store_path": "/nix/store/crphpnlzwspccbflgfakqm45hfxw1sdx-rustup-1.26.0"
+        }
+      }
+    },
+    "starship@latest": {
+      "last_modified": "2024-07-28T04:39:20Z",
+      "resolved": "github:NixOS/nixpkgs/038fb464fcfa79b4f08131b07f2d8c9a6bcc4160#starship",
+      "source": "devbox-search",
+      "version": "1.20.1",
+      "systems": {
+        "aarch64-darwin": {
+          "outputs": [
+            {
+              "name": "out",
+              "path": "/nix/store/r66w7dbl1h16a6l2xrydsxkf3hhc8dm4-starship-1.20.1",
+              "default": true
+            }
+          ],
+          "store_path": "/nix/store/r66w7dbl1h16a6l2xrydsxkf3hhc8dm4-starship-1.20.1"
+        },
+        "aarch64-linux": {
+          "outputs": [
+            {
+              "name": "out",
+              "path": "/nix/store/rd24bys1fi1kqgqaqx4f69cn3wbp2910-starship-1.20.1",
+              "default": true
+            }
+          ],
+          "store_path": "/nix/store/rd24bys1fi1kqgqaqx4f69cn3wbp2910-starship-1.20.1"
+        },
+        "x86_64-darwin": {
+          "outputs": [
+            {
+              "name": "out",
+              "path": "/nix/store/gd8qva7xcy2nkzgmll64mxv9y0gy56wn-starship-1.20.1",
+              "default": true
+            }
+          ],
+          "store_path": "/nix/store/gd8qva7xcy2nkzgmll64mxv9y0gy56wn-starship-1.20.1"
+        },
+        "x86_64-linux": {
+          "outputs": [
+            {
+              "name": "out",
+              "path": "/nix/store/46l65nshjrrvpdpggnb5d7d3blxyjsz8-starship-1.20.1",
+              "default": true
+            }
+          ],
+          "store_path": "/nix/store/46l65nshjrrvpdpggnb5d7d3blxyjsz8-starship-1.20.1"
+        }
+      }
+    }
+  }
+}

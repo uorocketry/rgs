@@ -1,14 +1,10 @@
 {
-    "name": "Devbox Remote Container",
-    "build": {
-        "dockerfile": "./Dockerfile",
-        "context": ".."
-    },
+    "name": "Ubuntu",
+    "image": "mcr.microsoft.com/devcontainers/base:jammy",
+    "forwardPorts": [],
     "customizations": {
         "vscode": {
-            "settings": {},
             "extensions": [
-                "jetpack-io.devbox",
                 "GitHub.copilot",
                 "GitHub.copilot-chat",
                 "GitHub.copilot-labs",
@@ -21,5 +17,13 @@
             ]
         }
     },
-    "remoteUser": "devbox"
+    "postCreateCommand": "./scripts/postcreate.sh",
+    "portsAttributes": {
+        "5173": {
+            "label": "web"
+        },
+        "4000": {
+            "label": "hasura"
+        }
+    }
 }
