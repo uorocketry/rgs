@@ -193,7 +193,6 @@ var listenCmd = &cobra.Command{
 							println(BLUE, "Removed connection", conn.RemoteAddr().String(), END)
 							continue
 						}
-						// println("Sending", n, "bytes to serial chan")
 						serial_write_channel <- buffer[:n]
 						println("Wrote", n, "bytes to serial chan")
 					}
