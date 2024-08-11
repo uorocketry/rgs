@@ -1,32 +1,39 @@
-use std::io::{self, Read};
+use std::io::{self, Read, Write};
 use std::net::TcpStream;
+use std::os::linux::raw;
 
 use mavlink::connect;
 use mavlink::error::MessageReadError;
 use mavlink::uorocketry::MavMessage;
 use messages::Message;
-use postcard::{from_bytes, to_slice_cobs};
+use postcard::{from_bytes, to_slice, to_slice_cobs};
 
 fn main() -> io::Result<()> {
     let connection = connect::<MavMessage>("tcpout:127.0.0.1:5656").unwrap();
+    let mut raw_connection = TcpStream::connect("127.0.0.1:5656").unwrap();
     // Print pointer to connection
     println!("Connected");
-    let deploy_cmd = messages::command::DeployDrogue { val: true };
+    let deploy_cmd = messages::command::RadioRateChange {
+        rate: messages::command::RadioRate::Slow,
+    };
     let mut command: [u8; 15] = [0; 15];
-    to_slice_cobs(&deploy_cmd, &mut command).unwrap();
+    to_slice(&deploy_cmd, &mut command).unwrap();
 
     let send_msg =
         MavMessage::COMMAND_MESSAGE(mavlink::uorocketry::COMMAND_MESSAGE_DATA { command: command });
 
     let header = mavlink::MavHeader {
-        system_id: 1,
-        component_id: 1,
-        sequence: 0,
+        system_id: 10,
+        component_id: 10,
+        sequence: 10,
     };
 
-    connection.send(&header, &send_msg).unwrap();
-
-    println!("Sent message");
+    loop {
+        // raw_connection.write(b"test").unwrap();
+        connection.send(&header, &send_msg).unwrap();
+        // sleep a 100ms
+        std::thread::sleep(std::time::Duration::from_millis(100));
+    }
 
     loop {
         match connection.recv() {

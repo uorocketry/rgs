@@ -95,6 +95,7 @@ var listenCmd = &cobra.Command{
 						cancel()
 						continue
 					}
+					println("Read", n, "bytes from serial")
 					serial_read_channel <- buffer[:n]
 				}
 
@@ -178,6 +179,10 @@ var listenCmd = &cobra.Command{
 				default:
 					for i := len(connections_list) - 1; i >= 0; i-- {
 						conn := connections_list[i]
+						if conn == nil {
+							continue
+						}
+						
 						buffer := make([]byte, 1024)
 						// Set timeout
 						conn.SetReadDeadline(time.Now().Add(100 * time.Millisecond))
@@ -229,8 +234,16 @@ var listenCmd = &cobra.Command{
 					drain_err := serial_listener.Drain()
 
 					if drain_err != nil {
-						fmt.Fprintln(os.Stderr, RED+"Error draining serial: "+END, err)
-						cancel()
+						// Cast to PortError
+						cast_err, ok := drain_err.(*serial.PortError)
+						if ok {
+							err_fmt :=  cast_err.EncodedErrorString()
+							fmt.Fprintln(os.Stderr, RED+"Error draining serial: "+END, err_fmt)	
+						} else {
+							fmt.Fprintln(os.Stderr, RED+"Error draining serial... can't cast to PortError: "+END, drain_err)
+						}
+
+						// cancel()
 						continue
 					}
 
