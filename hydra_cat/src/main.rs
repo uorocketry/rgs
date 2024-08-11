@@ -9,18 +9,29 @@ use messages::Message;
 use postcard::{from_bytes, to_slice, to_slice_cobs};
 
 fn main() -> io::Result<()> {
-    let connection = connect::<MavMessage>("tcpout:127.0.0.1:5656").unwrap();
-    let mut raw_connection = TcpStream::connect("127.0.0.1:5656").unwrap();
+    // let connection = connect::<MavMessage>("tcpout:127.0.0.1:5656").unwrap();
+    // let mut raw_connection = TcpStream::connect("127.0.0.1:5656").unwrap();
+    let connection = connect::<MavMessage>("serial:/dev/ttyUSB0:57600").unwrap();
     // Print pointer to connection
     println!("Connected");
-    let deploy_cmd = messages::command::RadioRateChange {
-        rate: messages::command::RadioRate::Slow,
-    };
-    let mut command: [u8; 15] = [0; 15];
-    to_slice(&deploy_cmd, &mut command).unwrap();
+    let deploy_cmd = messages::Message::new(
+        0,
+        messages::sender::Sender::GroundStation,
+        messages::command::Command::new(messages::command::DeployDrogue { val: true }),
+    );
+    // let mut command: [u8; 15] = [0; 15];
+    let mut buf = [0u8; 255];
+    let data = postcard::to_slice(&deploy_cmd, &mut buf).unwrap();
+    let mut fixed_payload = [0u8; 255];
+    let len = data.len().min(255);
+    fixed_payload[..len].copy_from_slice(&data[..len]);
 
-    let send_msg =
-        MavMessage::COMMAND_MESSAGE(mavlink::uorocketry::COMMAND_MESSAGE_DATA { command: command });
+    // println!("Deploy command: {:?}", deploy_cmd);
+    // to_slice(&deploy_cmd, &mut command).unwrap();
+    println!("Command: {:?}", fixed_payload);
+    let send_msg = MavMessage::POSTCARD_MESSAGE(mavlink::uorocketry::POSTCARD_MESSAGE_DATA {
+        message: fixed_payload,
+    });
 
     let header = mavlink::MavHeader {
         system_id: 10,
