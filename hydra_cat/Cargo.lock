@@ -206,6 +206,7 @@ dependencies = [
  "mavlink",
  "messages",
  "postcard",
+ "rand",
  "serde",
  "serde_json",
 ]
