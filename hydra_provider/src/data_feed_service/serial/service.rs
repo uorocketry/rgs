@@ -1,5 +1,5 @@
 use log::info;
-use messages::mavlink::connect;
+use mavlink::connect;
 use serialport::{available_ports, SerialPortType};
 use std::sync::atomic::{AtomicBool, Ordering};
 use std::sync::Arc;
@@ -13,7 +13,7 @@ use crate::data_feed_service::proto::{
 use crate::data_feed_service::serial::iterator::SerialDataFeedIterator;
 use crate::database_service::DatabaseService;
 
-use messages::mavlink::uorocketry::MavMessage;
+use mavlink::uorocketry::MavMessage;
 
 #[derive(Clone)]
 pub struct SerialDataFeedService {

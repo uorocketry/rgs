@@ -1,5 +1,5 @@
 use log::info;
-use messages::mavlink::MavConnection;
+use mavlink::MavConnection;
 use postcard::from_bytes;
 use std::sync::atomic::{AtomicBool, Ordering};
 use std::sync::Arc;
@@ -9,7 +9,7 @@ use crate::data_feed_service::proto::SerialDataFeedConfig;
 use crate::hydra_input::HydraInput;
 use messages::Message;
 
-use messages::mavlink::uorocketry::MavMessage;
+use mavlink::uorocketry::MavMessage;
 
 #[derive(Clone)]
 pub struct SerialDataFeedIterator {
