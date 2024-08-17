@@ -11,7 +11,11 @@
     "starship@latest",
     "gopls@latest",
     "protobuf@latest",
-    "pnpm@latest"
+    "pnpm@latest",
+    "pkg-config@latest",
+    "openssl@latest",
+    "openssl_3_3@latest",
+    "libiconv@latest"
   ],
   "shell": {
     "init_hook": ["eval \"$(starship init $(echo $SHELL))\""],
