@@ -65,7 +65,15 @@ fn random_state_message_buf() -> [u8; 255] {
         _ => panic!("Invalid state"),
     };
     let data = messages::Data::State(State::new(state_data));
-    let msg = Message::new(0, messages::sender::Sender::GroundStation, data);
+    let mut msg = Message::new(
+        std::time::SystemTime::now()
+            .duration_since(std::time::UNIX_EPOCH)
+            .unwrap()
+            .as_secs() as u32,
+        messages::sender::Sender::GroundStation,
+        data,
+    );
+
     let mut buf = [0u8; 255];
 
     postcard::to_slice(&msg, &mut buf).unwrap();
@@ -171,7 +179,14 @@ fn random_sensor_message_buf() -> [u8; 255] {
         _ => panic!("Invalid sensor"),
     };
     let data = messages::Data::Sensor(Sensor::new(sensor_data));
-    let msg = Message::new(0, messages::sender::Sender::GroundStation, data);
+    let msg = Message::new(
+        std::time::SystemTime::now()
+            .duration_since(std::time::UNIX_EPOCH)
+            .unwrap()
+            .as_secs() as u32,
+        messages::sender::Sender::GroundStation,
+        data,
+    );
     let mut buf = [0u8; 255];
 
     postcard::to_slice(&msg, &mut buf).unwrap();
@@ -180,7 +195,7 @@ fn random_sensor_message_buf() -> [u8; 255] {
 
 fn handle_client(mut stream: TcpStream) {
     loop {
-        let message = random_message();
+        let mut message = random_message();
 
         let mut message_raw = MAVLinkV2MessageRaw::new();
         message_raw.serialize_message(
