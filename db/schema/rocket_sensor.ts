@@ -173,8 +173,9 @@ export const rocket_sensor_gps_pos_2 = pgTable("rocket_sensor_gps_pos_2", {
         .references(() => rocket_sensor_message.rocket_message_id)
         .notNull()
         .primaryKey(),
-    time_of_week: real("time_of_week"),
+    time_of_week: integer("time_of_week"),
     undulation: real("undulation"),
+    altitude: real("altitude"),
 });
 
 // GpsPosAcc
