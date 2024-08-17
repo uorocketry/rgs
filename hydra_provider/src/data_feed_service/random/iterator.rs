@@ -6,7 +6,6 @@ use std::time::SystemTime;
 
 use messages::{
     command::Command,
-    health::Health,
     sensor::{
         Air, EkfNav1, EkfNav2, EkfQuat, GpsPos1, GpsPos2, GpsVel, Imu1, Imu2, Sensor, UtcTime,
     },
@@ -166,20 +165,6 @@ impl RandomDataFeedIterator {
             1 => Data::Log(log),
             2 => Data::Command(command),
             3 => Data::Sensor(sensor),
-            4 => Data::Health(Health {
-                data: messages::health::HealthData::HealthStatus(messages::health::HealthStatus {
-                    v5: Some(1),
-                    v3_3: std_rng.gen(),
-                    pyro_sense: std_rng.gen(),
-                    vcc_sense: std_rng.gen(),
-                    int_v5: std_rng.gen(),
-                    int_v3_3: std_rng.gen(),
-                    ext_v5: std_rng.gen(),
-                    ext_3v3: std_rng.gen(),
-                    failover_sense: std_rng.gen(),
-                }),
-                status: messages::health::HealthState::Nominal,
-            }),
             _ => Data::Sensor(sensor),
         };
 

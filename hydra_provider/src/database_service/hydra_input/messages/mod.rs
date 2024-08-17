@@ -3,7 +3,6 @@ use messages::{Data, Message};
 use sqlx::{postgres::PgQueryResult, query, Error, Postgres, Transaction};
 
 pub mod command;
-pub mod health;
 pub mod log;
 pub mod sensor;
 pub mod state;
@@ -15,7 +14,6 @@ impl SaveableData for Message {
         _: i32,
     ) -> Result<PgQueryResult, Error> {
         let message_type = match self.data {
-            Data::Health(_) => "health",
             Data::State(_) => "state",
             Data::Sensor(_) => "sensor",
             Data::Log(_) => "log",
@@ -40,7 +38,6 @@ impl SaveableData for Message {
 
         let record = result.unwrap();
         match &self.data {
-            Data::Health(data) => data.save(transaction, record.id).await,
             Data::State(data) => data.save(transaction, record.id).await,
             Data::Sensor(data) => data.save(transaction, record.id).await,
             Data::Log(data) => data.save(transaction, record.id).await,
