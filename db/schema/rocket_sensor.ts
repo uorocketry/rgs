@@ -131,6 +131,27 @@ export const rocket_sensor_imu_2 = pgTable("rocket_sensor_imu_2", {
     delta_angle_z: real("delta_angle_z"),
 });
 
+
+// #[common_derives]
+// pub struct NavPosLlh {
+//     pub height_msl: f64,
+//     pub longitude: f64,
+//     pub latitude: f64, 
+// }
+
+// NavPosLlh
+export const rocket_sensor_nav_pos_llh = pgTable("rocket_sensor_nav_pos_llh", {
+    rocket_sensor_message_id: integer("rocket_sensor_message_id")
+        .references(() => rocket_sensor_message.rocket_message_id)
+        .notNull()
+        .primaryKey(),
+    height_msl: doublePrecision("height_msl").notNull(),
+    longitude: doublePrecision("longitude").notNull(),
+    latitude: doublePrecision("latitude").notNull(),
+});
+
+
+
 // GpsVel
 export const rocket_sensor_gps_vel = pgTable("rocket_sensor_gps_vel", {
     rocket_sensor_message_id: integer("rocket_sensor_message_id")

@@ -10,6 +10,7 @@ pub mod gps_vel_acc;
 pub mod gps_velocity;
 pub mod imu1;
 pub mod imu2;
+pub mod nav_pos_llh;
 pub mod recovery_sensing;
 pub mod utc_time;
 
