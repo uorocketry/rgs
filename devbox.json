@@ -8,7 +8,9 @@
     "inotify-tools@latest",
     "docker-compose@latest",
     "docker@latest",
-    "starship@latest"
+    "starship@latest",
+    "gopls@latest",
+    "protobuf@latest"
   ],
   "shell": {
     "init_hook": ["eval \"$(starship init $(echo $SHELL))\""],
