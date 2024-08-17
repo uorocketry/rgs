@@ -12,6 +12,7 @@ pub mod imu1;
 pub mod imu2;
 pub mod nav_pos_llh;
 pub mod recovery_sensing;
+pub mod reset_reason;
 pub mod utc_time;
 
 use crate::database_service::hydra_input::saveable::SaveableData;

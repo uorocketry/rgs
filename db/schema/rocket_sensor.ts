@@ -1,4 +1,4 @@
-import { doublePrecision, integer, pgTable, real } from "drizzle-orm/pg-core";
+import { doublePrecision, integer, pgTable, real, text } from "drizzle-orm/pg-core";
 import { rocket_message } from "./base";
 
 export const rocket_sensor_message = pgTable("rocket_sensor_message", {
@@ -132,13 +132,6 @@ export const rocket_sensor_imu_2 = pgTable("rocket_sensor_imu_2", {
 });
 
 
-// #[common_derives]
-// pub struct NavPosLlh {
-//     pub height_msl: f64,
-//     pub longitude: f64,
-//     pub latitude: f64, 
-// }
-
 // NavPosLlh
 export const rocket_sensor_nav_pos_llh = pgTable("rocket_sensor_nav_pos_llh", {
     rocket_sensor_message_id: integer("rocket_sensor_message_id")
@@ -201,6 +194,8 @@ export const rocket_sensor_gps_pos_2 = pgTable("rocket_sensor_gps_pos_2", {
     altitude: real("altitude"),
 });
 
+
+
 // GpsPosAcc
 export const rocket_sensor_gps_pos_acc = pgTable("rocket_sensor_gps_pos_acc", {
     rocket_sensor_message_id: integer("rocket_sensor_message_id")
@@ -216,6 +211,18 @@ export const rocket_sensor_gps_pos_acc = pgTable("rocket_sensor_gps_pos_acc", {
     base_station_id: integer("base_station_id"),
     differential_age: integer("differential_age"),
 });
+
+
+
+// ResetReason
+export const rocket_sensor_reset_reason = pgTable("rocket_sensor_reset_reason", {
+    rocket_sensor_message_id: integer("rocket_sensor_message_id")
+        .references(() => rocket_sensor_message.rocket_message_id)
+        .notNull()
+        .primaryKey(),
+    reset_reason: text("reset_reason"),
+});
+
 
 
 // Recovery Sensing
