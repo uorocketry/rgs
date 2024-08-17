@@ -2,7 +2,7 @@
 	import { gqlClient } from '$lib/stores';
 	import { getToastStore } from '@skeletonlabs/skeleton';
 	import { onMount } from 'svelte';
-	import { InsertQuaternionDocument } from './types';
+	import { InsertQuaternionDocument, InsertGPSDocument } from './types';
 
 	let toastStore = getToastStore();
 
@@ -29,12 +29,31 @@
 	let alpha = 0;
 	onMount(() => {
 		navigator.geolocation.getCurrentPosition(
-			(position) => {
+			async (position) => {
 				last_geo = {
 					lat: position.coords.latitude,
 					lon: position.coords.longitude,
 					alt: position.coords.altitude ?? 0
 				};
+
+				// InsertGPSDocument
+				const result = await gqlClient.mutation(InsertGPSDocument, {
+					latitude: position.coords.latitude,
+					longitude: position.coords.longitude,
+					time_stamp: position.timestamp
+				});
+
+				if (result.error) {
+					const textWrapper = (message: string) => {
+						return `<span class="text-sm">${message}</span>`;
+					};
+
+					toastStore.trigger({
+						background: 'variant-filled-error',
+						classes: 'text-sm',
+						message: textWrapper(result.error.message)
+					});
+				}
 			},
 			() => {}
 		);

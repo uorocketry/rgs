@@ -20,6 +20,7 @@ const RocketQuatDocument = graphql(`
 	}
 `);
 
+
 const RocketCourseDocument = graphql(`
 	subscription Course {
 		rocket_sensor_gps_vel(limit: 1, order_by: { time_stamp: desc }) {
