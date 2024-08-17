@@ -11,7 +11,7 @@ if (!fs.existsSync(DUMP_FOLDER)) {
 
 // If we have docker installed, use it, otherwise use the local postgres
 try {
-    execSync(`docker exec -i rgs_db_1 sh -c "${DUMP_COMMAND}" >${FILE}`);
+    execSync(`docker exec -i rgs-db-1 sh -c "${DUMP_COMMAND}" >${FILE}`);
 } catch (error) {
     execSync(`${DUMP_COMMAND} >${FILE}`);
 }
