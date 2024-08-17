@@ -153,7 +153,9 @@ export const rocket_sensor_gps_vel_acc = pgTable("rocket_sensor_gps_vel_acc", {
         .notNull()
         .primaryKey(),
     course_acc: real("course_acc"),
-    velocity_acc: real("velocity_acc"),
+    velocity_acc_x: real("velocity_acc_x"),
+    velocity_acc_y: real("velocity_acc_y"),
+    velocity_acc_z: real("velocity_acc_z"),
 });
 
 // GpsPos1
