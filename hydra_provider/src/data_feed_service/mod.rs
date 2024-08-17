@@ -1,4 +1,3 @@
-pub mod random;
 pub mod serial;
 
 pub mod proto {

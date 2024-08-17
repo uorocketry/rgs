@@ -8,6 +8,9 @@ pub mod gps_velocity;
 pub mod imu1;
 pub mod imu2;
 pub mod utc_time;
+pub mod gps_pos_acc;
+pub mod ekf_nav_acc;
+pub mod gps_vel_acc;
 
 use crate::database_service::hydra_input::saveable::SaveableData;
 use messages::sensor::{Sensor, SensorData};
@@ -21,10 +24,10 @@ impl SaveableData for Sensor {
     ) -> Result<PgQueryResult, Error> {
         let result = query!(
             "INSERT INTO rocket_sensor_message
-			(rocket_message_id, component_id)
-			VALUES ($1, $2)",
+			(rocket_message_id)
+			VALUES ($1)",
             rocket_message_id,
-            self.component_id as i32
+            // self.component_id as i32
         )
         .execute(&mut **transaction)
         .await;
@@ -44,6 +47,10 @@ impl SaveableData for Sensor {
             SensorData::GpsVel(data) => data.save(transaction, rocket_message_id).await,
             SensorData::GpsPos1(data) => data.save(transaction, rocket_message_id).await,
             SensorData::GpsPos2(data) => data.save(transaction, rocket_message_id).await,
+            _ => todo!("Sensor data not implemented"), // FIXME: Implement those
+            SensorData::GpsVelAcc(data) => data.save(transaction, rocket_message_id).await,
+            SensorData::GpsPosAcc(data) => data.save(transaction, rocket_message_id).await,
+            SensorData::EkfNavAcc(data) => data.save(transaction, rocket_message_id).await,
         }
     }
 }

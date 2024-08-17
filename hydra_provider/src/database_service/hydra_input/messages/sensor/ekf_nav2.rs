@@ -8,18 +8,18 @@ impl SaveableData for EkfNav2 {
         transaction: &mut Transaction<'_, Postgres>,
         rocket_message_id: i32,
     ) -> Result<PgQueryResult, Error> {
+        let position = match self.position {
+            Some(arr) => arr.iter().map(|&x| Some(x as f32)).collect::<Vec<Option<f32>>>(),
+            None => vec![None, None, None],
+        };
         query!(
-            "INSERT INTO public.rocket_sensor_nav_2 (rocket_sensor_message_id,position_x,position_y,position_z,position_std_dev_x,position_std_dev_y,position_std_dev_z,undulation,status)
-            VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)",
+            "INSERT INTO public.rocket_sensor_ekf_nav_2 (rocket_sensor_message_id,position_x,position_y,position_z,undulation)
+            VALUES ($1, $2, $3, $4, $5)",
             rocket_message_id,
-            self.position[0] as f32,
-            self.position[1] as f32,
-            self.position[2] as f32,
-            self.position_std_dev[0],
-            self.position_std_dev[1],
-            self.position_std_dev[2],
+            position[0],
+            position[1],
+            position[2],
             self.undulation,
-            self.status as i32,
         )
         .execute(&mut **transaction)
         .await
