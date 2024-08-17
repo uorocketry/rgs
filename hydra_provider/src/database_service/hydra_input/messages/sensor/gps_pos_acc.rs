@@ -2,20 +2,6 @@ use crate::database_service::hydra_input::saveable::SaveableData;
 use messages::sensor::GpsPosAcc;
 use sqlx::{postgres::PgQueryResult, query, Error, Postgres, Transaction};
 
-// export const rocket_sensor_gps_pos_acc = pgTable("rocket_sensor_gps_pos_acc", {
-//     rocket_sensor_message_id: integer("rocket_sensor_message_id")
-//         .references(() => rocket_sensor_message.rocket_message_id)
-//         .notNull()
-//         .primaryKey(),
-//     time_stamp: integer("time_stamp").notNull(),
-//     status: integer("status").notNull(),
-//     latitude_accuracy: real("latitude_accuracy"),
-//     longitude_accuracy: real("longitude_accuracy"),
-//     altitude_accuracy: real("altitude_accuracy"),
-//     num_sv_used: integer("num_sv_used"),
-//     base_station_id: integer("base_station_id"),
-//     differential_age: integer("differential_age"),
-// });
 
 impl SaveableData for GpsPosAcc {
     async fn save(

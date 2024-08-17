@@ -50,8 +50,8 @@ impl SaveableData for Sensor {
             SensorData::EkfNavAcc(data) => data.save(transaction, rocket_message_id).await,
             SensorData::NavPosLlh(data) => data.save(transaction, rocket_message_id).await,
             SensorData::GpsVelAcc(data) => data.save(transaction, rocket_message_id).await,
-            SensorData::GpsPosAcc(data) => data.save(transaction, rocket_message_id).await,
             SensorData::ResetReason(data) => data.save(transaction, rocket_message_id).await,
+            SensorData::GpsPosAcc(data) => data.save(transaction, rocket_message_id).await,
             SensorData::RecoverySensing(data) => data.save(transaction, rocket_message_id).await,
         }
     }
