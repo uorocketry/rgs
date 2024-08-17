@@ -1,16 +1,16 @@
 pub mod air;
 pub mod ekf_nav1;
 pub mod ekf_nav2;
+pub mod ekf_nav_acc;
 pub mod ekf_quat;
+pub mod gps_pos_acc;
 pub mod gps_position1;
 pub mod gps_position2;
+pub mod gps_vel_acc;
 pub mod gps_velocity;
 pub mod imu1;
 pub mod imu2;
 pub mod utc_time;
-pub mod gps_pos_acc;
-pub mod ekf_nav_acc;
-pub mod gps_vel_acc;
 
 use crate::database_service::hydra_input::saveable::SaveableData;
 use messages::sensor::{Sensor, SensorData};
@@ -47,10 +47,12 @@ impl SaveableData for Sensor {
             SensorData::GpsVel(data) => data.save(transaction, rocket_message_id).await,
             SensorData::GpsPos1(data) => data.save(transaction, rocket_message_id).await,
             SensorData::GpsPos2(data) => data.save(transaction, rocket_message_id).await,
-            _ => todo!("Sensor data not implemented"), // FIXME: Implement those
+            SensorData::EkfNavAcc(data) => data.save(transaction, rocket_message_id).await,
+            SensorData::NavPosLlh(data) => data.save(transaction, rocket_message_id).await,
             SensorData::GpsVelAcc(data) => data.save(transaction, rocket_message_id).await,
             SensorData::GpsPosAcc(data) => data.save(transaction, rocket_message_id).await,
-            SensorData::EkfNavAcc(data) => data.save(transaction, rocket_message_id).await,
+            SensorData::ResetReason(data) => data.save(transaction, rocket_message_id).await,
+            SensorData::RecoverySensing(data) => data.save(transaction, rocket_message_id).await,
         }
     }
 }
