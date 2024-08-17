@@ -22,30 +22,4 @@ message SerialDataFeedStatus {
 	SerialDataFeedConfig config = 2;
 }
 
-service RandomDataFeed {
-	rpc start(Empty) returns(Empty);
-	rpc stop(Empty) returns(Empty);
-	rpc get_status(Empty) returns(RandomDataFeedStatus);
-}
-
-message RandomDataFeedStatus {
-	bool is_running = 1;
-	RandomDataFeedConfig config = 2;
-}
-
-message RandomDataFeedConfig {
-}
-
-// SHOULD DO: implement
-// service FileDataFeed {
-// 	rpc start(stream FileDataFeed) returns(Empty);
-// 	rpc stop(Empty) returns(Empty);
-// }
-// message FileDataFeed {
-// 	string name = 1;
-// 	bytes chunk = 2;
-// }
-
-message Empty {
-
-}
+message Empty {}

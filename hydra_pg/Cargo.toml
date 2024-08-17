@@ -1,0 +1,12 @@
+[package]
+name = "hydra_cat"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+messages = { git = "https://github.com/uorocketry/hydra", branch = "nav", features = ['std'], default-features = false}
+mavlink = {git = "https://github.com/uorocketry/rust-mavlink.git", features = ["uorocketry", "std", "tcp", "udp", "direct-serial", "serde"], default-features = false}
+serde_json = "1"
+postcard = "1.0.2"
+serde = "1"
+rand = "0.8.4"

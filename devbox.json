@@ -10,7 +10,8 @@
     "docker@latest",
     "starship@latest",
     "gopls@latest",
-    "protobuf@latest"
+    "protobuf@latest",
+    "pnpm@latest"
   ],
   "shell": {
     "init_hook": ["eval \"$(starship init $(echo $SHELL))\""],
