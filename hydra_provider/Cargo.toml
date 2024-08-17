@@ -9,7 +9,8 @@ edition = "2021"
 opt-level = 3
 
 [dependencies]
-messages = { git = "https://github.com/uorocketry/hydra", branch = "nav"}
+messages = { git = "https://github.com/uorocketry/hydra", branch = "nav", features = ['std'], default-features = false}
+mavlink = {git = "https://github.com/uorocketry/rust-mavlink.git", features = ["uorocketry", "std", "tcp", "udp", "direct-serial", "serde"], default-features = false}
 sqlx = { version = "0.7", features = ["runtime-tokio", "macros", "postgres"] }
 tokio = { version = "1", features = ["full"] }
 postcard = "1.0.2"

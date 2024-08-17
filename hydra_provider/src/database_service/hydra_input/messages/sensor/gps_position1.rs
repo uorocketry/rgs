@@ -9,19 +9,14 @@ impl SaveableData for GpsPos1 {
         rocket_message_id: i32,
     ) -> Result<PgQueryResult, Error> {
         query!(
-			"INSERT INTO rocket_sensor_gps_pos_1
-			(rocket_sensor_message_id, time_stamp, status, time_of_week, latitude, longitude, altitude, undulation)
-			VALUES ($1, $2, $3, $4, $5, $6, $7, $8)",
-			rocket_message_id,
-			self.time_stamp as i32,
-			self.status as i32,
-			self.time_of_week as i32,
-			self.latitude as f32,
-			self.longitude as f32,
-			self.altitude as f32,
-			self.undulation as f32,
-		)
-		.execute(&mut **transaction)
-		.await
+            "INSERT INTO rocket_sensor_gps_pos_1
+			(rocket_sensor_message_id, latitude, longitude)
+			VALUES ($1, $2, $3)",
+            rocket_message_id,
+            self.latitude,
+            self.longitude,
+        )
+        .execute(&mut **transaction)
+        .await
     }
 }

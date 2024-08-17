@@ -1,4 +1,4 @@
-import { integer, pgTable, real } from "drizzle-orm/pg-core";
+import { doublePrecision, integer, pgTable, real } from "drizzle-orm/pg-core";
 import { rocket_message } from "./base";
 
 export const rocket_sensor_message = pgTable("rocket_sensor_message", {
@@ -163,8 +163,8 @@ export const rocket_sensor_gps_pos_1 = pgTable("rocket_sensor_gps_pos_1", {
         .notNull()
         .primaryKey(),
 
-    latitude: real("latitude"),
-    longitude: real("longitude"),
+    latitude: doublePrecision("latitude"),
+    longitude: doublePrecision("longitude"),
 });
 
 // GpsPos2

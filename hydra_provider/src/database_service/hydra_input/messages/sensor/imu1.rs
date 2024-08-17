@@ -2,6 +2,21 @@ use crate::database_service::hydra_input::saveable::SaveableData;
 use messages::sensor::Imu1;
 use sqlx::{postgres::PgQueryResult, query, Error, Postgres, Transaction};
 
+// export const rocket_sensor_imu_1 = pgTable("rocket_sensor_imu_1", {
+//     rocket_sensor_message_id: integer("rocket_sensor_message_id")
+//         .references(() => rocket_sensor_message.rocket_message_id)
+//         .notNull()
+//         .primaryKey(),
+//     time_stamp: integer("time_stamp").notNull(),
+//     status: integer("status").notNull(),
+//     accelorometer_x: real("accelorometer_x"),
+//     accelorometer_y: real("accelorometer_y"),
+//     accelorometer_z: real("accelorometer_z"),
+//     gyroscope_x: real("gyroscope_x"),
+//     gyroscope_y: real("gyroscope_y"),
+//     gyroscope_z: real("gyroscope_z"),
+// });
+
 impl SaveableData for Imu1 {
     async fn save(
         &self,

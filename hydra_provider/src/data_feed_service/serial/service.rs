@@ -1,17 +1,11 @@
+use crate::data_feed_service::serial::iterator::SerialDataFeedIterator;
+use crate::database_service::DatabaseService;
 use log::info;
-use messages::mavlink::connect;
-use serialport::{available_ports, SerialPortType};
+use messages::mavlink;
+
 use std::sync::atomic::{AtomicBool, Ordering};
 use std::sync::Arc;
 use tokio::sync::Mutex;
-use tonic::{async_trait, Request, Response, Status};
-
-use crate::data_feed_service::proto::serial_data_feed_server::*;
-use crate::data_feed_service::proto::{
-    Empty, ListAvailablePortsResponse, SerialDataFeedConfig, SerialDataFeedStatus,
-};
-use crate::data_feed_service::serial::iterator::SerialDataFeedIterator;
-use crate::database_service::DatabaseService;
 
 use messages::mavlink::uorocketry::MavMessage;
 
@@ -35,7 +29,7 @@ impl SerialDataFeedService {
 }
 
 #[async_trait]
-impl SerialDataFeed for SerialDataFeedService {
+impl SerialDataFeedService {
     async fn start(&self, _request: Request<Empty>) -> Result<Response<Empty>, Status> {
         self.iterator.is_running.store(true, Ordering::Relaxed);
 
@@ -53,32 +47,15 @@ impl SerialDataFeed for SerialDataFeedService {
         Ok(Response::new(Empty {}))
     }
 
-    async fn stop(&self, _request: Request<Empty>) -> Result<Response<Empty>, Status> {
-        self.iterator.is_running.store(false, Ordering::Relaxed);
-        Ok(Response::new(Empty {}))
-    }
-
-    async fn list_available_ports(
-        &self,
-        _request: Request<Empty>,
-    ) -> Result<Response<ListAvailablePortsResponse>, Status> {
-        let ports = available_ports()
-            .unwrap()
-            .iter()
-            .filter(|port| matches!(port.port_type, SerialPortType::UsbPort(_)))
-            .map(|port| port.port_name.clone())
-            .collect::<Vec<String>>();
-        Ok(Response::new(ListAvailablePortsResponse { ports }))
-    }
-
     async fn configure(
         &self,
         request: Request<SerialDataFeedConfig>,
     ) -> Result<Response<Empty>, Status> {
         let config = request.into_inner();
 
-        let address = format!("serial:{}:{}", config.port, config.baud_rate);
-
+        // let address = format!("serial:{}:{}", config.port, config.baud_rate);
+        // connect::<MavMessage>("tcpout:127.0.0.1:5656").unwrap();
+        let address = "tcpout:127.0.0.1:5656";
         let mut mavlink = self.iterator.mavlink.lock().await;
         *mavlink = Some(connect::<MavMessage>(address.as_str()).unwrap());
 
