@@ -6,7 +6,6 @@ export const rocket_sensor_message = pgTable("rocket_sensor_message", {
         .references(() => rocket_message.id)
         .notNull()
         .primaryKey(),
-    component_id: integer("component_id").notNull(),
 });
 
 // UtcTime

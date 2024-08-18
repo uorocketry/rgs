@@ -14,8 +14,7 @@ pub mod nav_pos_llh;
 pub mod recovery_sensing;
 pub mod reset_reason;
 pub mod utc_time;
-
-use crate::database_service::hydra_input::saveable::SaveableData;
+use crate::hydra_input::saveable::SaveableData;
 use messages::sensor::{Sensor, SensorData};
 use sqlx::{postgres::PgQueryResult, query, Error, Postgres, Transaction};
 
