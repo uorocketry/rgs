@@ -78,12 +78,12 @@ impl SerialDataFeedIterator {
                     MavMessage::POSTCARD_MESSAGE(data) => {
                         // println!("Received postcard message: {:?}", data);
                         let data: Message = from_bytes(data.message.as_slice()).unwrap();
-                        let msg_json = serde_json::to_string(&data).unwrap();
-                        println!("Received rocket message: {:#?}", data);
+                        // let msg_json = serde_json::to_string(&data).unwrap();
+                        // println!("Received rocket message: {:#?}", data);
                         HydraInput::Message(data)
                     }
                     MavMessage::RADIO_STATUS(data) => {
-                        println!("Received radio status: {:?}", data);
+                        // println!("Received radio status: {:?}", data);
                         // info!("Received radio status: {:?}", data);
                         HydraInput::RadioStatus(data.clone())
                     }

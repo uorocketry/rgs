@@ -6,8 +6,6 @@
     "rustup@latest",
     "nodejs@latest",
     "inotify-tools@latest",
-    "docker-compose@latest",
-    "docker@latest",
     "starship@latest",
     "gopls@latest",
     "protobuf@latest",
@@ -15,7 +13,9 @@
     "pkg-config@latest",
     "openssl@latest",
     "openssl_3_3@latest",
-    "libiconv@latest"
+    "libiconv@latest",
+    "podman@latest",
+    "podman-compose@latest"
   ],
   "shell": {
     "init_hook": ["eval \"$(starship init $(echo $SHELL))\""],

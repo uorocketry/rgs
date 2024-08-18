@@ -41,7 +41,7 @@ pub async fn bootstrap(
     let res = tokio::spawn(async move {
         info!("SerialDataFeedService has started.");
         while let Some(message) = iterator.next().await {
-            println!("Got msg... {:?}", message);
+            // println!("Got msg... {:?}", message);
             // SHOULD DO: figure out how to handle database save errors better
             let _ = database_service.lock().await.save(message).await;
         }
