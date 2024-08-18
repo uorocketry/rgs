@@ -10,3 +10,6 @@ serde_json = "1"
 postcard = "1.0.2"
 serde = "1"
 rand = "0.8.4"
+clap = { version = "4.5.16", features = ["derive"] }
+tracing = "0.1.40"
+tracing-subscriber = "0.3.18"
