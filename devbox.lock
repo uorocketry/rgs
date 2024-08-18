@@ -209,6 +209,34 @@
         }
       }
     },
+    "libudev-zero@latest": {
+      "last_modified": "2024-07-31T08:48:38Z",
+      "resolved": "github:NixOS/nixpkgs/c3392ad349a5227f4a3464dce87bcc5046692fce#libudev-zero",
+      "source": "devbox-search",
+      "version": "1.0.3",
+      "systems": {
+        "aarch64-linux": {
+          "outputs": [
+            {
+              "name": "out",
+              "path": "/nix/store/xpriyrhyapcb0hpzk2yn4l3bjg95w9ib-libudev-zero-1.0.3",
+              "default": true
+            }
+          ],
+          "store_path": "/nix/store/xpriyrhyapcb0hpzk2yn4l3bjg95w9ib-libudev-zero-1.0.3"
+        },
+        "x86_64-linux": {
+          "outputs": [
+            {
+              "name": "out",
+              "path": "/nix/store/5ykq11c0psms97pfv4i4207lbiy7ir8a-libudev-zero-1.0.3",
+              "default": true
+            }
+          ],
+          "store_path": "/nix/store/5ykq11c0psms97pfv4i4207lbiy7ir8a-libudev-zero-1.0.3"
+        }
+      }
+    },
     "nodejs@latest": {
       "last_modified": "2024-07-31T08:48:38Z",
       "plugin_version": "0.0.2",
