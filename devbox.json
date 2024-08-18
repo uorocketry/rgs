@@ -11,7 +11,8 @@
     "libiconv@latest",
     "podman@latest",
     "podman-compose@latest",
-    "libudev-zero@latest"
+    "libudev-zero@latest",
+    "sqlx-cli@latest"
   ],
   "shell": {
     "init_hook": ["eval \"$(starship init $(echo $SHELL))\""],

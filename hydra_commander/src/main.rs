@@ -74,7 +74,7 @@ async fn deploy_drogue() -> impl Responder {
 }
 
 #[get("/deploy_main")]
-async fn deploy_main(name: web::Path<String>) -> impl Responder {
+async fn deploy_main() -> impl Responder {
     let args = Args::parse();
     let connection = match get_connection(&args.mav_address, args.mav_port) {
         Ok(connection) => connection,

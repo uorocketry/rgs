@@ -519,6 +519,54 @@
         }
       }
     },
+    "sqlx-cli@latest": {
+      "last_modified": "2024-08-04T00:20:25Z",
+      "resolved": "github:NixOS/nixpkgs/f3834de3782b82bfc666abf664f946d0e7d1f116#sqlx-cli",
+      "source": "devbox-search",
+      "version": "0.8.0",
+      "systems": {
+        "aarch64-darwin": {
+          "outputs": [
+            {
+              "name": "out",
+              "path": "/nix/store/b2pd5m7xzjsx0h33clzf7hgrw15h4a1z-sqlx-cli-0.8.0",
+              "default": true
+            }
+          ],
+          "store_path": "/nix/store/b2pd5m7xzjsx0h33clzf7hgrw15h4a1z-sqlx-cli-0.8.0"
+        },
+        "aarch64-linux": {
+          "outputs": [
+            {
+              "name": "out",
+              "path": "/nix/store/jl1ddi2zmj1wh8hjw5y9c6wswcn1s12b-sqlx-cli-0.8.0",
+              "default": true
+            }
+          ],
+          "store_path": "/nix/store/jl1ddi2zmj1wh8hjw5y9c6wswcn1s12b-sqlx-cli-0.8.0"
+        },
+        "x86_64-darwin": {
+          "outputs": [
+            {
+              "name": "out",
+              "path": "/nix/store/ga2aaywr488x50dhiaija02jnkgrkdx1-sqlx-cli-0.8.0",
+              "default": true
+            }
+          ],
+          "store_path": "/nix/store/ga2aaywr488x50dhiaija02jnkgrkdx1-sqlx-cli-0.8.0"
+        },
+        "x86_64-linux": {
+          "outputs": [
+            {
+              "name": "out",
+              "path": "/nix/store/zjyc0pkykvkw5z7d8qq4gyjilnnnaxrw-sqlx-cli-0.8.0",
+              "default": true
+            }
+          ],
+          "store_path": "/nix/store/zjyc0pkykvkw5z7d8qq4gyjilnnnaxrw-sqlx-cli-0.8.0"
+        }
+      }
+    },
     "starship@latest": {
       "last_modified": "2024-07-28T04:39:20Z",
       "resolved": "github:NixOS/nixpkgs/038fb464fcfa79b4f08131b07f2d8c9a6bcc4160#starship",

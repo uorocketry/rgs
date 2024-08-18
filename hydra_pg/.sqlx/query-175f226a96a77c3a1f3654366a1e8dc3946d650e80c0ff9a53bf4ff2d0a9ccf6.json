@@ -1,0 +1,19 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "INSERT INTO rocket_heartbeat\n\t\t\t(custom_mode, mavtype, autopilot, base_mode, system_status, mavlink_version)\n\t\t\tVALUES ($1, $2, $3, $4, $5, $6)",
+  "describe": {
+    "columns": [],
+    "parameters": {
+      "Left": [
+        "Int4",
+        "Int4",
+        "Int4",
+        "Int4",
+        "Int4",
+        "Int4"
+      ]
+    },
+    "nullable": []
+  },
+  "hash": "175f226a96a77c3a1f3654366a1e8dc3946d650e80c0ff9a53bf4ff2d0a9ccf6"
+}

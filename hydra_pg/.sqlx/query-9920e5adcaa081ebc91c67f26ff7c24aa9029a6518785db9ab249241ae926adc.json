@@ -1,0 +1,17 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "INSERT INTO rocket_sensor_gps_pos_2\n\t\t\t(rocket_sensor_message_id, time_of_week, undulation, altitude)\n\t\t\tVALUES ($1, $2, $3, $4)",
+  "describe": {
+    "columns": [],
+    "parameters": {
+      "Left": [
+        "Int4",
+        "Int4",
+        "Float4",
+        "Float4"
+      ]
+    },
+    "nullable": []
+  },
+  "hash": "9920e5adcaa081ebc91c67f26ff7c24aa9029a6518785db9ab249241ae926adc"
+}
