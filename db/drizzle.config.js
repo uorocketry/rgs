@@ -9,6 +9,7 @@ export default {
   out: "./drizzle",
   schema: "./schema",
   migrations: {
+    tableName: "drizzle_migrations",
     schema: "public",
   },
   dbCredentials: {

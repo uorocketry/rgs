@@ -49,6 +49,22 @@ services:
       timeout: 1s
       retries: 25
 
+  # hydrand:
+  #   build:
+  #     context: .
+  #   entrypoint: ["hydrate"]
+  #   extra_hosts:
+  #     - "host.docker.internal:host-gateway"
+  #   restart: always
+
+  # hydra_pg:
+  #   build:
+  #     context: .
+  #   command: ["hydra_pg"]
+  #   # Reads from port 5656 from the local machine
+  #   # Restart on failure
+  #   restart: on-failure:10
+
   # hydra_pg:
   #   build:
   #     context: ./hydra_pg
