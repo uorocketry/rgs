@@ -27,10 +27,6 @@ struct Args {
 
     #[arg(short, long, default_value_t = 5656)]
     port: u16,
-
-    // sleep time in ms
-    #[arg(short, long, default_value_t = 100)]
-    interval: u64,
 }
 
 #[tokio::main]

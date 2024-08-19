@@ -1,10 +1,9 @@
 mod random_message;
 
 use clap::Parser;
-use mavlink::MAVLinkV2MessageRaw;
+use messages::mavlink::{self, MAVLinkV2MessageRaw};
 use std::io::Write;
 use std::net::{TcpListener, TcpStream};
-use std::os::unix::net::SocketAddr;
 use tracing::{error, info};
 use tracing_subscriber;
 

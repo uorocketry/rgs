@@ -1,11 +1,10 @@
 [package]
-name = "hydrand"
+name = "hydrate"
 version = "0.1.0"
 edition = "2021"
 
 [dependencies]
-mavlink = {git = "https://github.com/uorocketry/rust-mavlink.git", features = ["uorocketry", "std", "tcp", "udp", "direct-serial", "serde"], default-features = false}
-log = "0.4.22"
-clap = { version = "4.5.16", features = ["derive"] }
-tracing = "0.1.40"
-tracing-subscriber = "0.3.18"
+mavlink = {workspace = true}
+clap = {workspace = true}
+tracing = {workspace = true}
+tracing-subscriber = {workspace = true}

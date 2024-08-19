@@ -1,5 +1,6 @@
 use mavlink::uorocketry::MavMessage;
 use messages::{
+    mavlink,
     sensor::{
         Air, EkfNav1, EkfNav2, EkfNavAcc, EkfQuat, GpsPos1, GpsPos2, GpsPosAcc, GpsVel, GpsVelAcc,
         Imu1, Imu2, RecoverySensing, Sensor, SensorData, UtcTime,
