@@ -30,7 +30,7 @@ struct Args {
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
     tracing_subscriber::fmt()
-        .with_max_level(tracing::Level::ERROR)
+        .with_max_level(tracing::Level::INFO)
         .init();
 
     let args = Args::parse();
@@ -70,8 +70,11 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     loop {
         let db_connection = db_connection.clone();
+        info!("Waiting for message");
         match connection.recv() {
             Ok((header, message)) => {
+                info!("Received message: {:?}", header);
+
                 match &message {
                     MavMessage::POSTCARD_MESSAGE(data) => {
                         let data: Message = match from_bytes(data.message.as_slice()) {
@@ -85,6 +88,8 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
                             }
                         };
                         let data = data.clone();
+                        let msg_json = serde_json::to_string(&data).unwrap();
+                        info!("Message: {}", msg_json);
                         tokio::spawn(async move {
                             let mut transaction = db_connection.begin().await.unwrap();
                             data.save(&mut transaction, 0).await.unwrap();

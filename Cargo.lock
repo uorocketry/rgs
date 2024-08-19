@@ -1042,6 +1042,8 @@ dependencies = [
  "mavlink",
  "messages",
  "postcard",
+ "serde",
+ "serde_json",
  "sqlx",
  "tokio",
  "tracing",
