@@ -49,19 +49,19 @@ services:
       timeout: 1s
       retries: 25
 
-  hydra_pg:
-    build:
-      context: ./hydra_pg
-    dockerfile: Dockerfile
-    command: >
-      --db-url postgres://postgres:postgres@db:5432/postgres
-      --address 0.0.0.0
-      --port 5656
-    ports:
-      - "5656:5656"
-    depends_on:
-      - db
-    restart: always
+  # hydra_pg:
+  #   build:
+  #     context: ./hydra_pg
+  #   dockerfile: Dockerfile
+  #   command: >
+  #     --db-url postgres://postgres:postgres@db:5432/postgres
+  #     --address 0.0.0.0
+  #     --port 5656
+  #   ports:
+  #     - "5656:5656"
+  #   depends_on:
+  #     - db
+  #   restart: always
   # web:
   #     build:
   #         context: ./web

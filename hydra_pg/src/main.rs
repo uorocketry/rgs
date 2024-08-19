@@ -1,5 +1,3 @@
-use std::any::Any;
-
 use clap::Parser;
 use hydra_input::saveable::SaveableData;
 use mavlink::connect;

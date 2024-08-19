@@ -5,7 +5,6 @@ members = [
     "hydra_commander",
     "hydrate",
     "hydrand",
-    "hydra_provider"
 ]
 resolver = "2"
 

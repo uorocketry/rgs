@@ -1,6 +1,3 @@
-use core::fmt;
-use std::fmt::{Display, Formatter};
-
 use crate::hydra_input::saveable::SaveableData;
 use messages::sensor::ResetReason;
 use sqlx::{postgres::PgQueryResult, query, Error, Postgres, Transaction};
