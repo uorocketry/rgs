@@ -1,6 +1,10 @@
 use clap::{Parser, Subcommand};
+use mavlink::uorocketry::MavMessage;
+use messages::Message;
+use postcard::from_bytes;
 use serialport::{available_ports, SerialPortType};
 use std::collections::HashMap;
+use std::fmt::format;
 use std::io::Write;
 use std::process::exit;
 use std::sync::{Arc, Mutex};
@@ -53,6 +57,48 @@ async fn main() {
         }
         Some(Commands::Listen(listen)) => {
             println!("Listening on {} at {} baud", listen.serial, listen.baud);
+
+            // region:Delete Me
+
+            println!("Listening on {} at {} baud", listen.serial, listen.baud);
+            let connection_str = format!("serial:/dev/ttyUSB0:57600");
+            println!("Connection String: {}", connection_str);
+            let connection = mavlink::connect::<MavMessage>(&connection_str).unwrap();
+
+            println!("Connection Loop");
+            loop {
+                println!("Waiting for message");
+                let (_, mavlink_message) = connection.recv().unwrap();
+                println!("Received message");
+
+                match &mavlink_message {
+                    MavMessage::POSTCARD_MESSAGE(data) => {
+                        let data: Message = from_bytes(data.message.as_slice()).unwrap();
+                        println!("Received rocket message: {:#?}", data);
+                        let json = serde_json::to_string(&data).unwrap();
+                        println!("MSG: {}", json);
+                    }
+                    _ => {
+                        println!("Received non post card message: {:?}", mavlink_message);
+                    } // MavMessage::POSTCARD_MESSAGE(data) => {
+                      //     let data: Message = from_bytes(data.message.as_slice()).unwrap();
+                      //     info!("Received rocket message: {:#?}", data);
+                      //     HydraInput::Message(data)
+                      // }
+                      // MavMessage::RADIO_STATUS(data) => {
+                      //     info!("Received radio status: {:?}", data);
+                      //     HydraInput::RadioStatus(data.clone())
+                      // }
+                      // MavMessage::HEARTBEAT(heartbeat) => {
+                      //     info!("Received heartbeat.");
+                      //     HydraInput::Heartbeat(heartbeat.clone())
+                      // }
+                };
+
+                // println!("{:?}", message);
+            }
+
+            // endregion
 
             // region:Open serial
             let mut port = match serialport::new(&listen.serial, listen.baud)
@@ -253,9 +299,9 @@ impl SharedState {
         // Is there a better way to remove elements from a hashmap while iterating?
 
         // self.connections.clear(); on all to remove
-        to_remove.iter().for_each(|&stream| {
-            self.connections.remove(&(stream as *const _));
-        });
+        // to_remove.iter().for_each(|&stream| {
+        //     self.connections.remove(&(stream as *const _));
+        // });
 
         self.connections
             .retain(|_, stream| !to_remove.contains(&(stream as *const _)));

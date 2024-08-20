@@ -30,6 +30,7 @@ impl SaveableData for Command {
             CommandData::DeployMain(data) => data.save(transaction, rocket_message_id).await,
             CommandData::RadioRateChange(data) => data.save(transaction, rocket_message_id).await,
             CommandData::PowerDown(data) => data.save(transaction, rocket_message_id).await,
+            CommandData::Online(_) => todo!(),
         }
     }
 }
