@@ -1,8 +1,10 @@
 // api/tiles/[z]/[x]/[y]/+server.ts
 import { LRUCache } from '$lib/common/LRUCache';
 import { existsSync, mkdirSync, readdirSync, readFileSync, writeFile } from 'fs';
+import sqlite3 from 'sqlite3';
 
 const dataDir = './data';
+const db = new sqlite3.Database('tiles.db');
 if (!existsSync(dataDir)) {
 	mkdirSync(dataDir);
 }
@@ -25,6 +27,11 @@ function getTileFileName(z: string, x: string, y: string) {
 }
 
 async function getTileImage(z: string, x: string, y: string): Promise<ArrayBufferLike> {
+	// get tile from db
+	const tile_blob = db.get('SELECT tile_data FROM tiles WHERE Z = ? AND Y = ? AND x = ?', z, x, y,
+		 (_, res) => console.log(res));
+	
+	
 	const fileName = getTileFileName(z, x, y);
 	const cached = cache.get(fileName);
 	// Image is in memory
@@ -46,6 +53,7 @@ async function getTileImage(z: string, x: string, y: string): Promise<ArrayBuffe
 	const res = await fetch(url);
 	console.log('Downloading TILE from: ', url);
 	const buffer = Buffer.from(await res.arrayBuffer());
+	db.post('INSERT INTO tiles (Z, X, Y, data) VALUES (?, ?, ?, ?)', z, x, y, buffer);
 	cache.put(fileName, buffer);
 	writeFile(`${tilesDir}/${fileName}`, buffer, (err) => {
 		if (err) {

@@ -69,5 +69,8 @@
 		"vite-plugin-mkcert": "^1.17.5",
 		"vite-plugin-static-copy": "^1.0.2",
 		"vitest": "^1.4.0"
+	},
+	"dependencies": {
+		"sqlite3": "^5.1.7"
 	}
 }
