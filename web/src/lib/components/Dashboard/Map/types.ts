@@ -13,6 +13,16 @@ const LatestCoordinatesDocument = graphql(`
 	}
 `);
 
+const LatestCoordinatesSBGDocument = graphql(`
+	subscription LatestCoordinates {
+		rocket_sensor_gps_pos_1(limit: 1, order_by: { rocket_sensor_message: { rocket_message: { created_at: desc } } }
+		) {
+			latitude
+			longitude
+		}
+	}
+`);
+
 const latestAltitudeDocument = graphql(`
 	subscription LatestAltitude {
 		rocket_sensor_air(limit: 1, order_by: { rocket_sensor_message: { rocket_message: { created_at: desc } } }
@@ -25,6 +35,11 @@ const latestAltitudeDocument = graphql(`
 export const LatestCoordinates = subscriptionStore({
 	client: gqlClient,
 	query: LatestCoordinatesDocument
+});
+
+export const LatestCoordinatesSBG = subscriptionStore({
+	client: gqlClient,
+	query: LatestCoordinatesSBGDocument
 });
 
 export const LatestAltitude = subscriptionStore({
