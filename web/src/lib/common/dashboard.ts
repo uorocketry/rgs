@@ -31,7 +31,10 @@ export const dashboard_components: Record<string, () => Promise<ComponentType>> 
 	},
 	RocketStatus: async () => {
 		return (await import('$lib/components/Dashboard/RocketStatus/RocketStatus.svelte')).default;
-	}
+	},
+	AltitudeGraph: async () => {
+		return (await import('$lib/components/Dashboard/AltitudeGraph/AltitudeGraph.svelte')).default;
+	},
 	// LogViewer: async () => {
 	// 	return (await import('$lib/components/smart/LogViewer.svelte')).default;
 	// }

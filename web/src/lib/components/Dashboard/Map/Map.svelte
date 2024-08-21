@@ -3,7 +3,7 @@
 	import { Viewer } from 'cesium';
 	import 'cesium/Build/Cesium/Widgets/widgets.css';
 	import * as Cesium from 'cesium';
-	import { LatestCoordinates } from './types';
+	import { LatestAltitude, LatestCoordinates } from './types';
 
 	// TODOS:
 	// - Add launch coordinates
@@ -24,12 +24,15 @@
 	};
 
 	$: latestCoordinatesData = $LatestCoordinates.data;
+	$: LatestAltitudeData = $LatestAltitude.data;
+	console.log('Latest coordinates', latestCoordinatesData);
+	console.log('Latest altitude', LatestAltitudeData);
 
 	$: {
 		latestCoordinates = {
-			latitude: latestCoordinatesData?.rocket_sensor_gps_pos_1[0]?.latitude ?? 0,
-			longitude: latestCoordinatesData?.rocket_sensor_gps_pos_1[0]?.longitude ?? 0,
-			altitude: latestCoordinatesData?.rocket_sensor_gps_pos_1[0]?.altitude ?? 0
+			latitude: latestCoordinatesData?.rocket_sensor_nav_pos_llh[0]?.latitude ?? 0,
+			longitude: latestCoordinatesData?.rocket_sensor_nav_pos_llh[0]?.longitude ?? 0,
+			altitude: LatestAltitudeData?.rocket_sensor_air[0]?.altitude ?? 0
 		};
 
 		if (viewer && rocketModel) {
