@@ -74,6 +74,7 @@
 
 		// Create an arc between Ottawa and Toronto
 		const JMTSPosition = Cesium.Cartesian3.fromDegrees(-75.68033372705948, 45.42010692442428, 100);
+		const launchpadPositon = Cesium.Cartesian3.fromDegrees(-81.8482847, 47.9869893, 100);
 
 		//add marker for JMTS
 		viewer.entities.add({
@@ -88,9 +89,21 @@
 			}
 		});
 
+		viewer.entities.add({
+			position: launchpadPositon,
+			point: {
+				pixelSize: 10,
+				color: Cesium.Color.BLUE
+			},
+			label: {
+				text: 'Launchpad',
+				verticalOrigin: Cesium.VerticalOrigin.BOTTOM
+			}
+		});
+
 		//add rocket model
 		rocketModel = viewer.entities.add({
-			position: JMTSPosition,
+			position: launchpadPositon,
 			model: {
 				uri: '/models/rocket.glb',
 				runAnimations: false,
