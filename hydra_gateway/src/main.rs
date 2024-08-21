@@ -25,7 +25,7 @@ enum Commands {
 struct Listen {
     #[arg(long)]
     serial: String,
-    #[arg(long, default_value_t = 9600)]
+    #[arg(long, default_value_t = 57600)]
     baud: u32,
     #[arg(long, action, default_value = "127.0.0.1:5656")] // Trivia H + Y + D + R +  A = 56 :D
     host: String,
