@@ -59,13 +59,13 @@ pub fn random_state_message_buf() -> [u8; 255] {
         6 => StateData::Abort,
         _ => panic!("Invalid state"),
     };
-    let data = State::new(state_data);
+    let data = messages::Data::State(State::new(state_data));
     let msg = Message::new(
         std::time::SystemTime::now()
             .duration_since(std::time::UNIX_EPOCH)
             .unwrap()
             .as_secs() as u32,
-        messages::sender::Sender::CameraBoard,
+        messages::sender::Sender::GroundStation,
         data,
     );
 

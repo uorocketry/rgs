@@ -1,10 +1,11 @@
 [workspace]
 members = [
-    # "hydra_gateway",
+    "hydra_gateway",
     "hydra_pg",
     "hydra_commander",
     "hydrate",
     "hydrand",
+    "coord_mocker"
 ]
 resolver = "2"
 
