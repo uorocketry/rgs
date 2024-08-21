@@ -1,17 +1,11 @@
 use clap::{Parser, Subcommand};
-use mavlink::uorocketry::MavMessage;
-use messages::Message;
-use postcard::from_bytes;
 use serialport::{available_ports, SerialPortType};
 use std::collections::HashMap;
-use std::fmt::format;
-use std::io::Write;
-use std::process::exit;
+use std::io::{Read, Write};
+use std::net::TcpListener;
+use std::sync::atomic::AtomicBool;
+use std::sync::mpsc::{channel, Sender};
 use std::sync::{Arc, Mutex};
-use tokio::io::{AsyncReadExt, AsyncWriteExt};
-use tokio::net::TcpListener;
-use tokio::stream;
-use tokio::sync::mpsc::{Sender, UnboundedSender};
 
 #[derive(Parser)]
 #[command(author, version, about, long_about = None)]
@@ -46,8 +40,7 @@ fn list_available_ports() -> Vec<String> {
         .collect::<Vec<String>>();
 }
 
-#[tokio::main]
-async fn main() {
+fn main() {
     let cli = Cli::parse();
 
     match &cli.command {
@@ -58,50 +51,8 @@ async fn main() {
         Some(Commands::Listen(listen)) => {
             println!("Listening on {} at {} baud", listen.serial, listen.baud);
 
-            // region:Delete Me
-
-            println!("Listening on {} at {} baud", listen.serial, listen.baud);
-            let connection_str = format!("serial:/dev/ttyUSB0:57600");
-            println!("Connection String: {}", connection_str);
-            let connection = mavlink::connect::<MavMessage>(&connection_str).unwrap();
-
-            println!("Connection Loop");
-            loop {
-                println!("Waiting for message");
-                let (_, mavlink_message) = connection.recv().unwrap();
-                println!("Received message");
-
-                match &mavlink_message {
-                    MavMessage::POSTCARD_MESSAGE(data) => {
-                        let data: Message = from_bytes(data.message.as_slice()).unwrap();
-                        println!("Received rocket message: {:#?}", data);
-                        let json = serde_json::to_string(&data).unwrap();
-                        println!("MSG: {}", json);
-                    }
-                    _ => {
-                        println!("Received non post card message: {:?}", mavlink_message);
-                    } // MavMessage::POSTCARD_MESSAGE(data) => {
-                      //     let data: Message = from_bytes(data.message.as_slice()).unwrap();
-                      //     info!("Received rocket message: {:#?}", data);
-                      //     HydraInput::Message(data)
-                      // }
-                      // MavMessage::RADIO_STATUS(data) => {
-                      //     info!("Received radio status: {:?}", data);
-                      //     HydraInput::RadioStatus(data.clone())
-                      // }
-                      // MavMessage::HEARTBEAT(heartbeat) => {
-                      //     info!("Received heartbeat.");
-                      //     HydraInput::Heartbeat(heartbeat.clone())
-                      // }
-                };
-
-                // println!("{:?}", message);
-            }
-
-            // endregion
-
             // region:Open serial
-            let mut port = match serialport::new(&listen.serial, listen.baud)
+            let port = match serialport::new(&listen.serial, listen.baud)
                 .timeout(std::time::Duration::from_secs(2))
                 .open()
             {
@@ -117,17 +68,18 @@ async fn main() {
 
             // region:Read & Broadcast
 
-            let mut port_reader = port.try_clone().unwrap();
+            let port_reader = port.try_clone().unwrap();
 
+            let mut port_reader_clone = port_reader.try_clone().unwrap();
             let shared_state_clone = Arc::clone(&shared_state);
             let serial_reader = std::thread::spawn(move || {
                 let mut buffer = vec![0; 1024];
                 loop {
-                    match port_reader.read(&mut buffer) {
+                    match port_reader_clone.read(&mut buffer) {
                         Ok(bytes_read) => {
                             // FIXME: Remove print
-                            println!("Read {} bytes from serial port", bytes_read);
-                            println!("{}", String::from_utf8_lossy(&buffer[..bytes_read]));
+                            // println!("Read {} bytes from serial port", bytes_read);
+                            // println!("{}", String::from_utf8_lossy(&buffer[..bytes_read]));
                             if bytes_read > 0 {
                                 shared_state_clone
                                     .lock()
@@ -135,9 +87,10 @@ async fn main() {
                                     .broadcast(buffer[..bytes_read].to_vec());
                             }
                         }
-                        Err(ref e) if e.kind() == std::io::ErrorKind::TimedOut => (),
-                        Err(ref e) if e.kind() == std::io::ErrorKind::BrokenPipe => {
-                            panic!("{:?}", e);
+                        Err(e) if e.kind() == std::io::ErrorKind::TimedOut => (),
+                        Err(e) if e.kind() == std::io::ErrorKind::BrokenPipe => {
+                            eprintln!("Broken Pipe!!!");
+                            return e;
                         }
                         Err(e) => {
                             eprintln!("Error reading from serial port: {:?}", e);
@@ -151,7 +104,7 @@ async fn main() {
             println!("Host: {}", listen.host);
 
             // region:TCP Listener
-            let listener = match TcpListener::bind(listen.host.clone()).await {
+            let listener = match TcpListener::bind(listen.host.clone()) {
                 Ok(listener) => listener,
                 Err(e) => {
                     eprintln!("Error binding to TCP listener: {:?}", e);
@@ -163,46 +116,47 @@ async fn main() {
             // region:Handle TCP connections
             let port_clone = port.try_clone().unwrap();
             let shared_state_clone = Arc::clone(&shared_state);
-            let tcp_handle_task = tokio::spawn(async move {
+            let tcp_handle_task = std::thread::spawn(move || {
                 loop {
-                    let (stream, addr) = match listener.accept().await {
-                        Ok(connection) => connection,
+                    let (mut stream, addr) = match listener.accept() {
+                        Ok(conn) => {
+                            println!("Accepted connection from: {}", conn.1);
+                            conn
+                        }
                         Err(e) => {
                             eprintln!("Error accepting TCP connection: {:?}", e);
                             continue;
                         }
                     };
 
-                    println!("Accepted connection from: {}", addr);
-                    // Split
-                    let (mut stream_read, mut stream_write) = stream.into_split();
-
-                    let (client_serial_read_tx, mut client_serial_read_rx) =
-                        tokio::sync::mpsc::unbounded_channel();
-
-                    // Add client client_serial_read_tx to shared state
+                    let (serial_sender, serial_receiver) = channel();
                     shared_state_clone
                         .lock()
                         .unwrap()
                         .connections
-                        .insert(addr, client_serial_read_tx);
+                        .insert(addr, serial_sender);
 
-                    let port_clone = port_clone.try_clone().unwrap();
-                    tokio::spawn(async move {
-                        let mut port_clone = port_clone.try_clone().unwrap();
+                    let mut port_clone = port_clone.try_clone().unwrap();
+                    let mut stream_clone = stream.try_clone().unwrap();
+                    let stop = Arc::new(AtomicBool::new(false));
 
-                        // // Handle Client Writes
-                        let write_task = tokio::spawn(async move {
+                    std::thread::spawn(move || {
+                        let stop_clone = stop.clone();
+                        let tcp_to_serial_task = std::thread::spawn(move || {
                             loop {
-                                let mut buffer = Vec::new();
-                                match stream_read.read_buf(&mut buffer).await {
-                                    Ok(_) => match port_clone.write_all(&buffer) {
+                                if stop_clone.load(std::sync::atomic::Ordering::Relaxed) {
+                                    return Ok(());
+                                }
+                                let mut buffer = [0; 1024];
+                                match stream_clone.read(&mut buffer) {
+                                    Ok(0) => {
+                                        // println!("EOL");
+                                        return Ok(());
+                                    }
+                                    // write buffer slice to n
+                                    Ok(n) => match port_clone.write_all(&buffer[..n]) {
                                         Ok(_) => {
-                                            if (buffer.len() == 0) {
-                                                println!("Client disconnected");
-                                                break;
-                                            }
-                                            println!("Wrote {} bytes to serial port", buffer.len());
+                                            println!("Wrote {} bytes to serial port", n);
                                         }
                                         Err(e) => {
                                             eprintln!("Error writing to serial port: {:?}", e);
@@ -210,40 +164,50 @@ async fn main() {
                                     },
                                     Err(e) => {
                                         eprintln!("Error reading from TCP connection: {:?}", e);
-                                        break;
+                                        stop_clone
+                                            .store(true, std::sync::atomic::Ordering::Relaxed);
+                                        return Err(e);
                                     }
                                 }
                             }
                         });
-                        // endregion
 
-                        // region:Handle Client Reads
-                        let read_task = tokio::spawn(async move {
-                            loop {
-                                match client_serial_read_rx.recv().await {
-                                    Some(data) => match stream_write.write_all(&data).await {
-                                        Ok(_) => {
-                                            println!(
-                                                "Wrote {} bytes to TCP connection",
-                                                data.len()
-                                            );
-                                        }
-                                        Err(e) => {
-                                            eprintln!("Error writing to TCP connection: {:?}", e);
-                                            break;
-                                        }
-                                    },
-                                    None => {
-                                        eprintln!("Error receiving data from serial port");
-                                        break;
+                        let stop_clone = stop.clone();
+                        let serial_to_tcp_task = std::thread::spawn(move || loop {
+                            match serial_receiver.recv() {
+                                Ok(data) => match stream.write_all(&data) {
+                                    Ok(_) => {
+                                        // println!("Wrote {} bytes to TCP connection", data.len());
                                     }
+                                    Err(e) => {
+                                        eprintln!("Error writing to TCP connection: {:?}", e);
+
+                                        stop_clone
+                                            .store(true, std::sync::atomic::Ordering::Relaxed);
+                                        return Err(e);
+                                    }
+                                },
+                                Err(e) => {
+                                    eprintln!("Closing serial_to_tcp_task: {:?}", e);
+                                    stop_clone.store(true, std::sync::atomic::Ordering::Relaxed);
+                                    return Ok(());
                                 }
                             }
                         });
-                        // endregion
 
-                        write_task.await.unwrap();
-                        read_task.await.unwrap();
+                        match serial_to_tcp_task.join() {
+                            Ok(_) => (),
+                            Err(e) => {
+                                eprintln!("Error joining serial_to_tcp_task: {:?}", e);
+                            }
+                        }
+                        match tcp_to_serial_task.join() {
+                            Ok(_) => (),
+                            Err(e) => {
+                                eprintln!("Error joining tcp_to_serial_task: {:?}", e);
+                            }
+                        }
+                        println!("Closing connection from: {}", addr);
                     });
                 }
             });
@@ -251,8 +215,9 @@ async fn main() {
             // endregion
 
             // Join
-            tcp_handle_task.await.unwrap();
             serial_reader.join().unwrap();
+            shared_state.lock().unwrap().dispose();
+            tcp_handle_task.join().unwrap();
         }
         None => {
             Cli::parse_from(&["", "--help"]);
@@ -261,7 +226,7 @@ async fn main() {
 }
 
 struct SharedState {
-    connections: HashMap<std::net::SocketAddr, UnboundedSender<Vec<u8>>>,
+    connections: HashMap<std::net::SocketAddr, Sender<Vec<u8>>>,
 }
 
 impl SharedState {
@@ -280,30 +245,20 @@ impl SharedState {
 
     // Broadcast serial data to all TCP connections
     fn broadcast(&mut self, data: Vec<u8>) {
-        println!(
-            "Broadcasting data to {} TCP connections",
-            self.connections.len()
-        );
         let mut to_remove = Vec::new();
-        for (_, stream) in self.connections.iter_mut() {
-            match stream.send(data.clone()) {
+        for (addr, serial_sender) in self.connections.iter_mut() {
+            match serial_sender.send(data.clone()) {
                 Ok(_) => (),
                 Err(e) => {
                     eprintln!("Error Broadcasting data to TCP connection: {:?}", e);
                     eprintln!("Removing connection from shared state");
-                    to_remove.push(stream as *const _);
+                    to_remove.push(addr.clone());
                 }
             }
         }
 
-        // Is there a better way to remove elements from a hashmap while iterating?
-
-        // self.connections.clear(); on all to remove
-        // to_remove.iter().for_each(|&stream| {
-        //     self.connections.remove(&(stream as *const _));
-        // });
-
-        self.connections
-            .retain(|_, stream| !to_remove.contains(&(stream as *const _)));
+        for sender in to_remove {
+            self.connections.remove(&sender);
+        }
     }
 }

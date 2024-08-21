@@ -340,8 +340,10 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     let args = Args::parse();
 
-    info!("Attempting to bind to {}:{}", args.address, args.port);
-    let listener = match TcpListener::bind("127.0.0.1:".to_owned() + &args.port.to_string()) {
+    let listener_str = format!("{}:{}", args.address, args.port);
+    info!("Attempting to bind to {}", listener_str);
+
+    let listener = match TcpListener::bind(listener_str) {
         Ok(listener) => {
             info!("Server created successfully");
             listener
