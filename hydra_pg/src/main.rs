@@ -73,10 +73,10 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         let db_connection = db_connection.clone();
         match connection.recv() {
             Ok((header, message)) => {
-                info!("Received message: {:?}", header);
+                // info!("Received message: {:?}", header);
 
-                println!("Received message: {:?}", header);
-                println!("Message: {:?}", message);
+                // println!("Received message: {:?}", header);
+                // println!("Message: {:?}", message);
                 match &message {
                     MavMessage::POSTCARD_MESSAGE(data) => {
                         let data: Message = match from_bytes(data.message.as_slice()) {
@@ -90,8 +90,8 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
                             }
                         };
                         let data = data.clone();
-                        let msg_json = serde_json::to_string(&data).unwrap();
-                        info!("Message: {}", msg_json);
+                        let msg_json = serde_json::to_string(&data.data).unwrap();
+                        info!("\nMessage: {}", msg_json);
                         tokio::spawn(async move {
                             let mut transaction = db_connection.begin().await.unwrap();
                             data.save(&mut transaction, 0).await.unwrap();

@@ -49,6 +49,27 @@ services:
       timeout: 1s
       retries: 25
 
+  grafana:
+    container_name: grafana
+    image: grafana/grafana-enterprise
+    user: "root:root"
+    environment:
+      GF_DATABASE_TYPE: postgres
+      GF_DATABASE_HOST: db
+      GF_DATABASE_NAME: postgres
+      GF_DATABASE_USER: postgres
+      GF_DATABASE_PASSWORD: postgres
+      GF_DATABASE_SSL_MODE: disable
+      GF_DASHBOARDS_MIN_REFRESH_INTERVAL: 1s
+      GF_AUTH_ANONYMOUS_ENABLED: "true"
+    restart: unless-stopped
+    depends_on:
+      - db
+    ports:
+      - 5657:3000
+    volumes:
+      - ./grafana_storage:/var/lib/grafana
+
   # hydrand:
   #   build:
   #     context: .
