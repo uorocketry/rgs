@@ -18,53 +18,18 @@
   "editable": true,
   "fiscalYearStartMonth": 0,
   "graphTooltip": 0,
-  "id": 3,
+  "id": 2,
   "links": [],
   "panels": [
     {
       "datasource": {
         "type": "grafana-postgresql-datasource",
-        "uid": "advjelmwb6cjkc"
+        "uid": "advlyug5bt2bka"
       },
       "fieldConfig": {
         "defaults": {
           "color": {
-            "mode": "palette-classic"
-          },
-          "custom": {
-            "axisBorderShow": false,
-            "axisCenteredZero": false,
-            "axisColorMode": "text",
-            "axisLabel": "",
-            "axisPlacement": "auto",
-            "barAlignment": 0,
-            "drawStyle": "line",
-            "fillOpacity": 0,
-            "gradientMode": "none",
-            "hideFrom": {
-              "legend": false,
-              "tooltip": false,
-              "viz": false
-            },
-            "insertNulls": false,
-            "lineInterpolation": "smooth",
-            "lineStyle": {
-              "fill": "solid"
-            },
-            "lineWidth": 2,
-            "pointSize": 5,
-            "scaleDistribution": {
-              "type": "linear"
-            },
-            "showPoints": "auto",
-            "spanNulls": false,
-            "stacking": {
-              "group": "A",
-              "mode": "none"
-            },
-            "thresholdsStyle": {
-              "mode": "off"
-            }
+            "mode": "thresholds"
           },
           "mappings": [],
           "thresholds": {
@@ -89,46 +54,42 @@
         "x": 0,
         "y": 0
       },
-      "id": 1,
+      "id": 5,
       "options": {
-        "legend": {
-          "calcs": [],
-          "displayMode": "list",
-          "placement": "bottom",
-          "showLegend": true
+        "colorMode": "value",
+        "graphMode": "area",
+        "justifyMode": "auto",
+        "orientation": "auto",
+        "percentChangeColorMode": "standard",
+        "reduceOptions": {
+          "calcs": ["lastNotNull"],
+          "fields": "",
+          "values": false
         },
-        "tooltip": {
-          "mode": "single",
-          "sort": "none"
-        }
+        "showPercentChange": false,
+        "textMode": "auto",
+        "wideLayout": true
       },
+      "pluginVersion": "11.1.4",
       "targets": [
         {
           "datasource": {
             "type": "grafana-postgresql-datasource",
-            "uid": "advjelmwb6cjkc"
+            "uid": "advlyug5bt2bka"
           },
           "editorMode": "code",
           "format": "table",
+          "hide": false,
           "rawQuery": true,
-          "rawSql": "SELECT\n    rm.created_at as time,\n    rsa.altitude as air_altitude\nFROM\n    rocket_sensor_air rsa\nJOIN\n    rocket_sensor_message rsm ON rsa.rocket_sensor_message_id = rsm.rocket_message_id\nJOIN\n    rocket_message rm ON rsm.rocket_message_id = rm.id\nORDER BY\n    rm.created_at ASC;",
+          "rawSql": "SELECT COUNT(*) as \"Total Messages\" FROM rocket_message WHERE  created_at BETWEEN $__timeFrom()  AND $__timeTo() ;",
           "refId": "A",
           "sql": {
             "columns": [
               {
-                "alias": "\"Time\"",
+                "name": "COUNT",
                 "parameters": [
                   {
-                    "name": "time_stamp",
-                    "type": "functionParameter"
-                  }
-                ],
-                "type": "function"
-              },
-              {
-                "parameters": [
-                  {
-                    "name": "altitude",
+                    "name": "created_at",
                     "type": "functionParameter"
                   }
                 ],
@@ -145,18 +106,18 @@
             ],
             "limit": 50
           },
-          "table": "rocket_sensor_air"
+          "table": "rocket_message"
         },
         {
           "datasource": {
             "type": "grafana-postgresql-datasource",
-            "uid": "advjelmwb6cjkc"
+            "uid": "advlyug5bt2bka"
           },
           "editorMode": "code",
           "format": "table",
           "hide": false,
           "rawQuery": true,
-          "rawSql": "SELECT\n    rm.created_at  as time,\n    rsa.altitude as gps_altitude\nFROM\n    rocket_sensor_gps_pos_2 rsa\nJOIN\n    rocket_sensor_message rsm ON rsa.rocket_sensor_message_id = rsm.rocket_message_id\nJOIN\n    rocket_message rm ON rsm.rocket_message_id = rm.id\nORDER BY\n    rm.created_at ASC;",
+          "rawSql": "SELECT sum(packets_lost) as \"Messages Lost\" FROM packet_lost WHERE  created_at BETWEEN $__timeFrom()  AND $__timeTo()",
           "refId": "B",
           "sql": {
             "columns": [
@@ -175,16 +136,24 @@
             ],
             "limit": 50
           }
+        },
+        {
+          "datasource": {
+            "name": "Expression",
+            "type": "__expr__",
+            "uid": "__expr__"
+          },
+          "expression": "$B / ($B + $A)",
+          "hide": false,
+          "refId": "Packet Lost",
+          "type": "math"
         }
       ],
-      "title": "Altitude (m)",
-      "type": "timeseries"
+      "title": "Packet Lost",
+      "type": "stat"
     },
     {
-      "datasource": {
-        "type": "grafana-postgresql-datasource",
-        "uid": "advjelmwb6cjkc"
-      },
+      "datasource": {},
       "fieldConfig": {
         "defaults": {
           "color": {
@@ -366,7 +335,7 @@
     {
       "datasource": {
         "type": "grafana-postgresql-datasource",
-        "uid": "advjelmwb6cjkc"
+        "uid": "advlyug5bt2bka"
       },
       "fieldConfig": {
         "defaults": {
@@ -431,7 +400,7 @@
         "x": 0,
         "y": 8
       },
-      "id": 4,
+      "id": 1,
       "options": {
         "legend": {
           "calcs": [],
@@ -453,7 +422,7 @@
           "editorMode": "code",
           "format": "table",
           "rawQuery": true,
-          "rawSql": "SELECT\n    rm.created_at,\n    imu.temperature\nFROM\n    rocket_sensor_imu_2 imu\nJOIN\n    rocket_sensor_message rsm ON imu.rocket_sensor_message_id = rsm.rocket_message_id\nJOIN\n    rocket_message rm ON rsm.rocket_message_id = rm.id\nORDER BY\n    rm.created_at ASC;\n",
+          "rawSql": "SELECT\n    rm.created_at as time,\n    rsa.altitude as air_altitude\nFROM\n    rocket_sensor_air rsa\nJOIN\n    rocket_sensor_message rsm ON rsa.rocket_sensor_message_id = rsm.rocket_message_id\nJOIN\n    rocket_message rm ON rsm.rocket_message_id = rm.id\nORDER BY\n    rm.created_at ASC;",
           "refId": "A",
           "sql": {
             "columns": [
@@ -496,7 +465,7 @@
           },
           "editorMode": "code",
           "format": "table",
-          "hide": true,
+          "hide": false,
           "rawQuery": true,
           "rawSql": "SELECT\n    rm.created_at  as time,\n    rsa.altitude as gps_altitude\nFROM\n    rocket_sensor_gps_pos_2 rsa\nJOIN\n    rocket_sensor_message rsm ON rsa.rocket_sensor_message_id = rsm.rocket_message_id\nJOIN\n    rocket_message rm ON rsm.rocket_message_id = rm.id\nORDER BY\n    rm.created_at ASC;",
           "refId": "B",
@@ -519,14 +488,11 @@
           }
         }
       ],
-      "title": "IMU Temperature C°",
+      "title": "Altitude (m)",
       "type": "timeseries"
     },
     {
-      "datasource": {
-        "type": "grafana-postgresql-datasource",
-        "uid": "advjelmwb6cjkc"
-      },
+      "datasource": {},
       "fieldConfig": {
         "defaults": {
           "color": {
@@ -680,22 +646,178 @@
       ],
       "title": "Pressure kPa",
       "type": "timeseries"
+    },
+    {
+      "datasource": {},
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "palette-classic"
+          },
+          "custom": {
+            "axisBorderShow": false,
+            "axisCenteredZero": false,
+            "axisColorMode": "text",
+            "axisLabel": "",
+            "axisPlacement": "auto",
+            "barAlignment": 0,
+            "drawStyle": "line",
+            "fillOpacity": 0,
+            "gradientMode": "none",
+            "hideFrom": {
+              "legend": false,
+              "tooltip": false,
+              "viz": false
+            },
+            "insertNulls": false,
+            "lineInterpolation": "smooth",
+            "lineStyle": {
+              "fill": "solid"
+            },
+            "lineWidth": 2,
+            "pointSize": 5,
+            "scaleDistribution": {
+              "type": "linear"
+            },
+            "showPoints": "auto",
+            "spanNulls": false,
+            "stacking": {
+              "group": "A",
+              "mode": "none"
+            },
+            "thresholdsStyle": {
+              "mode": "off"
+            }
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "red",
+                "value": 80
+              }
+            ]
+          }
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 0,
+        "y": 16
+      },
+      "id": 4,
+      "options": {
+        "legend": {
+          "calcs": [],
+          "displayMode": "list",
+          "placement": "bottom",
+          "showLegend": true
+        },
+        "tooltip": {
+          "mode": "single",
+          "sort": "none"
+        }
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "grafana-postgresql-datasource",
+            "uid": "advjelmwb6cjkc"
+          },
+          "editorMode": "code",
+          "format": "table",
+          "rawQuery": true,
+          "rawSql": "SELECT\n    rm.created_at,\n    imu.temperature\nFROM\n    rocket_sensor_imu_2 imu\nJOIN\n    rocket_sensor_message rsm ON imu.rocket_sensor_message_id = rsm.rocket_message_id\nJOIN\n    rocket_message rm ON rsm.rocket_message_id = rm.id\nORDER BY\n    rm.created_at ASC;\n",
+          "refId": "A",
+          "sql": {
+            "columns": [
+              {
+                "alias": "\"Time\"",
+                "parameters": [
+                  {
+                    "name": "time_stamp",
+                    "type": "functionParameter"
+                  }
+                ],
+                "type": "function"
+              },
+              {
+                "parameters": [
+                  {
+                    "name": "altitude",
+                    "type": "functionParameter"
+                  }
+                ],
+                "type": "function"
+              }
+            ],
+            "groupBy": [
+              {
+                "property": {
+                  "type": "string"
+                },
+                "type": "groupBy"
+              }
+            ],
+            "limit": 50
+          },
+          "table": "rocket_sensor_air"
+        },
+        {
+          "datasource": {
+            "type": "grafana-postgresql-datasource",
+            "uid": "advjelmwb6cjkc"
+          },
+          "editorMode": "code",
+          "format": "table",
+          "hide": true,
+          "rawQuery": true,
+          "rawSql": "SELECT\n    rm.created_at  as time,\n    rsa.altitude as gps_altitude\nFROM\n    rocket_sensor_gps_pos_2 rsa\nJOIN\n    rocket_sensor_message rsm ON rsa.rocket_sensor_message_id = rsm.rocket_message_id\nJOIN\n    rocket_message rm ON rsm.rocket_message_id = rm.id\nORDER BY\n    rm.created_at ASC;",
+          "refId": "B",
+          "sql": {
+            "columns": [
+              {
+                "parameters": [],
+                "type": "function"
+              }
+            ],
+            "groupBy": [
+              {
+                "property": {
+                  "type": "string"
+                },
+                "type": "groupBy"
+              }
+            ],
+            "limit": 50
+          }
+        }
+      ],
+      "title": "IMU Temperature C°",
+      "type": "timeseries"
     }
   ],
-  "refresh": "auto",
+  "refresh": "5s",
   "schemaVersion": 39,
   "tags": [],
   "templating": {
     "list": []
   },
   "time": {
-    "from": "now-5m",
+    "from": "now-1m",
     "to": "now"
   },
   "timepicker": {},
   "timezone": "browser",
   "title": "Altitude",
   "uid": "fdvjf2iq4oydce",
-  "version": 1,
+  "version": 5,
   "weekStart": ""
 }

@@ -4,7 +4,7 @@ use mavlink::connect;
 use mavlink::uorocketry::MavMessage;
 use messages::Message;
 use postcard::from_bytes;
-use sqlx::PgPool;
+use sqlx::{query, PgPool};
 use tracing::{error, info};
 mod hydra_input;
 use tracing_subscriber;
@@ -69,14 +69,33 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     };
 
     info!("Getting Messages...");
+    let mut last_seq_num = 0;
     loop {
         let db_connection = db_connection.clone();
         match connection.recv() {
             Ok((header, message)) => {
-                // info!("Received message: {:?}", header);
+                let packets_lost =
+                    ((header.sequence as i32) - (last_seq_num as i32) - 1).rem_euclid(255);
+                last_seq_num = header.sequence;
 
-                // println!("Received message: {:?}", header);
-                // println!("Message: {:?}", message);
+                let db_connection_clone = db_connection.clone();
+                if packets_lost > 0 {
+                    println!("Packets Lost: {}", packets_lost);
+                    tokio::spawn(async move {
+                        let mut transaction = db_connection_clone.begin().await.unwrap();
+                        let result = query!(
+                            "INSERT INTO packet_lost
+                                (packets_lost)
+                                VALUES ($1)
+                                RETURNING id",
+                            packets_lost
+                        )
+                        .fetch_one(&mut *transaction)
+                        .await;
+                        transaction.commit().await.unwrap();
+                    });
+                }
+
                 match &message {
                     MavMessage::POSTCARD_MESSAGE(data) => {
                         let data: Message = match from_bytes(data.message.as_slice()) {
@@ -91,9 +110,10 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
                         };
                         let data = data.clone();
                         let msg_json = serde_json::to_string(&data.data).unwrap();
-                        info!("\nMessage: {}", msg_json);
+                        let db_connection_clone = db_connection.clone();
+                        // info!("\nMessage: {}", msg_json);
                         tokio::spawn(async move {
-                            let mut transaction = db_connection.begin().await.unwrap();
+                            let mut transaction = db_connection_clone.begin().await.unwrap();
                             data.save(&mut transaction, 0).await.unwrap();
                             transaction.commit().await.unwrap();
                         });
@@ -116,7 +136,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
                 mavlink::error::MessageReadError::Io(io_err) => match io_err.kind() {
                     std::io::ErrorKind::WouldBlock => continue,
                     _ => {
-                        panic!("Mavread Failed to receive message, REASON: {:?}", io_err);
+                        error!("Mavread Failed to receive message, REASON: {:?}", io_err);
                     }
                 },
                 e => {

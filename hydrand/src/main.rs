@@ -29,6 +29,7 @@ fn handle_connection(stream: &mut TcpStream, interval: u64) {
             String::from("Unknown")
         }
     };
+    let mut i = 0;
     loop {
         let message = random_message::random_message();
         let mut message_raw = MAVLinkV2MessageRaw::new();
@@ -36,10 +37,19 @@ fn handle_connection(stream: &mut TcpStream, interval: u64) {
             mavlink::MavHeader {
                 system_id: 0,
                 component_id: 0,
-                sequence: 0,
+                sequence: i,
             },
             &message,
         );
+        if i == 255 {
+            i = 0;
+        }
+        i += 1;
+        // i = i.wrapping_add_signed(1);
+
+        // if rand::random::<u8>() > 144 {
+        //     i = i.wrapping_add_signed(1);
+        // }
 
         if let Err(e) = stream.write_all(&message_raw.raw_bytes()) {
             error!(
