@@ -15,7 +15,6 @@ const AirDocument = graphql(`
 const GPSDocument = graphql(`
 	subscription GPSSub {
 		rocket_sensor_gps_pos_1(order_by: { time_stamp: desc }, limit: 1) {
-			altitude
 			latitude
 			longitude
 		}
