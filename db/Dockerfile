@@ -1,4 +1,4 @@
-FROM node:current-alpine as base
+FROM node:20-alpine as base
 RUN apk --update add postgresql-client
 
 FROM base as dev
