@@ -86,7 +86,7 @@
 			geocoder: false,
 			sceneModePicker: false,
 			shouldAnimate: true,
-			terrain: Cesium.Terrain.fromWorldTerrain({ requestVertexNormals: true }),
+			// terrain: Cesium.Terrain.fromWorldTerrain({ requestVertexNormals: true }),
 
 			baseLayer: new Cesium.ImageryLayer(
 				new Cesium.UrlTemplateImageryProvider({

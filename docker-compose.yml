@@ -60,13 +60,14 @@ services:
       GF_DATABASE_USER: postgres
       GF_DATABASE_PASSWORD: postgres
       GF_DATABASE_SSL_MODE: disable
-      GF_DASHBOARDS_MIN_REFRESH_INTERVAL: 1s
-      GF_AUTH_ANONYMOUS_ENABLED: "true"
+      GF_DASHBOARDS_MIN_REFRESH_INTERVAL: 200ms
+      GF_AUTH_ANONYMOUS_ENABLED: true
+      GF_SECURITY_ALLOW_EMBEDDING: true
     restart: unless-stopped
     depends_on:
       - db
     ports:
-      - 5657:3000
+      - 0.0.0.0:5657:3000
     volumes:
       - ./grafana_storage:/var/lib/grafana
 

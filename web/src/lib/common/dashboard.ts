@@ -32,9 +32,18 @@ export const dashboard_components: Record<string, () => Promise<ComponentType>> 
 	RocketStatus: async () => {
 		return (await import('$lib/components/Dashboard/RocketStatus/RocketStatus.svelte')).default;
 	},
-	AltitudeGraph: async () => {
-		return (await import('$lib/components/Dashboard/AltitudeGraph/AltitudeGraph.svelte')).default;
+	Pressure: async () => {
+		return (await import('$lib/components/Dashboard/Pressure/Pressure.svelte')).default;
 	},
+	Altitude: async () => {
+		return (await import('$lib/components/Dashboard/Altitude/Altitude.svelte')).default;
+	},
+	IMUTemp: async () => {
+		return (await import('$lib/components/Dashboard/IMUTemp/IMUTemp.svelte')).default;
+	},
+	Acceleration: async () => {
+		return (await import('$lib/components/Dashboard/Acceleration/Acceleration.svelte')).default;
+	}
 	// LogViewer: async () => {
 	// 	return (await import('$lib/components/smart/LogViewer.svelte')).default;
 	// }
