@@ -111,7 +111,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
                         let data = data.clone();
                         let msg_json = serde_json::to_string(&data.data).unwrap();
                         let db_connection_clone = db_connection.clone();
-                        // info!("\nMessage: {}", msg_json);
+                        info!("\nMessage: {}", msg_json);
                         tokio::spawn(async move {
                             let mut transaction = db_connection_clone.begin().await.unwrap();
                             data.save(&mut transaction, 0).await.unwrap();
