@@ -1,29 +1,38 @@
 {
-    "name": "Ubuntu",
-    "image": "mcr.microsoft.com/devcontainers/base:jammy",
-    "forwardPorts": [],
-    "customizations": {
-        "vscode": {
-            "extensions": [
-                "GitHub.copilot",
-                "GitHub.copilot-chat",
-                "GitHub.copilot-labs",
-                "rust-lang.rust-analyzer",
-                "svelte.svelte-vscode",
-                "VisualStudioExptTeam.vscodeintellicode",
-                "alex-young.pm2-explorer",
-                "esbenp.prettier-vscode",
-                "dbaeumer.vscode-eslint"
-            ]
-        }
-    },
-    "postCreateCommand": "./scripts/postcreate.sh",
-    "portsAttributes": {
-        "5173": {
-            "label": "web"
-        },
-        "4000": {
-            "label": "hasura"
-        }
+  "name": "RGS Dev Container",
+  "build": {
+    "dockerfile": "./Dockerfile",
+    "context": ".."
+  },
+  "customizations": {
+    "vscode": {
+      "settings": {},
+      "extensions": [
+        "jetpack-io.devbox",
+        "GitHub.copilot",
+        "GitHub.copilot-chat",
+        "GitHub.copilot-labs",
+        "rust-lang.rust-analyzer",
+        "svelte.svelte-vscode",
+        "VisualStudioExptTeam.vscodeintellicode",
+        "alex-young.pm2-explorer",
+        "esbenp.prettier-vscode",
+        "dbaeumer.vscode-eslint",
+        "ms-azuretools.vscode-docker",
+        "golang.go"
+      ]
     }
+  },
+  "remoteUser": "devbox",
+  "portsAttributes": {
+    "5656": {
+      "label": "hydra_gateway"
+    },
+    "5173": {
+      "label": "web"
+    },
+    "4000": {
+      "label": "hasura"
+    }
+  }
 }

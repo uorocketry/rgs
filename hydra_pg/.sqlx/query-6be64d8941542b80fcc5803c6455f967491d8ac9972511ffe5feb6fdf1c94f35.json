@@ -1,0 +1,18 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "INSERT INTO public.rocket_sensor_recovery_sensing (\n                rocket_sensor_message_id,\n                drogue_current,\n                main_current,\n                drogue_voltage,\n                main_voltage\n            ) VALUES ($1, $2, $3, $4, $5)",
+  "describe": {
+    "columns": [],
+    "parameters": {
+      "Left": [
+        "Int4",
+        "Int4",
+        "Int4",
+        "Int4",
+        "Int4"
+      ]
+    },
+    "nullable": []
+  },
+  "hash": "6be64d8941542b80fcc5803c6455f967491d8ac9972511ffe5feb6fdf1c94f35"
+}

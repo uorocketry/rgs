@@ -1,65 +1,118 @@
+name: rgs
+
 services:
-    db:
-        image: timescale/timescaledb:latest-pg16
-        environment:
-            POSTGRES_USER: postgres
-            POSTGRES_PASSWORD: postgres
+  db:
+    image: timescale/timescaledb:latest-pg16
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
 
-        volumes:
-            - ./data:/var/lib/postgresql/data
-        ports:
-            - "5432:5432"
-        healthcheck:
-            test: ["CMD", "pg_isready", "-U", "postgres", "-d", "postgres"]
-            interval: 1s
-            timeout: 1s
-            retries: 25
+    volumes:
+      - ./data:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
+    healthcheck:
+      test: ["CMD", "pg_isready", "-U", "postgres", "-d", "postgres"]
+      interval: 1s
+      timeout: 1s
+      retries: 25
 
-    migration:
-        build:
-            context: ./db
-        depends_on:
-            db:
-                condition: service_healthy
-        volumes:
-            - ./db/hasura_dump:/app/hasura_dump
-        command: ["npm", "run", "bootstrap"]
-        environment:
-            DATABASE_URL: postgres://postgres:postgres@db:5432/postgres
+  migration:
+    build:
+      context: ./db
+    depends_on:
+      db:
+        condition: service_healthy
+    volumes:
+      - ./db/hasura_dump:/app/hasura_dump
+    command: ["npm", "run", "bootstrap"]
+    environment:
+      DATABASE_URL: postgres://postgres:postgres@db:5432/postgres
 
-    hasura:
-        image: hasura/graphql-engine:latest
-        ports:
-            - "4000:4000"
-        depends_on:
-            migration:
-                condition: service_completed_successfully
-        environment:
-            HASURA_GRAPHQL_SERVER_PORT: 4000
-            HASURA_GRAPHQL_DATABASE_URL: postgres://postgres:postgres@db:5432/postgres
-            HASURA_GRAPHQL_LOG_LEVEL: warn
-            HASURA_GRAPHQL_ENABLE_CONSOLE: "true"
-            HASURA_GRAPHQL_LIVE_QUERIES_MULTIPLEXED_REFETCH_INTERVAL: 60
-            HASURA_GRAPHQL_METADATA_DATABASE_URL: postgres://postgres:postgres@db:5432/postgres
-        healthcheck:
-            test: ["CMD", "curl", "-f", "http://localhost:4000/healthz"]
-            interval: 1s
-            timeout: 1s
-            retries: 25
+  hasura:
+    image: hasura/graphql-engine:latest
+    ports:
+      - "4000:4000"
+    depends_on:
+      migration:
+        condition: service_completed_successfully
+    environment:
+      HASURA_GRAPHQL_SERVER_PORT: 4000
+      HASURA_GRAPHQL_DATABASE_URL: postgres://postgres:postgres@db:5432/postgres
+      HASURA_GRAPHQL_LOG_LEVEL: warn
+      HASURA_GRAPHQL_ENABLE_CONSOLE: "true"
+      HASURA_GRAPHQL_LIVE_QUERIES_MULTIPLEXED_REFETCH_INTERVAL: 60
+      HASURA_GRAPHQL_METADATA_DATABASE_URL: postgres://postgres:postgres@db:5432/postgres
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:4000/healthz"]
+      interval: 1s
+      timeout: 1s
+      retries: 25
 
-    # web:
-    #     build:
-    #         context: ./web
-    #     depends_on:
-    #         hasura:
-    #             condition: service_healthy
-    #     ports:
-    #         - "3000:3000"
-    #     environment:
-    #         GRAPHQL_ENDPOINT: http://hasura:4000/v1/graphql
-    #         GRAPHQL_ADMIN_SECRET: uorocketry
-    # healthcheck:
-    #     test: ["CMD", "curl", "-f", "http://localhost:3000"]
-    #     interval: 1s
-    #     timeout: 1s
-    #     retries: 25
+  grafana:
+    container_name: grafana
+    image: grafana/grafana-enterprise
+    user: "root:root"
+    environment:
+      GF_DATABASE_TYPE: postgres
+      GF_DATABASE_HOST: db
+      GF_DATABASE_NAME: postgres
+      GF_DATABASE_USER: postgres
+      GF_DATABASE_PASSWORD: postgres
+      GF_DATABASE_SSL_MODE: disable
+      GF_DASHBOARDS_MIN_REFRESH_INTERVAL: 200ms
+      GF_AUTH_ANONYMOUS_ENABLED: true
+      GF_SECURITY_ALLOW_EMBEDDING: true
+    restart: unless-stopped
+    depends_on:
+      - db
+    ports:
+      - 0.0.0.0:5657:3000
+    volumes:
+      - ./grafana_storage:/var/lib/grafana
+
+  # hydrand:
+  #   build:
+  #     context: .
+  #   entrypoint: ["hydrate"]
+  #   extra_hosts:
+  #     - "host.docker.internal:host-gateway"
+  #   restart: always
+
+  # hydra_pg:
+  #   build:
+  #     context: .
+  #   command: ["hydra_pg"]
+  #   # Reads from port 5656 from the local machine
+  #   # Restart on failure
+  #   restart: on-failure:10
+
+  # hydra_pg:
+  #   build:
+  #     context: ./hydra_pg
+  #   dockerfile: Dockerfile
+  #   command: >
+  #     --db-url postgres://postgres:postgres@db:5432/postgres
+  #     --address 0.0.0.0
+  #     --port 5656
+  #   ports:
+  #     - "5656:5656"
+  #   depends_on:
+  #     - db
+  #   restart: always
+  # web:
+  #     build:
+  #         context: ./web
+  #     depends_on:
+  #         hasura:
+  #             condition: service_healthy
+  #     ports:
+  #         - "3000:3000"
+  #     environment:
+  #         GRAPHQL_ENDPOINT: http://hasura:4000/v1/graphql
+  #         GRAPHQL_ADMIN_SECRET: uorocketry
+  # healthcheck:
+  #     test: ["CMD", "curl", "-f", "http://localhost:3000"]
+  #     interval: 1s
+  #     timeout: 1s
+  #     retries: 25

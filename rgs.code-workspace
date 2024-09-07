@@ -5,13 +5,25 @@
             "path": "."
         },
         {
-            "path": "./web"
-        },
-        {
             "path": "./db"
         },
         {
+            "path": "./hydra_gateway"
+        },
+        {
+            "path": "./hydra_pg"
+        },
+        {
             "path": "./hydra_provider"
+        },
+        {
+            "path": "./hydrand"
+        },
+        {
+            "path": "./scripts"
+        },
+        {
+            "path": "./web"
         }
     ],
     "settings": {}

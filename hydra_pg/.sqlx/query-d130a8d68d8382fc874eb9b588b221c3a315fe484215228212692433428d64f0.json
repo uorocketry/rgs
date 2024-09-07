@@ -1,0 +1,15 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "INSERT INTO rocket_deploy_main_command\n\t\t\t\t(rocket_command_id, val)\n\t\t\t\tVALUES ($1, $2)",
+  "describe": {
+    "columns": [],
+    "parameters": {
+      "Left": [
+        "Int4",
+        "Bool"
+      ]
+    },
+    "nullable": []
+  },
+  "hash": "d130a8d68d8382fc874eb9b588b221c3a315fe484215228212692433428d64f0"
+}
