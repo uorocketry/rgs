@@ -1,0 +1,16 @@
+[package]
+name = "hydra_pg"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+tokio = { version = "1", features = ["full"] }
+sqlx = { version = "0.7", features = ["runtime-tokio", "macros", "postgres"] }
+serde = { workspace = true }
+serde_json = { workspace = true }
+messages = { workspace = true }
+mavlink = { workspace = true }
+clap = { workspace = true }
+tracing = { workspace = true }
+tracing-subscriber = { workspace = true }
+postcard = { workspace = true }

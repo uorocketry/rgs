@@ -4,7 +4,7 @@ import { graphql } from 'gql.tada';
 
 const AirDocument = graphql(`
 	subscription AirSub {
-		rocket_sensor_air(order_by: { time_stamp: asc }, limit: 1) {
+		rocket_sensor_air(order_by: { time_stamp: desc }, limit: 1) {
 			altitude
 			pressure_abs
 			air_temperature
@@ -14,8 +14,7 @@ const AirDocument = graphql(`
 
 const GPSDocument = graphql(`
 	subscription GPSSub {
-		rocket_sensor_gps_pos_1(order_by: { time_stamp: asc }, limit: 1) {
-			altitude
+		rocket_sensor_gps_pos_1(order_by: { time_stamp: desc }, limit: 1) {
 			latitude
 			longitude
 		}

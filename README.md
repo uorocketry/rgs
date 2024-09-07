@@ -39,6 +39,12 @@ In addition, you can use [PM2](https://pm2.keymetrics.io/) as a process manager 
 
 Note: For development purposes `hydra_provider` isn't included in the `pm2` ecosystem file. Check its [README](hydra_provider/README.md) for more information on how to run it.
 
+## Misc
+
+Quickly stopping all containers: podman compose down --remove-orphans -t 0
+
+Rebuilding the containers: podman compose up --build
+
 ## Troubleshooting
 
 Please refer to each of the following for more information.
