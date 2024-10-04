@@ -18,7 +18,7 @@ export default defineConfig({
         nav: [
             { text: "Home", link: "/" },
             { text: "Guide", link: "/guide/" },
-            { text: "Hydra Provider", link: "/hydra-provider/" },
+            { text: "Hydra Gateway", link: "/hydra-gateway/" },
             { text: "Web", link: "/web/" },
         ],
 
@@ -27,6 +27,7 @@ export default defineConfig({
                 {
                     items: [
                         { text: "Getting Started", link: "/guide/" },
+                        { text: "Architecture", link: "/guide/architecture" },
                         {
                             text: "Requirements",
                             link: "/guide/requirements/",
@@ -42,10 +43,6 @@ export default defineConfig({
                                 {
                                     text: "Node",
                                     link: "/guide/requirements/node",
-                                },
-                                {
-                                    text: "Protobuf",
-                                    link: "/guide/requirements/protobuf",
                                 },
                                 {
                                     text: "Rust",
