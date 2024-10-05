@@ -1,5 +1,7 @@
 # Development Environment
 
+If you're on linux you can skip this section.
+
 If you're on windows you will need to install [Windows Subsystem for Linux](https://learn.microsoft.com/en-us/windows/wsl/install).
 
 If on Mac, you will likelly want to install [Homebrew](https://brew.sh/).

@@ -16,7 +16,7 @@ hero:
 
 features:
   - title: Type Safe
-    details: Built with gRPC, SQLx and gql.tada for end-to-end type safety.
+    details: Built with SQLx and DrizzleORM for end-to-end type safety.
     icon: 🐞
 
     
@@ -24,10 +24,10 @@ features:
     details: Easilly add custom data providers and frontends of your choice.
     icon: 🧩
   - title: Real-time
-    details: Powered by Hasura and TimescaleDB for real-time data access.
+    details: Powered by TimescaleDB for real-time data access.
     icon: 🕒
   - title: Data Visualizations
-    details: Interactive and responsive charts, graphs, and maps.
+    details: Interactive and responsive charts, graphs, and offline maps.
     icon: 📊
 ---
 
