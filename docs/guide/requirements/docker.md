@@ -24,7 +24,7 @@ Now check if you can connect to the database directly on a tool like [DBeaver](h
 Host: localhost:5432
 Database: postgres
 User: postgres
-Password: password
+Password: postgres
 Connection URL: postgres://postgres:postgres@localhost:5432/postgres
 ```
 
