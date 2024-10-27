@@ -1,5 +1,5 @@
 <script>
-    import BarChart from './Arrow/Bar.svelte';
+    import BarChart from './BarGraph/BarGraph.svelte';
     import { onDestroy } from 'svelte';
   
     // Initial velocity value
@@ -18,7 +18,6 @@
   </script>
   
   <main>
-    <h1>Dynamic Single-Bar Velocity Chart</h1>
     <BarChart {velocity} />
   </main>
   
