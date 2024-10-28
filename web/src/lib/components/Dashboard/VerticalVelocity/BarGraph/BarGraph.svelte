@@ -12,7 +12,7 @@
 
         // Initial chart setup
         const data = {
-            labels: ['Velocity'],
+            labels: ['Rocket Current Velocity'],
             datasets: [{
                 label: `Current Velocity: ${velocity} m/s`, // Dynamic label
                 data: [velocity], // Initial velocity value
@@ -23,7 +23,7 @@
             }]
         };
 
-        chart = new Chart(ctx!, {
+        chart = new Chart(ctx!, { //customize for custom font family here !
             type: 'bar',
             data: data,
             options: {
@@ -34,8 +34,33 @@
                         max: 100, // Set a fixed maximum
                         title: {
                             display: true,
-                            text: 'Velocity'
-                        }
+                            text: 'Velocity (m/s)',
+                            font: {
+                                family: 'ui-monospace' //TODO figure out how to import this properlyyyy
+                            }
+                        },
+                        ticks: {
+                            font: {
+                                    family: 'ui-monospace' 
+                            }
+                        },
+                    },
+                    x: {
+                        ticks: {
+                            font: {
+                                    family: 'ui-monospace' 
+                            }
+                        },
+                    }
+                },
+                plugins: {
+                    legend: {
+                        labels: {
+                            font: {
+                                family: 'ui-monospace'   
+                            }
+                        },
+                    
                     }
                 }
             }
@@ -57,10 +82,6 @@
     });
 </script>
 
-<canvas id="myChart" width="400" height="200"></canvas>
 
-<style>
-    canvas {
-        max-width: 100%;
-    }
-</style>
+<canvas id="myChart" class="w-full h-64"></canvas>
+
