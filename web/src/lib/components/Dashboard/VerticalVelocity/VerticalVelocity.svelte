@@ -1,23 +1,35 @@
 <script>
-    import BarChart from './BarGraph/BarGraph.svelte';
-    import { onDestroy } from 'svelte';
+  import BarChart from './BarGraph/BarGraph.svelte';
+  import { LatestAltitude } from './types';
   
-    // Initial velocity value
-    let velocity = 0;
-  
-    // Function to simulate velocity updates (randomly change velocity between -50 and +50)
-    function updateVelocity() {
-      velocity = Math.floor(Math.random() * 100) - 50;
-    }
-  
-    // Update velocity every 2 seconds
-    const interval = setInterval(updateVelocity, 2000);
-  
-    // Clear interval when component is destroyed
-    onDestroy(() => clearInterval(interval));
-  </script>
-  
-  <main>
-    <BarChart {velocity} />
-  </main>
-  
+  $: LatestAltitudeData = $LatestAltitude.data;
+
+
+  // Previous altitude and velocity
+  let latestAltitude = LatestAltitudeData?.rocket_sensor_air[0]?.altitude ?? 0;
+  let previousAltitude = latestAltitude;
+  let velocity = 0;
+  let lastUpdateTime = Date.now(); // Track the last update time
+
+  // Calculate velocity based on altitude change
+  $: {
+      if (latestAltitude !== previousAltitude) {
+          console.log('Latest altitude', latestAltitude);
+          const currentTime = Date.now();
+          const elapsedTime = (currentTime - lastUpdateTime) / 1000; 
+          const altitudeChange = latestAltitude - previousAltitude;
+
+          // Calculate vertical velocity in meters per second
+          velocity = altitudeChange / elapsedTime; 
+          previousAltitude = latestAltitude;
+          lastUpdateTime = currentTime; // Update the last update time
+      }
+  }
+
+  // Log the calculated velocity
+  console.log('Current velocity:', velocity);
+</script>
+
+<main>
+  <BarChart {velocity} />
+</main>

@@ -6,6 +6,7 @@
 
     export let velocity = 0; // Initial velocity value
     let chart: Chart | null = null;
+    let fontString = 'ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace';
 
     onMount(() => {
         const ctx = (document.getElementById('myChart') as HTMLCanvasElement)!.getContext('2d');
@@ -36,19 +37,19 @@
                             display: true,
                             text: 'Velocity (m/s)',
                             font: {
-                                family: 'ui-monospace' //TODO figure out how to import this properlyyyy
+                                family: fontString
                             }
                         },
                         ticks: {
                             font: {
-                                    family: 'ui-monospace' 
+                                    family: fontString
                             }
                         },
                     },
                     x: {
                         ticks: {
                             font: {
-                                    family: 'ui-monospace' 
+                                    family: fontString 
                             }
                         },
                     }
@@ -57,7 +58,7 @@
                     legend: {
                         labels: {
                             font: {
-                                family: 'ui-monospace'   
+                                family: fontString   
                             }
                         },
                     
