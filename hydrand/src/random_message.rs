@@ -98,7 +98,8 @@ pub fn random_sensor_message_buf() -> [u8; 255] {
         1 => SensorData::Air(Air {
             time_stamp: time_stamp,
             pressure_abs: Some(0.0),
-            altitude: Some(0.0),
+            // altitude: Some(0.0),
+            altitude : Some(rand::thread_rng().gen_range(0.0..10000.0)),
             pressure_diff: Some(0.0),
             true_airspeed: Some(0.0),
             air_temperature: Some(0.0),

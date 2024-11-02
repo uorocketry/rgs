@@ -1,12 +1,12 @@
 <script lang="ts">
     import { onMount, onDestroy } from 'svelte';
     import { Chart, registerables } from 'chart.js';
-
+    import { uorocketryTheme } from '$lib/common/uorocketryTheme';
     Chart.register(...registerables);
 
     export let velocity = 0; // Initial velocity value
     let chart: Chart | null = null;
-    let fontString = 'ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace';
+    let fontString = uorocketryTheme.properties['--theme-font-family-base']
 
     onMount(() => {
         const ctx = (document.getElementById('myChart') as HTMLCanvasElement)!.getContext('2d');
@@ -24,15 +24,17 @@
             }]
         };
 
-        chart = new Chart(ctx!, { //customize for custom font family here !
+        chart = new Chart(ctx!, { 
             type: 'bar',
             data: data,
             options: {
+                responsive: true,
+                maintainAspectRatio: false,
                 scales: {
                     y: {
                         beginAtZero: false, // Allow negative values
-                        min: -100, // Set a fixed minimum
-                        max: 100, // Set a fixed maximum
+                        min: -10000, // Set a fixed minimum
+                        max: 10000, // Set a fixed maximum
                         title: {
                             display: true,
                             text: 'Velocity (m/s)',
@@ -83,6 +85,7 @@
     });
 </script>
 
-
-<canvas id="myChart" class="w-full h-64"></canvas>
+<div class="w-full h-full">
+    <canvas id="myChart" class="w-full h-full" ></canvas>
+</div>
 

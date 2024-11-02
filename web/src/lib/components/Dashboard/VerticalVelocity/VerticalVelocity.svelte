@@ -6,7 +6,7 @@
 
 
   // Previous altitude and velocity
-  let latestAltitude = LatestAltitudeData?.rocket_sensor_air[0]?.altitude ?? 0;
+  $: latestAltitude = LatestAltitudeData?.rocket_sensor_air[0]?.altitude ?? 0;
   let previousAltitude = latestAltitude;
   let velocity = 0;
   let lastUpdateTime = Date.now(); // Track the last update time
@@ -28,8 +28,27 @@
 
   // Log the calculated velocity
   console.log('Current velocity:', velocity);
+
+  let clientWidth = 0;
+	let clientHeight = 0;
+
+	// HACK To force restart of the chart component
+	let restart = 0;
+	let restartCount = 0;
+
+	$: {
+		clientHeight;
+		clientWidth;
+		restartCount += 1;
+		if (restartCount % 2 == 0) {
+			restart += 1;
+		}
+	}
+
 </script>
 
-<main>
+<main class="h-full w-full" bind:clientWidth bind:clientHeight>
+  {#key restart}
   <BarChart {velocity} />
+  {/key}
 </main>
