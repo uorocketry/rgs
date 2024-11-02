@@ -4,7 +4,7 @@
     import { uorocketryTheme } from '$lib/common/uorocketryTheme';
     Chart.register(...registerables);
 
-    export let velocity = 0; // Initial velocity value
+    export let velocity = 0; 
     let chart: Chart | null = null;
     let fontString = uorocketryTheme.properties['--theme-font-family-base']
 
@@ -15,8 +15,8 @@
         const data = {
             labels: ['Rocket Current Velocity'],
             datasets: [{
-                label: `Current Velocity: ${velocity} m/s`, // Dynamic label
-                data: [velocity], // Initial velocity value
+                label: `Current Vertical Velocity: ${velocity.toFixed(2)} m/s`, 
+                data: [velocity], 
                 backgroundColor: velocity >= 0 ? 'rgba(75, 192, 192, 0.5)' : 'rgba(255, 99, 132, 0.5)',
                 borderColor: velocity >= 0 ? 'rgba(75, 192, 192, 1)' : 'rgba(255, 99, 132, 1)',
                 borderWidth: 1,
@@ -33,8 +33,8 @@
                 scales: {
                     y: {
                         beginAtZero: false, // Allow negative values
-                        min: -10000, // Set a fixed minimum
-                        max: 10000, // Set a fixed maximum
+                        min: -10000, 
+                        max: 10000, 
                         title: {
                             display: true,
                             text: 'Velocity (m/s)',
@@ -72,16 +72,15 @@
 
     // Reactive update when velocity changes
     $: if (chart) {
-        // Update data and colors based on the velocity's value
         chart.data.datasets[0].data[0] = velocity;
-        chart.data.datasets[0].label = `Current Velocity: ${velocity} m/s`; // Dynamic label
+        chart.data.datasets[0].label = `Current Vertical Velocity: ${velocity.toFixed(2)} m/s`; 
         chart.data.datasets[0].backgroundColor = velocity >= 0 ? 'rgba(75, 192, 192, 0.5)' : 'rgba(255, 99, 132, 0.5)';
         chart.data.datasets[0].borderColor = velocity >= 0 ? 'rgba(75, 192, 192, 1)' : 'rgba(255, 99, 132, 1)';
         chart.update(); 
     }
 
     onDestroy(() => {
-        chart!.destroy(); // Cleanup on component destroy
+        chart!.destroy();
     });
 </script>
 
