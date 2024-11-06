@@ -43,6 +43,9 @@ export const dashboard_components: Record<string, () => Promise<ComponentType>> 
 	},
 	Acceleration: async () => {
 		return (await import('$lib/components/Dashboard/Acceleration/Acceleration.svelte')).default;
+	},
+	VerticalVelocity: async () => {
+		return (await import('$lib/components/Dashboard/VerticalVelocity/VerticalVelocity.svelte')).default;
 	}
 	// LogViewer: async () => {
 	// 	return (await import('$lib/components/smart/LogViewer.svelte')).default;

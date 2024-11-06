@@ -1,6 +1,7 @@
 import { skeleton } from '@skeletonlabs/tw-plugin';
 import { join } from 'path';
 import { uorocketryTheme } from './src/lib/common/uorocketryTheme';
+declare var require: any //to get rid of error cannot find name 'require' error
 
 const config = {
 	darkMode: 'class',

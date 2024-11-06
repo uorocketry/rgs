@@ -75,7 +75,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         match connection.recv() {
             Ok((header, message)) => {
                 let packets_lost =
-                    ((header.sequence as i32) - (last_seq_num as i32) - 1).rem_euclid(255);
+                    ((header.sequence as i32) - (last_seq_num as i32) - 1).rem_euclid(256); 
                 last_seq_num = header.sequence;
 
                 let db_connection_clone = db_connection.clone();
@@ -93,7 +93,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
                         .fetch_one(&mut *transaction)
                         .await;
                         transaction.commit().await.unwrap();
-                    });
+                    }); 
                 }
 
                 match &message {
