@@ -22,11 +22,10 @@
           // Calculate vertical velocity in meters per second
           velocity = altitudeChange / elapsedTime; 
           previousAltitude = latestAltitude;
-          lastUpdateTime = currentTime; // Update the last update time
+          lastUpdateTime = currentTime; 
       }
   }
 
-  // Log the calculated velocity
   console.log('Current velocity:', velocity);
 
   let clientWidth = 0;
