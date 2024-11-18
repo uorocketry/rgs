@@ -5,6 +5,8 @@
         "nodejs@latest",
         "inotify-tools@latest",
         "starship@latest",
+        "pkgconfig@latest",
+        "openssl@latest",
         "protobuf@latest",
         "pnpm@latest",
         "pkg-config@latest",
