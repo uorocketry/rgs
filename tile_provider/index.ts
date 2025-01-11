@@ -44,7 +44,7 @@ db.exec(`
 const getTileFromDBQuery = db.query(
     "SELECT blob FROM tiles WHERE zoom = ? AND x = ? AND y = ?"
 );
-function getTileFromDB(zoom: number, x: number, y: number) {
+function getTileFromDB(zoom: string, x: string, y: string) {
     const q = getTileFromDBQuery.get(zoom, x, y) as
         | { blob: Uint8Array }
         | undefined;
@@ -54,7 +54,7 @@ function getTileFromDB(zoom: number, x: number, y: number) {
 const saveTileToDBQuery = db.prepare(
     "INSERT OR REPLACE INTO tiles (zoom, x, y, blob) VALUES (?, ?, ?, ?)"
 );
-function saveTileToDB(zoom: number, x: number, y: number, blob: Uint8Array) {
+function saveTileToDB(zoom: string, x: string, y: string, blob: Uint8Array) {
     saveTileToDBQuery.run(zoom, x, y, blob);
 }
 
@@ -72,18 +72,13 @@ type FetchResult =
       };
 
 async function fetchTileFromSource(
-    zoom: number,
-    x: number,
-    y: number
+    zoom: string,
+    x: string,
+    y: string
 ): Promise<FetchResult> {
-    const url = `http://mt2.google.com/vt/lyrs=s,h&x=${y}&y=${x}&z=${zoom}`;
+    const url = `http://mt0.google.com/vt/lyrs=s,h&x=${x}&y=${y}&z=${zoom}`;
 
-    const response = await fetch(url, {
-        headers: {
-            "User-Agent":
-                "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36",
-        },
-    });
+    const response = await fetch(url);
 
     if (!response.ok) {
         return { ok: false, error: response.statusText };
@@ -97,9 +92,9 @@ async function fetchTileFromSource(
 // HTTP handler
 // -----------------------
 async function handleTileRequest(
-    zoom: number,
-    x: number,
-    y: number
+    zoom: string,
+    x: string,
+    y: string
 ): Promise<Response> {
     // Check the database.
     const dbBlob = getTileFromDB(zoom, x, y);
@@ -165,19 +160,7 @@ Bun.serve({
             pathParts.length === 4 &&
             pathParts[0] === "tiles"
         ) {
-            const zoom = parseInt(pathParts[1], 10);
-            const x = parseInt(pathParts[2], 10);
-            const y = parseInt(pathParts[3], 10);
-            if (Number.isNaN(zoom) || Number.isNaN(x) || Number.isNaN(y)) {
-                return new Response("Invalid tile parameters", {
-                    status: 400,
-                    headers: {
-                        "Content-Type": "text/plain",
-                        "Access-Control-Allow-Origin": "*",
-                    },
-                });
-            }
-            return handleTileRequest(zoom, x, y);
+            return handleTileRequest(pathParts[1], pathParts[2], pathParts[3]);
         }
 
         // Fallback to 404.

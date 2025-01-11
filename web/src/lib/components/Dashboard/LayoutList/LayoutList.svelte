@@ -1,14 +1,14 @@
 <script lang="ts">
 	import { resolvedLayout } from '$lib/common/dashboard';
-	import { gqlClient } from '$lib/stores';
+	// import { gqlClient } from '$lib/stores';
 	import { getToastStore } from '@skeletonlabs/skeleton';
-	import { DeleteLayoutDocument, LayoutList } from './types';
+	// import { LayoutList } from './types';
 
 	// let layouts = new Map<string, { name: string; data: ResolvedLayoutConfig }>();
-	$: layouts = $LayoutList.data?.web_layout?.reduce((acc, val) => {
-		acc.set(val.id, { name: val.name, data: val.layout as string });
-		return acc;
-	}, new Map<number, { name: string; data: string }>());
+	// $: layouts = $LayoutList.data?.web_layout?.reduce((acc, val) => {
+	// 	acc.set(val.id, { name: val.name, data: val.layout as string });
+	// 	return acc;
+	// }, new Map<number, { name: string; data: string }>());
 
 	function loadLayout(layoutId: number) {
 		let layout = layouts?.get(layoutId);
@@ -22,20 +22,20 @@
 	async function deletePanel(id: number) {
 		if (timeout) clearTimeout(timeout);
 		if (id === toDelete) {
-			const r = await gqlClient.mutation(DeleteLayoutDocument, { id });
-			console.log('Delete layout', r);
-			if (r.data?.delete_web_layout?.affected_rows === 0 || r.error) {
-				toastStore.trigger({
-					message: r.error?.message || 'Failed to delete layout',
-					background: 'variant-filled-error'
-				});
-				return;
-			} else {
-				toastStore.trigger({
-					message: 'Layout deleted'
-				});
-			}
-			toDelete = undefined;
+			// const r = await gqlClient.mutation(DeleteLayoutDocument, { id });
+			// console.log('Delete layout', r);
+			// if (r.data?.delete_web_layout?.affected_rows === 0 || r.error) {
+			// 	toastStore.trigger({
+			// 		message: r.error?.message || 'Failed to delete layout',
+			// 		background: 'variant-filled-error'
+			// 	});
+			// 	return;
+			// } else {
+			// 	toastStore.trigger({
+			// 		message: 'Layout deleted'
+			// 	});
+			// }
+			// toDelete = undefined;
 			return;
 		}
 
@@ -57,10 +57,10 @@
 		</thead>
 		<tbody>
 			<!-- Iterate over the entries of the current_msg object -->
-			{#if layouts && layouts.size > 0}
-				{#each [...layouts] as [key, val]}
-					<!-- On click, copy the value to the clipboard and add a visual effect -->
-					<tr class="cursor-pointer" on:click={() => loadLayout(key)}>
+			<!-- {#if layouts && layouts.size > 0} -->
+			<!-- {#each [...layouts] as [key, val]} -->
+			<!-- On click, copy the value to the clipboard and add a visual effect -->
+			<!-- <tr class="cursor-pointer" on:click={() => loadLayout(key)}>
 						<td>
 							<button
 								on:click={(e) => {
@@ -77,13 +77,13 @@
 						</td>
 						<td class="text-left">{val.name}</td>
 						<td class="text-right">{key}</td>
-					</tr>
-				{/each}
-			{:else}
-				<tr>
+					</tr> -->
+			<!-- {/each} -->
+			<!-- {:else} -->
+			<!-- <tr>
 					<td class="text-center" colspan="3">No data</td>
-				</tr>
-			{/if}
+				</tr> -->
+			<!-- {/if} -->
 		</tbody>
 	</table>
 </div>

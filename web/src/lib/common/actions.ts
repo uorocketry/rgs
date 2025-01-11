@@ -1,7 +1,6 @@
 import { get, writable, type Writable } from 'svelte/store';
 import { layoutComponentsString, resolvedLayout, virtualLayout } from './dashboard';
-import { graphql } from 'gql.tada';
-import { gqlClient } from '$lib/stores';
+// import { graphql } from 'gql.tada';
 
 export interface CommandAction {
 	name: string;
@@ -36,16 +35,16 @@ export const commandActions: Writable<CommandAction[]> = writable([
 			if (!saved) return;
 			delete saved.ignoreReload;
 
-			await gqlClient.mutation(
-				graphql(`
-					mutation InsertLayout($layout: String = "", $name: String = "") {
-						insert_web_layout(objects: { layout: $layout, name: $name }) {
-							affected_rows
-						}
-					}
-				`),
-				{ layout: JSON.stringify(saved), name: layoutName }
-			);
+			// await gqlClient.mutation(
+			// 	graphql(`
+			// 		mutation InsertLayout($layout: String = "", $name: String = "") {
+			// 			insert_web_layout(objects: { layout: $layout, name: $name }) {
+			// 				affected_rows
+			// 			}
+			// 		}
+			// 	`),
+			// 	{ layout: JSON.stringify(saved), name: layoutName }
+			// );
 		}
 	},
 	{
