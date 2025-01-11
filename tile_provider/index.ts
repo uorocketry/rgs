@@ -1,0 +1,193 @@
+import { Database } from "bun:sqlite";
+import { parseArgs } from "util";
+
+// -----------------------
+// CLI argument parsing
+// -----------------------
+const { values } = parseArgs({
+    args: Bun.argv,
+    options: {
+        address: { type: "string", default: "127.0.0.1" },
+        port: { type: "string", default: "6565" },
+        database: { type: "string", default: "tiles.db" },
+    },
+    strict: true,
+    allowPositionals: true,
+});
+
+const ADDRESS = values.address ?? "127.0.0.1";
+const PORT = values.port ?? "6565";
+const DB_FILENAME = values.database ?? "tiles.db";
+
+// -----------------------
+// Setup SQLite database
+// -----------------------
+const db = new Database(DB_FILENAME);
+
+db.exec("PRAGMA journal_mode = WAL;");
+
+// Create the tiles table if needed.
+db.exec(`
+  CREATE TABLE IF NOT EXISTS tiles (
+    zoom INTEGER,
+    x INTEGER,
+    y INTEGER,
+    blob BLOB,
+    PRIMARY KEY (zoom, x, y)
+  );
+`);
+
+// -----------------------
+// Database helper functions
+// -----------------------
+
+const getTileFromDBQuery = db.query(
+    "SELECT blob FROM tiles WHERE zoom = ? AND x = ? AND y = ?"
+);
+function getTileFromDB(zoom: number, x: number, y: number) {
+    const q = getTileFromDBQuery.get(zoom, x, y) as
+        | { blob: Uint8Array }
+        | undefined;
+    return q ? q.blob : null;
+}
+
+const saveTileToDBQuery = db.prepare(
+    "INSERT OR REPLACE INTO tiles (zoom, x, y, blob) VALUES (?, ?, ?, ?)"
+);
+function saveTileToDB(zoom: number, x: number, y: number, blob: Uint8Array) {
+    saveTileToDBQuery.run(zoom, x, y, blob);
+}
+
+// -----------------------
+// Remote fetch function
+// -----------------------
+type FetchResult =
+    | {
+          ok: true;
+          buffer: Uint8Array;
+      }
+    | {
+          ok: false;
+          error: string;
+      };
+
+async function fetchTileFromSource(
+    zoom: number,
+    x: number,
+    y: number
+): Promise<FetchResult> {
+    const url = `http://mt2.google.com/vt/lyrs=s,h&x=${y}&y=${x}&z=${zoom}`;
+
+    const response = await fetch(url, {
+        headers: {
+            "User-Agent":
+                "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36",
+        },
+    });
+
+    if (!response.ok) {
+        return { ok: false, error: response.statusText };
+    }
+
+    const buffer = new Uint8Array(await response.arrayBuffer());
+    return { ok: true, buffer };
+}
+
+// -----------------------
+// HTTP handler
+// -----------------------
+async function handleTileRequest(
+    zoom: number,
+    x: number,
+    y: number
+): Promise<Response> {
+    // Check the database.
+    const dbBlob = getTileFromDB(zoom, x, y);
+    if (dbBlob) {
+        return new Response(dbBlob, {
+            status: 200,
+            headers: {
+                "Content-Type": "image/png",
+                "Cache-Control": "public, max-age=31536000",
+                "Access-Control-Allow-Origin": "*",
+            },
+        });
+    }
+
+    // Fetch from the remote source.
+    const fetchedBlob = await fetchTileFromSource(zoom, x, y);
+    if (fetchedBlob.ok) {
+        saveTileToDB(zoom, x, y, fetchedBlob.buffer);
+        return new Response(fetchedBlob.buffer, {
+            status: 200,
+            headers: {
+                "Content-Type": "image/png",
+                "Cache-Control": "public, max-age=31536000",
+                "Access-Control-Allow-Origin": "*",
+            },
+        });
+    } else {
+        return new Response(fetchedBlob.error, {
+            status: 500,
+            headers: {
+                "Content-Type": "text/plain",
+                "Access-Control-Allow-Origin": "*",
+            },
+        });
+    }
+}
+
+// -----------------------
+// Main HTTP server route handling
+// -----------------------
+Bun.serve({
+    async fetch(req: Request) {
+        const url = new URL(req.url);
+        const pathname = url.pathname;
+        const method = req.method.toUpperCase();
+
+        // Handle CORS preflight request
+        if (method === "OPTIONS") {
+            return new Response(null, {
+                status: 204,
+                headers: {
+                    "Access-Control-Allow-Origin": "*",
+                    "Access-Control-Allow-Methods": "GET",
+                    "Access-Control-Allow-Headers": "Content-Type",
+                },
+            });
+        }
+
+        // Expecting route like /tiles/<zoom>/<x>/<y>
+        const pathParts = pathname.split("/").filter((p) => p.length > 0);
+        if (
+            method === "GET" &&
+            pathParts.length === 4 &&
+            pathParts[0] === "tiles"
+        ) {
+            const zoom = parseInt(pathParts[1], 10);
+            const x = parseInt(pathParts[2], 10);
+            const y = parseInt(pathParts[3], 10);
+            if (Number.isNaN(zoom) || Number.isNaN(x) || Number.isNaN(y)) {
+                return new Response("Invalid tile parameters", {
+                    status: 400,
+                    headers: {
+                        "Content-Type": "text/plain",
+                        "Access-Control-Allow-Origin": "*",
+                    },
+                });
+            }
+            return handleTileRequest(zoom, x, y);
+        }
+
+        // Fallback to 404.
+        return new Response("Not Found", {
+            status: 404,
+            headers: { "Access-Control-Allow-Origin": "*" },
+        });
+    },
+    hostname: ADDRESS,
+    port: PORT,
+});
+
+console.log(`Starting server at ${ADDRESS}:${PORT}`);
