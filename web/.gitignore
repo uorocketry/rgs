@@ -14,4 +14,3 @@ vite.config.ts.*.mjs
 /test-results/
 /playwright-report/
 /playwright/.cache/
-graphql-env.d.ts

@@ -1,21 +1,19 @@
 {
-  "name": "@rgs/db",
-  "version": "1.0.0",
-  "description": "",
-  "type": "commonjs",
-  "scripts": {
-    "bootstrap": "node ./scripts/bootstrap.mjs",
-    "dump_hasura": "node ./scripts/dump_hasura",
-    "restore_hasura": "node ./scripts/restore_hasura",
-    "dk": "drizzle-kit",
-    "push": "drizzle-kit push",
-    "drop": "drizzle-kit drop",
-    "purge_db": "sudo rm -rf ../data"
-  },
-  "devDependencies": {
-    "@types/node": "^20.15.0",
-    "drizzle-kit": "^0.24.0",
-    "drizzle-orm": "^0.33.0",
-    "pg": "^8.12.0"
-  }
+    "name": "@rgs/db",
+    "version": "1.0.0",
+    "description": "",
+    "type": "commonjs",
+    "scripts": {
+        "bootstrap": "node ./scripts/bootstrap.mjs",
+        "dk": "drizzle-kit",
+        "push": "drizzle-kit push",
+        "drop": "drizzle-kit drop",
+        "purge_db": "sudo rm -rf ../data"
+    },
+    "devDependencies": {
+        "@types/node": "^20.15.0",
+        "drizzle-kit": "^0.24.0",
+        "drizzle-orm": "^0.33.0",
+        "pg": "^8.12.0"
+    }
 }

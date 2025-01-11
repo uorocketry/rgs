@@ -16,7 +16,6 @@
 		"grpc-gen": "node scripts/generate-grpc.cjs"
 	},
 	"devDependencies": {
-		"@0no-co/graphqlsp": "^1.12.13",
 		"@floating-ui/dom": "^1.6.10",
 		"@fortawesome/fontawesome-free": "6.5.1",
 		"@grpc/grpc-js": "^1.11.1",
@@ -47,12 +46,6 @@
 		"eslint-config-prettier": "^9.1.0",
 		"eslint-plugin-svelte": "^2.43.0",
 		"golden-layout": "^2.6.0",
-		"gql.tada": "^1.8.5",
-		"graphql": "^16.9.0",
-		"graphql-request": "^6.1.0",
-		"graphql-tag": "^2.12.6",
-		"graphql-ws": "^5.16.0",
-		"grpc-tools": "^1.12.4",
 		"postcss": "^8.4.41",
 		"prettier": "^3.3.3",
 		"prettier-plugin-svelte": "^3.2.6",
