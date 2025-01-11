@@ -3,7 +3,6 @@
 	"version": "0.0.1",
 	"type": "module",
 	"scripts": {
-		"e2e": "pnpm exec playwright test --ui",
 		"postinstall": "svelte-kit sync",
 		"dev": "vite dev --host",
 		"build": "vite build",
@@ -18,12 +17,6 @@
 	"devDependencies": {
 		"@floating-ui/dom": "^1.6.10",
 		"@fortawesome/fontawesome-free": "6.5.1",
-		"@grpc/grpc-js": "^1.11.1",
-		"@playwright/test": "^1.46.1",
-		"@protobuf-ts/grpc-transport": "^2.9.4",
-		"@protobuf-ts/plugin": "^2.9.4",
-		"@protobuf-ts/runtime": "^2.9.4",
-		"@protobuf-ts/runtime-rpc": "^2.9.4",
 		"@skeletonlabs/skeleton": "^2.10.2",
 		"@skeletonlabs/tw-plugin": "^0.3.1",
 		"@sveltejs/adapter-auto": "^3.2.4",
@@ -37,7 +30,6 @@
 		"@types/w3c-generic-sensor": "^1.0.9",
 		"@typescript-eslint/eslint-plugin": "^6.21.0",
 		"@typescript-eslint/parser": "^6.21.0",
-		"@urql/svelte": "^4.2.1",
 		"@vitejs/plugin-basic-ssl": "^1.1.0",
 		"autoprefixer": "^10.4.20",
 		"cesium": "^1.120.0",
