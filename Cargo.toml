@@ -6,7 +6,6 @@ members = [
     "hydrate",
     "hydrand",
     "coord_mocker",
-    "tile_provider",
 ]
 resolver = "2"
 
