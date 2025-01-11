@@ -5,13 +5,23 @@ members = [
     "hydra_commander",
     "hydrate",
     "hydrand",
-    "coord_mocker"
+    "coord_mocker",
+    "tile_provider",
 ]
 resolver = "2"
 
 [workspace.dependencies]
-mavlink = {git = "https://github.com/uorocketry/rust-mavlink.git", features = ["uorocketry", "std", "tcp", "udp", "direct-serial", "serde"], default-features = false}
-messages = { git = "https://github.com/uorocketry/hydra", branch = "nav", features = ['std'], default-features = false}
+mavlink = { git = "https://github.com/uorocketry/rust-mavlink.git", features = [
+    "uorocketry",
+    "std",
+    "tcp",
+    "udp",
+    "direct-serial",
+    "serde",
+], default-features = false }
+messages = { git = "https://github.com/uorocketry/hydra", branch = "nav", features = [
+    'std',
+], default-features = false }
 clap = { version = "4.5.16", features = ["derive"] }
 tracing = "0.1.40"
 tracing-subscriber = "0.3.18"
