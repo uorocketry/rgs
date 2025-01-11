@@ -75,25 +75,25 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         match connection.recv() {
             Ok((header, message)) => {
                 let packets_lost =
-                    ((header.sequence as i32) - (last_seq_num as i32) - 1).rem_euclid(256); 
+                    ((header.sequence as i32) - (last_seq_num as i32) - 1).rem_euclid(256);
                 last_seq_num = header.sequence;
 
                 let db_connection_clone = db_connection.clone();
                 if packets_lost > 0 {
-                    println!("Packets Lost: {}", packets_lost);
-                    tokio::spawn(async move {
-                        let mut transaction = db_connection_clone.begin().await.unwrap();
-                        let result = query!(
-                            "INSERT INTO packet_lost
-                                (packets_lost)
-                                VALUES ($1)
-                                RETURNING id",
-                            packets_lost
-                        )
-                        .fetch_one(&mut *transaction)
-                        .await;
-                        transaction.commit().await.unwrap();
-                    }); 
+                    println!("Packets Lost (ignored log): {}", packets_lost);
+                    // tokio::spawn(async move {
+                    //     let mut transaction = db_connection_clone.begin().await.unwrap();
+                    //     let result = query!(
+                    //         "INSERT INTO packet_lost
+                    //             (packets_lost)
+                    //             VALUES ($1)
+                    //             RETURNING id",
+                    //         packets_lost
+                    //     )
+                    //     .fetch_one(&mut *transaction)
+                    //     .await;
+                    //     transaction.commit().await.unwrap();
+                    // });
                 }
 
                 match &message {
