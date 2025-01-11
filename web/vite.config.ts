@@ -1,6 +1,5 @@
 import { sveltekit } from '@sveltejs/kit/vite';
 import { loadEnv } from 'vite';
-import mkcert from 'vite-plugin-mkcert';
 import { viteStaticCopy } from 'vite-plugin-static-copy';
 import { defineConfig } from 'vitest/config';
 
@@ -18,10 +17,17 @@ const config = (mode: string) => {
 
 		server: {
 			port: parseInt(process.env['WEB_SERVER_PORT'] ?? '') || 3000,
+			proxy: {
+				// replace api tiles by 127.0.0.1:6565
+				'/api/tiles': {
+					target: 'http://127.0.0.1:6565',
+					changeOrigin: true,
+					rewrite: (path) => path.replace(/^\/api/, '')
+				}
+			}
 		},
 
 		plugins: [
-			mkcert(),
 			sveltekit(),
 			viteStaticCopy({
 				targets: [
@@ -34,9 +40,6 @@ const config = (mode: string) => {
 		],
 		ssr: {
 			noExternal: ['three']
-		},
-		optimizeDeps: {
-			exclude: ['@urql/svelte']
 		}
 	});
 };
