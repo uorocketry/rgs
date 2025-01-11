@@ -9,6 +9,7 @@
         "openssl@latest",
         "protobuf@latest",
         "pnpm@latest",
+        "bun@latest",
         "pkg-config@latest",
         "libiconv@latest",
         "docker-compose@latest",
