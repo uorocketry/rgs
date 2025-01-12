@@ -69,7 +69,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     let args = Args::parse();
 
-    info!("Attempting to connect to {}:{}", args.address, args.port);
+    info!("Attempting to bind to {}:{}", args.address, args.port);
     let listener = match TcpListener::bind("127.0.0.1:5656") {
         Ok(listener) => {
             info!("Server created successfully");
