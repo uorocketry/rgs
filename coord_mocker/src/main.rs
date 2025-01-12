@@ -1,10 +1,9 @@
-mod random_message;
-
 use clap::Parser;
 use messages::mavlink::uorocketry::MavMessage;
 use messages::mavlink::{self, MAVLinkV2MessageRaw};
-use messages::sensor::{GpsPos1, GpsPos2, Sensor, SensorData};
-use messages::Message;
+use messages::sensor::GpsPos;
+use messages::sensor_status::GpsPositionStatus;
+use messages::FormattedNaiveDateTime;
 use std::io::Write;
 use std::net::{TcpListener, TcpStream};
 use std::sync::Mutex;
@@ -176,54 +175,61 @@ fn handle_connection(stream: &mut TcpStream, interval: u64, state: std::sync::Ar
             // endregion
         } else {
             // region:Mavlink Sending Mode
-            let lat_lon_msg = {
-                let lat_lon_msg = SensorData::GpsPos1(GpsPos1 {
+            let msg: MavMessage = {
+                // let lat_lon_msg = SensorData::GpsPos1(GpsPos1 {
+                //     latitude: Some(coords.latitude),
+                //     longitude: Some(coords.longitude),
+                // });
+                // let data = messages::Data::Sensor(Sensor::new(lat_lon_msg));
+                let data = messages::RadioData::Sbg(messages::sensor::SbgData::GpsPos(GpsPos {
                     latitude: Some(coords.latitude),
                     longitude: Some(coords.longitude),
-                });
-                let data = messages::Data::Sensor(Sensor::new(lat_lon_msg));
-                let msg = Message::new(t, messages::sender::Sender::GroundStation, data);
-                let mut buf = [0u8; 255];
-                postcard::to_slice(&msg, &mut buf).unwrap();
-                MavMessage::POSTCARD_MESSAGE(mavlink::uorocketry::POSTCARD_MESSAGE_DATA {
-                    message: buf,
-                })
-            };
-
-            let altitide_msg = {
-                let altitude_msg = SensorData::GpsPos2(GpsPos2 {
+                    time_of_week: None,
+                    undulation: None,
                     altitude: Some(coords.altitude),
-                    undulation: Some(0.0),
-                    time_of_week: Some(0),
-                });
+                    time_stamp: t,
+                    status: GpsPositionStatus::new(0),
+                    latitude_accuracy: None,
+                    longitude_accuracy: None,
+                    altitude_accuracy: None,
+                    num_sv_used: None,
+                    base_station_id: None,
+                    differential_age: None,
+                }));
 
-                let data = messages::Data::Sensor(Sensor::new(altitude_msg));
-                let msg = Message::new(t, messages::sender::Sender::GroundStation, data);
-                let mut buf = [0u8; 255];
-                postcard::to_slice(&msg, &mut buf).unwrap();
-                MavMessage::POSTCARD_MESSAGE(mavlink::uorocketry::POSTCARD_MESSAGE_DATA {
-                    message: buf,
-                })
-            };
-
-            for msg in [lat_lon_msg, altitide_msg].iter() {
-                let mut message_raw = MAVLinkV2MessageRaw::new();
-                message_raw.serialize_message(
-                    mavlink::MavHeader {
-                        system_id: 0,
-                        component_id: 0,
-                        sequence: 0,
+                let msg = messages::RadioMessage::new(
+                    FormattedNaiveDateTime {
+                        0: chrono::Utc::now().naive_utc(),
                     },
-                    msg,
+                    // TODO: Replace by GroundStation node when it is implemented
+                    messages::node::Node::PressureBoard,
+                    // messages::node::Node::GroundStation,
+                    data,
                 );
 
-                if let Err(e) = stream.write_all(&message_raw.raw_bytes()) {
-                    error!(
-                        "Failed to send message to client {:?}. REASON: {:?}",
-                        peer_addr, e
-                    );
-                    break;
-                }
+                let mut buf = [0u8; 255];
+                postcard::to_slice(&msg, &mut buf).unwrap();
+                MavMessage::POSTCARD_MESSAGE(mavlink::uorocketry::POSTCARD_MESSAGE_DATA {
+                    message: buf,
+                })
+            };
+
+            let mut message_raw = MAVLinkV2MessageRaw::new();
+            message_raw.serialize_message(
+                mavlink::MavHeader {
+                    system_id: 0,
+                    component_id: 0,
+                    sequence: 0,
+                },
+                &msg,
+            );
+
+            if let Err(e) = stream.write_all(&message_raw.raw_bytes()) {
+                error!(
+                    "Failed to send message to client {:?}. REASON: {:?}",
+                    peer_addr, e
+                );
+                break;
             }
             // endregion
         }
