@@ -2,7 +2,7 @@ use clap::Parser;
 use hydra_input::saveable::SaveableData;
 use mavlink::connect;
 use mavlink::uorocketry::MavMessage;
-use messages::Message;
+use messages::RadioMessage;
 use postcard::from_bytes;
 use sqlx::{query, PgPool};
 use tracing::{error, info};
@@ -80,25 +80,25 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 
                 let db_connection_clone = db_connection.clone();
                 if packets_lost > 0 {
-                    println!("Packets Lost (ignored log): {}", packets_lost);
-                    // tokio::spawn(async move {
-                    //     let mut transaction = db_connection_clone.begin().await.unwrap();
-                    //     let result = query!(
-                    //         "INSERT INTO packet_lost
-                    //             (packets_lost)
-                    //             VALUES ($1)
-                    //             RETURNING id",
-                    //         packets_lost
-                    //     )
-                    //     .fetch_one(&mut *transaction)
-                    //     .await;
-                    //     transaction.commit().await.unwrap();
-                    // });
+                    println!("Packets Lost: {}", packets_lost);
+                    tokio::spawn(async move {
+                        let mut transaction = db_connection_clone.begin().await.unwrap();
+                        let result = query!(
+                            "INSERT INTO packet_lost
+                                (packets_lost)
+                                VALUES ($1)
+                                RETURNING id",
+                            packets_lost
+                        )
+                        .fetch_one(&mut *transaction)
+                        .await;
+                        transaction.commit().await.unwrap();
+                    });
                 }
 
                 match &message {
                     MavMessage::POSTCARD_MESSAGE(data) => {
-                        let data: Message = match from_bytes(data.message.as_slice()) {
+                        let data: RadioMessage = match from_bytes(data.message.as_slice()) {
                             Ok(data) => data,
                             Err(e) => {
                                 error!(
