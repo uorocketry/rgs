@@ -1,4 +1,5 @@
 use actix_web::{get, web, App, HttpResponse, HttpServer, Responder};
+use messages::FormattedNaiveDateTime;
 use serde::Deserialize;
 use std::io;
 
@@ -38,11 +39,16 @@ async fn deploy_drogue() -> impl Responder {
                 .body(format!("Failed to connect to MAVLink: {}", error));
         }
     };
-
-    let deploy_cmd = messages::Message::new(
-        0,
-        messages::sender::Sender::GroundStation,
-        messages::command::Command::new(messages::command::DeployDrogue { val: true }),
+    let deploy_cmd = messages::RadioMessage::new(
+        FormattedNaiveDateTime {
+            0: chrono::Utc::now().naive_utc(),
+        },
+        // TODO: Replace by GroundStation node when it is implemented
+        messages::node::Node::PressureBoard,
+        // messages::node::Node::GroundStation,
+        messages::Common::Command(messages::command::Command::DeployDrogue {
+            0: messages::command::DeployDrogue { val: true },
+        }),
     );
 
     let mut buf = [0u8; 255];
@@ -85,10 +91,16 @@ async fn deploy_main() -> impl Responder {
         }
     };
 
-    let deploy_cmd = messages::Message::new(
-        0,
-        messages::sender::Sender::GroundStation,
-        messages::command::Command::new(messages::command::DeployMain { val: true }),
+    let deploy_cmd = messages::RadioMessage::new(
+        FormattedNaiveDateTime {
+            0: chrono::Utc::now().naive_utc(),
+        },
+        // TODO: Replace by GroundStation node when it is implemented
+        messages::node::Node::PressureBoard,
+        // messages::node::Node::GroundStation,
+        messages::Common::Command(messages::command::Command::DeployMain {
+            0: messages::command::DeployMain { val: true },
+        }),
     );
 
     let mut buf = [0u8; 255];
@@ -128,13 +140,9 @@ struct PowerDownParams {
 async fn power_down(path: web::Path<PowerDownParams>) -> impl Responder {
     let board = path.into_inner();
     let board = match board.board.as_str() {
-        "GroundStation" => messages::sender::Sender::GroundStation,
-        "SensorBoard" => messages::sender::Sender::SensorBoard,
-        "RecoveryBoard" => messages::sender::Sender::RecoveryBoard,
-        "CommunicationBoard" => messages::sender::Sender::CommunicationBoard,
-        "PowerBoard" => messages::sender::Sender::PowerBoard,
-        "CameraBoard" => messages::sender::Sender::CameraBoard,
-        "BeaconBoard" => messages::sender::Sender::BeaconBoard,
+        "PressureBoard" => messages::node::Node::PressureBoard,
+        "StrainBoard" => messages::node::Node::StrainBoard,
+        "TemperatureBoard" => messages::node::Node::TemperatureBoard,
         _ => {
             return HttpResponse::BadRequest().body("Invalid board name");
         }
@@ -150,10 +158,16 @@ async fn power_down(path: web::Path<PowerDownParams>) -> impl Responder {
         }
     };
 
-    let power_down_cmd = messages::Message::new(
-        0,
-        messages::sender::Sender::GroundStation,
-        messages::command::Command::new(messages::command::PowerDown { board }),
+    let power_down_cmd = messages::RadioMessage::new(
+        FormattedNaiveDateTime {
+            0: chrono::Utc::now().naive_utc(),
+        },
+        // TODO: Replace by GroundStation node when it is implemented
+        messages::node::Node::PressureBoard,
+        // messages::node::Node::GroundStation,
+        messages::Common::Command(messages::command::Command::PowerDown {
+            0: messages::command::PowerDown { board },
+        }),
     );
 
     let mut buf = [0u8; 255];
@@ -210,10 +224,16 @@ async fn radio_rate_change(path: web::Path<RadioRateChangeParams>) -> impl Respo
         }
     };
 
-    let radio_rate_change_cmd = messages::Message::new(
-        0,
-        messages::sender::Sender::GroundStation,
-        messages::command::Command::new(messages::command::RadioRateChange { rate }),
+    let radio_rate_change_cmd = messages::RadioMessage::new(
+        FormattedNaiveDateTime {
+            0: chrono::Utc::now().naive_utc(),
+        },
+        // TODO: Replace by GroundStation node when it is implemented
+        messages::node::Node::PressureBoard,
+        // messages::node::Node::GroundStation,
+        messages::Common::Command(messages::command::Command::RadioRateChange {
+            0: messages::command::RadioRateChange { rate },
+        }),
     );
 
     let mut buf = [0u8; 255];
