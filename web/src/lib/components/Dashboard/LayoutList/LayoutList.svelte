@@ -1,5 +1,4 @@
 <script lang="ts">
-	import { resolvedLayout } from '$lib/common/dashboard';
 	// import { gqlClient } from '$lib/stores';
 	import { getToastStore } from '@skeletonlabs/skeleton';
 	// import { LayoutList } from './types';
@@ -10,11 +9,11 @@
 	// 	return acc;
 	// }, new Map<number, { name: string; data: string }>());
 
-	function loadLayout(layoutId: number) {
-		let layout = layouts?.get(layoutId);
-		if (!layout) return;
-		resolvedLayout.set(JSON.parse(layout.data));
-	}
+	// function loadLayout(layoutId: number) {
+	// 	let layout = layouts?.get(layoutId);
+	// 	if (!layout) return;
+	// 	resolvedLayout.set(JSON.parse(layout.data));
+	// }
 
 	let toastStore = getToastStore();
 	let toDelete: number | undefined = undefined;
