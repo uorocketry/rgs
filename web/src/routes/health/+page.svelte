@@ -1,5 +1,4 @@
 <script lang="ts">
-	import hasura_logo from '$lib/assets/hasura_logo.svg';
 	import hydra_provider_logo from '$lib/assets/hydra_provider_logo.svg';
 	import { onMount } from 'svelte';
 
@@ -11,13 +10,6 @@
 		status: 'unknown' | 'ok' | 'error';
 	};
 	let servicesToCheck: Service[] = [
-		{
-			name: 'Hasura',
-			logo: hasura_logo,
-			description: 'Hasura GraphQL Engine',
-			url: '/api/health/hasura',
-			status: 'unknown'
-		},
 		{
 			name: 'Hydra Provider',
 			logo: hydra_provider_logo,
@@ -53,8 +45,6 @@
 			controller.abort();
 		};
 	});
-
-	// Health endpoint /api/health/hasura
 </script>
 
 <main class="p-4 flex flex-col gap-2">

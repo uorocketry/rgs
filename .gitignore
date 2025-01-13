@@ -56,3 +56,6 @@ build/**
 
 # Temp Folder
 tmp
+
+# db data
+/data.sqld

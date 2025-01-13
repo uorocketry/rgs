@@ -8,7 +8,7 @@ The infrastructure is composed of the following components:
 
 ### Database
 
-We are using a TimescaleDB instance for the database. The database schema is defined using the [Drizzle ORM](https://orm.drizzle.team) and we also use Hasura to expose a GraphQL API for consuming the data.
+We are using a TimescaleDB instance for the database. The database schema is defined using the [Drizzle ORM](https://orm.drizzle.team).
 
 ### Providers
 
@@ -25,7 +25,7 @@ The frontends are the components that allow the user to interact with the infras
 There are a few things of interest that you might want to have running on your machine:
 
 - [Docker](https://docs.docker.com/get-docker/) + [Docker Compose](https://docs.docker.com/compose/install/)
-- The backend Database/Hasura instance which can be run with `docker compose up`
+- The database can be run with `docker compose up`
 - The web frontend application. See its [README](web/README.md) for more information.
 - The `hydra_provider` project which can provide usefull serial/development-random-data for the web frontend. See its [README](hydra_provider/README.md) for more information.
 - Labjack Provider has not been implemented yet.
@@ -50,6 +50,5 @@ Rebuilding the containers: podman compose up --build
 Please refer to each of the following for more information.
 
 - [SvelteKit](https://kit.svelte.dev/docs/introduction) (Web Framework)
-- [Hasura](https://hasura.io/docs/latest/index/) (GraphQL API)
 - [Drizzle ORM](https://orm.drizzle.team/docs/overview) (Database Schema)
 - Slack (For general questions)

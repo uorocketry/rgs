@@ -1,15 +1,12 @@
 use mavlink::uorocketry::MavMessage;
 use messages::{
     mavlink,
-    sensor::{
-        Air, EkfNav1, EkfNav2, EkfNavAcc, EkfQuat, GpsPos1, GpsPos2, GpsPosAcc, GpsVel, GpsVelAcc,
-        Imu1, Imu2, RecoverySensing, Sensor, SensorData, UtcTime,
-    },
+    sensor::{Air, EkfNav, EkfQuat, GpsPos, GpsVel, Imu, UtcTime},
     sensor_status::{
         AirStatus, EkfStatus, GpsPositionStatus, GpsVelStatus, ImuStatus, UtcTimeStatus,
     },
-    state::{State, StateData},
-    Message,
+    state::State,
+    FormattedNaiveDateTime, RadioData,
 };
 use rand::Rng;
 
@@ -50,23 +47,24 @@ pub fn random_radio_status_message_buf() -> mavlink::uorocketry::RADIO_STATUS_DA
 pub fn random_state_message_buf() -> [u8; 255] {
     let random_state = rand::thread_rng().gen_range(0..7);
     let state_data = match random_state {
-        0 => StateData::Initializing,
-        1 => StateData::WaitForTakeoff,
-        2 => StateData::Ascent,
-        3 => StateData::Descent,
-        4 => StateData::TerminalDescent,
-        5 => StateData::WaitForRecovery,
-        6 => StateData::Abort,
+        0 => State::Initializing,
+        1 => State::WaitForTakeoff,
+        2 => State::Ascent,
+        3 => State::Descent,
+        4 => State::TerminalDescent,
+        5 => State::WaitForRecovery,
+        6 => State::Abort,
         _ => panic!("Invalid state"),
     };
-    let data = State::new(state_data);
-    let msg = Message::new(
-        std::time::SystemTime::now()
-            .duration_since(std::time::UNIX_EPOCH)
-            .unwrap()
-            .as_secs() as u32,
-        messages::sender::Sender::CameraBoard,
-        data,
+    let data = State::from(state_data);
+
+    let msg = messages::RadioMessage::new(
+        FormattedNaiveDateTime {
+            0: chrono::Utc::now().naive_utc(),
+        },
+        // TODO: Replace by Appropriate node when it is implemented
+        messages::node::Node::PressureBoard,
+        RadioData::Common(messages::Common::State(data)),
     );
 
     let mut buf = [0u8; 255];
@@ -81,9 +79,10 @@ pub fn random_sensor_message_buf() -> [u8; 255] {
         .unwrap()
         .as_secs() as u32;
 
-    let random_sensor = rand::thread_rng().gen_range(0..13);
+    let random_sensor = rand::thread_rng().gen_range(0..=6);
+
     let sensor_data = match random_sensor {
-        0 => SensorData::UtcTime(UtcTime {
+        0 => messages::sensor::SbgData::UtcTime(UtcTime {
             time_stamp: time_stamp,
             status: UtcTimeStatus::new(0),
             year: Some(0),
@@ -95,66 +94,54 @@ pub fn random_sensor_message_buf() -> [u8; 255] {
             nano_second: Some(0),
             gps_time_of_week: Some(0),
         }),
-        1 => SensorData::Air(Air {
+        1 => messages::sensor::SbgData::Air(Air {
             time_stamp: time_stamp,
             pressure_abs: Some(0.0),
-            altitude : Some(rand::thread_rng().gen_range(0.0..10000.0)),
+            altitude: Some(rand::thread_rng().gen_range(0.0..10000.0)),
             pressure_diff: Some(0.0),
             true_airspeed: Some(0.0),
             air_temperature: Some(0.0),
             status: AirStatus::new(0),
         }),
-        2 => SensorData::EkfQuat(EkfQuat {
+        2 => messages::sensor::SbgData::EkfQuat(EkfQuat {
             time_stamp: time_stamp,
             status: EkfStatus::new(0),
             quaternion: Some([0.0, 0.0, 0.0, 0.0]),
             euler_std_dev: Some([0.0, 0.0, 0.0]),
         }),
-        3 => SensorData::EkfNav1(EkfNav1 {
+        3 => messages::sensor::SbgData::EkfNav(EkfNav {
             time_stamp: time_stamp,
             velocity: Some([0.0, 0.0, 0.0]),
-        }),
-        4 => SensorData::EkfNav2(EkfNav2 {
             position: Some([0.0, 0.0, 0.0]),
             undulation: Some(0.0),
-        }),
-        5 => SensorData::EkfNavAcc(EkfNavAcc {
             status: EkfStatus::new(0),
             velocity_std_dev: Some([0.0, 0.0, 0.0]),
             position_std_dev: Some([0.0, 0.0, 0.0]),
         }),
-        6 => SensorData::Imu1(Imu1 {
+        4 => messages::sensor::SbgData::Imu(Imu {
             time_stamp: time_stamp,
             status: ImuStatus::new(0),
             accelerometers: Some([0.0, 0.0, 0.0]),
             gyroscopes: Some([0.0, 0.0, 0.0]),
-        }),
-        7 => SensorData::Imu2(Imu2 {
             temperature: Some(0.0),
             delta_velocity: Some([0.0, 0.0, 0.0]),
             delta_angle: Some([0.0, 0.0, 0.0]),
         }),
-        8 => SensorData::GpsVel(GpsVel {
+        5 => messages::sensor::SbgData::GpsVel(GpsVel {
             time_stamp: time_stamp,
             status: GpsVelStatus::new(0),
             velocity: Some([0.0, 0.0, 0.0]),
             time_of_week: Some(0),
             course: Some(0.0),
-        }),
-        9 => SensorData::GpsVelAcc(GpsVelAcc {
             course_acc: Some(0.0),
             velocity_acc: Some([0.0, 0.0, 0.0]),
         }),
-        10 => SensorData::GpsPos1(GpsPos1 {
+        6 => messages::sensor::SbgData::GpsPos(GpsPos {
             latitude: Some(0.0),
             longitude: Some(0.0),
-        }),
-        11 => SensorData::GpsPos2(GpsPos2 {
             altitude: Some(0.0),
             undulation: Some(0.0),
             time_of_week: Some(0),
-        }),
-        12 => SensorData::GpsPosAcc(GpsPosAcc {
             time_stamp,
             status: GpsPositionStatus::new(0),
             latitude_accuracy: Some(0.0),
@@ -164,24 +151,18 @@ pub fn random_sensor_message_buf() -> [u8; 255] {
             base_station_id: Some(0),
             differential_age: Some(0),
         }),
-        13 => SensorData::RecoverySensing(RecoverySensing {
-            drogue_current: 0,
-            main_current: 0,
-            drogue_voltage: 0,
-            main_voltage: 0,
-        }),
 
         _ => panic!("Invalid sensor"),
     };
-    let data = messages::Data::Sensor(Sensor::new(sensor_data));
-    let msg = Message::new(
-        std::time::SystemTime::now()
-            .duration_since(std::time::UNIX_EPOCH)
-            .unwrap()
-            .as_secs() as u32,
-        messages::sender::Sender::GroundStation,
-        data,
+    let msg = messages::RadioMessage::new(
+        FormattedNaiveDateTime {
+            0: chrono::Utc::now().naive_utc(),
+        },
+        // TODO: Replace by Appropriate node when it is implemented
+        messages::node::Node::PressureBoard,
+        RadioData::Sbg(sensor_data),
     );
+
     let mut buf = [0u8; 255];
 
     postcard::to_slice(&msg, &mut buf).unwrap();

@@ -47,7 +47,7 @@ def generate_tile_urls(lat, lon, min_zoom, max_zoom, radius_km):
                 # z, x, y
                 # https://localhost:3000/api/tiles/15/16384/16383
                 # url = f"http://mt2.google.com/vt/lyrs=s,h&x={x}&y={y}&z={zoom}"
-                url = f"https://localhost:3000/api/tiles/{zoom}/{x}/{y}"
+                url = f"https://localhost:6565/tiles/{zoom}/{x}/{y}"
                 urls.append(url)
     
     return urls
