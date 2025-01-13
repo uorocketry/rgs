@@ -79,7 +79,7 @@ pub fn random_sensor_message_buf() -> [u8; 255] {
         .unwrap()
         .as_secs() as u32;
 
-    let random_sensor = rand::thread_rng().gen_range(0..=10);
+    let random_sensor = rand::thread_rng().gen_range(0..=6);
 
     let sensor_data = match random_sensor {
         0 => messages::sensor::SbgData::UtcTime(UtcTime {
@@ -118,7 +118,7 @@ pub fn random_sensor_message_buf() -> [u8; 255] {
             velocity_std_dev: Some([0.0, 0.0, 0.0]),
             position_std_dev: Some([0.0, 0.0, 0.0]),
         }),
-        6 => messages::sensor::SbgData::Imu(Imu {
+        4 => messages::sensor::SbgData::Imu(Imu {
             time_stamp: time_stamp,
             status: ImuStatus::new(0),
             accelerometers: Some([0.0, 0.0, 0.0]),
@@ -127,7 +127,7 @@ pub fn random_sensor_message_buf() -> [u8; 255] {
             delta_velocity: Some([0.0, 0.0, 0.0]),
             delta_angle: Some([0.0, 0.0, 0.0]),
         }),
-        8 => messages::sensor::SbgData::GpsVel(GpsVel {
+        5 => messages::sensor::SbgData::GpsVel(GpsVel {
             time_stamp: time_stamp,
             status: GpsVelStatus::new(0),
             velocity: Some([0.0, 0.0, 0.0]),
@@ -136,7 +136,7 @@ pub fn random_sensor_message_buf() -> [u8; 255] {
             course_acc: Some(0.0),
             velocity_acc: Some([0.0, 0.0, 0.0]),
         }),
-        10 => messages::sensor::SbgData::GpsPos(GpsPos {
+        6 => messages::sensor::SbgData::GpsPos(GpsPos {
             latitude: Some(0.0),
             longitude: Some(0.0),
             altitude: Some(0.0),
@@ -151,12 +151,7 @@ pub fn random_sensor_message_buf() -> [u8; 255] {
             base_station_id: Some(0),
             differential_age: Some(0),
         }),
-        // 13 => SensorData::RecoverySensing(RecoverySensing {
-        //     drogue_current: 0,
-        //     main_current: 0,
-        //     drogue_voltage: 0,
-        //     main_voltage: 0,
-        // }),
+
         _ => panic!("Invalid sensor"),
     };
     let msg = messages::RadioMessage::new(

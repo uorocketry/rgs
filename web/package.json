@@ -54,5 +54,8 @@
 		"vite-plugin-mkcert": "^1.17.6",
 		"vite-plugin-static-copy": "^1.0.6",
 		"vitest": "^1.6.0"
+	},
+	"dependencies": {
+		"@libsql/client": "^0.14.0"
 	}
 }
