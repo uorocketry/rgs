@@ -670,6 +670,54 @@
         }
       }
     },
+    "sqld@latest": {
+      "last_modified": "2024-12-23T21:10:33Z",
+      "resolved": "github:NixOS/nixpkgs/de1864217bfa9b5845f465e771e0ecb48b30e02d#sqld",
+      "source": "devbox-search",
+      "version": "0.24.18",
+      "systems": {
+        "aarch64-darwin": {
+          "outputs": [
+            {
+              "name": "out",
+              "path": "/nix/store/znd6nm9kkpkdwk4db7h6j7fkk5p5k6wa-sqld-0.24.18",
+              "default": true
+            }
+          ],
+          "store_path": "/nix/store/znd6nm9kkpkdwk4db7h6j7fkk5p5k6wa-sqld-0.24.18"
+        },
+        "aarch64-linux": {
+          "outputs": [
+            {
+              "name": "out",
+              "path": "/nix/store/dm4jsc4acixxznds5xdpxg1isd2scg8a-sqld-0.24.18",
+              "default": true
+            }
+          ],
+          "store_path": "/nix/store/dm4jsc4acixxznds5xdpxg1isd2scg8a-sqld-0.24.18"
+        },
+        "x86_64-darwin": {
+          "outputs": [
+            {
+              "name": "out",
+              "path": "/nix/store/rsvrgk3b71b149a0d5hxf7zhcn42d7qm-sqld-0.24.18",
+              "default": true
+            }
+          ],
+          "store_path": "/nix/store/rsvrgk3b71b149a0d5hxf7zhcn42d7qm-sqld-0.24.18"
+        },
+        "x86_64-linux": {
+          "outputs": [
+            {
+              "name": "out",
+              "path": "/nix/store/gfxfxqnj208jhld4m56zab3byhhq63dc-sqld-0.24.18",
+              "default": true
+            }
+          ],
+          "store_path": "/nix/store/gfxfxqnj208jhld4m56zab3byhhq63dc-sqld-0.24.18"
+        }
+      }
+    },
     "sqlite@latest": {
       "last_modified": "2025-01-07T09:15:50Z",
       "resolved": "github:NixOS/nixpkgs/8c9fd3e564728e90829ee7dbac6edc972971cd0f#sqlite",

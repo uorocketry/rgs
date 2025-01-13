@@ -1,12 +1,12 @@
 use clap::Parser;
-use hydra_input::saveable::SaveableData;
+use libsql::{params, Builder, Connection};
 use mavlink::connect;
 use mavlink::uorocketry::MavMessage;
-use messages::RadioMessage;
+use messages::{RadioData, RadioMessage};
 use postcard::from_bytes;
-use sqlx::{query, PgPool};
+mod savers;
+use savers::message::save_message;
 use tracing::{error, info};
-mod hydra_input;
 use tracing_subscriber;
 
 #[derive(Parser, Debug)]
@@ -36,7 +36,13 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     let args = Args::parse();
 
     info!("Attempting to connect to database: {}", args.db_url);
-    let db_connection = match PgPool::connect(&args.db_url).await {
+
+    let db = Builder::new_remote("http://127.0.0.1:8080".to_string(), "".to_string())
+        .build()
+        .await
+        .unwrap();
+
+    let db_connection = match db.connect() {
         Ok(connection) => {
             info!("Database connection established successfully");
             connection
@@ -81,21 +87,20 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
                 let db_connection_clone = db_connection.clone();
                 if packets_lost > 0 {
                     println!("Packets Lost: {}", packets_lost);
-                    tokio::spawn(async move {
-                        let mut transaction = db_connection_clone.begin().await.unwrap();
-                        let result = query!(
-                            "INSERT INTO packet_lost
-                                (packets_lost)
-                                VALUES ($1)
-                                RETURNING id",
-                            packets_lost
-                        )
-                        .fetch_one(&mut *transaction)
-                        .await;
-                        transaction.commit().await.unwrap();
-                    });
+                    // tokio::spawn(async move {
+                    //     let mut transaction = db_connection_clone.begin().await.unwrap();
+                    //     let result = query!(
+                    //         "INSERT INTO packet_lost
+                    //             (packets_lost)
+                    //             VALUES ($1)
+                    //             RETURNING id",
+                    //         packets_lost
+                    //     )
+                    //     .fetch_one(&mut *transaction)
+                    //     .await;
+                    //     transaction.commit().await.unwrap();
+                    // });
                 }
-
                 match &message {
                     MavMessage::POSTCARD_MESSAGE(data) => {
                         let data: RadioMessage = match from_bytes(data.message.as_slice()) {
@@ -108,23 +113,21 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
                                 continue;
                             }
                         };
+                        // let msg_json = serde_json::to_string(&data.data).unwrap();
+                        // info!("\nMessage: {}", msg_json);
+
                         let data = data.clone();
-                        let msg_json = serde_json::to_string(&data.data).unwrap();
                         let db_connection_clone = db_connection.clone();
-                        info!("\nMessage: {}", msg_json);
-                        tokio::spawn(async move {
-                            let mut transaction = db_connection_clone.begin().await.unwrap();
-                            data.save(&mut transaction, 0).await.unwrap();
-                            transaction.commit().await.unwrap();
-                        });
+                        save_message(&db_connection_clone, data).await;
+                        // tokio::spawn(async move {});
                     }
                     MavMessage::RADIO_STATUS(data) => {
                         let data = data.clone();
-                        tokio::spawn(async move {
-                            let mut transaction = db_connection.begin().await.unwrap();
-                            data.save(&mut transaction, 0).await.unwrap();
-                            transaction.commit().await.unwrap();
-                        });
+                        // tokio::spawn(async move {
+                        //     let mut transaction = db_connection.begin().await.unwrap();
+                        //     data.save(&mut transaction, 0).await.unwrap();
+                        //     transaction.commit().await.unwrap();
+                        // });
                     }
                     other => {
                         error!("Received an unexpected message type {:?}", other);

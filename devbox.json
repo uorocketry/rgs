@@ -16,7 +16,8 @@
     "libudev-zero@latest",
     "sqlx-cli@latest",
     "python@latest",
-    "sqlite@latest"
+    "sqlite@latest",
+    "sqld@latest"
   ],
   "shell": {
     "init_hook": ["eval \"$(starship init $(echo $SHELL))\""],
