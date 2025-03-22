@@ -1,0 +1,9 @@
+services:
+  tile_provider:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - "8080:5656"
+    volumes:
+      - ./tiles_data:/var/lib/tile_provider:rw
