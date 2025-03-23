@@ -1,0 +1,434 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Map Selection Tool Improved</title>
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.css"
+    />
+    <style>
+      body {
+        margin: 0;
+        padding: 0;
+        font-family: Arial, sans-serif;
+        user-select: none;
+        -webkit-user-select: none;
+        -moz-user-select: none;
+        -ms-user-select: none;
+      }
+      #map {
+        width: 100%;
+        height: 100vh;
+      }
+      .info-panel {
+        position: absolute;
+        top: 10px;
+        right: 10px;
+        z-index: 1000;
+        background: white;
+        padding: 10px;
+        border-radius: 5px;
+        box-shadow: 0 0 10px rgba(0, 0, 0, 0.2);
+        max-width: 300px;
+        pointer-events: auto;
+      }
+      .mode-toggle {
+        position: absolute;
+        top: 10px;
+        left: 50px;
+        z-index: 1000;
+        background: white;
+        padding: 5px;
+        border-radius: 4px;
+        box-shadow: 0 0 10px rgba(0, 0, 0, 0.2);
+        pointer-events: auto;
+      }
+      .selection-box {
+        background-color: rgba(51, 136, 255, 0.2);
+        border: 2px solid #3388ff;
+      }
+      button {
+        margin-top: 10px;
+        padding: 8px 12px;
+        background-color: #3388ff;
+        color: white;
+        border: none;
+        border-radius: 4px;
+        cursor: pointer;
+      }
+      button:hover {
+        background-color: #2377e4;
+      }
+      .toggle-btn {
+        padding: 8px 12px;
+        margin-right: 5px;
+        background-color: #f0f0f0;
+        color: #333;
+        border: 1px solid #ccc;
+        border-radius: 4px;
+        cursor: pointer;
+      }
+      .toggle-btn.active {
+        background-color: #3388ff;
+        color: white;
+        border-color: #3388ff;
+      }
+      .resize-handle {
+        width: 14px;
+        height: 14px;
+        background-color: white;
+        border: 2px solid #3388ff;
+        border-radius: 50%;
+        position: absolute;
+        transform: translate(-50%, -50%);
+        z-index: 1000;
+        cursor: pointer;
+        pointer-events: auto;
+      }
+      #resize-handles-container {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        pointer-events: none;
+        z-index: 1000;
+      }
+    </style>
+  </head>
+  <body>
+    <div id="map"></div>
+    <div class="mode-toggle">
+      <button id="pan-mode" class="toggle-btn active">Pan Mode</button>
+      <button id="select-mode" class="toggle-btn">Select Mode</button>
+    </div>
+    <div class="info-panel">
+      <h3>Map Selection Tool</h3>
+      <p id="mode-instructions">Pan Mode: Click and drag to move map</p>
+      <div id="selection-info">No region selected</div>
+      <button id="confirm-selection">Confirm Selection</button>
+      <button id="clear-selection">Clear Selection</button>
+    </div>
+    <div id="resize-handles-container"></div>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.js"></script>
+    <script>
+      // Initialize the map
+      const map = L.map("map").setView([0, 0], 2);
+      const tileUrl =
+        window.location.hostname === "localhost" ||
+        window.location.hostname === "127.0.0.1"
+          ? "http://localhost:6565/tiles/{z}/{x}/{y}"
+          : "https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png";
+      L.tileLayer(tileUrl, {
+        maxZoom: 19,
+        attribution: "© Map data sources",
+      }).addTo(map);
+
+      // UI Elements
+      const selectionInfo = document.getElementById("selection-info");
+      const confirmButton = document.getElementById("confirm-selection");
+      const clearButton = document.getElementById("clear-selection");
+      const panModeBtn = document.getElementById("pan-mode");
+      const selectModeBtn = document.getElementById("select-mode");
+      const modeInstructions = document.getElementById("mode-instructions");
+      const resizeHandlesContainer = document.getElementById(
+        "resize-handles-container"
+      );
+      const mapElement = document.getElementById("map");
+
+      // State variables
+      let isSelectMode = false;
+      let isDrawing = false;
+      let isResizing = false;
+      let mouseIsDown = false;
+      let startPoint = null;
+      let currentRectangle = null;
+      let activeHandle = null;
+      // Store handles in an object keyed by handle id (nw, ne, se, sw, n, e, s, w)
+      let resizeHandles = {};
+
+      // Helper: Ensure bounds are normalized (SW and NE correctly ordered)
+      function normalizeBounds(bounds) {
+        const south = Math.min(bounds.getSouth(), bounds.getNorth());
+        const north = Math.max(bounds.getSouth(), bounds.getNorth());
+        const west = Math.min(bounds.getWest(), bounds.getEast());
+        const east = Math.max(bounds.getWest(), bounds.getEast());
+        return L.latLngBounds(L.latLng(south, west), L.latLng(north, east));
+      }
+
+      // Update the selection info panel
+      function updateSelectionInfo(bounds) {
+        if (!bounds) {
+          selectionInfo.innerHTML = "No region selected";
+          return;
+        }
+        bounds = normalizeBounds(bounds);
+        const sw = bounds.getSouthWest();
+        const ne = bounds.getNorthEast();
+        selectionInfo.innerHTML = `
+          <strong>Selected Region:</strong><br>
+          North: ${ne.lat.toFixed(6)}°<br>
+          South: ${sw.lat.toFixed(6)}°<br>
+          East: ${ne.lng.toFixed(6)}°<br>
+          West: ${sw.lng.toFixed(6)}°
+        `;
+      }
+
+      // Create or update the rectangle on the map
+      function createRectangle(bounds) {
+        if (currentRectangle) {
+          currentRectangle.setBounds(bounds);
+        } else {
+          currentRectangle = L.rectangle(bounds, {
+            color: "#3388ff",
+            weight: 2,
+            fillOpacity: 0.2,
+          }).addTo(map);
+        }
+        updateSelectionInfo(bounds);
+        if (isSelectMode) showResizeHandles();
+      }
+
+      // Mode toggle functions
+      panModeBtn.addEventListener("click", () => setMode("pan"));
+      selectModeBtn.addEventListener("click", () => setMode("select"));
+      function setMode(mode) {
+        if (mode === "pan") {
+          isSelectMode = false;
+          panModeBtn.classList.add("active");
+          selectModeBtn.classList.remove("active");
+          modeInstructions.textContent = "Pan Mode: Click and drag to move map";
+          map.dragging.enable();
+          hideResizeHandles();
+        } else {
+          isSelectMode = true;
+          panModeBtn.classList.remove("active");
+          selectModeBtn.classList.add("active");
+          modeInstructions.textContent =
+            "Select Mode: Draw a rectangle or edit existing selection";
+          if (currentRectangle) showResizeHandles();
+        }
+      }
+
+      // Global mouseup and mouseleave listeners to reset drawing/resizing state
+      document.addEventListener("mouseup", resetDrawingState);
+      document.addEventListener("mouseleave", resetDrawingState);
+      function resetDrawingState() {
+        if (mouseIsDown) {
+          mouseIsDown = false;
+          isDrawing = false;
+          isResizing = false;
+          activeHandle = null;
+          map.dragging.enable();
+        }
+      }
+
+      // Prevent default text selection behavior on mousedown
+      mapElement.addEventListener("mousedown", (e) => e.preventDefault());
+
+      // Drawing a new rectangle
+      map.on("mousedown", function (e) {
+        if (!isSelectMode) return;
+        mouseIsDown = true;
+        e.originalEvent.stopPropagation();
+        e.originalEvent.preventDefault();
+        // Check if clicking near an existing handle (for resizing)
+        if (checkHandleClick(e)) return;
+        isDrawing = true;
+        startPoint = e.latlng;
+        if (currentRectangle) hideResizeHandles();
+        createRectangle(L.latLngBounds(startPoint, startPoint));
+        map.dragging.disable();
+      });
+
+      // Mouse move event for drawing or resizing
+      map.on("mousemove", function (e) {
+        if (!isSelectMode || !mouseIsDown) return;
+        if (isDrawing && startPoint) {
+          const bounds = L.latLngBounds(startPoint, e.latlng);
+          createRectangle(bounds);
+        } else if (isResizing && activeHandle && currentRectangle) {
+          // Get current fixed corners from the rectangle
+          const bounds = currentRectangle.getBounds();
+          const sw = bounds.getSouthWest();
+          const ne = bounds.getNorthEast();
+          const nw = L.latLng(ne.lat, sw.lng);
+          const se = L.latLng(sw.lat, ne.lng);
+          let newBounds;
+          // Use the opposite corner as fixed for corner handles.
+          // For edge handles, update only the corresponding coordinate.
+          switch (activeHandle) {
+            case "nw":
+              newBounds = L.latLngBounds(e.latlng, se);
+              break;
+            case "ne":
+              newBounds = L.latLngBounds(sw, e.latlng);
+              break;
+            case "se":
+              newBounds = L.latLngBounds(nw, e.latlng);
+              break;
+            case "sw":
+              newBounds = L.latLngBounds(e.latlng, ne);
+              break;
+            case "n":
+              newBounds = L.latLngBounds(sw, L.latLng(e.latlng.lat, ne.lng));
+              break;
+            case "s":
+              newBounds = L.latLngBounds(L.latLng(e.latlng.lat, sw.lng), ne);
+              break;
+            case "e":
+              newBounds = L.latLngBounds(sw, L.latLng(ne.lat, e.latlng.lng));
+              break;
+            case "w":
+              newBounds = L.latLngBounds(L.latLng(sw.lat, e.latlng.lng), ne);
+              break;
+            default:
+              newBounds = bounds;
+              break;
+          }
+          createRectangle(normalizeBounds(newBounds));
+          updateResizeHandles();
+        }
+      });
+
+      map.on("mouseup", resetDrawingState);
+
+      // Resize handle management
+      // Create (or update) handles based on current rectangle bounds.
+      function createResizeHandles() {
+        if (!currentRectangle) return;
+        const bounds = currentRectangle.getBounds();
+        const nw = map.latLngToContainerPoint(bounds.getNorthWest());
+        const ne = map.latLngToContainerPoint(bounds.getNorthEast());
+        const se = map.latLngToContainerPoint(bounds.getSouthEast());
+        const sw = map.latLngToContainerPoint(bounds.getSouthWest());
+        const n = { x: (nw.x + ne.x) / 2, y: nw.y };
+        const e = { x: ne.x, y: (ne.y + se.y) / 2 };
+        const s = { x: (sw.x + se.x) / 2, y: se.y };
+        const w = { x: nw.x, y: (nw.y + sw.y) / 2 };
+
+        const positions = { nw, ne, se, sw, n, e, s, w };
+
+        // For each handle, either update its position or create it if it doesn't exist.
+        for (const key in positions) {
+          if (resizeHandles[key]) {
+            resizeHandles[key].style.left = positions[key].x + "px";
+            resizeHandles[key].style.top = positions[key].y + "px";
+          } else {
+            const handle = document.createElement("div");
+            handle.className = "resize-handle";
+            handle.id = "handle-" + key;
+            handle.style.left = positions[key].x + "px";
+            handle.style.top = positions[key].y + "px";
+            handle.dataset.id = key;
+            // Set appropriate cursor style
+            if (key === "nw" || key === "se")
+              handle.style.cursor = "nwse-resize";
+            else if (key === "ne" || key === "sw")
+              handle.style.cursor = "nesw-resize";
+            else if (key === "n" || key === "s")
+              handle.style.cursor = "ns-resize";
+            else if (key === "e" || key === "w")
+              handle.style.cursor = "ew-resize";
+            handle.addEventListener("mousedown", function (e) {
+              if (!isSelectMode) return;
+              e.stopPropagation();
+              e.preventDefault();
+              mouseIsDown = true;
+              isResizing = true;
+              activeHandle = this.dataset.id;
+              map.dragging.disable();
+            });
+            // Prevent propagation on click
+            handle.addEventListener("click", function (e) {
+              e.stopPropagation();
+              e.preventDefault();
+            });
+            resizeHandlesContainer.appendChild(handle);
+            resizeHandles[key] = handle;
+          }
+        }
+      }
+
+      function updateResizeHandles() {
+        if (isSelectMode && currentRectangle) {
+          createResizeHandles();
+        }
+      }
+
+      function hideResizeHandles() {
+        resizeHandlesContainer.innerHTML = "";
+        resizeHandles = {};
+      }
+
+      function showResizeHandles() {
+        hideResizeHandles();
+        createResizeHandles();
+      }
+
+      // Check if a click is near a resize handle; if so, initiate resizing.
+      function checkHandleClick(e) {
+        if (!currentRectangle) return false;
+        const clickPoint = map.latLngToContainerPoint(e.latlng);
+        for (const key in resizeHandles) {
+          const handle = resizeHandles[key];
+          const rect = handle.getBoundingClientRect();
+          // Get center position of the handle in container coordinates
+          const handleX = rect.left + rect.width / 2;
+          const handleY = rect.top + rect.height / 2;
+          const distance = Math.sqrt(
+            Math.pow(clickPoint.x - handleX, 2) +
+              Math.pow(clickPoint.y - handleY, 2)
+          );
+          if (distance <= 15) {
+            isResizing = true;
+            activeHandle = key;
+            map.dragging.disable();
+            return true;
+          }
+        }
+        return false;
+      }
+
+      // Update handles when the map moves, zooms, or resizes
+      map.on("moveend", updateResizeHandles);
+      map.on("zoomend", updateResizeHandles);
+      map.on("resize", updateResizeHandles);
+
+      // Confirm selection: show coordinates (you could also copy to clipboard or display elsewhere)
+      confirmButton.addEventListener("click", function () {
+        if (currentRectangle) {
+          const bounds = normalizeBounds(currentRectangle.getBounds());
+          const sw = bounds.getSouthWest();
+          const ne = bounds.getNorthEast();
+          alert(
+            `Selected Region:\nNorth: ${ne.lat.toFixed(
+              6
+            )}°\nSouth: ${sw.lat.toFixed(6)}°\nEast: ${ne.lng.toFixed(
+              6
+            )}°\nWest: ${sw.lng.toFixed(6)}°`
+          );
+        } else {
+          alert(
+            "No region selected. Please draw a rectangle on the map first."
+          );
+        }
+      });
+
+      // Clear selection
+      clearButton.addEventListener("click", function () {
+        if (currentRectangle) {
+          map.removeLayer(currentRectangle);
+          currentRectangle = null;
+        }
+        hideResizeHandles();
+        updateSelectionInfo(null);
+      });
+
+      // Start in pan mode
+      setMode("pan");
+    </script>
+  </body>
+</html>
