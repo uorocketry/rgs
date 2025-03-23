@@ -14,7 +14,6 @@
     "docker-compose@latest",
     "libudev-zero@latest",
     "sqlx-cli@latest",
-    "python@latest",
     "sqlite@latest",
     "sqld@latest"
   ],
