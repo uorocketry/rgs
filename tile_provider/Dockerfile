@@ -14,20 +14,15 @@ FROM base AS prerelease
 COPY --from=install /temp/dev/node_modules node_modules
 COPY . .
 
-# [optional] tests & build
-# ENV NODE_ENV=production
-# RUN bun test
-# RUN /bun run build
+RUN bun test
+RUN bun build /usr/src/app/index.ts --compile --outfile tile_provider
 
 FROM base AS release
-COPY --from=install /temp/prod/node_modules node_modules
-COPY --from=prerelease /usr/src/app/index.ts .
-COPY --from=prerelease /usr/src/app/package.json .
+COPY --from=prerelease /usr/src/app/tile_provider /usr/local/bin/tile_provider
 
 RUN mkdir /var/lib/tile_provider
 RUN chown bun:bun /var/lib/tile_provider
 
 USER bun
-ENV BUN_RUNTIME_TRANSPILER_CACHE_PATH=0
 EXPOSE 8080/tcp
-ENTRYPOINT [ "bun", "run", "index.ts", "--database", "/var/lib/tile_provider/tiles.db", "--port", "8080" ]
+ENTRYPOINT [ "/usr/local/bin/tile_provider", "--database", "/var/lib/tile_provider/tiles.db", "--port", "8080" ]
