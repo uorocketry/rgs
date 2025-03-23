@@ -8,7 +8,7 @@ import process from "process";
 const { values } = parseArgs({
   args: Bun.argv,
   options: {
-    address: { type: "string", default: process.env.ADDRESS ?? "127.0.0.1" },
+    address: { type: "string", default: process.env.ADDRESS ?? "0.0.0.0" },
     port: { type: "string", default: process.env.PORT ?? "6565" },
     database: {
       type: "string",
