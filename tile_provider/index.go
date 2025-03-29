@@ -65,7 +65,7 @@ func handleTileRequest(w http.ResponseWriter, r *http.Request, tileDb *TileDatab
     // Save to database
     tileDb.SaveTile(zoom, x, y, buffer)
 
-    w.Header().Set("Content-Type", "image/png")
+    w.Header().Set("Content-Type",  "image/png")
     w.Header().Set("Cache-Control", "public, max-age=31536000")
     w.Header().Set("Access-Control-Allow-Origin", "*")
     w.Write(buffer)
