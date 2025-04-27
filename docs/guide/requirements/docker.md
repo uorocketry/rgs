@@ -4,7 +4,7 @@ One of the most important requirements is [Docker](https://docs.docker.com/), it
 
 The easiest way to install it is by downloading [Docker Desktop](https://www.docker.com/products/docker-desktop) for your operating system.
 
-After installing Docker you can now run the Database and GraphQL server part of the ground station by running:
+After installing Docker you can now run the database with:
 
 ```sh
 docker-compose up

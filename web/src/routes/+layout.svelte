@@ -18,7 +18,7 @@
 	import { findSetting } from '$lib/common/settings';
 	import MasterCommandBox from '$lib/components/Common/CommandBox/MasterCommandBox.svelte';
 	import SideBar from '$lib/components/Common/SideBar.svelte';
-	import { commandBoxToggle, gqlClient } from '$lib/stores';
+	import { commandBoxToggle } from '$lib/stores';
 	import { arrow, autoUpdate, computePosition, flip, offset, shift } from '@floating-ui/dom';
 	import { getToastStore, initializeStores } from '@skeletonlabs/skeleton';
 	import { onMount } from 'svelte';
@@ -81,9 +81,9 @@
 		};
 	});
 
-	import { setContextClient } from '@urql/svelte';
+	// import { setContextClient } from '@urql/svelte';
 
-	setContextClient(gqlClient);
+	// setContextClient(gqlClient);
 </script>
 
 <!-- Main toast service -->
