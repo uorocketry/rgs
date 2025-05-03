@@ -14,9 +14,9 @@
     "noEmit": true,
     "baseUrl": ".",
     "paths": {
-      "@/*": ["src/*"]
+      "@/*": ["client/*"]
     }
   },
-  "include": ["src/**/*", "lib/**/*", "index.ts"],
+  "include": ["client/**/*", "lib/**/*", "index.ts"],
   "exclude": ["node_modules", "dist"]
 }

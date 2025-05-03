@@ -4,6 +4,6 @@ services:
       context: .
       dockerfile: Dockerfile
     ports:
-      - "6565:8080"
+      - "6565:6565"
     volumes:
       - ./tiles_data:/var/lib/tile_provider:rw
