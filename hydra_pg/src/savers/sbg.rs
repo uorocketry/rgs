@@ -3,24 +3,14 @@ use messages::sensor::SbgData;
 
 pub async fn save_sbg(transaction: &Transaction, sbg: &SbgData) -> i64 {
     let data_type = match sbg {
-        SbgData::UtcTime(_) => "UtcTime",
-        SbgData::Air(_) => "Air",
-        SbgData::EkfQuat(_) => "EkfQuat",
-        SbgData::EkfNav(_) => "EkfNav",
-        SbgData::Imu(_) => "Imu",
-        SbgData::GpsVel(_) => "GpsVel",
-        SbgData::GpsPos(_) => "GpsPos",
+        SbgData::UtcTime(_) => "SbgUtcTime",
+        SbgData::Air(_) => "SbgAir",
+        SbgData::EkfQuat(_) => "SbgEkfQuat",
+        SbgData::EkfNav(_) => "SbgEkfNav",
+        SbgData::Imu(_) => "SbgImu",
+        SbgData::GpsVel(_) => "SbgGpsVel",
+        SbgData::GpsPos(_) => "SbgGpsPos",
     };
-
-    // Save the Sbg data
-    transaction
-        .execute(
-            "INSERT INTO Sbg (data_type, data_id) VALUES (?, ?)",
-            params![data_type, 0], // Placeholder for data_id
-        )
-        .await
-        .unwrap();
-    let sbg_row_id = transaction.last_insert_rowid();
 
     // Save the specific subtype
     let data_id: i64 = match sbg {
@@ -31,7 +21,7 @@ pub async fn save_sbg(transaction: &Transaction, sbg: &SbgData) -> i64 {
                 .to_string();
             transaction
                 .execute(
-                    "INSERT INTO UtcTime (time_stamp, status, year, month, day, hour, minute, second, nano_second, gps_time_of_week)
+                    "INSERT INTO SbgUtcTime (time_stamp, status, year, month, day, hour, minute, second, nano_second, gps_time_of_week)
                      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
                     params![
                         utc_time.time_stamp,
@@ -57,7 +47,7 @@ pub async fn save_sbg(transaction: &Transaction, sbg: &SbgData) -> i64 {
                 .to_string();
             transaction
                 .execute(
-                    "INSERT INTO Air (time_stamp, status, pressure_abs, altitude, pressure_diff, true_airspeed, air_temperature)
+                    "INSERT INTO SbgAir (time_stamp, status, pressure_abs, altitude, pressure_diff, true_airspeed, air_temperature)
                      VALUES (?, ?, ?, ?, ?, ?, ?)",
                     params![
                         air.time_stamp,
@@ -80,7 +70,7 @@ pub async fn save_sbg(transaction: &Transaction, sbg: &SbgData) -> i64 {
                 .to_string();
             transaction
                 .execute(
-                    "INSERT INTO EkfQuat (time_stamp, quaternion_w, quaternion_x, quaternion_y, quaternion_z, euler_std_dev_roll, euler_std_dev_pitch, euler_std_dev_yaw, status)
+                    "INSERT INTO SbgEkfQuat (time_stamp, quaternion_w, quaternion_x, quaternion_y, quaternion_z, euler_std_dev_roll, euler_std_dev_pitch, euler_std_dev_yaw, status)
                      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)",
                     params![
                         ekf_quat.time_stamp,
@@ -105,7 +95,7 @@ pub async fn save_sbg(transaction: &Transaction, sbg: &SbgData) -> i64 {
                 .to_string();
             transaction
                 .execute(
-                    "INSERT INTO EkfNav (time_stamp, status, velocity_north, velocity_east, velocity_down, velocity_std_dev_north, velocity_std_dev_east, velocity_std_dev_down, position_latitude, position_longitude, position_altitude, position_std_dev_latitude, position_std_dev_longitude, position_std_dev_altitude, undulation)
+                    "INSERT INTO SbgEkfNav (time_stamp, status, velocity_north, velocity_east, velocity_down, velocity_std_dev_north, velocity_std_dev_east, velocity_std_dev_down, position_latitude, position_longitude, position_altitude, position_std_dev_latitude, position_std_dev_longitude, position_std_dev_altitude, undulation)
                      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
                     params![
                         ekf_nav.time_stamp,
@@ -136,7 +126,7 @@ pub async fn save_sbg(transaction: &Transaction, sbg: &SbgData) -> i64 {
                 .to_string();
             transaction
                 .execute(
-                    "INSERT INTO Imu (time_stamp, status, accelerometer_x, accelerometer_y, accelerometer_z, gyroscope_x, gyroscope_y, gyroscope_z, delta_velocity_x, delta_velocity_y, delta_velocity_z, delta_angle_x, delta_angle_y, delta_angle_z, temperature)
+                    "INSERT INTO SbgImu (time_stamp, status, accelerometer_x, accelerometer_y, accelerometer_z, gyroscope_x, gyroscope_y, gyroscope_z, delta_velocity_x, delta_velocity_y, delta_velocity_z, delta_angle_x, delta_angle_y, delta_angle_z, temperature)
                      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
                     params![
                         imu.time_stamp,
@@ -167,7 +157,7 @@ pub async fn save_sbg(transaction: &Transaction, sbg: &SbgData) -> i64 {
                 .to_string();
             transaction
                 .execute(
-                    "INSERT INTO GpsVel (time_stamp, status, velocity_north, velocity_east, velocity_down, velocity_acc_north, velocity_acc_east, velocity_acc_down, course, course_acc, time_of_week)
+                    "INSERT INTO SbgGpsVel (time_stamp, status, velocity_north, velocity_east, velocity_down, velocity_acc_north, velocity_acc_east, velocity_acc_down, course, course_acc, time_of_week)
                      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
                     params![
                         gps_vel.time_stamp,
@@ -194,7 +184,7 @@ pub async fn save_sbg(transaction: &Transaction, sbg: &SbgData) -> i64 {
                 .to_string();
             transaction
                 .execute(
-                    "INSERT INTO GpsPos (time_stamp, status, latitude, latitude_accuracy, longitude, longitude_accuracy, altitude, altitude_accuracy, undulation, num_sv_used, base_station_id, differential_age, time_of_week)
+                    "INSERT INTO SbgGpsPos (time_stamp, status, latitude, latitude_accuracy, longitude, longitude_accuracy, altitude, altitude_accuracy, undulation, num_sv_used, base_station_id, differential_age, time_of_week)
                      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
                     params![
                         gps_pos.time_stamp,
@@ -218,14 +208,5 @@ pub async fn save_sbg(transaction: &Transaction, sbg: &SbgData) -> i64 {
         }
     };
 
-    // Update Sbg with the actual data_id
-    transaction
-        .execute(
-            "UPDATE Sbg SET data_id = ? WHERE id = ?",
-            params![data_id, sbg_row_id],
-        )
-        .await
-        .unwrap();
-
-    sbg_row_id
+    data_id
 }

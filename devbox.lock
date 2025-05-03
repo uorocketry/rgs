@@ -97,6 +97,58 @@
         }
       }
     },
+    "docker@latest": {
+      "last_modified": "2025-04-05T00:48:53Z",
+      "resolved": "github:NixOS/nixpkgs/250b695f41e0e2f5afbf15c6b12480de1fe0001b#docker",
+      "source": "devbox-search",
+      "version": "27.5.1",
+      "systems": {
+        "aarch64-darwin": {
+          "outputs": [
+            {
+              "name": "out",
+              "path": "/nix/store/a72404qawpm1vadryld90p11zq9430x5-docker-27.5.1",
+              "default": true
+            }
+          ],
+          "store_path": "/nix/store/a72404qawpm1vadryld90p11zq9430x5-docker-27.5.1"
+        },
+        "aarch64-linux": {
+          "outputs": [
+            {
+              "name": "out",
+              "path": "/nix/store/d6q3ikk1lnxcn9i4q8bw3y19p25f5avz-docker-27.5.1",
+              "default": true
+            }
+          ],
+          "store_path": "/nix/store/d6q3ikk1lnxcn9i4q8bw3y19p25f5avz-docker-27.5.1"
+        },
+        "x86_64-darwin": {
+          "outputs": [
+            {
+              "name": "out",
+              "path": "/nix/store/z718glkxf2b0p0d9sdla6n73wzw1r70l-docker-27.5.1",
+              "default": true
+            }
+          ],
+          "store_path": "/nix/store/z718glkxf2b0p0d9sdla6n73wzw1r70l-docker-27.5.1"
+        },
+        "x86_64-linux": {
+          "outputs": [
+            {
+              "name": "out",
+              "path": "/nix/store/jw2smk3rbzp0fwrwdjcxdz9h0ssib8s4-docker-27.5.1",
+              "default": true
+            }
+          ],
+          "store_path": "/nix/store/jw2smk3rbzp0fwrwdjcxdz9h0ssib8s4-docker-27.5.1"
+        }
+      }
+    },
+    "github:NixOS/nixpkgs/nixpkgs-unstable": {
+      "last_modified": "2025-04-23T03:04:08Z",
+      "resolved": "github:NixOS/nixpkgs/507b63021ada5fee621b6ca371c4fca9ca46f52c?lastModified=1745377448&narHash=sha256-jhZDfXVKdD7TSEGgzFJQvEEZ2K65UMiqW5YJ2aIqxMA%3D"
+    },
     "inotify-tools@latest": {
       "last_modified": "2025-02-26T05:29:08Z",
       "resolved": "github:NixOS/nixpkgs/3a05eebede89661660945da1f151959900903b6a#inotify-tools",

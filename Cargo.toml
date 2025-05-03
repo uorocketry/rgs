@@ -26,6 +26,6 @@ chrono = { git = "https://github.com/uorocketry/chrono", features = ['serde'] }
 clap = { version = "4.5.16", features = ["derive"] }
 tracing = "0.1.40"
 tracing-subscriber = "0.3.18"
-postcard = "1.0.2"
+postcard = { version = "1.0.2", features = ["alloc"] }
 serde = { version = "1", features = ["derive"] }
 serde_json = "1"

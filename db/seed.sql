@@ -3,7 +3,7 @@ CREATE TABLE IF NOT EXISTS RadioMessage (
     timestamp TEXT NOT NULL, -- ISO 8601 format
     timestamp_epoch INTEGER NOT NULL, -- UNIX epoch time for range queries
     node TEXT NOT NULL, -- Enum Node type (PressureBoard, StrainBoard, etc)
-    data_type TEXT NOT NULL, -- Enum RadioData type ("Common", "Sbg", "Gps")
+    data_type TEXT NOT NULL, -- Enum RadioData type ("Common", "SbgUtcTime", "SbgAir", "SbgEkfQuat", "SbgEkfNav", "SbgImu", "SbgGpsVel", "SbgGpsPos")
     data_id INTEGER NOT NULL -- Foreign key to specific data table
 );
 
@@ -80,15 +80,7 @@ CREATE TABLE IF NOT EXISTS State (
 
 --#region Sbg
 
-CREATE TABLE IF NOT EXISTS Sbg (
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
-    data_type TEXT NOT NULL, -- Enum Sbg subtype (e.g., "UtcTime", "Air", "EkfQuat", "EkfNav", "Imu", "GpsVel", "GpsPos")
-    data_id INTEGER -- Foreign key to subtype-specific table
-);
-
--- Sbg subtypes
-
-CREATE TABLE IF NOT EXISTS UtcTime (
+CREATE TABLE IF NOT EXISTS SbgUtcTime (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     time_stamp INTEGER NOT NULL,
     status TEXT NOT NULL,
@@ -102,7 +94,7 @@ CREATE TABLE IF NOT EXISTS UtcTime (
     gps_time_of_week INTEGER
 );
 
-CREATE TABLE IF NOT EXISTS Air (
+CREATE TABLE IF NOT EXISTS SbgAir (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     time_stamp INTEGER NOT NULL,
     status TEXT NOT NULL,
@@ -113,7 +105,7 @@ CREATE TABLE IF NOT EXISTS Air (
     air_temperature REAL
 );
 
-CREATE TABLE IF NOT EXISTS EkfQuat (
+CREATE TABLE IF NOT EXISTS SbgEkfQuat (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     time_stamp INTEGER NOT NULL,
     quaternion_w REAL,
@@ -126,7 +118,7 @@ CREATE TABLE IF NOT EXISTS EkfQuat (
     status TEXT NOT NULL
 );
 
-CREATE TABLE IF NOT EXISTS EkfNav (
+CREATE TABLE IF NOT EXISTS SbgEkfNav (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     status TEXT NOT NULL,
     velocity_north REAL,
@@ -145,7 +137,7 @@ CREATE TABLE IF NOT EXISTS EkfNav (
     undulation REAL
 );
 
-CREATE TABLE IF NOT EXISTS Imu (
+CREATE TABLE IF NOT EXISTS SbgImu (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     time_stamp INTEGER NOT NULL,
     status TEXT NOT NULL,
@@ -164,7 +156,7 @@ CREATE TABLE IF NOT EXISTS Imu (
     temperature REAL
 );
 
-CREATE TABLE IF NOT EXISTS GpsVel (
+CREATE TABLE IF NOT EXISTS SbgGpsVel (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     time_of_week INTEGER,
     time_stamp INTEGER NOT NULL,
@@ -179,7 +171,7 @@ CREATE TABLE IF NOT EXISTS GpsVel (
     course_acc REAL
 );
 
-CREATE TABLE IF NOT EXISTS GpsPos (
+CREATE TABLE IF NOT EXISTS SbgGpsPos (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     latitude REAL,
     longitude REAL,

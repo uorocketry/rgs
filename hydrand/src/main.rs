@@ -41,10 +41,8 @@ fn handle_connection(stream: &mut TcpStream, interval: u64) {
             },
             &message,
         );
-        if i == 255 {
-            i = 0;
-        }
-        i += 1;
+        i = i.wrapping_add(1);
+        println!("Sending message {}", i);
         // i = i.wrapping_add_signed(1);
 
         // if rand::random::<u8>() > 144 {

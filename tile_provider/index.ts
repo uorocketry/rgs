@@ -81,6 +81,7 @@ async function handleTileRequest(
 // Main HTTP server route handling
 // -----------------------
 const server = Bun.serve({
+  development: process.env.NODE_ENV !== "production",
   routes: {
     "/tiles/:zoom/:x/:y": async (req) => {
       const { zoom, x, y } = req.params;
