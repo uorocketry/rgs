@@ -189,3 +189,18 @@ CREATE TABLE IF NOT EXISTS SbgGpsPos (
 );
 
 --#endregion
+
+--#region RGS Metrics
+
+CREATE TABLE IF NOT EXISTS ServicePing (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    service_id TEXT NOT NULL,
+    hostname TEXT,
+    app_timestamp INTEGER NOT NULL,
+    db_timestamp INTEGER NOT NULL DEFAULT (strftime('%s','now'))
+);
+
+CREATE INDEX idx_serviceping_db_timestamp ON ServicePing (db_timestamp);
+CREATE INDEX idx_serviceping_service_db_timestamp ON ServicePing (service_id, db_timestamp);
+
+--#endregion
