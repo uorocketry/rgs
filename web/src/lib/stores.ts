@@ -4,7 +4,7 @@ import { writable, type Writable } from 'svelte/store';
 
 export const commandBoxToggle: Writable<unknown> = writable();
 
-const graphQLWSEndpoint = window.location.origin.replace(/^http/, 'ws') + '/graphql';
+// const graphQLWSEndpoint = window.location.origin.replace(/^http/, 'ws') + '/graphql';
 // const wsClient = createWSClient({
 // 	url: graphQLWSEndpoint
 // });

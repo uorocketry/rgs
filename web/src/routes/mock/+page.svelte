@@ -1,8 +1,7 @@
 <script lang="ts">
-	import { gqlClient } from '$lib/stores';
 	import { getToastStore } from '@skeletonlabs/skeleton';
 	import { onMount } from 'svelte';
-	import { InsertQuaternionDocument } from './types';
+	// import { InsertQuaternionDocument } from './types';
 
 	let toastStore = getToastStore();
 
@@ -68,24 +67,26 @@
 
 						if (!shouldMock) return;
 
-						const result = await gqlClient.mutation(InsertQuaternionDocument, {
-							x,
-							y,
-							z,
-							w
-						});
+						// TODO: Needs to be re-implemented
+						console.warn('Needs to be re-implemented');
+						// const result = await gqlClient.mutation(InsertQuaternionDocument, {
+						// 	x,
+						// 	y,
+						// 	z,
+						// 	w
+						// });
 
-						if (result.error) {
-							const textWrapper = (message: string) => {
-								return `<span class="text-sm">${message}</span>`;
-							};
+						// if (result.error) {
+						// 	const textWrapper = (message: string) => {
+						// 		return `<span class="text-sm">${message}</span>`;
+						// 	};
 
-							toastStore.trigger({
-								background: 'variant-filled-error',
-								classes: 'text-sm',
-								message: textWrapper(result.error.message)
-							});
-						}
+						// 	toastStore.trigger({
+						// 		background: 'variant-filled-error',
+						// 		classes: 'text-sm',
+						// 		message: textWrapper(result.error.message)
+						// 	});
+						// }
 					}
 				};
 			} else {
