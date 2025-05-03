@@ -41,9 +41,9 @@ Note: For development purposes `hydra_provider` isn't included in the `pm2` ecos
 
 ## Misc
 
-Quickly stopping all containers: podman compose down --remove-orphans -t 0
+Quickly stopping all containers: docker compose down --remove-orphans -t 0
 
-Rebuilding the containers: podman compose up --build
+Rebuilding the containers: docker compose up --build
 
 ## Troubleshooting
 
