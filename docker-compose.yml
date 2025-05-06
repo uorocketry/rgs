@@ -18,48 +18,13 @@ services:
         environment:
             DATABASE_URL: http://db:8080
         restart: on-failure:3
-    # hydrand:
-    #   build:
-    #     context: .
-    #   entrypoint: ["hydrate"]
-    #   extra_hosts:
-    #     - "host.docker.internal:host-gateway"
-    #   restart: always
 
-    # hydra_pg:
-    #   build:
-    #     context: .
-    #   command: ["hydra_pg"]
-    #   # Reads from port 5656 from the local machine
-    #   # Restart on failure
-    #   restart: on-failure:10
-
-    # hydra_pg:
-    #   build:
-    #     context: ./hydra_pg
-    #   dockerfile: Dockerfile
-    #   command: >
-    #     --db-url libsql://db:8080
-    #     --address 0.0.0.0
-    #     --port 5656
-    #   ports:
-    #     - "5656:5656"
-    #   depends_on:
-    #     - db
-    #   restart: always
-    # web:
-    #     build:
-    #         context: ./web
-    #     depends_on:
-    #         hasura:
-    #             condition: service_healthy
-    #     ports:
-    #         - "3000:3000"
-    #     environment:
-    #         GRAPHQL_ENDPOINT: http://hasura:4000/v1/graphql
-    #         GRAPHQL_ADMIN_SECRET: uorocketry
-    # healthcheck:
-    #     test: ["CMD", "curl", "-f", "http://localhost:3000"]
-    #     interval: 1s
-    #     timeout: 1s
-    #     retries: 25
+    tile_provider:
+        build:
+            context: ./tile_provider
+            dockerfile: Dockerfile
+        ports:
+            - "6565:6565"
+        volumes:
+            - ./tile_provider/tiles_data:/var/lib/tile_provider:rw
+        restart: always

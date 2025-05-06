@@ -1,6 +1,68 @@
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
+@import 'tailwindcss';
+
+@plugin "daisyui" {
+	themes: light, dark --prefersdark, uorocketry --default;
+	exclude: rootscrollgutter;
+}
+
+@plugin "daisyui/theme" {
+	name: "uorocketry";
+	color-scheme: "light";
+
+	/* Map uoRocketry theme to DaisyUI variables */
+	--color-primary: rgb(55 116 186);
+	--color-primary-content: rgb(255 255 255);
+	--color-secondary: rgb(42 117 103);
+	--color-secondary-content: rgb(255 255 255);
+	--color-accent: rgb(45 45 44);
+	/* Mapped from tertiary */
+	--color-accent-content: rgb(255 255 255);
+	--color-neutral: rgb(206 208 212);
+	/* Mapped from surface-100 */
+	--color-neutral-content: rgb(5 10 19);
+	/* Mapped from surface-900 */
+
+	--color-base-100: rgb(255 255 255);
+	/* White base */
+	--color-base-200: rgb(218 220 222);
+	/* Mapped from surface-50 */
+	--color-base-300: rgb(206 208 212);
+	/* Mapped from surface-100 */
+	--color-base-content: rgb(5 10 19);
+	/* Mapped from surface-900 */
+
+	--color-info: rgb(55 116 186);
+	/* Re-using primary */
+	--color-info-content: rgb(255 255 255);
+	--color-success: rgb(117 189 108);
+	--color-success-content: rgb(0 0 0);
+	--color-warning: rgb(183 190 69);
+	--color-warning-content: rgb(0 0 0);
+	--color-error: rgb(216 67 66);
+	--color-error-content: rgb(0 0 0);
+
+	/* Map radii & borders */
+	--radius-selector: 0rem;
+	/* From theme-rounded-base */
+	--radius-field: 0rem;
+	/* From theme-rounded-base */
+	--radius-box: 0rem;
+	/* From theme-rounded-container */
+	--border: 2px;
+	/* From theme-border-base */
+
+	/* Defaults from example */
+	--size-selector: 0.25rem;
+	--size-field: 0.25rem;
+	--depth: 1;
+	--noise: 0;
+}
+
+/* FontAwesome */
+
+@import '@fortawesome/fontawesome-free/css/all.min.css';
+
+/* Keep existing custom styles below */
 
 body,
 html {
@@ -79,9 +141,106 @@ html {
 /* Prevent IOS zoom */
 
 @media screen and (-webkit-min-device-pixel-ratio: 0) {
+
 	select,
 	textarea,
 	input {
 		font-size: 16px !important;
 	}
+}
+
+/* === Golden Layout Styles === */
+
+.lm_goldenlayout {
+	/* @apply bg-base-200; */
+}
+
+.lm_dropTargetIndicator {
+	outline: 1px dashed oklch(var(--nc) / 0.5);
+}
+
+.lm_dropTargetIndicator .lm_inner {
+	background: oklch(var(--b1) / 0.1);
+	opacity: 1;
+}
+
+.lm_splitter {
+	/* @apply bg-base-300; */
+	transition: background-color 200ms;
+}
+
+.lm_splitter.lm_horizontal {
+	width: 2px !important;
+}
+
+.lm_splitter.lm_vertical {
+	height: 2px !important;
+}
+
+.lm_splitter:hover,
+.lm_dragging {
+	/* @apply bg-primary; */
+}
+
+.lm_header .lm_tabs {
+	/* @apply h-full flex items-center; */
+}
+
+.lm_header .lm_tab {
+	/* @apply p-1 flex items-center content-around gap-1 h-full m-0; */
+	/* @apply text-sm bg-base-200 text-base-content hover:bg-base-300; */
+}
+
+.lm_title {
+	display: block;
+}
+
+.lm_header .lm_tab .lm_close_tab {
+	/* @apply fas fa-xmark; */
+	display: block;
+	position: inherit;
+	opacity: 0.4;
+}
+
+.lm_header .lm_tab .lm_close_tab:hover {
+	opacity: 1;
+}
+
+.lm_header .lm_tab.lm_active .lm_close_tab {
+	opacity: 1;
+}
+
+.lm_tab.lm_active {
+	/* @apply !bg-primary !text-primary-content p-0 px-1; */
+}
+
+.lm_controls>* {
+	position: relative;
+	opacity: 0.8;
+	transition: opacity 300ms ease;
+}
+
+.lm_controls {
+	/* @apply text-base-content; */
+	height: 100%;
+	align-items: center;
+	display: flex;
+	gap: 0.25rem;
+}
+
+.lm_controls>*:hover {
+	/* @apply bg-base-300 rounded; */
+	opacity: 1;
+}
+
+.lm_maximise {
+	/* @apply fas fa-expand; */
+}
+
+.lm_close {
+	/* @apply fas fa-xmark; */
+}
+
+.lm_maximised .lm_maximise {
+	/* @apply fas fa-compress; */
 }

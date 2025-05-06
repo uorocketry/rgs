@@ -200,7 +200,4 @@ CREATE TABLE IF NOT EXISTS ServicePing (
     db_timestamp INTEGER NOT NULL DEFAULT (strftime('%s','now'))
 );
 
-CREATE INDEX idx_serviceping_db_timestamp ON ServicePing (db_timestamp);
-CREATE INDEX idx_serviceping_service_db_timestamp ON ServicePing (service_id, db_timestamp);
-
 --#endregion

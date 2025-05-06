@@ -1,17 +1,31 @@
-import { gqlClient } from '$lib/stores';
-import { subscriptionStore } from '@urql/svelte';
-import { graphql } from 'gql.tada';
+// import { gqlClient } from '$lib/stores';
+// import { subscriptionStore } from '@urql/svelte';
+// import { graphql } from 'gql.tada';
 
-const latestAltitudeDocument = graphql(`
-	subscription LatestAltitude {
-		rocket_sensor_air(order_by: {rocket_sensor_message: {}, time_stamp: desc}, limit: 1) {
-			altitude
-			time_stamp
-		}
-	}
-`);
+// const VerticalVelocityDocument = graphql(`
+// 	subscription VerticalVelocity {
+// 		vertical_velocity(limit: 1, order_by: { timestamp: desc }) {
+// 			timestamp
+// 			velocity
+// 		}
+// 	}
+// `);
 
-export const LatestAltitude = subscriptionStore({
-	client: gqlClient,
-	query: latestAltitudeDocument
-});
+// export const VerticalVelocity = subscriptionStore({
+// 	// client: gqlClient,
+// 	query: VerticalVelocityDocument
+// });
+
+// const latestAltitudeDocument = graphql(`
+// 	subscription LatestAltitude {
+// 		rocket_sensor_air(limit: 1, order_by: { time_stamp: desc }) {
+// 			altitude
+// 			time_stamp
+// 		}
+// 	}
+// `);
+
+// export const LatestAltitude = subscriptionStore({
+// 	// client: gqlClient,
+// 	query: latestAltitudeDocument
+// });

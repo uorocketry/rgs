@@ -13,3 +13,6 @@ clap = { workspace = true }
 tracing = { workspace = true }
 tracing-subscriber = { workspace = true }
 chrono = { workspace = true }
+tokio = { version = "1", features = ["full"] }
+libsql = { version = "0.9.5" }
+hostname = "0.4.0"

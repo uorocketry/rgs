@@ -1,55 +1,99 @@
-import { gqlClient } from '$lib/stores';
-import { subscriptionStore } from '@urql/svelte';
-import { graphql } from 'gql.tada';
+// import { gqlClient } from '$lib/stores';
+// import { subscriptionStore } from '@urql/svelte';
+// import { graphql } from 'gql.tada';
 
-const AccelerometersDocument = graphql(`
-	subscription Accelerometers {
-		rocket_sensor_imu_1(order_by: { time_stamp: desc }) {
-			accelorometer_x
-			accelorometer_y
-			accelorometer_z
-		}
-	}
-`);
+// const AccelerationDocument = graphql(`
+// 	subscription Acceleration {
+// 		acceleration(limit: 1, order_by: { timestamp: desc }) {
+// 			timestamp
+// 			x
+// 			y
+// 			z
+// 		}
+// 	}
+// `);
 
-export const Accelerometers = subscriptionStore({
-	client: gqlClient,
-	query: AccelerometersDocument
-});
+// export const Acceleration = subscriptionStore({
+// 	// client: gqlClient,
+// 	query: AccelerationDocument
+// });
 
-const DeltaVDocument = graphql(`
-	subscription DeltaV {
-		rocket_sensor_imu_2(
-			order_by: { rocket_sensor_message: { rocket_message: { created_at: desc } } }
-			limit: 1
-		) {
-			delta_velocity_x
-			delta_velocity_y
-			delta_velocity_z
-		}
-	}
-`);
+// const GyroscopeDocument = graphql(`
+// 	subscription Gyroscope {
+// 		gyroscope(limit: 1, order_by: { timestamp: desc }) {
+// 			timestamp
+// 			x
+// 			y
+// 			z
+// 		}
+// 	}
+// `);
 
-export const DeltaV = subscriptionStore({
-	client: gqlClient,
-	query: DeltaVDocument
-});
+// export const Gyroscope = subscriptionStore({
+// 	// client: gqlClient,
+// 	query: GyroscopeDocument
+// });
 
-const MaxDeltaVDocument = graphql(`
-	subscription MaxDeltaV {
-		rocket_sensor_imu_2_aggregate(where: { rocket_sensor_message: {} }) {
-			aggregate {
-				max {
-					delta_velocity_x
-					delta_velocity_y
-					delta_velocity_z
-				}
-			}
-		}
-	}
-`);
+// const MagnetometerDocument = graphql(`
+// 	subscription Magnetometer {
+// 		magnetometer(limit: 1, order_by: { timestamp: desc }) {
+// 			timestamp
+// 			x
+// 			y
+// 			z
+// 		}
+// 	}
+// `);
 
-export const MaxDeltaV = subscriptionStore({
-	client: gqlClient,
-	query: MaxDeltaVDocument
-});
+// export const Magnetometer = subscriptionStore({
+// 	// client: gqlClient,
+// 	query: MagnetometerDocument
+// });
+
+// const AccelerometersDocument = graphql(`
+// 	subscription Accelerometers {
+// 		accelerometers(limit: 1, order_by: { timestamp: desc }) {
+// 			timestamp
+// 			x
+// 			y
+// 			z
+// 		}
+// 	}
+// `);
+
+// export const Accelerometers = subscriptionStore({
+// 	// client: gqlClient,
+// 	query: AccelerometersDocument
+// });
+
+// const DeltaVDocument = graphql(`
+// 	subscription DeltaV {
+// 		deltav(limit: 1, order_by: { timestamp: desc }) {
+// 			timestamp
+// 			x
+// 			y
+// 			z
+// 		}
+// 	}
+// `);
+
+// export const DeltaV = subscriptionStore({
+// 	// client: gqlClient,
+// 	query: DeltaVDocument
+// });
+
+// const MaxDeltaVDocument = graphql(`
+// 	subscription MaxDeltaV {
+// 		maxdeltav(limit: 1, order_by: { timestamp: desc }) {
+// 			timestamp
+// 			x
+// 			y
+// 			z
+// 		}
+// 	}
+// `);
+
+// export const MaxDeltaV = subscriptionStore({
+// 	// client: gqlClient,
+// 	query: MaxDeltaVDocument
+// });

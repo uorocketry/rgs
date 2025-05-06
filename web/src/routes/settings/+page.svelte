@@ -1,70 +1,43 @@
 <script lang="ts">
 	// Boolean
 	import { settings } from '$lib/common/settings';
-	import { get } from 'svelte/store';
+	import BooleanSetting from './components/BooleanSetting.svelte';
+	import StringSetting from './components/StringSetting.svelte';
+	import NumberSetting from './components/NumberSetting.svelte';
+	import EnumSetting from './components/EnumSetting.svelte';
+	import UnsupportedSetting from './components/UnsupportedSetting.svelte';
+	import type { ComponentType } from 'svelte';
 
 	function camelCaseToFormatted(str: string) {
 		return str.replace(/([A-Z])/g, ' $1').replace(/^./, (str) => str.toUpperCase());
 	}
+
+	const componentMap: Record<string, any> = {
+		boolean: BooleanSetting,
+		string: StringSetting,
+		number: NumberSetting,
+		enum: EnumSetting
+		// Add mappings for other types as they are implemented
+	};
+
+	function getComponentForSetting(valueDescription: string): any {
+		return componentMap[valueDescription] ?? UnsupportedSetting;
+	}
 </script>
 
-{#each settings as settingGroup}
-	<div class="card p-4 m-2">
-		{camelCaseToFormatted(settingGroup.name)} <br />
+<div class="container mx-auto p-4">
+	{#each settings as settingGroup}
+		<div class="card bg-base-100 shadow-xl mb-4">
+			<div class="card-body">
+				<h2 class="card-title text-xl font-bold mb-4">{camelCaseToFormatted(settingGroup.name)}</h2>
 
-		{#each settingGroup.settings as setting}
-			<label class="flex items-center gap-2">
-				<!-- "string" | "number" | "boolean" | "array" | "kv" | "enum" -->
-				{#if setting.valueDescription === 'boolean'}
-					{@const settingVal = setting.value}
-					{@const settingValue = get(setting.value)}
-
-					<input
-						class="checkbox"
-						checked={settingValue}
-						type="checkbox"
-						on:change={() => {
-							settingVal.set(!get(settingVal));
-						}}
-					/>
-				{:else if setting.valueDescription === 'number'}
-					<!--TODO: Implement input for other types -->
-					Is Number
-					<!-- {@const settingVal = setting.value}
-					{@const settingValue = get(setting.value)}
-
-					<input
-						class="input"
-						value={settingValue}
-						type="number"
-						on:change={(e) => {
-							settingVal.set(Number(e.target?.value ?? 0));
-						}}
-					/> -->
-				{:else if setting.valueDescription === 'string'}
-					Is String
-					<!-- {@const settingVal = setting.value}
-					{@const settingValue = get(setting.value)}
-
-					<input
-						class="input"
-						value={settingValue}
-						type="text"
-						on:change={(e) => {
-							settingVal.set(e.target?.value ?? 0);
-						}}
-					/> -->
-				{:else if setting.valueDescription === 'array'}
-					Is Array
-				{:else if setting.valueDescription === 'kv'}
-					Is KV
-				{:else if setting.valueDescription === 'enum'}
-					Is Enum
-				{:else}
-					Is Unknown
-				{/if}
-				{setting.description}
-			</label>
-		{/each}
-	</div>
-{/each}
+				<div class="space-y-4">
+					{#each settingGroup.settings as setting}
+						{@const Component = getComponentForSetting(setting.valueDescription)}
+						<Component {setting} />
+					{/each}
+				</div>
+			</div>
+		</div>
+	{/each}
+</div>

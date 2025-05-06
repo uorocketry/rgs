@@ -3,6 +3,8 @@ use clap::Parser;
 use libsql::Builder;
 use mavlink::connect;
 use mavlink::uorocketry::MavMessage;
+use std::env;
+use std::time::SystemTime;
 use std::time::{Duration, Instant};
 use tracing::{error, info, warn};
 use tracing_subscriber;
@@ -11,14 +13,59 @@ use tracing_subscriber;
 #[command(version, about, long_about = None)]
 struct Args {
     // database url
-    #[arg(short, long, default_value = "localhost:8080")]
-    db_url: String,
+    #[arg(long, default_value = "http://localhost:8080")]
+    libsql_url: String,
 
     #[arg(short, long, default_value = "127.0.0.1")]
     address: String,
 
     #[arg(short, long, default_value_t = 5656)]
     port: u16,
+}
+
+async fn run_heartbeat_task(db_url: String) {
+    let hostname = hostname::get()
+        .map(|s| {
+            s.into_string()
+                .unwrap_or_else(|_| "invalid_hostname".to_string())
+        })
+        .unwrap_or_else(|_| "unknown_hostname".to_string());
+
+    info!(
+        "Heartbeat task started. Will ping DB at {} every 30s. Hostname: {}",
+        db_url, hostname
+    );
+
+    loop {
+        tokio::time::sleep(Duration::from_secs(30)).await;
+
+        let db_result = async {
+            let builder = Builder::new_remote(db_url.clone(), "".to_string());
+            let db = builder.build().await?;
+            let conn = db.connect()?;
+
+            let app_timestamp = SystemTime::now()
+                .duration_since(SystemTime::UNIX_EPOCH)
+                .map(|d| d.as_secs())
+                .unwrap_or(0);
+
+            let owned_hostname = hostname.clone();
+
+            info!("Sending heartbeat ping for service 'hydra_pg'");
+            conn.execute(
+                "INSERT INTO ServicePing (service_id, hostname, app_timestamp) VALUES (?1, ?2, ?3)",
+                libsql::params!["hydra_pg", owned_hostname, app_timestamp as i64],
+            )
+            .await?;
+
+            Ok::<(), Box<dyn std::error::Error + Send + Sync>>(())
+        }
+        .await;
+
+        if let Err(e) = db_result {
+            warn!("Failed to send heartbeat ping: {}", e);
+        }
+    }
 }
 
 #[tokio::main]
@@ -29,9 +76,12 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     let args = Args::parse();
 
-    info!("Attempting to connect to database: {}", args.db_url);
+    let db_url_for_task = args.libsql_url.clone();
+    tokio::spawn(run_heartbeat_task(db_url_for_task));
 
-    let db = Builder::new_remote("http://127.0.0.1:8080".to_string(), "".to_string())
+    info!("Attempting to connect to database: {}", args.libsql_url);
+
+    let db = Builder::new_remote(args.libsql_url.clone(), "".to_string())
         .build()
         .await
         .unwrap();

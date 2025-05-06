@@ -1,123 +1,161 @@
 <script lang="ts">
 	import { getStringScores } from '$lib/common/stringCmp';
-	import { ListBox, ListBoxItem } from '@skeletonlabs/skeleton';
-	import { onDestroy, onMount } from 'svelte';
+	import { tick } from 'svelte';
+	// import { ListBox, ListBoxItem } from '@skeletonlabs/skeleton'; // Removed Skeleton imports
+	// import { onDestroy, onMount } from 'svelte'; // Replaced by $effect, $derived, $state
 
-	const UNDEF_FUN = () => undefined;
-	export let prompt = '';
-	export let selectedIndex = 0;
-	export let placeholder = 'Search commands by name';
-	export let list: string[] = [];
-	export let inputValue = '';
-	export let inputElement: HTMLInputElement | null = null;
+	// Get props using runes
+	let {
+		prompt,
+		selectedIndex = $bindable(), // Make bindable
+		placeholder,
+		list,
+		inputValue = $bindable(), // Make bindable
+		inputElement = $bindable(), // Make bindable
+		onEnter: _onEnter, // Pass callback directly
+		onClick: _onClick
+		// onSelectedIndexChange // No longer needed with bind:selectedIndex
+	} = $props<{
+		prompt: string;
+		selectedIndex: number;
+		placeholder: string;
+		list: string[];
+		inputValue: string;
+		inputElement: HTMLInputElement | null;
+		onEnter: (err: boolean) => void;
+		onClick: (item: number, err: boolean) => void;
+		// onSelectedIndexChange: (newIndex: number) => void; // No longer needed
+	}>();
 
-	$: {
-		// Wrap selectedIndex around the list
-		let wrappedVal = (selectedIndex + list.length) % list.length;
-		if (wrappedVal !== selectedIndex) {
-			selectedIndex = wrappedVal;
-		}
-	}
+	// Internal state
+	let dialogElement = $state<HTMLDialogElement | null>(null);
 
-	let _onEnter: (err: boolean) => void = UNDEF_FUN;
-	/**
-	 * Listen for enter key presses, we can only have one listener at a time.
-	 * If there is already a listener, it will be called with an error.
-	 * @param cb
-	 */
-	export function onEnter(cb: (err: boolean) => void) {
-		// If something is already waiting, cancel it and start a new one
-		if (_onEnter !== UNDEF_FUN) {
-			_onEnter(true);
-			_onEnter = UNDEF_FUN;
-		}
-
-		_onEnter = cb;
-	}
-
-	let _onClick: (item: number, err: boolean) => void = UNDEF_FUN;
-	export function onClick(cb: (item: number, err: boolean) => void) {
-		if (_onClick !== UNDEF_FUN) {
-			_onClick(-1, true);
-			_onClick = UNDEF_FUN;
-		}
-		_onClick = cb;
-	}
-
-	let displayedList: number[] = [];
-	$: {
-		selectedIndex = 0; // Reset selected index when list changes
+	// Derived state for the filtered list
+	let displayedList = $derived(() => {
 		let scores: number[] = getStringScores(inputValue, list);
-		displayedList = scores
+		const sorted = scores
 			.map((score, i) => ({ score, index: i }))
 			.sort((a, b) => b.score - a.score)
 			.map((a) => a.index);
+
+		// Ensure selectedIndex is valid after list update
+		// NOTE: Mutating selectedIndex prop directly is not ideal in runes.
+		// This logic might need to move to the parent or use a callback.
+		// For now, we calculate based on the derived list length.
+		if (selectedIndex >= sorted.length) {
+			// This won't update the parent state directly.
+			// selectedIndex = Math.max(0, sorted.length - 1);
+		}
+		return sorted;
+	});
+
+	// Effect for keyboard event listener
+	$effect(() => {
+		const implOnEnter = (e: KeyboardEvent) => {
+			// Explicitly read derived value for this execution context
+			const currentDisplayedList = displayedList();
+
+			if (e.key === 'Enter') {
+				e.preventDefault();
+				// Use the local variable currentDisplayedList
+				if (currentDisplayedList.length > 0 && selectedIndex < currentDisplayedList.length) {
+					_onClick(currentDisplayedList[selectedIndex], false);
+				} else {
+					_onEnter(false);
+				}
+			} else if (e.key === 'ArrowDown') {
+				e.preventDefault();
+				const listLength = currentDisplayedList.length;
+				if (listLength > 0) {
+					// Directly update bindable prop
+					selectedIndex = (selectedIndex + 1) % listLength;
+				}
+			} else if (e.key === 'ArrowUp') {
+				e.preventDefault();
+				const listLength = currentDisplayedList.length;
+				if (listLength > 0) {
+					// Directly update bindable prop
+					selectedIndex = (selectedIndex - 1 + listLength) % listLength;
+				}
+			}
+		};
+
+		window.addEventListener('keydown', implOnEnter);
+
+		return () => {
+			window.removeEventListener('keydown', implOnEnter);
+		};
+	});
+
+	// Helper function to trigger the click callback (now just calls prop)
+	function triggerClick(listIndex: number) {
+		_onClick(listIndex, false);
 	}
 
-	// Use enter to select the first item (if there is one)
-	let implOnEnter = (e: KeyboardEvent) => {
-		if (e.key === 'Enter') {
-			if (displayedList.length > 0) {
-				_onClick(displayedList[selectedIndex], false);
-			}
-			_onEnter(false);
-			_onEnter = UNDEF_FUN;
-			_onClick = UNDEF_FUN;
+	// Exported functions for parent control
+	export function show() {
+		if (dialogElement) {
+			dialogElement.showModal();
+			// Attempt focus after a short delay
+			setTimeout(() => {
+				inputElement?.focus();
+			}, 50); // 50ms delay, adjust if needed
 		}
-		// Arrow down and up to changed selected index
-		else if (e.key === 'ArrowDown') {
-			selectedIndex++;
-		} else if (e.key === 'ArrowUp') {
-			selectedIndex--;
-		}
-	};
+	}
+	export function hide() {
+		if (dialogElement) dialogElement.close();
+	}
 
-	onMount(() => {
-		window.addEventListener('keydown', implOnEnter);
-	});
-
-	onDestroy(() => {
-		window.removeEventListener('keydown', implOnEnter);
-	});
-
-	$: selectedIndex = 0;
+	// Expose dialogElement for parent checks (used in MasterCommandBox)
+	export function getDialogElement() {
+		return dialogElement;
+	}
 </script>
 
-<div
-	class="absolute top-0 right-0 left-0 mx-auto
-	px-2 py-1
-	max-w-sm
-	z-50
-	bg-surface-300-600-token
-    w-full flex flex-col gap-2"
->
-	{#if prompt}
-		<span class="text-sm">{prompt}</span>
-	{/if}
+<!-- DaisyUI Modal structure -->
+<dialog class="modal modal-top" bind:this={dialogElement} open={true}>
+	<div class="modal-box">
+		{#if prompt}
+			<label for="command_input" class="label pb-1">
+				<span class="label-text-alt text-sm">{prompt}</span>
+			</label>
+		{/if}
 
-	<div class="flex place-content-center max-h-8">
 		<input
+			id="command_input"
 			bind:this={inputElement}
 			bind:value={inputValue}
-			class="input w-full max-w-sm"
+			class="input input-bordered w-full mb-2"
 			{placeholder}
+			autocomplete="off"
 		/>
-	</div>
 
-	<!-- Results -->
-	{#if list.length > 0}
-		<ListBox>
-			{#each displayedList as listIndex, i}
-				<ListBoxItem
-					on:click={() => {
-						_onClick(listIndex, false);
-						_onClick = UNDEF_FUN;
-					}}
-					bind:group={selectedIndex}
-					name={i.toString()}
-					value={i}>{list[listIndex]}</ListBoxItem
-				>
-			{/each}
-		</ListBox>
-	{/if}
-</div>
+		<!-- Results -->
+		{#if list.length > 0}
+			<!-- Check if derived list has items -->
+			{#if ((displayListValue) => displayListValue.length > 0)(displayedList())}
+				<!-- Assign derived value inside the block where it's used -->
+				{@const currentList = displayedList()}
+				<ul class="menu bg-base-200 rounded-box max-h-60 overflow-y-auto p-2">
+					{#each currentList as listIndex, i}
+						<li>
+							<button
+								type="button"
+								class="text-left w-full"
+								class:menu-active={selectedIndex === i}
+								onclick={() => triggerClick(listIndex)}>{list[listIndex]}</button
+							>
+						</li>
+					{/each}
+				</ul>
+			{:else if inputValue}
+				<!-- Show 'No results' only if there was input but the filtered list is empty -->
+				<div class="text-center text-sm text-base-content/70 py-4">No results found.</div>
+			{/if}
+		{/if}
+	</div>
+	<!-- Click outside to close -->
+	<form method="dialog" class="modal-backdrop">
+		<button>close</button>
+	</form>
+</dialog>
