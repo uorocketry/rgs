@@ -1,67 +1,45 @@
-import type { Actions } from './$types';
-import { SerialDataFeedClient } from '$lib/proto/hydra_provider/proto/data_feed.client';
-import { RandomDataFeedClient } from '$lib/proto/hydra_provider/proto/data_feed.client';
-import { toPlainObject } from '$lib/common/utils';
+import type { PageServerLoad } from './$types';
 
-// Load
-const transport = new GrpcTransport({
-	host: '[::1]:3001',
-	channelCredentials: ChannelCredentials.createInsecure()
-});
-
-const serialClient = new SerialDataFeedClient(transport);
-const randomClient = new RandomDataFeedClient(transport);
-
-export const load = async () => {
-	const devices = await serialClient.listAvailablePorts({});
-	const serialStatus = await serialClient.getStatus({});
-	const randomStatus = await randomClient.getStatus({});
-	return {
-		devices: devices.response.ports,
-		serialStatus: toPlainObject(serialStatus.response),
-		randomIsRunning: randomStatus.response.isRunning
-	};
-};
-
-export const actions = {
-	serial_configure: async (req) => {
-		// device: string
-		const form = await req.request.formData();
-		const device = form.get('device');
-
-		if (device === null) {
-			return {
-				error: 'No device selected'
-			};
-		} else {
-			try {
-				const response = await serialClient.configure({
-					baudRate: 9600,
-					port: device.toString()
-				});
-				return {
-					response: JSON.parse(JSON.stringify(response.response))
-				};
-			} catch (error) {
-				const err = error as RpcError;
-				return {
-					error: err.message
-				};
-			}
+export const load: PageServerLoad = async ({ fetch }) => {
+	try {
+		// Fetch initial status from the Hydra Manager Daemon API endpoint
+		const statusResponse = await fetch('http://127.0.0.1:3030/service/status');
+		if (!statusResponse.ok) {
+			console.error(`Failed to fetch initial service status: ${statusResponse.status}`);
+			// Still try to fetch logs even if status fails, but log the error
 		}
-	},
+		const initialStatus = statusResponse.ok ? await statusResponse.json() : null;
 
-	serial_start: async () => {
-		await serialClient.start({});
-	},
+		// Fetch initial logs from our SvelteKit logs API endpoint
+		let initialLogs: string[] = [];
+		let logsError: string | null = null;
+		try {
+			const logsApiResponse = await fetch('/comm/logs/api'); // Use SvelteKit's fetch for internal API routes
+			if (logsApiResponse.ok) {
+				const logsData = await logsApiResponse.json();
+				initialLogs = logsData.logs || [];
+			} else {
+				logsError = `Failed to fetch initial logs: ${logsApiResponse.status}`;
+				console.error(logsError);
+			}
+		} catch (logE) {
+			logsError = logE instanceof Error ? logE.message : 'Unknown error fetching logs';
+			console.error('Exception fetching initial logs:', logsError);
+		}
 
-	serial_stop: async () => {
-		await serialClient.stop({});
-	},
-	random_start: async () => {
-		await randomClient.start({});
-	},
-	random_stop: async () => {
-		await randomClient.stop({});
+		return {
+			initialStatus,
+			initialLogs,
+			error: initialStatus ? null : (statusResponse.ok ? null : 'Failed to fetch initial service status'),
+			logsError
+		};
+	} catch (e) {
+		console.error('Overall error in load function:', e);
+		return {
+			initialStatus: null,
+			initialLogs: [],
+			error: e instanceof Error ? e.message : 'Failed to load initial page data',
+			logsError: 'Failed to load initial logs due to an overall error'
+		};
 	}
-} satisfies Actions;
+};

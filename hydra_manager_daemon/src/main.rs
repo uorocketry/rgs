@@ -1,340 +1,346 @@
 use axum::{
-    extract::State,
-    routing::{get, post},
+    extract::{Json, State},
     http::StatusCode,
-    response::IntoResponse,
-    Json, Router,
+    routing::{get, post},
+    Router,
 };
+use chrono::Local;
 use serde::{Deserialize, Serialize};
-use tokio::sync::{Mutex, MutexGuard};
-use std::sync::Arc;
-use tokio::process::{Child, Command};
-use std::process::Stdio;
-use std::env;
-use std::path::PathBuf;
-use tokio::signal;
-use tokio::io::AsyncBufReadExt;
-use tracing::{error, info, warn};
+use std::collections::VecDeque;
+use std::net::SocketAddr;
+use std::process::Command;
+use std::sync::{Arc, Mutex};
+use tokio::task::JoinHandle;
+use tracing::{error, info, instrument, warn}; // Added for timestamps
 
-// --- Configuration Structs for API Payloads ---
-#[derive(Deserialize, Debug, Clone)]
+const MAX_LOG_LINES: usize = 50;
+
+#[derive(Debug, Serialize, Deserialize, Clone)]
+struct ServiceInfo {
+    name: String,
+    details: String,
+    // pid: Option<u32>, // Keep if you plan to use PIDs for stopping
+}
+
+#[derive(Serialize, Deserialize, Debug)]
 enum ServiceType {
-    SerGW, // Renamed from Gateway
-    Hydrand, // Renamed from Random
+    SerGW,
+    Hydrand,
 }
 
 #[derive(Deserialize, Debug)]
-struct StartRequest {
+struct StartServicePayload {
     service_type: ServiceType,
-    // SerGW params
     serial_port: Option<String>,
     baud_rate: Option<u32>,
-    // Hydrand params
     interval: Option<u64>,
-    libsql_url: Option<String>, // For Hydrand's heartbeat
-    // Common params for output TCP server (used by both sergw and hydrand)
-    output_tcp_address: Option<String>,
-    output_tcp_port: Option<u16>,
+    #[serde(rename = "libsql_url")]
+    libsql_url: Option<String>,
+    output_tcp_address: String,
+    output_tcp_port: u16,
 }
 
 #[derive(Serialize, Debug)]
-struct StatusResponse {
+struct ServiceStatus {
+    message: String,
     active_service: Option<String>,
     details: Option<String>,
-    message: String,
 }
 
-// --- Application State ---
+#[derive(Clone)]
 struct AppState {
-    current_process: Option<Child>,
-    active_service_type: Option<ServiceType>,
-    active_service_details: Option<String>,
-    executable_base_path: PathBuf,
+    active_service_handle: Arc<Mutex<Option<JoinHandle<()>>>>,
+    current_service_info: Arc<Mutex<Option<ServiceInfo>>>,
+    log_store: Arc<Mutex<VecDeque<String>>>, // Added log store
 }
 
 impl AppState {
-    fn new() -> Result<Self, std::io::Error> {
-        let mut exe_path = env::current_exe()?;
-        exe_path.pop(); // Get the directory of the manager daemon
-        info!("Daemon executable directory: {}", exe_path.display());
-        Ok(AppState {
-            current_process: None,
-            active_service_type: None,
-            active_service_details: None,
-            executable_base_path: exe_path,
-        })
-    }
-
-    async fn stop_current_service(&mut self) -> Result<(), String> {
-        if let Some(mut child) = self.current_process.take() {
-            let child_pid = child.id().map_or_else(|| "unknown".to_string(), |id| id.to_string());
-            info!("Attempting to stop currently active service (PID: {})...", child_pid);
-            
-            match child.start_kill() {
-                Ok(_) => {
-                    info!("Kill signal sent to process (PID: {}). Waiting for exit...", child_pid);
-                    match child.wait().await {
-                        Ok(status) => info!("Previously active service (PID: {}) stopped with status: {}.", child_pid, status),
-                        Err(e) => warn!("Error waiting for previously active service (PID: {}) to exit: {}. It might have been killed abruptly.", child_pid, e),
-                    };
-                    self.active_service_type = None;
-                    self.active_service_details = None;
-                    info!("Stopped previously active service (PID: {}).", child_pid);
-                    Ok(())
-                }
-                Err(e) => {
-                    error!("Failed to send kill signal to existing process (PID: {}): {}", child_pid, e);
-                    self.current_process = Some(child);
-                    Err(format!("Failed to kill existing process (PID: {}): {}", child_pid, e))
-                }
-            }
-        } else {
-            Ok(())
+    fn new() -> Self {
+        Self {
+            active_service_handle: Arc::new(Mutex::new(None)),
+            current_service_info: Arc::new(Mutex::new(None)),
+            log_store: Arc::new(Mutex::new(VecDeque::with_capacity(MAX_LOG_LINES))),
         }
     }
 
-    async fn start_new_service(&mut self, req: &StartRequest) -> Result<String, String> {
-        self.stop_current_service().await?;
+    // Method to add a log entry
+    fn add_log(&self, message: String) {
+        let mut store = self.log_store.lock().unwrap();
+        let timestamped_message =
+            format!("[{}] {}", Local::now().format("%Y-%m-%d %H:%M:%S"), message);
 
-        let mut cmd: Command;
-        let service_name_str: String;
-        let exe_to_run_path: PathBuf; // Store the path for error reporting
-        let mut details = Vec::new();
+        // Keep original tracing macros for structured logging to console/files if configured
+        // The log_store is primarily for the web UI
+        info!("UI_LOG: {}", message); // Using info! as a placeholder, adjust level as needed
 
-        match req.service_type {
-            ServiceType::SerGW => {
-                service_name_str = "sergw".to_string();
-                exe_to_run_path = self.executable_base_path.join(&service_name_str);
-                info!("Preparing to start {} from {}", service_name_str, exe_to_run_path.display());
-                cmd = Command::new(&exe_to_run_path);
-
-                let serial = req.serial_port.as_ref().ok_or_else(|| "Missing serial_port for SerGW".to_string())?;
-                let baud = req.baud_rate.unwrap_or(57600);
-                let host_addr = req.output_tcp_address.as_deref().unwrap_or("127.0.0.1");
-                let host_port = req.output_tcp_port.unwrap_or(5656);
-
-                cmd.arg("--serial").arg(serial);
-                cmd.arg("--baud").arg(baud.to_string());
-                cmd.arg("--host").arg(format!("{}:{}", host_addr, host_port));
-
-                details.push(format!("Serial: {}", serial));
-                details.push(format!("Baud: {}", baud));
-                details.push(format!("Output TCP: {}:{}", host_addr, host_port));
-            }
-            ServiceType::Hydrand => {
-                service_name_str = "hydrand".to_string();
-                exe_to_run_path = self.executable_base_path.join(&service_name_str);
-                info!("Preparing to start {} from {}", service_name_str, exe_to_run_path.display());
-                cmd = Command::new(&exe_to_run_path);
-
-                let interval = req.interval.unwrap_or(100);
-                let addr = req.output_tcp_address.as_deref().unwrap_or("127.0.0.1");
-                let port = req.output_tcp_port.unwrap_or(5656);
-
-                cmd.arg("--interval").arg(interval.to_string());
-                cmd.arg("--address").arg(addr);
-                cmd.arg("--port").arg(port.to_string());
-
-                if let Some(libsql_url) = &req.libsql_url {
-                    cmd.arg("--libsql-url").arg(libsql_url);
-                    details.push(format!("LibSQL URL for Heartbeat: {}", libsql_url));
-                }
-                details.push(format!("Interval: {}ms", interval));
-                details.push(format!("Output TCP: {}:{}", addr, port));
-            }
+        if store.len() >= MAX_LOG_LINES {
+            store.pop_front();
         }
-        info!("Executing command: {:?}", cmd);
-
-        cmd.stdout(Stdio::piped()).stderr(Stdio::piped());
-        cmd.kill_on_drop(true);
-
-        match cmd.spawn() {
-            Ok(mut child) => {
-                let child_pid_str = child.id().map_or_else(|| "unknown".to_string(), |id| id.to_string());
-                info!("Successfully started {} with PID: {}", service_name_str, child_pid_str);
-
-                if let Some(stdout) = child.stdout.take() {
-                    let service_name_clone = service_name_str.clone();
-                    let pid_clone = child_pid_str.clone();
-                    tokio::spawn(async move {
-                        let reader = tokio::io::BufReader::new(stdout);
-                        let mut lines = reader.lines();
-                        while let Ok(Some(line)) = lines.next_line().await {
-                            info!("[{}(PID: {}) STDOUT]: {}", service_name_clone, pid_clone, line);
-                        }
-                    });
-                }
-                if let Some(stderr) = child.stderr.take() {
-                    let service_name_clone = service_name_str.clone();
-                    let pid_clone = child_pid_str.clone();
-                    tokio::spawn(async move {
-                        let reader = tokio::io::BufReader::new(stderr);
-                        let mut lines = reader.lines();
-                        while let Ok(Some(line)) = lines.next_line().await {
-                            warn!("[{}(PID: {}) STDERR]: {}", service_name_clone, pid_clone, line);
-                        }
-                    });
-                }
-
-                self.current_process = Some(child);
-                self.active_service_type = Some(req.service_type.clone());
-                self.active_service_details = Some(details.join(", "));
-                Ok(format!("Successfully started {} (PID: {})", service_name_str, child_pid_str))
-            }
-            Err(e) => {
-                let exe_name_for_error = exe_to_run_path.to_string_lossy().into_owned();
-                let msg = format!("Failed to start process '{} ({})'. Error: {}. Make sure the binary exists at the expected location.", service_name_str, exe_name_for_error, e);
-                error!("{}", msg);
-                Err(msg)
-            }
-        }
+        store.push_back(timestamped_message);
     }
-}
-
-// --- Axum Handlers ---
-#[axum::debug_handler]
-async fn start_service_handler(
-    State(state): State<Arc<Mutex<AppState>>>,
-    Json(payload): Json<StartRequest>,
-) -> impl IntoResponse {
-    info!("Received start request: {:?}", payload);
-    let mut app_state = state.lock().await;
-    match app_state.start_new_service(&payload).await {
-        Ok(message) => (StatusCode::OK, Json(StatusResponse {
-            active_service: app_state.active_service_type.as_ref().map(|s| format!("{:?}",s)),
-            details: app_state.active_service_details.clone(),
-            message,
-        })),
-        Err(e) => (StatusCode::INTERNAL_SERVER_ERROR, Json(StatusResponse {
-            active_service: app_state.active_service_type.as_ref().map(|s| format!("{:?}",s)),
-            details: app_state.active_service_details.clone(),
-            message: e,
-        })),
-    }
-}
-
-#[axum::debug_handler]
-async fn stop_service_handler(
-    State(state): State<Arc<Mutex<AppState>>>,
-) -> impl IntoResponse {
-    info!("Received stop request");
-    let mut app_state = state.lock().await;
-    match app_state.stop_current_service().await {
-        Ok(_) => (StatusCode::OK, Json(StatusResponse {
-            active_service: None, details: None, message: "Service stopped successfully.".to_string()
-        })),
-        Err(e) => (StatusCode::INTERNAL_SERVER_ERROR, Json(StatusResponse {
-            active_service: app_state.active_service_type.as_ref().map(|s| format!("{:?}",s)),
-            details: app_state.active_service_details.clone(),
-            message: e,
-        })),
-    }
-}
-
-#[axum::debug_handler]
-async fn get_status_handler(
-    State(state): State<Arc<Mutex<AppState>>>,
-) -> impl IntoResponse {
-    info!("Received status request");
-    let mut app_state = state.lock().await;
-    
-    let (active_service_str, _details_str) = // Prefix details_str with _ as it's not used directly here
-        if let Some(service_type) = &app_state.active_service_type {
-            (Some(format!("{:?}", service_type)), app_state.active_service_details.clone())
-        } else {
-            (None, None)
-        };
-
-    let mut message = "No service is active.".to_string();
-    if let Some(child_process) = app_state.current_process.as_mut() {
-        let pid_str = child_process.id().map_or_else(|| "unknown".to_string(), |id| id.to_string());
-        let service_name_for_msg = active_service_str.as_deref().unwrap_or("Unknown");
-
-        match child_process.try_wait() {
-            Ok(Some(status)) => {
-                message = format!("Service {} (PID: {}) has exited with status {}. Please check logs.", service_name_for_msg, pid_str, status);
-                app_state.current_process = None;
-                app_state.active_service_type = None;
-                app_state.active_service_details = None;
-            }
-            Ok(None) => {
-                message = format!("Service {} (PID: {}) is active.", service_name_for_msg, pid_str);
-            }
-            Err(e) => {
-                message = format!("Error checking status for {} (PID: {}): {}. Assuming exited or inaccessible.", service_name_for_msg, pid_str, e);
-                app_state.current_process = None;
-                app_state.active_service_type = None;
-                app_state.active_service_details = None;
-            }
-        }
-    }
-
-    Json(StatusResponse {
-        active_service: app_state.active_service_type.as_ref().map(|s| format!("{:?}",s)),
-        details: app_state.active_service_details.clone(), // Use the state's details which might have been updated
-        message,
-    })
-}
-
-#[axum::debug_handler] // Add to root_handler as well for consistency, though less likely to cause trait issues
-async fn root_handler() -> impl IntoResponse {
-    (StatusCode::OK, "Hydra Manager Daemon is running. Use API endpoints to control services.")
-}
-
-async fn graceful_shutdown_handler(state_arc: Arc<Mutex<AppState>>) {
-    let ctrl_c = async {
-        signal::ctrl_c().await.expect("Failed to install Ctrl+C handler");
-    };
-
-    #[cfg(unix)]
-    let terminate = async {
-        signal::unix::signal(signal::unix::SignalKind::terminate())
-            .expect("Failed to install terminate signal handler")
-            .recv()
-            .await;
-    };
-
-    #[cfg(not(unix))]
-    let terminate = std::future::pending::<()>();
-
-    tokio::select! {
-        _ = ctrl_c => {info!("Ctrl+C received, initiating shutdown...")},
-        _ = terminate => {info!("Terminate signal received, initiating shutdown...")},
-    }
-    
-    let mut state = state_arc.lock().await;
-    if state.current_process.is_some() {
-        info!("Stopping active service due to shutdown...");
-        if let Err(e) = state.stop_current_service().await {
-            error!("Error stopping service during shutdown: {}", e);
-        }
-    } else {
-        info!("No active service to stop during shutdown.");
-    }
-    info!("Shutdown complete.");
 }
 
 #[tokio::main]
 async fn main() {
-    tracing_subscriber::fmt()
-        .with_max_level(tracing::Level::INFO)
-        .init();
-
-    let initial_state = AppState::new().expect("Failed to initialize application state");
-    let app_state_arc = Arc::new(Mutex::new(initial_state));
+    tracing_subscriber::fmt::init();
+    let app_state = AppState::new();
+    app_state.add_log("Hydra Manager Daemon starting up...".to_string());
 
     let app = Router::new()
         .route("/", get(root_handler))
-        .route("/service/start", post(start_service_handler))
+        .route("/service/start", post(start_new_service_handler))
         .route("/service/stop", post(stop_service_handler))
-        .route("/service/status", get(get_status_handler))
-        .with_state(app_state_arc.clone());
+        .route("/service/status", get(get_service_status_handler))
+        .route("/logs", get(get_logs_handler)) // Added logs route
+        .with_state(app_state.clone());
 
-    let addr = std::net::SocketAddr::from(([127, 0, 0, 1], 3030));
-    info!("Hydra Manager Daemon listening on http://{}", addr);
+    let addr_str = "0.0.0.0:3030";
+    let addr: SocketAddr = addr_str.parse().expect("Failed to parse address");
 
-    axum::serve(tokio::net::TcpListener::bind(addr).await.unwrap(), app)
-        .with_graceful_shutdown(graceful_shutdown_handler(app_state_arc.clone()))
-        .await
-        .unwrap();
+    app_state.add_log(format!("Daemon listening on {}", addr_str));
+
+    let listener = tokio::net::TcpListener::bind(addr).await.unwrap();
+    axum::serve(listener, app).await.unwrap();
+}
+
+#[instrument(skip(state))]
+async fn root_handler(State(state): State<AppState>) -> String {
+    state.add_log("Root endpoint was accessed.".to_string());
+    "Hydra Manager Daemon is running!".to_string()
+}
+
+#[derive(Serialize)]
+struct LogsResponse {
+    logs: Vec<String>,
+}
+
+#[instrument(skip(state))]
+async fn get_logs_handler(State(state): State<AppState>) -> Json<LogsResponse> {
+    let store = state.log_store.lock().unwrap();
+    Json(LogsResponse {
+        logs: store.iter().cloned().collect(),
+    })
+}
+
+#[instrument(skip(state, payload))]
+async fn start_new_service_handler(
+    State(state): State<AppState>,
+    Json(payload): Json<StartServicePayload>,
+) -> (StatusCode, Json<ServiceStatus>) {
+    state.add_log(format!(
+        "Received start request for service: {:?}",
+        payload.service_type
+    ));
+
+    let mut handle_guard = state.active_service_handle.lock().unwrap();
+    if handle_guard.is_some() {
+        state.add_log(
+            "Attempted to start a new service while another is already running.".to_string(),
+        );
+        return (
+            StatusCode::CONFLICT,
+            Json(ServiceStatus {
+                message: "A service is already running. Please stop it first.".to_string(),
+                active_service: state
+                    .current_service_info
+                    .lock()
+                    .unwrap()
+                    .as_ref()
+                    .map(|si| si.name.clone()),
+                details: state
+                    .current_service_info
+                    .lock()
+                    .unwrap()
+                    .as_ref()
+                    .map(|si| si.details.clone()),
+            }),
+        );
+    }
+
+    let service_name_for_status = format!("{:?}", payload.service_type);
+    let service_details_for_status = match payload.service_type {
+        ServiceType::SerGW => format!(
+            "SerGW - Serial: {}, Baud: {}, Host: {}:{}",
+            payload.serial_port.as_deref().unwrap_or("N/A"),
+            payload
+                .baud_rate
+                .map_or("N/A".to_string(), |b| b.to_string()),
+            payload.output_tcp_address,
+            payload.output_tcp_port
+        ),
+        ServiceType::Hydrand => format!(
+            "Hydrand - Interval: {}ms, LibSQL: {}, Host: {}:{}",
+            payload
+                .interval
+                .map_or("N/A".to_string(), |i| i.to_string()),
+            payload.libsql_url.as_deref().unwrap_or("N/A"),
+            payload.output_tcp_address,
+            payload.output_tcp_port
+        ),
+    };
+
+    let state_clone = state.clone();
+    let service_info_for_task = ServiceInfo {
+        name: service_name_for_status.clone(),
+        details: service_details_for_status.clone(),
+    };
+
+    let handle = tokio::spawn(async move {
+        let mut cmd = match payload.service_type {
+            ServiceType::SerGW => {
+                let mut command = Command::new("./target/debug/sergw"); // Ensure this path is correct
+                command.arg("listen"); // Added "listen" subcommand
+                if let Some(serial_port) = payload.serial_port {
+                    command.arg("--serial").arg(serial_port);
+                }
+                if let Some(baud_rate) = payload.baud_rate {
+                    command.arg("--baud").arg(baud_rate.to_string());
+                }
+                command.arg("--host").arg(format!(
+                    "{}:{}",
+                    payload.output_tcp_address, payload.output_tcp_port
+                ));
+                command
+            }
+            ServiceType::Hydrand => {
+                let mut command = Command::new("./target/debug/hydrand"); // Ensure this path is correct
+                if let Some(interval) = payload.interval {
+                    command.arg("--interval").arg(interval.to_string());
+                }
+                if let Some(libsql_url) = payload.libsql_url {
+                    command.arg("--libsql-url").arg(libsql_url);
+                }
+                command
+            }
+        };
+
+        state_clone.add_log(format!(
+            "Attempting to start {} with command: {:?}",
+            service_info_for_task.name, cmd
+        ));
+
+        match cmd.status() {
+            Ok(status) => {
+                if status.success() {
+                    state_clone.add_log(format!(
+                        "Service {} finished successfully.",
+                        service_info_for_task.name
+                    ));
+                } else {
+                    state_clone.add_log(format!(
+                        "Service {} exited with status: {}. Check daemon logs for more details.",
+                        service_info_for_task.name, status
+                    ));
+                    // Attempt to capture stderr if available
+                    // This part is tricky with std::process::Command and async,
+                    // consider tokio::process::Command for better output handling.
+                }
+            }
+            Err(e) => {
+                state_clone.add_log(format!(
+                    "Failed to start service {}: {}",
+                    service_info_for_task.name, e
+                ));
+                error!(
+                    "Failed to start service {}: {}",
+                    service_info_for_task.name, e
+                );
+            }
+        }
+        // Clear service info when task ends
+        let mut info_guard = state_clone.current_service_info.lock().unwrap();
+        *info_guard = None;
+        let mut handle_guard_task_end = state_clone.active_service_handle.lock().unwrap(); //
+        *handle_guard_task_end = None; // Clear the handle itself from within the task upon completion
+        state_clone.add_log(format!(
+            "Service task for {} ended.",
+            service_info_for_task.name
+        ));
+    });
+
+    *handle_guard = Some(handle);
+    let mut current_info_guard = state.current_service_info.lock().unwrap();
+    *current_info_guard = Some(ServiceInfo {
+        name: service_name_for_status.clone(),
+        details: service_details_for_status,
+    });
+
+    state.add_log(format!(
+        "Service {} start process initiated.",
+        service_name_for_status
+    ));
+
+    (
+        StatusCode::OK,
+        Json(ServiceStatus {
+            message: format!("Service {} starting...", service_name_for_status),
+            active_service: Some(service_name_for_status),
+            details: current_info_guard.as_ref().map(|si| si.details.clone()),
+        }),
+    )
+}
+
+#[instrument(skip(state))]
+async fn stop_service_handler(State(state): State<AppState>) -> (StatusCode, Json<ServiceStatus>) {
+    state.add_log("Received request to stop active service.".to_string());
+    let mut handle_guard = state.active_service_handle.lock().unwrap();
+    let mut current_info_guard = state.current_service_info.lock().unwrap();
+
+    if let Some(handle) = handle_guard.take() {
+        handle.abort(); // Send abort signal
+                        // Note: Aborting a JoinHandle doesn't directly kill the spawned OS process.
+                        // True process killing needs OS-specific calls (e.g., using PID, if stored and managed).
+                        // For now, we rely on the service itself to terminate gracefully upon task cancellation if possible,
+                        // or the OS to clean it up if it's a child process that exits when parent does (not always the case).
+
+        let service_name = current_info_guard
+            .as_ref()
+            .map_or("Unknown".to_string(), |si| si.name.clone());
+        *current_info_guard = None; // Clear current service info
+
+        state.add_log(format!(
+            "Abort signal sent to service task: {}",
+            service_name
+        ));
+        (
+            StatusCode::OK,
+            Json(ServiceStatus {
+                message: format!(
+                    "Stop signal sent to service {}. It might take a moment to terminate.",
+                    service_name
+                ),
+                active_service: None,
+                details: None,
+            }),
+        )
+    } else {
+        state.add_log("No active service found to stop.".to_string());
+        (
+            StatusCode::NOT_FOUND,
+            Json(ServiceStatus {
+                message: "No active service was running.".to_string(),
+                active_service: None,
+                details: None,
+            }),
+        )
+    }
+}
+
+#[instrument(skip(state))]
+async fn get_service_status_handler(State(state): State<AppState>) -> Json<ServiceStatus> {
+    // state.add_log("Service status requested.".to_string()); // Can be verbose, enable if needed
+    let info_guard = state.current_service_info.lock().unwrap();
+    if let Some(info) = &*info_guard {
+        Json(ServiceStatus {
+            message: "Service is running.".to_string(),
+            active_service: Some(info.name.clone()),
+            details: Some(info.details.clone()),
+        })
+    } else {
+        Json(ServiceStatus {
+            message: "No service is currently running.".to_string(),
+            active_service: None,
+            details: None,
+        })
+    }
 }

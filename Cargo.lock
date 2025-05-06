@@ -1702,6 +1702,7 @@ name = "hydra_manager_daemon"
 version = "0.1.0"
 dependencies = [
  "axum 0.7.9",
+ "chrono 0.4.41",
  "serde",
  "serde_json",
  "tokio",
