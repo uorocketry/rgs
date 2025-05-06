@@ -10,11 +10,11 @@ services:
         ports:
             - "8080:8080"
     migration:
-        image: oven/bun:1
+        image: docker.io/oven/bun:1
         volumes:
             - ./db:/app
         working_dir: /app
-        command: [ "bun", "index.ts" ]
+        command: [ "sh", "-c", "bun install && bun index.ts" ]
         environment:
             DATABASE_URL: http://db:8080
         restart: on-failure:3
@@ -28,3 +28,10 @@ services:
         volumes:
             - ./tile_provider/tiles_data:/var/lib/tile_provider:rw
         restart: always
+    # hydrand:
+    #   build:
+    #     context: .
+    #   entrypoint: ["hydrate"]
+    #   extra_hosts:
+    #     - "host.docker.internal:host-gateway"
+    #   restart: always
