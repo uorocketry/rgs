@@ -11,7 +11,7 @@ use std::net::SocketAddr;
 use std::process::Command;
 use std::sync::{Arc, Mutex};
 use tokio::task::JoinHandle;
-use tracing::{error, info, instrument, warn}; // Added for timestamps
+use tracing::{error, info, instrument}; // Added for timestamps
 
 const MAX_LOG_LINES: usize = 50;
 
