@@ -1,5 +1,6 @@
 <script lang="ts">
 	import type { PageData } from './$types';
+	import { gsap } from 'gsap';
 
 	let { data } = $props<{ data: PageData }>();
 
@@ -7,24 +8,23 @@
 	const DEFAULT_NUM_BARS = 20;
 	const DEFAULT_HISTORY_MINUTES = 10;
 	const REFRESH_INTERVAL_MS = 30 * 1000;
-	const PROGRESS_UPDATE_INTERVAL_MS = 100;
 	const EXPECTED_SERVICES = [
 		{ id: 'hydrand', name: 'Hydrand' },
 		{ id: 'hydra_pg', name: 'Hydra PG' }
 	];
 
 	// Types
-	interface HealthServiceHistory {
+	type HealthServiceHistory = {
 		service_id: string;
 		hostname: string | null;
 		latest_app_timestamp: number | null;
 		latest_db_timestamp: number | null;
 		latency_secs: number | null;
-		status: 'Operational' | 'Outage' | 'Unknown';
+		status: 'Operational' | 'Outage';
 		history: boolean[];
 	}
 
-	interface HealthApiResponse {
+	type HealthApiResponse = {
 		checkTime: string;
 		parameters: {
 			historyMinutes: number;
@@ -44,7 +44,7 @@
 	let progressPercent = $state(0);
 	let lastFetchStartTime = $state(Date.now());
 	let dataFetchIntervalId: ReturnType<typeof setInterval> | null = null;
-	let progressIntervalId: ReturnType<typeof setInterval> | null = null;
+	let progressAnimation: gsap.core.Tween | null = null;
 
 	// Derived State
 	let serviceStatuses = $derived(
@@ -65,7 +65,7 @@
 				// Service expected but not found
 				return {
 					...expected,
-					status: 'Unknown' as const,
+					status: 'Outage' as const,
 					lastSeen: null,
 					details: null,
 					history: Array(numBars).fill(false)
@@ -76,38 +76,34 @@
 
 	let overallStatus = $derived(
 		(() => {
-			if (!currentHealthData) return { text: 'Status Unknown', alertClass: 'alert-info' };
+			if (!currentHealthData) return { text: 'Some Systems Experiencing Issues', alertClass: 'alert-error' };
 			const hasOutage = serviceStatuses.some((s) => s.status === 'Outage');
-			const hasUnknown = serviceStatuses.some((s) => s.status === 'Unknown');
 
 			if (hasOutage) return { text: 'Some Systems Experiencing Issues', alertClass: 'alert-error' };
-			if (hasUnknown && serviceStatuses.length > 0)
-				return { text: 'Status Pending...', alertClass: 'alert-info' };
-			if (serviceStatuses.length === 0)
-				return { text: 'No Services Configured', alertClass: 'alert-info' };
 			return { text: 'All Systems Operational', alertClass: 'alert-success' };
 		})()
 	);
 
 	// Effects
 	$effect(() => {
-		function updateProgressBar() {
-			const elapsedTime = Date.now() - lastFetchStartTime;
-			progressPercent = Math.min(100, (elapsedTime / REFRESH_INTERVAL_MS) * 100);
-		}
-
-		function startProgressTimer() {
-			if (progressIntervalId) clearInterval(progressIntervalId);
+		function startProgressAnimation() {
+			if (progressAnimation) progressAnimation.kill();
 			lastFetchStartTime = Date.now();
 			progressPercent = 0;
-			updateProgressBar();
-			progressIntervalId = setInterval(updateProgressBar, PROGRESS_UPDATE_INTERVAL_MS);
+
+			progressAnimation = gsap.to({}, {
+				duration: REFRESH_INTERVAL_MS / 1000,
+				ease: 'none',
+				onUpdate: function() {
+					progressPercent = this.progress() * 100;
+				}
+			});
 		}
 
 		async function fetchHealthData() {
 			if (isLoading) return;
 			isLoading = true;
-			startProgressTimer();
+			startProgressAnimation();
 
 			try {
 				const response = await fetch('/health/api');
@@ -128,14 +124,14 @@
 		if (!currentHealthData && !errorMessage) {
 			fetchHealthData();
 		} else {
-			startProgressTimer();
+			startProgressAnimation();
 		}
 		dataFetchIntervalId = setInterval(fetchHealthData, REFRESH_INTERVAL_MS);
 
 		// Cleanup
 		return () => {
 			if (dataFetchIntervalId) clearInterval(dataFetchIntervalId);
-			if (progressIntervalId) clearInterval(progressIntervalId);
+			if (progressAnimation) progressAnimation.kill();
 		};
 	});
 
@@ -146,15 +142,8 @@
 	}
 
 	// Return DaisyUI badge classes based on service status
-	function getStatusBadgeClass(status: 'Operational' | 'Outage' | 'Unknown'): string {
-		switch (status) {
-			case 'Operational':
-				return 'badge-success';
-			case 'Outage':
-				return 'badge-error';
-			default: // Unknown
-				return 'badge-ghost';
-		}
+	function getStatusBadgeClass(status: 'Operational' | 'Outage'): string {
+		return status === 'Operational' ? 'badge-success' : 'badge-error';
 	}
 
 	// Return DaisyUI background classes based on history data point

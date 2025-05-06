@@ -1,19 +1,19 @@
 <script lang="ts">
-	import { getToastStore } from '@skeletonlabs/skeleton';
 	import { onMount } from 'svelte';
+	import { toastStore } from '$lib/stores/toastStore';
 	// import { InsertQuaternionDocument } from './types';
 
-	let toastStore = getToastStore();
+	// let toastStore = getToastStore();
 
-	let accelerometer_ok = false;
-	let gyroscope_ok = false;
-	let geolocation_ok = false;
+	let accelerometer_ok = $state(false);
+	let gyroscope_ok = $state(false);
+	let geolocation_ok = $state(false);
 
-	let last_quat = { x: 0, y: 0, z: 0, w: 0 };
-	let last_acc = { x: 0, y: 0, z: 0 };
-	let last_geo = { lat: 0, lon: 0, alt: 0 };
+	let last_quat = $state({ x: 0, y: 0, z: 0, w: 0 });
+	let last_acc = $state({ x: 0, y: 0, z: 0 });
+	let last_geo = $state({ lat: 0, lon: 0, alt: 0 });
 
-	let shouldMock = false;
+	let shouldMock = $state(false);
 
 	let sensor_callback = (event: DeviceMotionEvent) => {
 		if (event.acceleration) {
@@ -57,7 +57,6 @@
 					console.log(sensor.quaternion);
 					if (sensor.quaternion) {
 						console.log('Sensor reading');
-
 						let x = sensor.quaternion[0] ?? 0;
 						let y = sensor.quaternion[1] ?? 0;
 						let z = sensor.quaternion[2] ?? 0;
@@ -77,24 +76,12 @@
 						// });
 
 						// if (result.error) {
-						// 	const textWrapper = (message: string) => {
-						// 		return `<span class="text-sm">${message}</span>`;
-						// 	};
-
-						// 	toastStore.trigger({
-						// 		background: 'variant-filled-error',
-						// 		classes: 'text-sm',
-						// 		message: textWrapper(result.error.message)
-						// 	});
+						// 	toastStore.error(result.error.message);
 						// }
 					}
 				};
 			} else {
-				toastStore.trigger({
-					background: 'variant-filled-error',
-					classes: 'text-sm',
-					message: 'No permissions to use sensors.'
-				});
+				toastStore.error('No permissions to use sensors.');
 			}
 		});
 
@@ -140,11 +127,7 @@
 		// Request screen to stay on
 		if ('wakeLock' in navigator) {
 			navigator.wakeLock.request('screen').catch(() => {
-				toastStore.trigger({
-					background: 'variant-filled-error',
-					classes: 'text-sm',
-					message: 'Error while trying to keep screen on.'
-				});
+				toastStore.error('Error while trying to keep screen on.');
 			});
 		}
 

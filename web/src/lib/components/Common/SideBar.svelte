@@ -44,17 +44,6 @@
 	</li>
 	<li>
 		<a
-			href="/db"
-			class="tooltip tooltip-right"
-			class:active={$page.url.pathname === '/db'}
-			data-tip="Data"
-			aria-label="Data"
-		>
-			<i class="fas fa-database text-xl"></i>
-		</a>
-	</li>
-	<li>
-		<a
 			href="/mock"
 			class="tooltip tooltip-right"
 			class:active={$page.url.pathname === '/mock'}
@@ -62,17 +51,6 @@
 			aria-label="Mock"
 		>
 			<i class="fas fa-masks-theater text-xl"></i>
-		</a>
-	</li>
-	<li>
-		<a
-			href="/map"
-			class="tooltip tooltip-right"
-			class:active={$page.url.pathname === '/map'}
-			data-tip="Map Download"
-			aria-label="Map Download"
-		>
-			<i class="fas fa-map text-xl"></i>
 		</a>
 	</li>
 	<li>
@@ -104,6 +82,17 @@
 	<li>
 		<a href="/help" class="tooltip tooltip-right" data-tip="Help" aria-label="Help">
 			<i class="fas fa-question text-xl"></i>
+		</a>
+	</li>
+	<li>
+		<a
+			href="/utils"
+			class="tooltip tooltip-right"
+			class:active={$page.url.pathname.startsWith('/utils')}
+			data-tip="Utilities"
+			aria-label="Utilities"
+		>
+			<i class="fas fa-tools text-xl"></i>
 		</a>
 	</li>
 	<li>
