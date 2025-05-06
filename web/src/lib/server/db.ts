@@ -1,10 +1,5 @@
 import { createClient, type Client } from "@libsql/client";
-// import { LIBSQL_URL } from '$env/static/private'; // Keep commented for now, using hardcoded value
 
-// Basic check for environment variables
-// if (!LIBSQL_URL) {
-// 	throw new Error("Missing required environment variable: LIBSQL_URL");
-// }
 const LIBSQL_URL = "http://localhost:8080"; // Replace with your actual DB URL or env var
 
 let client: Client | null = null;

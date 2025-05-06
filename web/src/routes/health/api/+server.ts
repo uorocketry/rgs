@@ -1,12 +1,5 @@
-import { json, error } from "@sveltejs/kit";
 import { getDbClient } from '$lib/server/db'; // Import the shared DB client
-// import { LIBSQL_URL } from '$env/static/private';
-
-// Basic check for environment variables
-// if (!LIBSQL_URL) {
-// 	throw new Error("Missing required environment variable: LIBSQL_URL");
-// }
-const LIBSQL_URL = "http://localhost:8080";
+import { error, json } from "@sveltejs/kit";
 
 // --- Configuration for History ---
 const HISTORY_MINUTES = 10;
