@@ -1,9 +1,6 @@
-import { GrpcTransport } from '@protobuf-ts/grpc-transport';
 import type { Actions } from './$types';
 import { SerialDataFeedClient } from '$lib/proto/hydra_provider/proto/data_feed.client';
 import { RandomDataFeedClient } from '$lib/proto/hydra_provider/proto/data_feed.client';
-import type { RpcError } from '@protobuf-ts/runtime-rpc';
-import { ChannelCredentials } from '@grpc/grpc-js';
 import { toPlainObject } from '$lib/common/utils';
 
 // Load
