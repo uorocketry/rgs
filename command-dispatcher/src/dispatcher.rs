@@ -14,12 +14,12 @@ pub async fn run_dispatcher(
     args: Args,          
 ) -> Result<(), Box<dyn std::error::Error>> {
     info!(
-        "Dispatcher loop starting. Poll Interval: {}s. Gateway: {}:{}",
-        args.poll_interval_secs, args.gateway_address, args.gateway_port
+        "Dispatcher loop starting. Poll Interval: {}s. Gateway: {}",
+        args.poll_interval_secs, args.gateway_connection_string
     );
 
     let mut gateway_conn_opt: Option<Box<dyn MavConnection<MavMessage> + Sync + Send>> = None;
-    let gateway_connection_string = format!("tcpout:{}:{}", args.gateway_address, args.gateway_port);
+    let gateway_connection_string = args.gateway_connection_string.clone();
 
     loop { 
         if gateway_conn_opt.is_none() {
@@ -28,6 +28,7 @@ pub async fn run_dispatcher(
                 Ok(conn) => {
                     info!("Successfully connected to gateway.");
                     gateway_conn_opt = Some(conn);
+                    // TODO: Consider logic to reset status of commands stuck in 'Sending' from a previous session/connection drop.
                 }
                 Err(error) => {
                     error!("Failed to connect to gateway: {}. Retrying in 5 seconds...", error);
@@ -84,7 +85,7 @@ pub async fn run_dispatcher(
             }
 
             if commands.is_empty() {
-                // info!("No pending commands found.");
+                // info!("No pending commands found."); // Keep commented out info for potential debugging
             } else {
                 info!("Fetched {} pending command(s). Processing...", commands.len());
                 for command_row in commands {
@@ -117,5 +118,6 @@ pub async fn run_dispatcher(
             tokio::time::sleep(Duration::from_secs(args.poll_interval_secs)).await;
         }
     }
+    // Unreachable code
     // Ok(())
 } 

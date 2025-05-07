@@ -45,11 +45,10 @@ pub async fn run_service_status_task(db_conn: Connection) -> Result<(), Box<dyn 
                 "Failed to update ServiceStatus for {}: DB Error: {}",
                 service_instance_id_orig, e 
             );
-        } else {
-            // Successfully updated
-        }
+        } 
 
         tokio::time::sleep(Duration::from_secs(15)).await;
     }
+    // Unreachable code
     // Ok(())
 } 
