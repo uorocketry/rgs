@@ -13,7 +13,7 @@ async fn save_single_message_in_transaction(
     let time_str = data.timestamp.0.to_string();
     let time_epoch = data.timestamp.0.and_utc().timestamp();
     let node_name = serde_json::to_string(&data.node)
-        .unwrap() // Consider handling this error
+        .map_err(|e| libsql::Error::ToSqlConversionFailure(Box::new(e)))?
         .trim_matches('"')
         .to_string();
 
@@ -38,9 +38,9 @@ async fn save_single_message_in_transaction(
 
     // Handle RadioData types
     let data_id = match &data.data {
-        RadioData::Common(common) => save_common(transaction, common).await, // Assuming this returns Result<i64> or can be adapted
-        RadioData::Sbg(sbg) => save_sbg(transaction, sbg).await, // Assuming this returns Result<i64> or can be adapted
-        RadioData::Gps(_) => unimplemented!(),                   // Skipping GPS for now
+        RadioData::Common(common) => save_common(transaction, common).await?,
+        RadioData::Sbg(sbg) => save_sbg(transaction, sbg).await?,
+        RadioData::Gps(_) => unimplemented!(), // Skipping GPS for now
     };
 
     // Update the RadioMessage with the actual data_id

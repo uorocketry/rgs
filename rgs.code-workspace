@@ -11,7 +11,7 @@
             "path": "./hydra_gateway"
         },
         {
-            "path": "./hydra_message_store"
+            "path": "./telemetry-ingestor"
         },
         {
             "path": "./hydra_provider"

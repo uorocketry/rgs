@@ -1,3 +1,59 @@
+--#region RGS tables
+
+-- Table to store commands requested by the ground station to be sent to the rocket.
+CREATE TABLE IF NOT EXISTS OutgoingCommand (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    command_type TEXT NOT NULL, -- e.g., 'DeployDrogue', 'Online', 'Ping'
+    parameters TEXT, -- JSON string or simple value representing command arguments. Can be NULL if no params.
+    status TEXT NOT NULL, -- e.g., 'Pending', 'Queued', 'Sending', 'Sent', 'Failed', 'Cancelled'
+    created_at INTEGER NOT NULL, -- UNIX epoch timestamp when the command was requested
+    queued_at INTEGER, -- UNIX epoch timestamp when the dispatcher picked it up (optional)
+    sent_at INTEGER, -- UNIX epoch timestamp when the dispatcher attempted to send it (optional)
+    attempts INTEGER NOT NULL DEFAULT 0, -- Number of send attempts
+    error_message TEXT, -- Details if sending failed (optional)
+    source_service TEXT NOT NULL -- e.g., 'rgs-web', 'rgs-heartbeat'
+);
+
+-- Index for efficient retrieval of pending commands by the dispatcher
+CREATE INDEX IF NOT EXISTS idx_outgoingcommand_status_created ON OutgoingCommand (status, created_at);
+
+-- Table to store system-wide configuration settings.
+CREATE TABLE IF NOT EXISTS SystemConfig (
+    key TEXT PRIMARY KEY, -- Unique configuration key, e.g., 'gateway_mode', 'serial_port_path'
+    value TEXT NOT NULL, -- The configuration value (stored as text)
+    description TEXT, -- Optional description of the setting
+    updated_at INTEGER NOT NULL -- UNIX epoch timestamp when the setting was last updated
+);
+
+
+-- Table to store the current status of each running service instance.
+CREATE TABLE IF NOT EXISTS ServiceStatus (
+    service_instance_id TEXT PRIMARY KEY, -- Unique ID for a service instance (e.g., 'rgs-telemetry-ingestor@hostname-pid')
+    service_name TEXT NOT NULL, -- e.g., 'rgs-telemetry-ingestor', 'rgs-web'
+    hostname TEXT, -- Hostname where the service is running (optional)
+    status TEXT NOT NULL, -- e.g., 'Running', 'Degraded', 'Error', 'Stopped'
+    status_message TEXT, -- Short message detailing current state (optional)
+    last_heartbeat_at INTEGER NOT NULL, -- UNIX epoch timestamp of the last status update
+    start_time INTEGER -- UNIX epoch timestamp when the service started (optional)
+);
+
+-- Index for efficient retrieval of service statuses by name
+CREATE INDEX IF NOT EXISTS idx_servicestatus_name ON ServiceStatus (service_name);
+
+CREATE TABLE IF NOT EXISTS ServicePing (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    service_id TEXT NOT NULL,
+    hostname TEXT,
+    app_timestamp INTEGER NOT NULL,
+    db_timestamp INTEGER NOT NULL DEFAULT (strftime('%s','now'))
+);
+
+CREATE INDEX IF NOT EXISTS idx_serviceping_db_timestamp ON ServicePing (db_timestamp);
+CREATE INDEX IF NOT EXISTS idx_serviceping_service_db_timestamp ON ServicePing (service_id, db_timestamp);
+
+--#endregion
+
+--#region Incoming telemetry tables
 CREATE TABLE IF NOT EXISTS RadioMessage (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     timestamp TEXT NOT NULL, -- ISO 8601 format
@@ -190,17 +246,5 @@ CREATE TABLE IF NOT EXISTS SbgGpsPos (
 
 --#endregion
 
---#region RGS Metrics
-
-CREATE TABLE IF NOT EXISTS ServicePing (
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
-    service_id TEXT NOT NULL,
-    hostname TEXT,
-    app_timestamp INTEGER NOT NULL,
-    db_timestamp INTEGER NOT NULL DEFAULT (strftime('%s','now'))
-);
-
-CREATE INDEX IF NOT EXISTS idx_serviceping_db_timestamp ON ServicePing (db_timestamp);
-CREATE INDEX IF NOT EXISTS idx_serviceping_service_db_timestamp ON ServicePing (service_id, db_timestamp);
-
 --#endregion
+

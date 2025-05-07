@@ -1,5 +1,5 @@
 [package]
-name = "hydra_message_store"
+name = "telemetry-ingestor"
 version = "0.1.0"
 edition = "2021"
 
