@@ -1683,7 +1683,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "df3b46402a9d5adb4c86a0cf463f42e19994e3ee891101b1841f30a545cb49a9"
 
 [[package]]
-name = "hydra_commander"
+name = "hydra_command_dispatcher"
 version = "0.1.0"
 dependencies = [
  "actix-web",
@@ -1711,7 +1711,7 @@ dependencies = [
 ]
 
 [[package]]
-name = "hydra_pg"
+name = "hydra_message_store"
 version = "0.1.0"
 dependencies = [
  "clap",

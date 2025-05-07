@@ -54,29 +54,6 @@ async fn save_single_message_in_transaction(
     Ok(radio_message_id)
 }
 
-pub async fn save_message(db_connection: &Connection, data: RadioMessage<'_>) {
-    let transaction = match db_connection.transaction().await {
-        Ok(tx) => tx,
-        Err(e) => {
-            tracing::error!("Failed to begin transaction: {:?}", e);
-            return;
-        }
-    };
-
-    match save_single_message_in_transaction(&transaction, &data).await {
-        Ok(_) => {
-            if let Err(e) = transaction.commit().await {
-                tracing::error!("Failed to commit transaction: {:?}", e);
-            }
-        }
-        Err(e) => {
-            tracing::error!("Failed to save message in transaction: {:?}", e);
-            // Attempt to rollback, ignoring potential error
-            let _ = transaction.rollback().await;
-        }
-    }
-}
-
 pub async fn save_messages_batch(
     db_connection: &Connection,
     message_bytes_list: Vec<Vec<u8>>,

@@ -2,7 +2,7 @@ use libsql::{params, Transaction};
 use messages::sensor::SbgData;
 
 pub async fn save_sbg(transaction: &Transaction, sbg: &SbgData) -> i64 {
-    let data_type = match sbg {
+    let _data_type = match sbg {
         SbgData::UtcTime(_) => "SbgUtcTime",
         SbgData::Air(_) => "SbgAir",
         SbgData::EkfQuat(_) => "SbgEkfQuat",

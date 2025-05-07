@@ -3,7 +3,6 @@ use clap::Parser;
 use libsql::Builder;
 use mavlink::connect;
 use mavlink::uorocketry::MavMessage;
-use std::env;
 use std::time::SystemTime;
 use std::time::{Duration, Instant};
 use tracing::{error, info, warn};
@@ -51,10 +50,10 @@ async fn run_heartbeat_task(db_url: String) {
 
             let owned_hostname = hostname.clone();
 
-            info!("Sending heartbeat ping for service 'hydra_pg'");
+            info!("Sending heartbeat ping for service 'hydra_message_store'");
             conn.execute(
                 "INSERT INTO ServicePing (service_id, hostname, app_timestamp) VALUES (?1, ?2, ?3)",
-                libsql::params!["hydra_pg", owned_hostname, app_timestamp as i64],
+                libsql::params!["hydra_message_store", owned_hostname, app_timestamp as i64],
             )
             .await?;
 
@@ -129,7 +128,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     let mut last_batch_time = Instant::now();
 
     loop {
-        let mut received_would_block = false; // Flag for WouldBlock
+        let _received_would_block = false; // Flag for WouldBlock
 
         // Clone connection for potential batch save
         let db_conn_for_batch = db_connection.clone();

@@ -1,8 +1,8 @@
 [workspace]
 members = [
     "sergw",
-    "hydra_pg",
-    "hydra_commander",
+    "hydra_message_store",
+    "hydra_command_dispatcher",
     "hydrate",
     "hydrand",
     "coord_mocker",

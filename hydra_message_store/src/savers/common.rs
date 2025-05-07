@@ -12,7 +12,7 @@ pub async fn save_common(transaction: &Transaction, common: &Common) -> i64 {
     };
 
     // Save the Common data
-    let common_id = transaction
+    let _common_id = transaction
         .execute(
             "INSERT INTO Common (data_type, data_id) VALUES (?, ?)",
             params![data_type, 0], // Placeholder for data_id

@@ -17,7 +17,7 @@ A Hydra message decoder and database storage component that processes messages f
 ## Usage
 
 ```bash
-./hydra_pg [options]
+./hydra_message_store [options]
 ```
 
 ### Parameters
