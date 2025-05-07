@@ -1,0 +1,18 @@
+[package]
+name = "command-dispatcher"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+messages = { workspace = true }
+mavlink = { workspace = true }
+serde = { workspace = true, features = ["derive"] }
+clap = { workspace = true }
+tracing = { workspace = true }
+postcard = { workspace = true, features = ["alloc"] }
+tracing-subscriber = { workspace = true }
+chrono = { workspace = true, features = ["serde"] }
+tokio = { version = "1.0", features = ["full"] }
+libsql = "0.9.5"
+serde_json = "1.0"
+hostname = "0.3"
