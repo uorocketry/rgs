@@ -16,8 +16,10 @@ A Hydra message decoder and database storage component that processes messages f
 
 ## Usage
 
-```bash
-./hydra_message_store [options]
+### Running the Service
+
+```sh
+./telemetry-ingestor [options]
 ```
 
 ### Parameters

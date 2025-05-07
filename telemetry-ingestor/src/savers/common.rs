@@ -1,9 +1,9 @@
-use libsql::{params, Transaction};
+use libsql::{params, Result, Transaction};
 use messages::Common;
 
 use super::command::save_command;
 
-pub async fn save_common(transaction: &Transaction, common: &Common) -> i64 {
+pub async fn save_common(transaction: &Transaction, common: &Common) -> Result<i64> {
     let data_type = match common {
         Common::ResetReason(_) => "ResetReason",
         Common::Command(_) => "Command",
@@ -12,13 +12,12 @@ pub async fn save_common(transaction: &Transaction, common: &Common) -> i64 {
     };
 
     // Save the Common data
-    let _common_id = transaction
+    transaction
         .execute(
             "INSERT INTO Common (data_type, data_id) VALUES (?, ?)",
             params![data_type, 0], // Placeholder for data_id
         )
-        .await
-        .unwrap();
+        .await?;
     let common_row_id = transaction.last_insert_rowid();
 
     // Save the specific subtype
@@ -29,14 +28,13 @@ pub async fn save_common(transaction: &Transaction, common: &Common) -> i64 {
                     "INSERT INTO ResetReason (reset_reason) VALUES (?)",
                     params![reason.to_string()],
                 )
-                .await
-                .unwrap();
+                .await?;
             transaction.last_insert_rowid()
         }
-        Common::Command(command) => save_command(transaction, command).await,
+        Common::Command(command) => save_command(transaction, command).await?,
         Common::Log(log) => {
             let level = serde_json::to_string(&log.level)
-                .unwrap()
+                .map_err(|e| libsql::Error::ToSqlConversionFailure(Box::new(e)))?
                 .trim_matches('"')
                 .to_string();
 
@@ -45,20 +43,18 @@ pub async fn save_common(transaction: &Transaction, common: &Common) -> i64 {
                     "INSERT INTO Log (level, event) VALUES (?, ?)",
                     params![level, log.event.to_string()],
                 )
-                .await
-                .unwrap();
+                .await?;
             transaction.last_insert_rowid()
         }
         Common::State(state) => {
             let state_str = serde_json::to_string(&state)
-                .unwrap()
+                .map_err(|e| libsql::Error::ToSqlConversionFailure(Box::new(e)))?
                 .trim_matches('"')
                 .to_string();
 
             transaction
                 .execute("INSERT INTO State (state) VALUES (?)", params![state_str])
-                .await
-                .unwrap();
+                .await?;
             transaction.last_insert_rowid()
         }
     };
@@ -69,8 +65,7 @@ pub async fn save_common(transaction: &Transaction, common: &Common) -> i64 {
             "UPDATE Common SET data_id = ? WHERE id = ?",
             params![data_id, common_row_id],
         )
-        .await
-        .unwrap();
+        .await?;
 
-    common_row_id
+    Ok(common_row_id)
 }

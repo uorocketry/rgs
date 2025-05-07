@@ -1,22 +1,24 @@
-use libsql::{params, Transaction};
+use libsql::{params, Result, Transaction};
 use messages::sensor::SbgData;
 
-pub async fn save_sbg(transaction: &Transaction, sbg: &SbgData) -> i64 {
-    let _data_type = match sbg {
-        SbgData::UtcTime(_) => "SbgUtcTime",
-        SbgData::Air(_) => "SbgAir",
-        SbgData::EkfQuat(_) => "SbgEkfQuat",
-        SbgData::EkfNav(_) => "SbgEkfNav",
-        SbgData::Imu(_) => "SbgImu",
-        SbgData::GpsVel(_) => "SbgGpsVel",
-        SbgData::GpsPos(_) => "SbgGpsPos",
-    };
+pub async fn save_sbg(transaction: &Transaction, sbg: &SbgData) -> Result<i64> {
+    // The _data_type variable was unused, so it can be removed or kept if planned for future use.
+    // For this refactor, I will remove it to clean up the unused variable warning.
+    // let _data_type = match sbg {
+    // SbgData::UtcTime(_) => "SbgUtcTime",
+    // SbgData::Air(_) => "SbgAir",
+    // SbgData::EkfQuat(_) => "SbgEkfQuat",
+    // SbgData::EkfNav(_) => "SbgEkfNav",
+    // SbgData::Imu(_) => "SbgImu",
+    // SbgData::GpsVel(_) => "SbgGpsVel",
+    // SbgData::GpsPos(_) => "SbgGpsPos",
+    // };
 
     // Save the specific subtype
     let data_id: i64 = match sbg {
         SbgData::UtcTime(utc_time) => {
             let status_to_string = serde_json::to_string(&utc_time.status)
-                .unwrap()
+                .map_err(|e| libsql::Error::ToSqlConversionFailure(Box::new(e)))?
                 .trim_matches('"')
                 .to_string();
             transaction
@@ -36,13 +38,12 @@ pub async fn save_sbg(transaction: &Transaction, sbg: &SbgData) -> i64 {
                         utc_time.gps_time_of_week,
                     ],
                 )
-                .await
-                .unwrap();
+                .await?;
             transaction.last_insert_rowid()
         }
         SbgData::Air(air) => {
             let status_to_string = serde_json::to_string(&air.status)
-                .unwrap()
+                .map_err(|e| libsql::Error::ToSqlConversionFailure(Box::new(e)))?
                 .trim_matches('"')
                 .to_string();
             transaction
@@ -59,13 +60,12 @@ pub async fn save_sbg(transaction: &Transaction, sbg: &SbgData) -> i64 {
                         air.air_temperature,
                     ],
                 )
-                .await
-                .unwrap();
+                .await?;
             transaction.last_insert_rowid()
         }
         SbgData::EkfQuat(ekf_quat) => {
             let status_to_string = serde_json::to_string(&ekf_quat.status)
-                .unwrap()
+                .map_err(|e| libsql::Error::ToSqlConversionFailure(Box::new(e)))?
                 .trim_matches('"')
                 .to_string();
             transaction
@@ -84,13 +84,12 @@ pub async fn save_sbg(transaction: &Transaction, sbg: &SbgData) -> i64 {
                         status_to_string,
                     ],
                 )
-                .await
-                .unwrap();
+                .await?;
             transaction.last_insert_rowid()
         }
         SbgData::EkfNav(ekf_nav) => {
             let status_to_string = serde_json::to_string(&ekf_nav.status)
-                .unwrap()
+                .map_err(|e| libsql::Error::ToSqlConversionFailure(Box::new(e)))?
                 .trim_matches('"')
                 .to_string();
             transaction
@@ -115,13 +114,12 @@ pub async fn save_sbg(transaction: &Transaction, sbg: &SbgData) -> i64 {
                         ekf_nav.undulation,
                     ],
                 )
-                .await
-                .unwrap();
+                .await?;
             transaction.last_insert_rowid()
         }
         SbgData::Imu(imu) => {
             let status_to_string = serde_json::to_string(&imu.status)
-                .unwrap()
+                .map_err(|e| libsql::Error::ToSqlConversionFailure(Box::new(e)))?
                 .trim_matches('"')
                 .to_string();
             transaction
@@ -146,13 +144,12 @@ pub async fn save_sbg(transaction: &Transaction, sbg: &SbgData) -> i64 {
                         imu.temperature,
                     ],
                 )
-                .await
-                .unwrap();
+                .await?;
             transaction.last_insert_rowid()
         }
         SbgData::GpsVel(gps_vel) => {
             let status_to_string = serde_json::to_string(&gps_vel.status)
-                .unwrap()
+                .map_err(|e| libsql::Error::ToSqlConversionFailure(Box::new(e)))?
                 .trim_matches('"')
                 .to_string();
             transaction
@@ -173,13 +170,12 @@ pub async fn save_sbg(transaction: &Transaction, sbg: &SbgData) -> i64 {
                         gps_vel.time_of_week,
                     ],
                 )
-                .await
-                .unwrap();
+                .await?;
             transaction.last_insert_rowid()
         }
         SbgData::GpsPos(gps_pos) => {
             let status_to_string = serde_json::to_string(&gps_pos.status)
-                .unwrap()
+                .map_err(|e| libsql::Error::ToSqlConversionFailure(Box::new(e)))?
                 .trim_matches('"')
                 .to_string();
             transaction
@@ -202,11 +198,10 @@ pub async fn save_sbg(transaction: &Transaction, sbg: &SbgData) -> i64 {
                         gps_pos.time_of_week,
                     ],
                 )
-                .await
-                .unwrap();
+                .await?;
             transaction.last_insert_rowid()
         }
     };
 
-    data_id
+    Ok(data_id)
 }
