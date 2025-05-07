@@ -3,11 +3,12 @@
 	import { Environment } from '@threlte/extras';
 	import { Quaternion } from 'three/src/Three.js';
 	import NavBallScene from './NavBallScene.svelte';
-	export let targetRotation: Quaternion = new Quaternion();
 
-	let w = 500;
-	let h = 500;
-	$: squareSize = Math.min(w - 80, h - 160);
+	let { targetRotation = new Quaternion() } = $props<{ targetRotation?: Quaternion }>();
+
+	let w = $state(500);
+	let h = $state(500);
+	let squareSize = $derived(Math.min(w - 80, h - 160));
 </script>
 
 <div bind:clientHeight={h} bind:clientWidth={w} class="grid place-items-center w-full h-full">
@@ -18,15 +19,10 @@
 	height: {squareSize}px;
 "
 	>
-		<Canvas
-			size={{
-				height: 500,
-				width: 500
-			}}
-		>
-			<Environment path={'/textures/cubemap/'} files={'road.hdr'} isBackground={true} />
+		<Canvas>
+			<Environment url={'/textures/cubemap/road.hdr'} isBackground={true} />
 
-			<NavBallScene bind:targetRotation />
+			<NavBallScene {targetRotation} />
 		</Canvas>
 	</div>
 </div>

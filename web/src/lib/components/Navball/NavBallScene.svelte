@@ -4,7 +4,6 @@
 	import { Quaternion, Vector3 } from 'three';
 	import navballfrag from './NavBallShader/fragment.glsl?raw';
 	import navballvert from './NavBallShader/vertex.glsl?raw';
-
 	import { useTask } from '@threlte/core';
 
 	const map = useTexture('textures/navball.png');
@@ -13,12 +12,13 @@
 		tex.colorSpace = 'srgb-linear';
 	});
 
-	export let targetRotation: Quaternion = new Quaternion();
+	let { targetRotation = new Quaternion() } = $props<{ targetRotation?: Quaternion }>();
 
-	let displayRotation: Quaternion = targetRotation.clone();
+	let displayRotation = $state(targetRotation.clone());
 
 	useTask((delta) => {
 		displayRotation = displayRotation.slerp(targetRotation, 5 * delta);
+		displayRotation = displayRotation.clone();
 	});
 </script>
 

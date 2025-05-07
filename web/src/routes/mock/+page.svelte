@@ -129,7 +129,7 @@
 		try {
 			const payload = {
 				time_stamp,
-				status,
+				status: 'VALID',
 				// Using device orientation alpha, beta, gamma as direct substitutes for gyro x,y,z
 				// This is a simplification; true gyroscope data (rotationRate) might be preferred
 				// or a more complex conversion from orientation to angular velocity might be needed for strict accuracy.
