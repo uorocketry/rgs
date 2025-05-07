@@ -7,8 +7,8 @@ edition = "2021"
 clap = {workspace = true}
 tracing = {workspace = true}
 tracing-subscriber = {workspace = true}
-libsql = "0.9.5"
-tokio = { version = "1", features = ["full"] }
+libsql = { workspace = true }
+tokio = { workspace = true }
 chrono = { workspace = true }
-hostname = "0.4.0"
+hostname = { workspace = true }
 serde_json = { workspace = true }

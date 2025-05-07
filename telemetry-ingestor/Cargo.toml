@@ -4,8 +4,7 @@ version = "0.1.0"
 edition = "2021"
 
 [dependencies]
-tokio = { version = "1", features = ["full"] }
-sqlx = { version = "0.7", features = ["runtime-tokio", "macros", "postgres"] }
+tokio = { workspace = true }
 serde = { workspace = true }
 serde_json = { workspace = true }
 messages = { workspace = true }
@@ -14,5 +13,5 @@ clap = { workspace = true }
 tracing = { workspace = true }
 tracing-subscriber = { workspace = true }
 postcard = { workspace = true }
-libsql = "0.9.5"
-hostname = "0.4.0"
+libsql = { workspace = true }
+hostname = { workspace = true }

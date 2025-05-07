@@ -4,7 +4,7 @@ version = "0.1.0"
 edition = "2021"
 
 [dependencies]
-rand = "0.8.4"
+rand = { workspace = true }
 messages = { workspace = true }
 serde_json = { workspace = true }
 postcard = { workspace = true }
@@ -13,6 +13,6 @@ clap = { workspace = true }
 tracing = { workspace = true }
 tracing-subscriber = { workspace = true }
 chrono = { workspace = true }
-tokio = { version = "1", features = ["full"] }
-libsql = { version = "0.9.5" }
-hostname = "0.4.0"
+tokio = { workspace = true }
+libsql = { workspace = true }
+hostname = { workspace = true }
