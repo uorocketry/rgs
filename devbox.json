@@ -1,25 +1,27 @@
 {
-    "$schema": "https://raw.githubusercontent.com/jetify-com/devbox/0.12.0/.schema/devbox.schema.json",
-    "packages": [
-        "rustup@latest",
-        "nodejs@latest",
-        "inotify-tools@latest",
-        "starship@latest",
-        "pkgconfig@latest",
-        "openssl@latest",
-        "protobuf@latest",
-        "pnpm@latest",
-        "pkg-config@latest",
-        "libiconv@latest",
-        "docker-compose@latest",
-        "libudev-zero@latest",
-        "sqlx-cli@latest",
-        "python@latest"
-    ],
-    "shell": {
-        "init_hook": ["eval \"$(starship init $(echo $SHELL))\""],
-        "scripts": {
-            "test": ["echo \"Error: no test specified\" && exit 1"]
-        }
+  "$schema": "https://raw.githubusercontent.com/jetify-com/devbox/0.12.0/.schema/devbox.schema.json",
+  "packages": [
+    "rustup@latest",
+    "inotify-tools@latest",
+    "starship@latest",
+    "pkgconfig@latest",
+    "openssl@latest",
+    "protobuf@latest",
+    "pnpm@latest",
+    "bun@latest",
+    "pkg-config@latest",
+    "libiconv@latest",
+    "docker-compose@latest",
+    "libudev-zero@latest",
+    "sqlx-cli@latest",
+    "sqlite@latest",
+    "sqld@latest",
+    "docker@latest"
+  ],
+  "shell": {
+    "init_hook": ["eval \"$(starship init $(echo $SHELL))\""],
+    "scripts": {
+      "test": ["echo \"Error: no test specified\" && exit 1"]
     }
+  }
 }

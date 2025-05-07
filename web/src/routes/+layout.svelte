@@ -1,133 +1,178 @@
 <script lang="ts">
 	// CSS
-	import '@fortawesome/fontawesome-free/css/all.min.css';
 	import '../app.css';
 
-	import 'chart.js/auto'; // Import everything from chart.js
-	// TODO: Don't do this, have it self contained
+	// Required for chart rendering, consider optimizing imports if needed
+	import 'chart.js/auto';
 
-	import {
-		AppBar,
-		AppShell,
-		Toast,
-		setModeCurrent,
-		setModeUserPrefers,
-		storePopup
-	} from '@skeletonlabs/skeleton';
-
+	import { browser } from '$app/environment';
 	import { findSetting } from '$lib/common/settings';
 	import MasterCommandBox from '$lib/components/Common/CommandBox/MasterCommandBox.svelte';
 	import SideBar from '$lib/components/Common/SideBar.svelte';
-	import { commandBoxToggle, gqlClient } from '$lib/stores';
-	import { arrow, autoUpdate, computePosition, flip, offset, shift } from '@floating-ui/dom';
-	import { getToastStore, initializeStores } from '@skeletonlabs/skeleton';
+	import ToastContainer from '$lib/components/Common/ToastContainer.svelte';
+	import { commandBoxToggle } from '$lib/stores';
+	import { toastStore } from '$lib/stores/toastStore';
+	import { isImmersiveMode } from '$lib/stores/uiStore';
 	import { onMount } from 'svelte';
 	import type { Writable } from 'svelte/store';
+	import { get } from 'svelte/store';
 
-	initializeStores();
+	let { children } = $props();
 
 	const sideBarLeft = findSetting('ui.sidebarLeft')?.value as Writable<boolean>;
-	const useDarkMode = findSetting('ui.lightMode')?.value as Writable<boolean>;
-	const toastStore = getToastStore();
-	storePopup.set({ computePosition, autoUpdate, offset, shift, flip, arrow });
-
 	const consoleNotifications = findSetting('notifications.consoleNotifications')
 		?.value as Writable<boolean>;
 
-	useDarkMode.subscribe((val) => {
-		setModeUserPrefers(val);
-		setModeCurrent(val);
+	// --- Immersive Mode Hotkey ---
+	onMount(() => {
+		const handleKeyDown = (event: KeyboardEvent) => {
+			if (event.key === 'Tab') {
+				event.preventDefault(); // Prevent default Tab behavior (focus change)
+				isImmersiveMode.update((n) => !n);
+			}
+		};
+
+		window.addEventListener('keydown', handleKeyDown);
+
+		return () => {
+			window.removeEventListener('keydown', handleKeyDown);
+		};
 	});
 
-	onMount(() => {
+	// Override console methods for potential toast notifications
+	$effect(() => {
 		const oldConsoleLog = console.log;
 		const oldConsoleWarn = console.warn;
 		const oldConsoleError = console.error;
 
-		const textWrapper = (message: string) => {
-			return `<span class="text-sm">${message}</span>`;
-		};
-
 		console.log = (...args: unknown[]) => {
-			if ($consoleNotifications) {
-				toastStore.trigger({
-					background: 'variant-filled-primary',
-					classes: 'text-sm',
-					message: textWrapper(args.join(' '))
-				});
+			const message = args.map((arg) => String(arg)).join(' ');
+			if (get(consoleNotifications)) {
+				// TODO: Implement toast notification for log using a DaisyUI compatible solution
+				// console.info('Toast [Log]:', ...args); // Temporary placeholder
+				toastStore.info(message);
 			}
 			oldConsoleLog(...args);
 		};
 
 		console.warn = (...args: unknown[]) => {
-			if ($consoleNotifications) {
-				toastStore.trigger({
-					background: 'variant-filled-warning',
-					message: textWrapper(args.join(' '))
-				});
+			const message = args.map((arg) => String(arg)).join(' ');
+			if (get(consoleNotifications)) {
+				// TODO: Implement toast notification for warn using a DaisyUI compatible solution
+				// console.info('Toast [Warn]:', ...args); // Temporary placeholder
+				toastStore.warning(message);
 			}
 			oldConsoleWarn(...args);
 		};
 
 		console.error = (...args: unknown[]) => {
-			if ($consoleNotifications) {
-				toastStore.trigger({
-					background: 'variant-filled-error',
-					classes: 'text-sm',
-					message: textWrapper(args.join(' '))
-				});
+			const message = args.map((arg) => String(arg)).join(' ');
+			if (get(consoleNotifications)) {
+				// TODO: Implement toast notification for error using a DaisyUI compatible solution
+				// console.info('Toast [Error]:', ...args); // Temporary placeholder
+				toastStore.error(message, 0); // Keep errors until dismissed
 			}
 			oldConsoleError(...args);
 		};
+
+		// Cleanup function to restore original console methods
+		return () => {
+			console.log = oldConsoleLog;
+			console.warn = oldConsoleWarn;
+			console.error = oldConsoleError;
+		};
 	});
 
-	import { setContextClient } from '@urql/svelte';
+	// Theme Management
+	const themeSetting = findSetting('ui.theme');
+	let themeStore: Writable<string> | undefined;
+	if (themeSetting && themeSetting.valueDescription === 'enum') {
+		themeStore = themeSetting.value;
+	}
 
-	setContextClient(gqlClient);
+	let currentTheme = $state(themeStore ? get(themeStore) : 'system');
+
+	// Update state when theme store changes
+	if (themeStore) {
+		$effect(() => {
+			return themeStore?.subscribe((value) => {
+				currentTheme = value;
+			});
+		});
+	}
+
+	// Apply theme to document root
+	$effect.pre(() => {
+		if (!browser) return; // Ensure this runs only in the browser
+
+		const htmlElement = document.documentElement;
+		if (currentTheme === 'system') {
+			htmlElement.removeAttribute('data-theme');
+		} else {
+			htmlElement.setAttribute('data-theme', currentTheme);
+		}
+	});
 </script>
 
-<!-- Main toast service -->
-<Toast position="tr" width="max-w-xs" />
+<ToastContainer />
 
-<AppShell>
-	<svelte:fragment slot="header">
-		<AppBar
-			padding="p-0"
-			background="bg-surface-100-800-token"
-			border="border-b border-surface-500"
-		>
-			<svelte:fragment slot="lead">
-				<img src="/favicon-32x32.png" class="ml-1 w-8 h-8 p-1" alt="logo" />
-			</svelte:fragment>
-			<div class="flex place-content-center max-h-8">
-				<button
-					on:click={() => commandBoxToggle.set({})}
-					class="btn flex place-content-center btn-xs w-full max-w-sm"
-				>
-					<i class="fa-solid fa-magnifying-glass text-sm"></i>
-					<small>&Tilde; (Tilde)</small>
-				</button>
+<!-- DaisyUI Drawer Layout -->
+<div class="drawer lg:drawer-open" class:drawer-end={$sideBarLeft}>
+	<input id="sidebar-drawer" type="checkbox" class="drawer-toggle" />
+
+	<!-- Page Content -->
+	<div class="drawer-content flex flex-col h-screen overflow-hidden">
+		<!-- Navbar -->
+		{#if !$isImmersiveMode}
+			<div class="navbar bg-base-100 border-b border-base-300 h-12 min-h-12">
+				<div class="navbar-start">
+					<img src="/favicon-32x32.png" class="w-8 h-8 p-1 ml-2" alt="logo" />
+				</div>
+				<div class="navbar-center">
+					<button
+						onclick={() => commandBoxToggle.set({})}
+						class="btn btn-sm w-full max-w-sm flex items-center justify-center"
+					>
+						<i class="fa-solid fa-magnifying-glass text-sm mr-2"></i>
+						<small>&Tilde; (Tilde)</small>
+					</button>
+				</div>
+				<div class="navbar-end">
+					<!-- Navbar end content (e.g., theme toggle, user menu) -->
+				</div>
 			</div>
-		</AppBar>
-	</svelte:fragment>
-	<MasterCommandBox />
-	<svelte:fragment slot="sidebarLeft">
-		{#if $sideBarLeft}
-			<SideBar />
 		{/if}
-	</svelte:fragment>
 
-	<svelte:fragment slot="sidebarRight">
-		{#if !$sideBarLeft}
-			<SideBar />
+		<!-- Command Box (Modal) -->
+		<MasterCommandBox />
+
+		<!-- Main Content Area -->
+		<main
+			class="flex-1 overflow-y-auto bg-base-100"
+			class:h-screen={!$isImmersiveMode}
+			class:!h-full={$isImmersiveMode}
+			class:pt-0={$isImmersiveMode}
+			class:pb-0={$isImmersiveMode}
+		>
+			{@render children?.()}
+		</main>
+
+		<!-- Footer / Status Bar -->
+		{#if !$isImmersiveMode}
+			<footer
+				class="footer footer-center items-center p-1 bg-base-300 text-base-content h-5 min-h-5"
+			>
+				<aside>
+					<p class="text-xs">Status bar content goes here</p>
+				</aside>
+			</footer>
 		{/if}
-	</svelte:fragment>
+	</div>
 
-	<slot />
-	<!-- footer -->
-	<svelte:fragment slot="footer">
-		<div class="max-h-5 h-5 bg-surface-100-800-token border-t border-surface-500">
-			<!-- TODO -->
+	<!-- Sidebar Content -->
+	{#if !$isImmersiveMode}
+		<div class="drawer-side border-r border-base-300" style="scroll-behavior: smooth;">
+			<SideBar />
 		</div>
-	</svelte:fragment>
-</AppShell>
+	{/if}
+</div>

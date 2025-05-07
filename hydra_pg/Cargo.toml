@@ -14,3 +14,5 @@ clap = { workspace = true }
 tracing = { workspace = true }
 tracing-subscriber = { workspace = true }
 postcard = { workspace = true }
+libsql = "0.9.5"
+hostname = "0.4.0"

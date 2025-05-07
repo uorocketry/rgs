@@ -1,30 +1,71 @@
+mod savers;
 use clap::Parser;
-use hydra_input::saveable::SaveableData;
+use libsql::Builder;
 use mavlink::connect;
 use mavlink::uorocketry::MavMessage;
-use messages::Message;
-use postcard::from_bytes;
-use sqlx::{query, PgPool};
-use tracing::{error, info};
-mod hydra_input;
+use std::env;
+use std::time::SystemTime;
+use std::time::{Duration, Instant};
+use tracing::{error, info, warn};
 use tracing_subscriber;
 
 #[derive(Parser, Debug)]
 #[command(version, about, long_about = None)]
 struct Args {
     // database url
-    #[arg(
-        short,
-        long,
-        default_value = "postgres://postgres:postgres@localhost:5432/postgres"
-    )]
-    db_url: String,
+    #[arg(long, default_value = "http://localhost:8080")]
+    libsql_url: String,
 
     #[arg(short, long, default_value = "127.0.0.1")]
     address: String,
 
     #[arg(short, long, default_value_t = 5656)]
     port: u16,
+}
+
+async fn run_heartbeat_task(db_url: String) {
+    let hostname = hostname::get()
+        .map(|s| {
+            s.into_string()
+                .unwrap_or_else(|_| "invalid_hostname".to_string())
+        })
+        .unwrap_or_else(|_| "unknown_hostname".to_string());
+
+    info!(
+        "Heartbeat task started. Will ping DB at {} every 30s. Hostname: {}",
+        db_url, hostname
+    );
+
+    loop {
+        tokio::time::sleep(Duration::from_secs(30)).await;
+
+        let db_result = async {
+            let builder = Builder::new_remote(db_url.clone(), "".to_string());
+            let db = builder.build().await?;
+            let conn = db.connect()?;
+
+            let app_timestamp = SystemTime::now()
+                .duration_since(SystemTime::UNIX_EPOCH)
+                .map(|d| d.as_secs())
+                .unwrap_or(0);
+
+            let owned_hostname = hostname.clone();
+
+            info!("Sending heartbeat ping for service 'hydra_pg'");
+            conn.execute(
+                "INSERT INTO ServicePing (service_id, hostname, app_timestamp) VALUES (?1, ?2, ?3)",
+                libsql::params!["hydra_pg", owned_hostname, app_timestamp as i64],
+            )
+            .await?;
+
+            Ok::<(), Box<dyn std::error::Error + Send + Sync>>(())
+        }
+        .await;
+
+        if let Err(e) = db_result {
+            warn!("Failed to send heartbeat ping: {}", e);
+        }
+    }
 }
 
 #[tokio::main]
@@ -35,8 +76,17 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     let args = Args::parse();
 
-    info!("Attempting to connect to database: {}", args.db_url);
-    let db_connection = match PgPool::connect(&args.db_url).await {
+    let db_url_for_task = args.libsql_url.clone();
+    tokio::spawn(run_heartbeat_task(db_url_for_task));
+
+    info!("Attempting to connect to database: {}", args.libsql_url);
+
+    let db = Builder::new_remote(args.libsql_url.clone(), "".to_string())
+        .build()
+        .await
+        .unwrap();
+
+    let db_connection = match db.connect() {
         Ok(connection) => {
             info!("Database connection established successfully");
             connection
@@ -70,79 +120,103 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     info!("Getting Messages...");
     let mut last_seq_num = 0;
+
+    // Batching parameters
+    const BATCH_SIZE: usize = 100;
+    const BATCH_TIMEOUT: Duration = Duration::from_millis(500);
+
+    let mut message_buffer: Vec<Vec<u8>> = Vec::with_capacity(BATCH_SIZE);
+    let mut last_batch_time = Instant::now();
+
     loop {
-        let db_connection = db_connection.clone();
-        match connection.recv() {
+        let mut received_would_block = false; // Flag for WouldBlock
+
+        // Clone connection for potential batch save
+        let db_conn_for_batch = db_connection.clone();
+
+        // Store the result of recv() once per loop iteration
+        let recv_result = connection.recv();
+
+        match recv_result {
             Ok((header, message)) => {
+                info!("Received message: {:?}", header.sequence);
                 let packets_lost =
-                    ((header.sequence as i32) - (last_seq_num as i32) - 1).rem_euclid(256); 
+                    ((header.sequence as i32) - (last_seq_num as i32) - 1).rem_euclid(256);
                 last_seq_num = header.sequence;
 
-                let db_connection_clone = db_connection.clone();
                 if packets_lost > 0 {
-                    println!("Packets Lost: {}", packets_lost);
-                    tokio::spawn(async move {
-                        let mut transaction = db_connection_clone.begin().await.unwrap();
-                        let result = query!(
-                            "INSERT INTO packet_lost
-                                (packets_lost)
-                                VALUES ($1)
-                                RETURNING id",
-                            packets_lost
-                        )
-                        .fetch_one(&mut *transaction)
-                        .await;
-                        transaction.commit().await.unwrap();
-                    }); 
+                    warn!("Packets Lost: {}", packets_lost);
+                    // TODO: adding packet loss saving logic (potentially batched too)
                 }
 
-                match &message {
+                match message {
                     MavMessage::POSTCARD_MESSAGE(data) => {
-                        let data: Message = match from_bytes(data.message.as_slice()) {
-                            Ok(data) => data,
-                            Err(e) => {
-                                error!(
-                                    "Failed to deserialize message, {:?} REASON: {:?}",
-                                    header, e
-                                );
-                                continue;
-                            }
-                        };
-                        let data = data.clone();
-                        let msg_json = serde_json::to_string(&data.data).unwrap();
-                        let db_connection_clone = db_connection.clone();
-                        info!("\nMessage: {}", msg_json);
-                        tokio::spawn(async move {
-                            let mut transaction = db_connection_clone.begin().await.unwrap();
-                            data.save(&mut transaction, 0).await.unwrap();
-                            transaction.commit().await.unwrap();
-                        });
+                        message_buffer.push(data.message.to_vec());
                     }
-                    MavMessage::RADIO_STATUS(data) => {
-                        let data = data.clone();
-                        tokio::spawn(async move {
-                            let mut transaction = db_connection.begin().await.unwrap();
-                            data.save(&mut transaction, 0).await.unwrap();
-                            transaction.commit().await.unwrap();
-                        });
+                    MavMessage::RADIO_STATUS(_data) => {
+                        // TODO: Handle RADIO_STATUS saving if needed, potentially batching it as well.
+                        // warn!("Received RADIO_STATUS, saving not implemented yet.");
+                        // let data = data.clone();
+                        // tokio::spawn(async move { ... });
                     }
                     other => {
                         error!("Received an unexpected message type {:?}", other);
-                        continue;
+                        continue; // Skip unknown message types
                     }
                 };
             }
-            Err(e) => match e {
-                mavlink::error::MessageReadError::Io(io_err) => match io_err.kind() {
-                    std::io::ErrorKind::WouldBlock => continue,
-                    _ => {
-                        error!("Mavread Failed to receive message, REASON: {:?}", io_err);
+            Err(e) => {
+                match e {
+                    mavlink::error::MessageReadError::Io(io_err) => match io_err.kind() {
+                        std::io::ErrorKind::WouldBlock => {
+                            // Ignore WouldBlock errors
+                        }
+                        std::io::ErrorKind::UnexpectedEof => {
+                            error!("Connection closed unexpectedly (EOF). Shutting down receiver loop.");
+                            break; // Exit loop on EOF
+                        }
+                        _ => {
+                            error!("Mavlink IO Error receiving message: {:?}", io_err);
+                            // Potentially break or implement retry logic?
+                            tokio::time::sleep(Duration::from_secs(1)).await; // Avoid busy-looping on persistent errors
+                            continue;
+                        }
+                    },
+                    // Other non-IO errors might be more serious
+                    e => {
+                        error!("Mavlink Non-IO Error receiving message: {:?}", e);
+                        // Depending on the error, might need to panic or break
+                        tokio::time::sleep(Duration::from_secs(1)).await;
+                        continue;
                     }
-                },
-                e => {
-                    panic!("Failed to receive message, REASON: {:?}", e);
                 }
-            },
+            }
+        }
+
+        // Check if we need to save the batch
+        let should_save_batch = !message_buffer.is_empty()
+            && (message_buffer.len() >= BATCH_SIZE || last_batch_time.elapsed() >= BATCH_TIMEOUT);
+
+        if should_save_batch {
+            info!("Saving batch");
+            // Take the messages from the buffer
+            let messages_to_save = std::mem::take(&mut message_buffer);
+            // Reset the timer
+            last_batch_time = Instant::now();
+
+            // Spawn a task to save the batch without blocking the receive loop
+            tokio::spawn(async move {
+                match savers::message::save_messages_batch(&db_conn_for_batch, messages_to_save)
+                    .await
+                {
+                    Ok(_) => info!("Batch saved successfully."),
+                    Err(e) => error!("Failed to save batch: {:?}", e),
+                }
+            });
+            // Ensure the buffer has the correct capacity after taking elements
+            message_buffer.reserve(BATCH_SIZE);
         }
     }
+
+    Ok(())
 }

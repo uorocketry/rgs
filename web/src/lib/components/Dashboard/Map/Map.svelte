@@ -1,9 +1,9 @@
 <script lang="ts">
-	import { onMount } from 'svelte';
+	import * as Cesium from 'cesium';
 	import { Viewer } from 'cesium';
 	import 'cesium/Build/Cesium/Widgets/widgets.css';
-	import * as Cesium from 'cesium';
-	import { LatestAltitude, LatestCoordinates, LatestCoordinatesSBG } from './types';
+	import { onMount } from 'svelte';
+	// import { LatestAltitude, LatestCoordinates, LatestCoordinatesSBG } from './types';
 
 	// TODOS:
 	// - Add launch coordinates
@@ -17,64 +17,68 @@
 	let rocketModel: Cesium.Entity | undefined;
 	let rocketModelSBG: Cesium.Entity | undefined;
 
-	$: latestCoordinatesData = $LatestCoordinates.data;
-	$: LatestCoordinatesSBGData = $LatestCoordinatesSBG.data;
-	$: LatestAltitudeData = $LatestAltitude.data;
-	console.log('Latest coordinates', latestCoordinatesData);
-	console.log('Latest altitude', LatestAltitudeData);
+	// $: latestCoordinatesData = $LatestCoordinates.data;
+	// $: LatestCoordinatesSBGData = $LatestCoordinatesSBG.data;
+	// $: LatestAltitudeData = $LatestAltitude.data;
+	// console.log('Latest coordinates', latestCoordinatesData);
+	// console.log('Latest altitude', LatestAltitudeData);
 
-	$: latestCoordinates = {
-		latitude: latestCoordinatesData?.rocket_sensor_nav_pos_llh[0]?.latitude ?? 0,
-		longitude: latestCoordinatesData?.rocket_sensor_nav_pos_llh[0]?.longitude ?? 0,
-		altitude: LatestAltitudeData?.rocket_sensor_air[0]?.altitude ?? 0
-	};
+	// $: latestCoordinates = {
+	// 	latitude: latestCoordinatesData?.rocket_sensor_nav_pos_llh[0]?.latitude ?? 0,
+	// 	longitude: latestCoordinatesData?.rocket_sensor_nav_pos_llh[0]?.longitude ?? 0,
+	// 	altitude: LatestAltitudeData?.rocket_sensor_air[0]?.altitude ?? 0
+	// };
 
-	$: latestCoordinatesSBG = {
-		latitude: LatestCoordinatesSBGData?.rocket_sensor_gps_pos_1[0]?.latitude ?? 0,
-		longitude: LatestCoordinatesSBGData?.rocket_sensor_gps_pos_1[0]?.longitude ?? 0
-	};
+	// $: latestCoordinatesSBG = {
+	// 	latitude: LatestCoordinatesSBGData?.rocket_sensor_gps_pos_1[0]?.latitude ?? 0,
+	// 	longitude: LatestCoordinatesSBGData?.rocket_sensor_gps_pos_1[0]?.longitude ?? 0
+	// };
 
-	$: if (viewer && rocketModel) {
-		console.log('Updating label text and position');
+	$effect(() => {
+		if (viewer && rocketModel) {
+			console.log('Updating label text and position');
 
-		// Update label text
-		if (rocketModel.label) {
-			rocketModel.label.text = new Cesium.ConstantProperty(
-				`Backup GPS Latitude: ${latestCoordinates.latitude}, Longitude: ${latestCoordinates.longitude}, Altitude: ${latestCoordinates.altitude} meters`
-			);
+			// Update label text
+			if (rocketModel.label) {
+				// rocketModel.label.text = new Cesium.ConstantProperty(
+				// 	`Backup GPS Latitude: ${latestCoordinates.latitude}, Longitude: ${latestCoordinates.longitude}, Altitude: ${latestCoordinates.altitude} meters`
+				// );
+			}
+
+			// Calculate position
+			// const zPosition = latestCoordinates.altitude + 50; // adjust scale factor etc
+			// rocketModel.position = new Cesium.ConstantPositionProperty(
+			// 	Cesium.Cartesian3.fromDegrees(
+			// 		latestCoordinates.longitude as number, //TODO get type
+			// 		latestCoordinates.latitude as number, //TODO get type
+			// 		zPosition
+			// 	)
+			// );
 		}
+	});
 
-		// Calculate position
-		const zPosition = latestCoordinates.altitude + 50; // adjust scale factor etc
-		rocketModel.position = new Cesium.ConstantPositionProperty(
-			Cesium.Cartesian3.fromDegrees(
-				latestCoordinates.longitude as number, //TODO get type
-				latestCoordinates.latitude as number, //TODO get type
-				zPosition
-			)
-		);
-	}
+	$effect(() => {
+		if (viewer && rocketModelSBG) {
+			console.log('Updating label text and position');
 
-	$: if (viewer && rocketModelSBG) {
-		console.log('Updating label text and position');
+			// Update label text
+			if (rocketModelSBG.label) {
+				// rocketModelSBG.label.text = new Cesium.ConstantProperty(
+				// 	`SBG GPS Latitude: ${latestCoordinatesSBG.latitude}, Longitude: ${latestCoordinatesSBG.longitude}, Altitude: ${latestCoordinatesSBG.altitude} meters`
+				// );
+			}
 
-		// Update label text
-		if (rocketModelSBG.label) {
-			rocketModelSBG.label.text = new Cesium.ConstantProperty(
-				`SBG GPS Latitude: ${latestCoordinatesSBG.latitude}, Longitude: ${latestCoordinatesSBG.longitude}, Altitude: ${latestCoordinatesSBG.altitude} meters`
-			);
+			// Calculate position
+			// const zPosition = latestCoordinates.altitude + 50; // adjust scale factor etc
+			// rocketModelSBG.position = new Cesium.ConstantPositionProperty(
+			// 	Cesium.Cartesian3.fromDegrees(
+			// 		latestCoordinatesSBG.longitude as number, //TODO get type
+			// 		latestCoordinatesSBG.latitude as number, //TODO get type
+			// 		zPosition
+			// 	)
+			// );
 		}
-
-		// Calculate position
-		const zPosition = latestCoordinates.altitude + 50; // adjust scale factor etc
-		rocketModelSBG.position = new Cesium.ConstantPositionProperty(
-			Cesium.Cartesian3.fromDegrees(
-				latestCoordinatesSBG.longitude as number, //TODO get type
-				latestCoordinatesSBG.latitude as number, //TODO get type
-				zPosition
-			)
-		);
-	}
+	});
 
 	onMount(async () => {
 		viewer = new Viewer('cesiumContainer', {
@@ -180,4 +184,4 @@
 	});
 </script>
 
-<div id="cesiumContainer" class="h-full"></div>
+<div id="cesiumContainer" class="h-full w-full"></div>

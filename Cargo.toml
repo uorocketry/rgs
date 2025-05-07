@@ -1,12 +1,12 @@
 [workspace]
 members = [
-    "hydra_gateway",
+    "sergw",
     "hydra_pg",
     "hydra_commander",
     "hydrate",
     "hydrand",
     "coord_mocker",
-    "tile_provider",
+    "hydra_manager_daemon",
 ]
 resolver = "2"
 
@@ -19,12 +19,14 @@ mavlink = { git = "https://github.com/uorocketry/rust-mavlink.git", features = [
     "direct-serial",
     "serde",
 ], default-features = false }
-messages = { git = "https://github.com/uorocketry/hydra", branch = "nav", features = [
+messages = { git = "https://github.com/uorocketry/messages", features = [
     'std',
 ], default-features = false }
+chrono = { git = "https://github.com/uorocketry/chrono", features = ['serde'] }
+
 clap = { version = "4.5.16", features = ["derive"] }
 tracing = "0.1.40"
 tracing-subscriber = "0.3.18"
-postcard = "1.0.2"
+postcard = { version = "1.0.2", features = ["alloc"] }
 serde = { version = "1", features = ["derive"] }
 serde_json = "1"

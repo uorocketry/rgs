@@ -1,125 +1,130 @@
 <script lang="ts">
 	import { commandActions, commandReqAdaptor, type CommandRequest } from '$lib/common/actions';
 	import { commandBoxToggle } from '$lib/stores';
-	import { onDestroy, onMount, tick } from 'svelte';
-	import { get } from 'svelte/store';
+	import { tick } from 'svelte';
 	import CommandBox from './CommandBox.svelte';
 
-	let visible = true;
-	let inputElement: HTMLInputElement;
-	let inputValue = '';
-	let list: string[] = [];
-	let placeholder = 'Search by name';
-	let prompt = '';
-	let selectedIndex = 0;
+	let inputElement = $state<HTMLInputElement | null>(null);
+	let inputValue = $state('');
+	let list = $state<string[]>([]);
+	let placeholder = $state('Search by name');
+	let prompt = $state('');
+	let selectedIndex = $state(0);
+	let cmdBox = $state<CommandBox | null>(null);
+	let currentResolve = $state<((value: any) => void) | null>(null);
 
-	let cmdAdaptor: CommandRequest = {
+	const cmdAdaptor: CommandRequest = {
 		string: async (reqPrompt, reqPlaceholder = '...') => {
-			visible = true;
 			inputValue = '';
 			list = [];
 			placeholder = reqPlaceholder;
 			prompt = reqPrompt;
-			await tick();
-			inputElement.focus();
 
 			return new Promise((resolve) => {
-				cmdBox.onEnter((err) => {
-					if (err) {
-						resolve(undefined);
-						console.warn('Command input resolved to: undefined');
-						return;
-					}
-					resolve(inputValue);
-					console.log('Command input resolved to:', inputValue);
-					visible = false;
-				});
+				currentResolve = resolve;
+				cmdBox?.show();
 			});
 		},
 		select: async (reqPrompt, options, reqPlaceholder = 'Search by name') => {
-			visible = true;
 			inputValue = '';
 			list = options;
 			prompt = reqPrompt;
 			placeholder = reqPlaceholder;
-			await tick();
-			inputElement.focus();
 
 			return new Promise((resolve) => {
-				cmdBox.onClick((item, err) => {
-					if (err) {
-						resolve(undefined);
-						return;
-					}
-					resolve(item);
-					visible = false;
-				});
+				currentResolve = resolve;
+				cmdBox?.show();
 			});
 		}
 	};
 	commandReqAdaptor.set(cmdAdaptor);
 
+	function handleEnter(err: boolean) {
+		if (!currentResolve) return;
+		if (err) {
+			currentResolve(undefined);
+			console.warn('Command input resolved to: undefined');
+		} else {
+			currentResolve(inputValue);
+			console.log('Command input resolved to:', inputValue);
+		}
+		cmdBox?.hide();
+		currentResolve = null;
+	}
+
+	function handleClick(item: number, err: boolean) {
+		if (!currentResolve) return;
+		if (err) {
+			currentResolve(undefined);
+		} else {
+			currentResolve(item);
+		}
+		cmdBox?.hide();
+		currentResolve = null;
+	}
+
 	async function chooseAction() {
-		let actionNames = get(commandActions).map((a) => a.name);
+		const actions = $commandActions;
+		if (!actions) return;
+		let actionNames = actions.map((a) => a.name);
 		let choice: number | undefined = await cmdAdaptor.select(
 			'',
 			actionNames,
 			'Search action by name'
-		); // Number
+		);
 		if (choice === undefined) {
 			return;
 		}
-		let action = get(commandActions)[choice];
-		action.do();
+		let action = actions[choice];
+		if (action) {
+			action.do();
+		}
 	}
 
-	async function listenToToggle(e: KeyboardEvent) {
-		// tilde "`" to toggle
-		if (e.key === '`') {
-			e.preventDefault();
-			if (!visible) inputValue = '';
-			visible = !visible;
-			await tick();
-			if (visible) {
-				selectedIndex = 0;
-				inputElement.focus();
-				chooseAction();
+	$effect(() => {
+		async function listenToToggle(e: KeyboardEvent) {
+			if (e.key === '`') {
+				e.preventDefault();
+				const dialogIsOpen = cmdBox?.getDialogElement()?.hasAttribute('open');
+				if (!dialogIsOpen) {
+					inputValue = '';
+					selectedIndex = 0;
+					cmdBox?.show();
+					chooseAction();
+				} else {
+					cmdBox?.hide();
+				}
 			}
 		}
-		// esc to close
-		if (e.key === 'Escape') {
-			visible = false;
-		}
-	}
-
-	onMount(() => {
 		window.addEventListener('keydown', listenToToggle);
-		commandBoxToggle.subscribe(() => {
-			visible = !visible;
-			if (visible) {
+
+		const unsubscribe = commandBoxToggle.subscribe(async () => {
+			const dialogIsOpen = cmdBox?.getDialogElement()?.hasAttribute('open');
+			if (!dialogIsOpen) {
 				selectedIndex = 0;
 				placeholder = 'Search commands by name';
-				inputElement?.focus();
+				cmdBox?.show();
 				chooseAction();
+			} else {
+				cmdBox?.hide();
 			}
 		});
-	});
 
-	onDestroy(() => {
-		window.removeEventListener('keydown', listenToToggle);
+		return () => {
+			window.removeEventListener('keydown', listenToToggle);
+			unsubscribe();
+		};
 	});
-
-	let cmdBox: CommandBox;
 </script>
 
-{#if visible}
-	<CommandBox
-		bind:this={cmdBox}
-		bind:selectedIndex
-		{placeholder}
-		{prompt}
-		{list}
-		bind:inputElement
-		bind:inputValue
-	/>
-{/if}
+<CommandBox
+	bind:this={cmdBox}
+	bind:selectedIndex
+	bind:inputElement
+	bind:inputValue
+	{placeholder}
+	{prompt}
+	{list}
+	onEnter={handleEnter}
+	onClick={handleClick}
+/>

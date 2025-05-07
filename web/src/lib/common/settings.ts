@@ -1,34 +1,39 @@
-import { localStorageStore } from '@skeletonlabs/skeleton';
-import type { Writable } from 'svelte/store';
+import { writable, type Writable } from 'svelte/store';
+import { persistentStore } from './persistentStorage';
+
 
 // Settings type definitions
 
 type ValueT =
 	| {
-			valueDescription: 'string';
-			value: Writable<string>;
-	  }
+		valueDescription: 'string';
+		value: Writable<string>;
+		placeholder?: string;
+	}
 	| {
-			valueDescription: 'number';
-			value: Writable<number>;
-	  }
+		valueDescription: 'number';
+		value: Writable<number>;
+		min?: number;
+		max?: number;
+		step?: number;
+	}
 	| {
-			valueDescription: 'boolean';
-			value: Writable<boolean>;
-	  }
+		valueDescription: 'boolean';
+		value: Writable<boolean>;
+	}
 	| {
-			valueDescription: 'array';
-			value: Writable<string[]>;
-	  }
+		valueDescription: 'array';
+		value: Writable<string[]>;
+	}
 	| {
-			valueDescription: 'kv';
-			value: Writable<{ [key: string]: string }>;
-	  }
+		valueDescription: 'kv';
+		value: Writable<{ [key: string]: string }>;
+	}
 	| {
-			valueDescription: 'enum';
-			options: string[];
-			value: Writable<string>;
-	  };
+		valueDescription: 'enum';
+		options: string[];
+		value: Writable<string>;
+	};
 
 type Setting = { name: string; description?: string } & ValueT;
 
@@ -46,13 +51,14 @@ const uiSettings = {
 			name: 'sidebarLeft',
 			description: 'Show side bar on the left side, otherwise on the right side',
 			valueDescription: 'boolean',
-			value: localStorageStore('ui.sidebarLeft', true)
+			value: persistentStore('ui.sidebarLeft', true)
 		},
 		{
-			name: 'lightMode',
-			description: 'Use light mode',
-			valueDescription: 'boolean',
-			value: localStorageStore('ui.lightMode', true)
+			name: 'theme',
+			description: 'Select the application theme',
+			valueDescription: 'enum',
+			options: ['system', 'light', 'dark', 'uorocketry'],
+			value: persistentStore('ui.theme', 'system')
 		}
 	]
 } satisfies SettingsGroup;
@@ -64,7 +70,7 @@ const notificationSettings = {
 			name: 'consoleNotifications',
 			description: 'Enable on-screen console notifications',
 			valueDescription: 'boolean',
-			value: localStorageStore('notifications.consoleNotifications', false)
+			value: persistentStore('notifications.consoleNotifications', false)
 		}
 	]
 } satisfies SettingsGroup;

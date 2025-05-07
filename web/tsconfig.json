@@ -8,12 +8,5 @@
 		"strict": true,
 		"skipLibCheck": true,
 		"moduleResolution": "Bundler",
-		"plugins": [
-			{
-				"name": "gql.tada/ts-plugin",
-				"schema": "http://localhost:4000/v1/graphql",
-				"tadaOutputLocation": "./src/graphql-env.d.ts"
-			}
-		]
 	}
 }

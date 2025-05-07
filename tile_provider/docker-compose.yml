@@ -1,0 +1,10 @@
+# Example docker-compose.yml for tile_provider
+services:
+  tile_provider:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - "6565:6565"
+    volumes:
+      - ./tiles_data:/var/lib/tile_provider:rw

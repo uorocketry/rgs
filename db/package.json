@@ -1,21 +1,15 @@
 {
   "name": "@rgs/db",
-  "version": "1.0.0",
-  "description": "",
-  "type": "commonjs",
-  "scripts": {
-    "bootstrap": "node ./scripts/bootstrap.mjs",
-    "dump_hasura": "node ./scripts/dump_hasura",
-    "restore_hasura": "node ./scripts/restore_hasura",
-    "dk": "drizzle-kit",
-    "push": "drizzle-kit push",
-    "drop": "drizzle-kit drop",
-    "purge_db": "sudo rm -rf ../data"
-  },
+  "module": "index.ts",
+  "type": "module",
   "devDependencies": {
-    "@types/node": "^20.15.0",
-    "drizzle-kit": "^0.24.0",
-    "drizzle-orm": "^0.33.0",
-    "pg": "^8.12.0"
+    "@types/bun": "latest"
+  },
+  "peerDependencies": {
+    "typescript": "^5.0.0"
+  },
+  "dependencies": {
+    "@libsql/client": "^0.14.0",
+    "libsql": "^0.5.0-pre.5"
   }
 }

@@ -1,27 +1,13 @@
-// Components
-import { localStorageStore } from '@skeletonlabs/skeleton';
-import type { ResolvedLayoutConfig, VirtualLayout } from 'golden-layout';
-import type { ComponentType } from 'svelte';
-import { writable, type Writable } from 'svelte/store';
+// Defines the type for dashboard component loaders - Use `any` for flexibility
+export type DashboardComponentLoader = () => Promise<any>;
 
-export const dashboard_components: Record<string, () => Promise<ComponentType>> = {
+// Map of component names to their async loaders
+export const dashboard_components: Record<string, DashboardComponentLoader> = {
 	RocketNavBall: async () => {
 		return (await import('$lib/components/Dashboard/RocketNavBall/RocketNavBall.svelte')).default;
 	},
 	Map: async () => {
 		return (await import('$lib/components/Dashboard/Map/Map.svelte')).default;
-	},
-	// ErrorRate: async () => {
-	// 	return (await import('$lib/components/legacy/ErrorRate/ErrorRate.svelte')).default;
-	// },
-	// GenericSbgGraph: async () => {
-	// 	return (await import('$lib/components/smart/graphs/GenericSbgGraph.svelte')).default;
-	// },
-	// MissedMessage: async () => {
-	// 	return (await import('$lib/components/smart/graphs/MissedMessage.svelte')).default;
-	// },
-	LayoutList: async () => {
-		return (await import('$lib/components/Dashboard/LayoutList/LayoutList.svelte')).default;
 	},
 	RadioStatus: async () => {
 		return (await import('$lib/components/Dashboard/RadioStatus/RadioStatus.svelte')).default;
@@ -46,15 +32,12 @@ export const dashboard_components: Record<string, () => Promise<ComponentType>> 
 	},
 	VerticalVelocity: async () => {
 		return (await import('$lib/components/Dashboard/VerticalVelocity/VerticalVelocity.svelte')).default;
+	},
+	PrimaryFlightDisplay: async () => {
+		return (await import('$lib/components/Dashboard/PrimaryFlightDisplay/PrimaryFlightDisplay.svelte')).default;
 	}
-	// LogViewer: async () => {
-	// 	return (await import('$lib/components/smart/LogViewer.svelte')).default;
-	// }
 };
 
+// Export just the keys for use in the 'Add Component' action
 export const layoutComponentsString = Object.keys(dashboard_components);
 
-export const virtualLayout: Writable<VirtualLayout | undefined> = writable(undefined);
-export const resolvedLayout: Writable<
-	(ResolvedLayoutConfig & { ignoreReload?: boolean }) | undefined
-> = localStorageStore('resolvedLayout', undefined);

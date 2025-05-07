@@ -1,7 +1,9 @@
 import { get, writable, type Writable } from 'svelte/store';
-import { layoutComponentsString, resolvedLayout, virtualLayout } from './dashboard';
-import { graphql } from 'gql.tada';
-import { gqlClient } from '$lib/stores';
+import { layoutComponentsString } from './dashboard';
+import { browser } from '$app/environment';
+import { dashboard_components } from './dashboard';
+import { addWidgetToStore, type WidgetConfig } from '$lib/stores/widgetStore';
+// import { graphql } from 'gql.tada';
 
 export interface CommandAction {
 	name: string;
@@ -24,63 +26,35 @@ export const commandReqAdaptor: Writable<CommandRequest> = writable({
 
 export const commandActions: Writable<CommandAction[]> = writable([
 	{
-		name: 'Layout: Save Layout',
-		do: async () => {
-			const cmd = get(commandReqAdaptor);
-			if (!cmd) return;
-
-			const layoutName = await cmd.string('Layout name?', 'Recovery Layout');
-			if (!layoutName) return;
-			console.log('Saving layout: ' + layoutName);
-			const saved = get(resolvedLayout);
-			if (!saved) return;
-			delete saved.ignoreReload;
-
-			await gqlClient.mutation(
-				graphql(`
-					mutation InsertLayout($layout: String = "", $name: String = "") {
-						insert_web_layout(objects: { layout: $layout, name: $name }) {
-							affected_rows
-						}
-					}
-				`),
-				{ layout: JSON.stringify(saved), name: layoutName }
-			);
-		}
-	},
-	{
-		name: 'Layout: Load Layout',
-		do: async () => {
-			const cmd = get(commandReqAdaptor);
-			if (!cmd) return;
-
-			// Load layouts from server
-			// TODO: Reimplement me
-			// const layouts = await pb
-			// 	.collection('layouts')
-			// 	.getFullList<LayoutsResponse<ResolvedLayoutConfig>>();
-			// const layoutNames = layouts.map((l) => l.name);
-
-			// const layoutIndex = await cmd.select('Layout name?', layoutNames, 'Recovery Layout');
-			// if (layoutIndex === undefined) return;
-			// const layout = layouts[layoutIndex];
-			// if (layout.data) {
-			// 	resolvedLayout.set(layout.data);
-			// } else {
-			// 	console.error('Failed to load layout: ' + layout.name);
-			// }
-		}
-	},
-	{
 		name: 'Layout: Add Component',
 		do: async () => {
 			const cmd = get(commandReqAdaptor);
 			if (!cmd) return;
-			const toAdd = await cmd.select('Component to add?', layoutComponentsString, 'ComponentName');
-			if (toAdd === undefined) return;
-			const vLayout = get(virtualLayout);
-			if (!vLayout) return;
-			vLayout.addComponent(layoutComponentsString[toAdd], undefined, layoutComponentsString[toAdd]);
+
+			// Ensure layoutComponentsString is up-to-date if needed
+			// (Assuming layoutComponentsString from dashboard.ts is still relevant for selection)
+			const componentNames = Object.keys(dashboard_components);
+
+			const selectedIndex = await cmd.select('Component to add?', componentNames, 'ComponentName');
+			if (selectedIndex === undefined) return;
+
+			const componentName = componentNames[selectedIndex];
+
+			// Create a configuration for the new widget
+			const newWidgetConfig: WidgetConfig = {
+				id: `${componentName}-${Date.now()}`, // Simple unique ID generation
+				componentName: componentName,
+				title: componentName, // Use name as title by default
+				// options: {} // Add default layout options if desired
+			};
+
+			// Add the widget config to the store
+			addWidgetToStore(newWidgetConfig);
+
+			// Old Golden Layout code removed:
+			// const vLayout = get(virtualLayout);
+			// if (!vLayout) return;
+			// vLayout.addComponent(layoutComponentsString[toAdd], undefined, layoutComponentsString[toAdd]);
 		}
 	},
 	{
