@@ -3,7 +3,7 @@ members = [
     "sergw",
     "telemetry-ingestor",
     "command-dispatcher",
-    "hydrate",
+    "heartbeat",
     "hydrand",
     "coord_mocker",
     "hydra_manager_daemon",

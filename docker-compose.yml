@@ -28,10 +28,15 @@ services:
         volumes:
             - ./tile_provider/tiles_data:/var/lib/tile_provider:rw
         restart: always
+    # heartbeat:
+    #   build:
+    #     context: .
+    #   entrypoint: ["heartbeat"]
+    #   extra_hosts:
     # hydrand:
     #   build:
     #     context: .
-    #   entrypoint: ["hydrate"]
+    #   entrypoint: ["heartbeat"]
     #   extra_hosts:
     #     - "host.docker.internal:host-gateway"
     #   restart: always

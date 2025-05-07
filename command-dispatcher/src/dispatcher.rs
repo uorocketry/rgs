@@ -11,7 +11,7 @@ use tracing::{error, info, warn};
 
 pub async fn run_dispatcher(
     db_conn: Connection, 
-    args: Args,          
+    args: Args
 ) -> Result<(), Box<dyn std::error::Error>> {
     info!(
         "Dispatcher loop starting. Poll Interval: {}s. Gateway: {}",
