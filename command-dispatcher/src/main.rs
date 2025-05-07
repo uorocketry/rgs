@@ -11,6 +11,8 @@ use libsql::Builder;
 use tracing::{error, info}; // Only error and info are used in main
                             // Tokio is brought in by #[tokio::main]
 
+pub const SERVICE_ID: &str = "command-dispatcher";
+
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
     let args = Args::parse();
@@ -18,7 +20,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         .with_max_level(tracing::Level::INFO)
         .init();
 
-    info!("rgs-command-dispatcher starting...");
+    info!("{} starting...", SERVICE_ID);
 
     info!("Attempting to connect to database: {}", args.libsql_url);
     let db = Builder::new_remote(args.libsql_url.clone(), args.libsql_auth_token.clone())
