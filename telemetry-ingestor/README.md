@@ -12,7 +12,7 @@ A service that ingests telemetry data (MAVLink messages, specifically `POSTCARD_
 ## Prerequisites
 
 - LibSQL server up and running
-- Network access to the MAVLink message source (e.g., Hydra Gateway)
+- Network access to the MAVLink message source (e.g., SerGW)
 
 ## Usage
 
@@ -45,6 +45,6 @@ cargo run -- [options]
    - Check that the `--libsql-url` parameter is correct.
 
 2. **Connection Issues**
-   - Verify the MAVLink source (e.g., Hydra Gateway) is running and accessible.
+   - Verify the MAVLink source (e.g., SerGW) is running and accessible.
    - Check that `--gateway-connection-string` parameter is correct.
    - Ensure network connectivity between the ingestor and the MAVLink source.
