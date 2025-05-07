@@ -2,7 +2,7 @@
 members = [
     "sergw",
     "telemetry-ingestor",
-    "hydra_command_dispatcher",
+    "command-dispatcher",
     "hydrate",
     "hydrand",
     "coord_mocker",

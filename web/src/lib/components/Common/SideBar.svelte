@@ -66,6 +66,17 @@
 	</li>
 	<li>
 		<a
+			href="/commands"
+			class="tooltip tooltip-right"
+			class:active={$page.url.pathname === '/commands'}
+			data-tip="Commands"
+			aria-label="Command Dispatch"
+		>
+			<i class="fas fa-terminal text-xl"></i>
+		</a>
+	</li>
+	<li>
+		<a
 			href="/pfd"
 			class="tooltip tooltip-right"
 			class:active={$page.url.pathname === '/pfd'}

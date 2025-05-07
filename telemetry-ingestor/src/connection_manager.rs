@@ -24,13 +24,14 @@ pub async fn connect_to_database(db_url: String) -> Result<Connection, Box<dyn s
     }
 }
 
-pub fn connect_to_mavlink(
-    address: &str,
-    port: u16,
+pub async fn connect_to_mavlink(
+    connection_string: &str,
 ) -> Result<Box<dyn MavConnection<MavMessage> + Send + Sync>, Box<dyn std::error::Error>> {
-    let connection_string = format!("tcpout:{}:{}", address, port);
-    info!("Attempting to connect to MAVLink on {}", connection_string);
-    match mavlink::connect::<MavMessage>(&connection_string) {
+    info!(
+        "Attempting to connect to MAVLink using string: {}",
+        connection_string
+    );
+    match mavlink::connect::<MavMessage>(connection_string) {
         Ok(connection) => {
             info!("Successfully connected to MAVLink");
             Ok(connection)

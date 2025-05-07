@@ -26,11 +26,10 @@ cargo run -- [options]
 
 ### Parameters
 
-| Parameter | Description | Default |
-|-----------|-------------|---------|
-| `--libsql-url` | LibSQL server URL | http://localhost:8080 |
-| `--address` | MAVLink source host address | 127.0.0.1 |
-| `--port` | MAVLink source port | 5656 |
+| Parameter                   | Description                                                              | Default                    |
+|-----------------------------|--------------------------------------------------------------------------|----------------------------|
+| `--libsql-url`              | LibSQL server URL                                                      | http://localhost:8080      |
+| `--gateway-connection-string` | Gateway MAVLink connection string (e.g., `tcpout:localhost:5656`)        | `tcpout:127.0.0.1:5656`    |
 
 ## Operational Details
 
@@ -47,5 +46,5 @@ cargo run -- [options]
 
 2. **Connection Issues**
    - Verify the MAVLink source (e.g., Hydra Gateway) is running and accessible.
-   - Check that `--address` and `--port` parameters are correct.
+   - Check that `--gateway-connection-string` parameter is correct.
    - Ensure network connectivity between the ingestor and the MAVLink source.
