@@ -1,25 +1,27 @@
-# Hydra PG
+# Telemetry Ingestor
 
-A Hydra message decoder and database storage component that processes messages from Hydra Gateway and persists them in a LibSQL database. 
+A service that ingests telemetry data (MAVLink messages, specifically `POSTCARD_MESSAGE` and `RADIO_STATUS`), processes it, and stores it in a LibSQL database. It includes features like batch processing for efficiency and a heartbeat mechanism for service monitoring.
 
 ## Features
 
-- Decodes messages from Hydra Gateway
-- Stores decoded data in a LibSQL database
-- Batch processes them for improved performance
-- Automatic heartbeat monitoring
+- Decodes MAVLink messages (specifically `POSTCARD_MESSAGE` and `RADIO_STATUS`)
+- Stores telemetry data in a LibSQL database.
+- Batch processes messages for improved database write performance.
+- Monitors service health with an automatic heartbeat to the database.
 
 ## Prerequisites
 
 - LibSQL server up and running
-- Network access to Hydra Gateway
+- Network access to the MAVLink message source (e.g., Hydra Gateway)
 
 ## Usage
 
-### Running the Service
+### Running the Ingestor
 
 ```sh
-./telemetry-ingestor [options]
+cargo run -- [options]
+# Or directly if built:
+# ./target/debug/telemetry-ingestor [options]
 ```
 
 ### Parameters
@@ -27,22 +29,23 @@ A Hydra message decoder and database storage component that processes messages f
 | Parameter | Description | Default |
 |-----------|-------------|---------|
 | `--libsql-url` | LibSQL server URL | http://localhost:8080 |
-| `--address` | Hydra Gateway host | 127.0.0.1 |
-| `--port` | Hydra Gateway port | 5656 |
+| `--address` | MAVLink source host address | 127.0.0.1 |
+| `--port` | MAVLink source port | 5656 |
 
-## Implementation
+## Operational Details
 
-- Batch processing: 100 messages or 500ms timeout
-- Heartbeat: Every 30 seconds
-- Handles POSTCARD_MESSAGE and RADIO_STATUS types
-- Tracks packet loss and sequence numbers
+- Messages are batched for database insertion, with a batch size of 100 messages or a 500ms timeout.
+- A heartbeat is sent to the database every 30 seconds.
+- Currently processes `POSTCARD_MESSAGE` (saving content) and logs `RADIO_STATUS` (saving not yet implemented).
+- Tracks MAVLink packet sequence numbers and logs detected packet loss.
 
 ## Troubleshooting
 
 1. **Database Issues**
-   - Verify LibSQL server is running
-   - Check server URL configuration
+   - Verify LibSQL server is running and accessible.
+   - Check that the `--libsql-url` parameter is correct.
 
 2. **Connection Issues**
-   - Verify Hydra Gateway is accessible
-   - Check network connectivity
+   - Verify the MAVLink source (e.g., Hydra Gateway) is running and accessible.
+   - Check that `--address` and `--port` parameters are correct.
+   - Ensure network connectivity between the ingestor and the MAVLink source.

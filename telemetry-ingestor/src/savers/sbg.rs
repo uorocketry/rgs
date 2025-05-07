@@ -2,18 +2,6 @@ use libsql::{params, Result, Transaction};
 use messages::sensor::SbgData;
 
 pub async fn save_sbg(transaction: &Transaction, sbg: &SbgData) -> Result<i64> {
-    // The _data_type variable was unused, so it can be removed or kept if planned for future use.
-    // For this refactor, I will remove it to clean up the unused variable warning.
-    // let _data_type = match sbg {
-    // SbgData::UtcTime(_) => "SbgUtcTime",
-    // SbgData::Air(_) => "SbgAir",
-    // SbgData::EkfQuat(_) => "SbgEkfQuat",
-    // SbgData::EkfNav(_) => "SbgEkfNav",
-    // SbgData::Imu(_) => "SbgImu",
-    // SbgData::GpsVel(_) => "SbgGpsVel",
-    // SbgData::GpsPos(_) => "SbgGpsPos",
-    // };
-
     // Save the specific subtype
     let data_id: i64 = match sbg {
         SbgData::UtcTime(utc_time) => {
