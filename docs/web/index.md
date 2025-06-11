@@ -6,8 +6,8 @@ To get started, you can run the following commands:
 
 ```bash
 cd web
-pnpm install
-pnpm dev
+bun install
+bun run dev
 ```
 
 This will start the web server on <https://localhost:3000>.

@@ -15,9 +15,9 @@ export default defineConfig({
 			use: { ...devices['Desktop Chrome'] }
 		}
 	],
-	webServer: {
-		command: 'pnpm dev',
-		url: 'http://127.0.0.1:3000',
-		reuseExistingServer: true
-	}
+        webServer: {
+                command: 'bun run dev',
+                url: 'http://127.0.0.1:3000',
+                reuseExistingServer: true
+        }
 });
