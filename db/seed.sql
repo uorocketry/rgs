@@ -244,6 +244,16 @@ CREATE TABLE IF NOT EXISTS SbgGpsPos (
     differential_age INTEGER
 );
 
+-- Table to store radio metrics such as RSSI and packet loss statistics
+CREATE TABLE IF NOT EXISTS RadioMetrics (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    timestamp INTEGER NOT NULL,
+    rssi INTEGER,
+    packets_lost INTEGER
+);
+
+CREATE INDEX IF NOT EXISTS idx_radiometrics_timestamp ON RadioMetrics (timestamp);
+
 --#endregion
 
 --#endregion

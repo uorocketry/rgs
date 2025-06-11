@@ -87,17 +87,28 @@
 		</a>
 	</li>
 
-	<li>
-		<a
-			href="/navball"
-			class="tooltip tooltip-right"
-			class:active={$page.url.pathname === '/navball'}
-			data-tip="Navball"
-			aria-label="Navball"
-		>
-			<i class="fas fa-compass text-xl"></i>
-		</a>
-	</li>
+        <li>
+                <a
+                        href="/navball"
+                        class="tooltip tooltip-right"
+                        class:active={$page.url.pathname === '/navball'}
+                        data-tip="Navball"
+                        aria-label="Navball"
+                >
+                        <i class="fas fa-compass text-xl"></i>
+                </a>
+        </li>
+        <li>
+                <a
+                        href="/radio"
+                        class="tooltip tooltip-right"
+                        class:active={$page.url.pathname === '/radio'}
+                        data-tip="Radio"
+                        aria-label="Radio Metrics"
+                >
+                        <i class="fas fa-signal text-xl"></i>
+                </a>
+        </li>
 
 	<!-- Bottom Section (formerly trail slot) -->
 	<div class="flex-grow"></div>
