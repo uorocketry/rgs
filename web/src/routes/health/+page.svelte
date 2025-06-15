@@ -10,7 +10,7 @@
 	const REFRESH_INTERVAL_MS = 30 * 1000;
 	const EXPECTED_SERVICES = [
 		{ id: 'hydrand', name: 'Hydrand' },
-		{ id: 'hydra_pg', name: 'Hydra PG' }
+		{ id: 'telemetry-ingestor', name: 'Telemetry Ingestor' }
 	];
 
 	// Types
@@ -22,7 +22,7 @@
 		latency_secs: number | null;
 		status: 'Operational' | 'Outage';
 		history: boolean[];
-	}
+	};
 
 	type HealthApiResponse = {
 		checkTime: string;
@@ -33,7 +33,7 @@
 			operationalThresholdSeconds: number;
 		};
 		services: HealthServiceHistory[];
-	}
+	};
 
 	// State
 	let currentHealthData = $state<HealthApiResponse | null>(
@@ -76,7 +76,8 @@
 
 	let overallStatus = $derived(
 		(() => {
-			if (!currentHealthData) return { text: 'Some Systems Experiencing Issues', alertClass: 'alert-error' };
+			if (!currentHealthData)
+				return { text: 'Some Systems Experiencing Issues', alertClass: 'alert-error' };
 			const hasOutage = serviceStatuses.some((s) => s.status === 'Outage');
 
 			if (hasOutage) return { text: 'Some Systems Experiencing Issues', alertClass: 'alert-error' };
@@ -91,13 +92,16 @@
 			lastFetchStartTime = Date.now();
 			progressPercent = 0;
 
-			progressAnimation = gsap.to({}, {
-				duration: REFRESH_INTERVAL_MS / 1000,
-				ease: 'none',
-				onUpdate: function() {
-					progressPercent = this.progress() * 100;
+			progressAnimation = gsap.to(
+				{},
+				{
+					duration: REFRESH_INTERVAL_MS / 1000,
+					ease: 'none',
+					onUpdate: function () {
+						progressPercent = this.progress() * 100;
+					}
 				}
-			});
+			);
 		}
 
 		async function fetchHealthData() {

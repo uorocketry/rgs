@@ -11,7 +11,7 @@ export const load: PageServerLoad = async ({ fetch }) => {
 
 		if (!response.ok) {
 			// Log the error status and text for server-side debugging
-			const errorText = await response.text();
+			const errorText = await response.json();
 			console.error(`Failed to fetch initial health data: ${response.status} ${response.statusText}`, errorText);
 			// Ensure status is in the valid range for SvelteKit's error helper
 			let status: NumericRange<400, 599> = 500;
@@ -19,7 +19,7 @@ export const load: PageServerLoad = async ({ fetch }) => {
 				status = response.status as NumericRange<400, 599>;
 			}
 			// Throw a SvelteKit error that will be handled by the error page
-			throw error(status, `Failed to load health data: ${response.statusText}`);
+			throw error(status, errorText.message);
 		}
 
 		const healthData = await response.json();

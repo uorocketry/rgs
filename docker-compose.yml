@@ -27,3 +27,40 @@ services:
         volumes:
             - ./tile_provider/tiles_data:/var/lib/tile_provider:rw
         restart: always
+    telemetry-ingestor:
+        image: rust
+        volumes:
+            - ./target/debug/telemetry-ingestor:/app/telemetry-ingestor
+        command: /app/telemetry-ingestor --libsql-url http://db:8080 --gateway-connection-string tcpout:sergw:5656
+        depends_on:
+            - db
+            - sergw
+    command-dispatcher:
+        image: rust
+        volumes:
+            - ./target/debug/command-dispatcher:/app/command-dispatcher
+        command: /app/command-dispatcher --libsql-url http://db:8080 --gateway-connection-string tcpout:sergw:5656
+        depends_on:
+            - db
+            - sergw
+    heartbeat:
+        image: rust
+        volumes:
+            - ./target/debug/heartbeat:/app/heartbeat
+        command: /app/heartbeat --libsql-url http://db:8080
+        depends_on:
+            - db
+    # Hydrand (simulated gateway)
+    # sergw:
+    #   image: rust
+    #   volumes:
+    #     - ./target/debug/hydrand:/app/hydrand
+    #   command: /app/hydrand --address 0.0.0.0 --port 5656 --interval 100 --libsql-url http://db:8080
+    # Sergw (real gateway)
+    sergw:
+        image: rust
+        volumes:
+            - ./target/debug/sergw:/app/sergw
+        devices:
+            - /dev/ttyUSB0:/dev/ttyUSB0:rwm
+        command: /app/sergw --serial /dev/ttyUSB0:57600
