@@ -15,3 +15,4 @@ tracing-subscriber = { workspace = true }
 postcard = { workspace = true }
 libsql = { workspace = true }
 hostname = { workspace = true }
+chrono = { workspace = true }
