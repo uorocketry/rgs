@@ -1,0 +1,61 @@
+name: rgs
+
+services:
+  rgs_dashboard:
+    build:
+      context: ./web
+      dockerfile: Dockerfile.dev
+    environment:
+      - NODE_ENV=development
+      - PORT=3000
+      - WEB_SERVER_PORT=3000
+      - DB_URL=http://db:8080
+    volumes:
+      - ./web:/usr/src/app
+      - /usr/src/app/node_modules
+    networks:
+      - web
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.rgs_dashboard.rule=PathPrefix(`/`) || Host(`rgs.localhost`)"
+      - "traefik.http.routers.rgs_dashboard.entrypoints=web"
+      - "traefik.http.services.rgs_dashboard.loadbalancer.server.port=3000"
+
+  tile_provider:
+    build:
+      context: ./tile_provider
+      dockerfile: Dockerfile
+    volumes:
+      - ./tile_provider/tiles_data:/var/lib/tile_provider:rw
+    networks:
+      - web
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.tile_provider.rule=PathPrefix(`/tiles`) || ( Host(`rgs.localhost`) && PathPrefix(`/tiles`) )"
+      - "traefik.http.routers.tile_provider.entrypoints=web"
+      - "traefik.http.routers.tile_provider.middlewares=tile_provider-strip@docker"
+      - "traefik.http.middlewares.tile_provider-strip.stripprefix.prefixes=/"
+      - "traefik.http.services.tile_provider.loadbalancer.server.port=6565"
+  sergw:
+    image: rust
+    volumes:
+        - ./target/debug/hydrand:/app/hydrand:ro
+    command: /app/hydrand --address 0.0.0.0 --port 5656 --interval 100 --libsql-url http://db:8080
+    labels:
+        - "traefik.enable=false"
+  telemetry-ingestor:
+    image: rust
+    volumes:
+        - ./target/debug/telemetry-ingestor:/app/telemetry-ingestor:ro
+    command: /app/telemetry-ingestor --libsql-url http://db:8080 --gateway-connection-string tcpout:sergw:5656
+    labels:
+        - "traefik.enable=false"
+  command-dispatcher:
+    image: rust
+    volumes:
+        - ./target/debug/command-dispatcher:/app/command-dispatcher:ro
+    command: /app/command-dispatcher --libsql-url http://db:8080 --gateway-connection-string tcpout:sergw:5656
+    labels:
+        - "traefik.enable=false"
+
+

@@ -94,7 +94,7 @@
 
 			baseLayer: new Cesium.ImageryLayer(
 				new Cesium.UrlTemplateImageryProvider({
-					url: window.location.origin + '/api/tiles/{z}/{x}/{y}'
+					url: window.location.origin + '/tiles/{z}/{x}/{y}'
 				})
 			)
 		});

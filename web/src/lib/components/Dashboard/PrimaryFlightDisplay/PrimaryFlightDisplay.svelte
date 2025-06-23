@@ -64,7 +64,14 @@
 			selectionIndicator: false,
 			timeline: false,
 			navigationHelpButton: false,
-			shouldAnimate: true // Keep animation loop
+			shouldAnimate: true, // Keep animation loop
+
+			baseLayer: new Cesium.ImageryLayer(
+				new Cesium.UrlTemplateImageryProvider({
+					url: window.location.origin + '/tiles/{z}/{x}/{y}'
+				})
+			)
+
 		});
 
 		// Disable mouse interactions

@@ -1,14 +1,35 @@
 name: rgs
 
 services:
+    traefik:
+        image: traefik:v3.4
+        networks:
+            - web
+        command:
+        - "--api.insecure=true"
+        - "--providers.docker=true"
+        - "--entrypoints.web.address=:80"
+        - "--log.level=INFO"
+        ports:
+        - "80:80"
+        - "8080:8080"
+        volumes:
+        - /var/run/docker.sock:/var/run/docker.sock
+   
+
     db:
         image: ghcr.io/tursodatabase/libsql-server:latest
         environment:
             SQLD_NODE: standalone
         volumes:
             - ./db/data:/var/lib/sqld
-        ports:
-            - "8080:8080"
+        networks:
+            - web
+        labels:
+        - "traefik.enable=true"
+        - "traefik.http.routers.db.rule=Host(`db.localhost`)"
+        - "traefik.http.services.db.loadbalancer.server.port=8080"
+
     migration:
         image: docker.io/oven/bun:1
         volumes:
@@ -18,49 +39,35 @@ services:
         environment:
             DATABASE_URL: http://db:8080
         restart: on-failure:3
-    tile_provider:
-        build:
-            context: ./tile_provider
-            dockerfile: Dockerfile
-        ports:
-            - "6565:6565"
-        volumes:
-            - ./tile_provider/tiles_data:/var/lib/tile_provider:rw
-        restart: always
-    telemetry-ingestor:
-        image: rust
-        volumes:
-            - ./target/debug/telemetry-ingestor:/app/telemetry-ingestor
-        command: /app/telemetry-ingestor --libsql-url http://db:8080 --gateway-connection-string tcpout:sergw:5656
-        depends_on:
-            - db
-            - sergw
-    command-dispatcher:
-        image: rust
-        volumes:
-            - ./target/debug/command-dispatcher:/app/command-dispatcher
-        command: /app/command-dispatcher --libsql-url http://db:8080 --gateway-connection-string tcpout:sergw:5656
-        depends_on:
-            - db
-            - sergw
+   
+        labels:
+            - "traefik.enable=false"
+
+    # tile_provider:
+    #     build:
+    #         context: ./tile_provider
+    #         dockerfile: Dockerfile
+    #     # ports:
+    #         # - "6565:6565"
+    #     volumes:
+    #         - ./tile_provider/tiles_data:/var/lib/tile_provider:rw
+    #     labels:
+    #         - "traefik.enable=true"
+    #         - "traefik.http.routers.tile_provider.rule=Host(`tile_provider.localhost`)"
+    #         - "traefik.http.services.tile_provider.loadbalancer.server.port=6565"
+    #         - "traefik.http.routers.tile_provider.middlewares=tiles-proxy"
+    #         - "traefik.http.middlewares.tiles-proxy.replacepathregex.regex=^/tiles/(.*)"
+    #         - "traefik.http.middlewares.tiles-proxy.replacepathregex.replacement=/$1"
+
     heartbeat:
         image: rust
         volumes:
-            - ./target/debug/heartbeat:/app/heartbeat
+            - ./target/debug/heartbeat:/app/heartbeat:ro
         command: /app/heartbeat --libsql-url http://db:8080
-        depends_on:
-            - db
-    # Hydrand (simulated gateway)
-    # sergw:
-    #   image: rust
-    #   volumes:
-    #     - ./target/debug/hydrand:/app/hydrand
-    #   command: /app/hydrand --address 0.0.0.0 --port 5656 --interval 100 --libsql-url http://db:8080
-    # Sergw (real gateway)
-    sergw:
-        image: rust
-        volumes:
-            - ./target/debug/sergw:/app/sergw
-        devices:
-            - /dev/ttyUSB0:/dev/ttyUSB0:rwm
-        command: /app/sergw --serial /dev/ttyUSB0:57600
+        restart: unless-stopped
+        labels:
+            - "traefik.enable=false"
+
+networks:
+  web:
+    driver: bridge
