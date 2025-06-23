@@ -1,4 +1,5 @@
 use crate::savers;
+use chrono::Utc;
 use libsql::Connection;
 use mavlink::uorocketry::MavMessage;
 use mavlink::MavConnection;
@@ -30,15 +31,42 @@ pub async fn handle_messages(
 
                 if packets_lost > 0 {
                     warn!("Packets Lost: {}", packets_lost);
-                    // TODO: adding packet loss saving logic (potentially batched too)
+                    let ts = Utc::now().timestamp();
+                    let conn_clone = db_connection.clone();
+                    tokio::spawn(async move {
+                        if let Err(e) = savers::radio::save_radio_metrics(
+                            &conn_clone,
+                            ts,
+                            None,
+                            Some(packets_lost as i64),
+                        )
+                        .await
+                        {
+                            error!("Failed to save packet loss metric: {:?}", e);
+                        }
+                    });
                 }
 
                 match message {
                     MavMessage::POSTCARD_MESSAGE(data) => {
                         message_buffer.push(data.message.to_vec());
                     }
-                    MavMessage::RADIO_STATUS(_data) => {
-                        // TODO: Handle RADIO_STATUS saving if needed, potentially batching it as well.
+                    MavMessage::RADIO_STATUS(data) => {
+                        let rssi_val = data.rssi as i64;
+                        let ts = Utc::now().timestamp();
+                        let conn_clone = db_connection.clone();
+                        tokio::spawn(async move {
+                            if let Err(e) = savers::radio::save_radio_metrics(
+                                &conn_clone,
+                                ts,
+                                Some(rssi_val),
+                                None,
+                            )
+                            .await
+                            {
+                                error!("Failed to save radio status: {:?}", e);
+                            }
+                        });
                     }
                     other => {
                         error!("Received an unexpected message type {:?}", other);

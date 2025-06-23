@@ -1,0 +1,24 @@
+# Development Dockerfile for SvelteKit with Bun
+FROM oven/bun:1
+
+WORKDIR /usr/src/app
+
+# Copy package files
+COPY package.json bun.lock ./
+
+# Install all dependencies (including devDependencies)
+RUN bun install
+
+# Copy source code
+COPY . .
+
+# Expose the development port
+EXPOSE 3000/tcp
+
+# Set environment variables for development
+ENV NODE_ENV=development
+ENV PORT=3000
+ENV WEB_SERVER_PORT=3000
+
+# Start the development server with hot reloading
+CMD ["bun", "run", "dev"] 

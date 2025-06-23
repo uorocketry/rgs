@@ -17,15 +17,7 @@ const config = (mode: string) => {
 		},
 
 		server: {
-			port: parseInt(process.env['WEB_SERVER_PORT'] ?? '') || 3000,
-			proxy: {
-				// replace api tiles by 127.0.0.1:6565
-				'/api/tiles': {
-					target: 'http://127.0.0.1:6565',
-					changeOrigin: true,
-					rewrite: (path) => path.replace(/^\/api/, '')
-				}
-			}
+			port: parseInt(process.env['WEB_SERVER_PORT'] ?? '') || 3000
 		},
 
 		plugins: [

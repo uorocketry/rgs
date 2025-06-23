@@ -1,0 +1,68 @@
+services:
+  web:
+      build:
+          context: ./web
+          dockerfile: Dockerfile
+      restart: unless-stopped
+      environment:
+          - NODE_ENV=production
+          - PORT=3000
+          - WEB_SERVER_PORT=3000
+      depends_on:
+          - db
+          - telemetry-ingestor
+          - command-dispatcher
+      healthcheck:
+          test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:3000"]
+          interval: 30s
+          timeout: 10s
+          retries: 3
+      labels:
+          - "traefik.enable=true"
+          - "traefik.http.routers.web.rule=Host(`rgs.localhost`)"
+          - "traefik.http.routers.web.entrypoints=web"
+          - "traefik.http.services.web.loadbalancer.server.port=3000"
+  sergw:
+      image: rust
+      volumes:
+          - ./target/debug/sergw:/app/sergw
+      devices:
+          - /dev/ttyUSB0:/dev/ttyUSB0:rwm
+      command: /app/sergw --serial /dev/ttyUSB0:57600
+      restart: unless-stopped
+      depends_on:
+          db:
+              condition: service_healthy
+      labels:
+          - "traefik.enable=false"
+  telemetry-ingestor:
+    image: rust
+    volumes:
+        - ./target/debug/telemetry-ingestor:/app/telemetry-ingestor:ro
+    command: /app/telemetry-ingestor --libsql-url http://db:8080 --gateway-connection-string tcpout:sergw:5656
+    restart: unless-stopped
+    depends_on:
+        db:
+            condition: service_healthy
+        sergw:
+            condition: service_started
+    labels:
+        - "traefik.enable=false"
+  command-dispatcher:
+    image: rust
+    volumes:
+        - ./target/debug/command-dispatcher:/app/command-dispatcher:ro
+    command: /app/command-dispatcher --libsql-url http://db:8080 --gateway-connection-string tcpout:sergw:5656
+    restart: unless-stopped
+    depends_on:
+        db:
+            condition: service_healthy
+        sergw:
+            condition: service_started
+    labels:
+        - "traefik.enable=false"
+
+networks:
+  default:
+    name: traefik
+    external: true

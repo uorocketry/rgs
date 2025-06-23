@@ -1,6 +1,6 @@
 import { createClient, type Client } from "@libsql/client";
 
-const LIBSQL_URL = "http://localhost:8080"; // Replace with your actual DB URL or env var
+const LIBSQL_URL = process.env.DB_URL || "http://localhost:8080"; // Replace with your actual DB URL or env var
 
 let client: Client | null = null;
 

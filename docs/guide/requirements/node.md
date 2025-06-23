@@ -3,15 +3,15 @@
 Though already installed with `devbox` to run node applications we also need to `cd` into their applications folder and run:
 
 ```sh
-pnpm install
-pnpm dev
+bun install
+bun run dev
 ```
 
 try it out with the `docs` folder.
 
 Your terminal should look something like this:
 
-![devcmd](/static/pnpmdev.png)
+![devcmd](/static/bundev.png)
 
 If you can open it by going to <http://localhost:5173/rgs/> you are good to go!
 
@@ -27,18 +27,18 @@ We might be using a custom development https certificate, you might be prompted 
 
 | Mistakes                                                           | Solution                                                        |
 | ------------------------------------------------------------------ | --------------------------------------------------------------- |
-| Running `npm install`                                              | Delete the `node_modules` folder and run `pnpm install` instead |
-| Running as `sudo` (you should never run `npm` or `pnpm` as `sudo`) | Delete the `node_modules` folder and run `pnpm install` again   |
+| Running `npm install`                                              | Delete the `node_modules` folder and run `bun install` instead |
+| Running as `sudo` (you should never run `npm` or `bun` as `sudo`) | Delete the `node_modules` folder and run `bun install` again   |
 
 
-### pnpm error ERR_PNPM_NO_PKG_MANIFEST  or  ERR_PNPM_NO_IMPORTER_MANIFEST_FOUND
+### bun install error ENOENT: no such file or directory
 
 Are you sure you are in the correct folder?
 
 ### failed to load config from vite.config.js ERR_MODULE_NOT_FOUND
 
-Are you sure you have installed the dependencies? Try running `pnpm install` and then `pnpm dev` again.
+Are you sure you have installed the dependencies? Try running `bun install` and then `bun run dev` again.
 
 ### This site can’t be reached
 
-Are you sure you are running the web app? Try running `pnpm dev` again. Is the domain correct?
+Are you sure you are running the web app? Try running `bun run dev` again. Is the domain correct?

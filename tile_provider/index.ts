@@ -83,6 +83,7 @@ async function handleTileRequest(
 const server = Bun.serve({
   development: process.env.NODE_ENV !== "production",
   routes: {
+    "/health": () => new Response("OK"),
     "/tiles/:zoom/:x/:y": async (req) => {
       const { zoom, x, y } = req.params;
       return handleTileRequest(zoom, x, y);
@@ -128,7 +129,8 @@ const server = Bun.serve({
         },
       });
     },
-    "/": homepage,
+    "/": homepage
+
   },
   hostname: config.address,
   port: config.port,
