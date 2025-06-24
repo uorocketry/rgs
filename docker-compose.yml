@@ -32,6 +32,8 @@ services:
 
     migration:
         image: docker.io/oven/bun:1
+        networks:
+            - web
         volumes:
             - ./db:/app
         working_dir: /app

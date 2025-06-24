@@ -26,6 +26,13 @@
 </script>
 
 <div class="container mx-auto p-4">
+
+	<button class="btn btn-primary" onclick={() => {
+		window.location.reload();
+	}}>
+		Hard Reload
+	</button>
+
 	{#each settings as settingGroup}
 		<div class="card bg-base-100 shadow-xl mb-4">
 			<div class="card-body">

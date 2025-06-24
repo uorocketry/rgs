@@ -126,3 +126,32 @@ html {
 		font-size: 16px !important;
 	}
 }
+
+
+/* Corner Bracketed */
+
+.corner-bracketed {
+	position: relative;
+}
+
+.corner-bracketed::before,
+.corner-bracketed::after {
+	content: '';
+	position: absolute;
+	width: 10px;
+	height: 10px;
+}
+
+.corner-bracketed::before {
+	top: 0;
+	left: 0;
+	border-top: 2px solid var(--color-primary-content);
+	border-left: 2px solid var(--color-primary-content);
+}
+
+.corner-bracketed::after {
+	bottom: 0;
+	right: 0;
+	border-bottom: 2px solid var(--color-primary-content);
+	border-right: 2px solid var(--color-primary-content);
+}

@@ -172,7 +172,7 @@
 	<title>Service Health Status</title>
 </svelte:head>
 
-<div class="container mx-auto p-4 md:p-8 bg-base-200 min-h-screen">
+<div class="container mx-auto p-4 md:p-8">
 	<div role="alert" class="alert {overallStatus.alertClass} mb-6 shadow-md">
 		{#if overallStatus.alertClass === 'alert-success'}
 			<svg

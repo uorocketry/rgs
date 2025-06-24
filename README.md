@@ -45,6 +45,20 @@ Quickly stopping all containers: docker compose down --remove-orphans -t 0
 
 Rebuilding the containers: docker compose up --build
 
+## Deck launch arguments
+
+Program
+
+```
+"flatpak"
+```
+
+Arguments
+
+```
+run --env=CHROME_PASSWORD_STORE=basic org.chromium.Chromium --app="http://10.0.0.142/" --start-fullscreen --noerrdialogs --disable-infobars --disable-translate --enable-features=OverlayScrollbar --overscroll-history-navigation=0 --disable-pinch --ozone-platform=x11
+```
+
 ## Troubleshooting
 
 Please refer to each of the following for more information.

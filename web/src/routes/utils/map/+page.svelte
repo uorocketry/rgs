@@ -3,8 +3,9 @@
 	let iframeError = $state(false);
 </script>
 
+<!-- HREF to /tiles/downloader -->
 <iframe
-	src="http://localhost:6565/"
+	src="/tiles/downloader"
 	title="Map Downloader"
 	class="h-full w-full"
 	allowfullscreen
