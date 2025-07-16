@@ -1,0 +1,36 @@
+{
+  "app-id": "ca.uorocketry.Dashboard",
+  "runtime": "org.gnome.Platform",
+  "runtime-version": "48",
+  "sdk": "org.gnome.Sdk",
+  "command": "dashboard",
+  "finish-args": [
+    "--share=network",
+    "--share=ipc",
+    "--socket=wayland",
+    "--socket=fallback-x11",
+    "--device=dri",
+    "--device=shm",
+    
+    "--socket=pulseaudio",
+    "--filesystem=home",
+    "--env=GDK_BACKEND=wayland,x11",
+    "--device=all"
+  ],
+  "modules": [
+    {
+      "name": "dashboard",
+      "buildsystem": "simple",
+      "build-commands": [
+        "install -D dashboard /app/bin/dashboard",
+        "install -D ca.uorocketry.Dashboard.desktop /app/share/applications/ca.uorocketry.Dashboard.desktop",
+        "install -D icon.png /app/share/icons/hicolor/128x128/apps/ca.uorocketry.Dashboard.png"
+      ],
+      "sources": [
+        { "type": "file", "path": "build/bin/dashboard" },
+        { "type": "file", "path": "ca.uorocketry.Dashboard.desktop" },
+        { "type": "file", "path": "icon.png" }
+      ]
+    }
+  ]
+} 

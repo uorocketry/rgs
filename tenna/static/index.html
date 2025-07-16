@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Antenna Tracker Simulation</title>
+    <style>
+        body { margin: 0; font-family: sans-serif; background-color: #1a1a2a; color: #eee; }
+        canvas { display: block; }
+        .ui-panel { position: absolute; top: 10px; left: 10px; background: rgba(0,0,0,0.5); padding: 15px; border-radius: 5px; width: 300px; }
+        .hidden { display: none; }
+        h3, h4 { margin-top: 0; }
+        label { display: block; margin-top: 10px; }
+        input[type="number"], input[type="text"] { width: 90%; padding: 5px; }
+        input[type="range"] { width: 100%; }
+        button { width: 100%; padding: 8px; margin-top: 15px; }
+    </style>
+</head>
+<body>
+    <div class="ui-panel">
+        <h3>Antenna Control</h3>
+        <div>
+            <input type="radio" id="mode-tracking" name="control-mode" value="tracking" checked>
+            <label for="mode-tracking">Tracking Mode</label>
+            <input type="radio" id="mode-manual" name="control-mode" value="manual">
+            <label for="mode-manual">Manual Mode</label>
+        </div>
+        <hr>
+        <!-- Tracking Mode Controls -->
+        <div id="tracking-controls">
+            <h4>Rocket Position</h4>
+            <form id="rocket-form">
+                <label for="rocket-lat">Latitude:</label>
+                <input type="number" id="rocket-lat" name="lat" step="0.00001" value="45.421413">
+                <label for="rocket-lon">Longitude:</label>
+                <input type="number" id="rocket-lon" name="lon" step="0.00001" value="-75.680510">
+                <label for="rocket-alt">Altitude (m):</label>
+                <input type="number" id="rocket-alt" name="alt" step="any" value="205">
+                <button type="submit">Update Rocket Position</button>
+            </form>
+        </div>
+        <!-- Manual Mode Controls -->
+        <div id="manual-controls" class="hidden">
+            <h4>Manual Control</h4>
+            <label for="pitch-slider">Pitch: <span id="pitch-value">45</span>°</label>
+            <input type="range" id="pitch-slider" min="0" max="90" value="45" step="0.1">
+            <label for="yaw-slider">Yaw: <span id="yaw-value">180</span>°</label>
+            <input type="range" id="yaw-slider" min="-180" max="180" value="0" step="0.1">
+        </div>
+        <hr>
+        <h4>Current State</h4>
+        <div>Pitch: <span id="current-pitch">0.00</span>°</div>
+        <div>Yaw: <span id="current-yaw">0.00</span>°</div>
+    </div>
+    <script type="module" src="/main.js"></script>
+</body>
+</html>

@@ -1,0 +1,9 @@
+[Desktop Entry]
+Name=RGS Dashboard
+Comment=uORocketry Mission Dashboard
+Exec=dashboard
+Icon=ca.uorocketry.Dashboard
+Terminal=false
+Type=Application
+Categories=System
+StartupWMClass=Dashboard

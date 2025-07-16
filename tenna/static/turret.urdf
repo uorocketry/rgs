@@ -1,0 +1,141 @@
+<?xml version="1.0"?>
+<robot name="antenna_tracker">
+
+  <!-- Material Definitions -->
+  <material name="dark_gray"><color rgba="0.3 0.3 0.3 1.0"/></material>
+  <material name="gray"><color rgba="0.6 0.6 0.6 1.0"/></material>
+  <material name="light_gray"><color rgba="0.8 0.8 0.8 1.0"/></material>
+
+  <!-- Base (fixed to world) -->
+  <link name="base_link">
+    <inertial>
+      <mass value="2.0"/>
+      <origin xyz="0 0 0.05" rpy="0 0 0"/>
+      <inertia ixx="0.01" ixy="0.0" ixz="0.0" iyy="0.01" iyz="0.0" izz="0.02"/>
+    </inertial>
+    <visual>
+      <geometry><cylinder length="0.1" radius="0.2"/></geometry>
+      <origin xyz="0 0 0.05" rpy="0 0 0"/>
+      <material name="dark_gray"/>
+    </visual>
+    <collision>
+      <geometry><cylinder length="0.1" radius="0.2"/></geometry>
+      <origin xyz="0 0 0.05" rpy="0 0 0"/>
+    </collision>
+  </link>
+
+  <!-- Yaw joint -->
+  <!-- THE FIX: Changed type from "revolute" to "continuous" -->
+  <joint name="yaw_joint" type="continuous">
+    <parent link="base_link"/>
+    <child  link="yaw_rotator_link"/>
+    <origin xyz="0 0 0.1" rpy="0 0 0"/>
+    <axis  xyz="0 0 1"/>
+    <!-- NOTE: A continuous joint does not have a <limit> tag. -->
+    <!-- The effort and velocity are now defined inside the dynamics tag or are handled by the controller. -->
+    <!-- For clarity and compatibility, we can add max effort/velocity to the controller call. -->
+    <dynamics damping="0.1" friction="0.05"/>
+  </joint>
+
+  <!-- Yaw Rotator Link -->
+  <link name="yaw_rotator_link">
+    <inertial>
+      <mass value="1.7"/>
+      <origin xyz="0 0 0.12" rpy="0 0 0"/>
+      <inertia ixx="0.009" ixy="0.0" ixz="0.0" iyy="0.009" iyz="0.0" izz="0.01"/>
+    </inertial>
+    <visual>
+      <geometry><cylinder length="0.2" radius="0.18"/></geometry>
+      <origin xyz="0 0 0.1" rpy="0 0 0"/>
+      <material name="gray"/>
+    </visual>
+    <collision>
+      <geometry><cylinder length="0.2" radius="0.18"/></geometry>
+      <origin xyz="0 0 0.1" rpy="0 0 0"/>
+    </collision>
+    <visual>
+        <geometry><box size="0.1 0.1 0.12"/></geometry>
+        <origin xyz="0 0 0.26" rpy="0 0 0"/>
+        <material name="gray"/>
+    </visual>
+    <collision>
+        <geometry><box size="0.1 0.1 0.12"/></geometry>
+        <origin xyz="0 0 0.26" rpy="0 0 0"/>
+    </collision>
+  </link>
+
+  <!-- Pitch joint (This remains a limited revolute joint) -->
+  <joint name="pitch_joint" type="revolute">
+    <parent link="yaw_rotator_link"/>
+    <child  link="pitch_mount_link"/>
+    <origin xyz="0 0 0.32" rpy="0 0 0"/>
+    <axis  xyz="0 -1 0"/>
+    <limit lower="0" upper="1.57" effort="5.76" velocity="603.19"/>
+    <dynamics damping="0.1" friction="0.05"/>
+  </joint>
+
+  <!-- Pitch Mount Link (U-shaped bracket) -->
+  <link name="pitch_mount_link">
+    <inertial>
+      <mass value="0.5"/>
+      <origin xyz="0 0 0.022" rpy="0 0 0"/>
+      <inertia ixx="0.0032" ixy="0" ixz="0" iyy="0.0023" iyz="0" izz="0.0043"/>
+    </inertial>
+    <visual>
+      <geometry><box size="0.2 0.02 0.1"/></geometry>
+      <origin xyz="0 0.115 0.05" rpy="0 0 0"/>
+      <material name="gray"/>
+    </visual>
+    <visual>
+      <geometry><box size="0.2 0.02 0.1"/></geometry>
+      <origin xyz="0 -0.115 0.05" rpy="0 0 0"/>
+      <material name="gray"/>
+    </visual>
+  </link>
+
+  <!-- Antenna is fixed to the pitch mount -->
+  <joint name="antenna_joint" type="fixed">
+    <parent link="pitch_mount_link"/>
+    <child  link="antenna_link"/>
+    <origin xyz="0.15 0 0.05" rpy="0 0 0"/>
+  </joint>
+
+  <!-- Antenna Link (Yagi) -->
+  <link name="antenna_link">
+    <inertial>
+      <mass value="1.0"/>
+      <origin xyz="0.405 0 0" rpy="0 0 0"/>
+      <inertia ixx="0.01" ixy="0.0" ixz="0.0" iyy="0.1" iyz="0.0" izz="0.1"/>
+    </inertial>
+    <visual name="boom">
+      <geometry><cylinder length="1.0" radius="0.015"/></geometry>
+      <origin xyz="0.5 0 0" rpy="0 1.5708 0"/>
+      <material name="light_gray"/>
+    </visual>
+    <visual>
+      <geometry><cylinder length="0.5" radius="0.01"/></geometry>
+      <origin xyz="0.0 0 0" rpy="1.5708 0 0"/>
+      <material name="light_gray"/>
+    </visual>
+    <visual>
+      <geometry><cylinder length="0.45" radius="0.01"/></geometry>
+      <origin xyz="0.2 0 0" rpy="1.5708 0 0"/>
+      <material name="light_gray"/>
+    </visual>
+    <visual>
+      <geometry><cylinder length="0.4" radius="0.01"/></geometry>
+      <origin xyz="0.4 0 0" rpy="1.5708 0 0"/>
+      <material name="light_gray"/>
+    </visual>
+    <visual>
+      <geometry><cylinder length="0.35" radius="0.01"/></geometry>
+      <origin xyz="0.6 0 0" rpy="1.5708 0 0"/>
+      <material name="light_gray"/>
+    </visual>
+    <collision>
+        <origin xyz="0.5 0 0" rpy="0 1.5708 0"/>
+        <geometry><cylinder length="1.0" radius="0.015"/></geometry>
+    </collision>
+  </link>
+
+</robot>
