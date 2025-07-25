@@ -1,21 +1,19 @@
 use libsql::{params, Connection, Result, Transaction};
-use messages::{RadioData, RadioMessage};
-use postcard::from_bytes;
+use messages_prost::sbg::SbgMessage;
+use prost::Message as _;
+use chrono::Utc;
 
-use super::{common::save_common, sbg::save_sbg};
+// use super::{common::save_common, sbg::save_sbg};
 
 // Helper function to save a single message within an existing transaction
 async fn save_single_message_in_transaction(
     transaction: &Transaction,
-    data: &RadioMessage<'_>,
+    data: &SbgMessage,
 ) -> Result<i64> {
-    // Save the main RadioMessage
-    let time_str = data.timestamp.0.to_string();
-    let time_epoch = data.timestamp.0.and_utc().timestamp();
-    let node_name = serde_json::to_string(&data.node)
-        .map_err(|e| libsql::Error::ToSqlConversionFailure(Box::new(e)))?
-        .trim_matches('"')
-        .to_string();
+    // Placeholder timestamp handling until protobuf schema finalized
+    let time_str = Utc::now().to_rfc3339();
+    let time_epoch = Utc::now().timestamp();
+    let node_name = format!("{:?}", data.node);
 
     transaction
         .execute(
@@ -25,11 +23,7 @@ async fn save_single_message_in_transaction(
                 time_str,
                 time_epoch,
                 node_name,
-                match &data.data {
-                    RadioData::Common(_) => "Common",
-                    RadioData::Sbg(_) => "Sbg",
-                    RadioData::Gps(_) => "Gps",
-                },
+                "Sbg",
                 0 // Placeholder for data_id
             ],
         )
@@ -37,11 +31,7 @@ async fn save_single_message_in_transaction(
     let radio_message_id = transaction.last_insert_rowid();
 
     // Handle RadioData types
-    let data_id = match &data.data {
-        RadioData::Common(common) => save_common(transaction, common).await?,
-        RadioData::Sbg(sbg) => save_sbg(transaction, sbg).await?,
-        RadioData::Gps(_) => unimplemented!(), // Skipping GPS for now
-    };
+    let data_id = 0;
 
     // Update the RadioMessage with the actual data_id
     transaction
@@ -69,19 +59,19 @@ pub async fn save_messages_batch(
     );
 
     for message_bytes in message_bytes_list.iter() {
-        match from_bytes::<RadioMessage<'_>>(message_bytes) {
+        match SbgMessage::decode(&message_bytes[..]) {
             Ok(message) => {
                 if let Err(e) = save_single_message_in_transaction(&transaction, &message).await {
                     tracing::error!(
-                        "Error saving deserialized message in batch: {:?}. Rolling back.",
+                        "Error saving decoded message in batch: {:?}. Rolling back.",
                         e
                     );
                     transaction.rollback().await?;
-                    return Err(e); // Propagate the error
+                    return Err(e);
                 }
             }
             Err(e) => {
-                tracing::error!("Failed to deserialize message in batch: {:?}. Skipping.", e);
+                tracing::error!("Failed to decode protobuf message in batch: {:?}. Skipping.", e);
             }
         }
     }

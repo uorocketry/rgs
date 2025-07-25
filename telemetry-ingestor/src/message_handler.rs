@@ -3,6 +3,8 @@ use chrono::Utc;
 use libsql::Connection;
 use mavlink::uorocketry::MavMessage;
 use mavlink::MavConnection;
+use messages_prost::sbg::SbgMessage;
+use prost::Message as _;
 use std::time::{Duration, Instant};
 use tracing::{error, info, warn};
 
@@ -49,7 +51,19 @@ pub async fn handle_messages(
 
                 match message {
                     MavMessage::POSTCARD_MESSAGE(data) => {
-                        message_buffer.push(data.message.to_vec());
+                        match SbgMessage::decode(&data.message[..]) {
+                            Ok(proto_msg) => {
+                                let mut buf = Vec::new();
+                                if proto_msg.encode(&mut buf).is_ok() {
+                                    message_buffer.push(buf);
+                                } else {
+                                    error!("Failed to re-encode protobuf message");
+                                }
+                            }
+                            Err(e) => {
+                                error!("Failed to decode protobuf message: {:?}", e);
+                            }
+                        }
                     }
                     MavMessage::RADIO_STATUS(data) => {
                         let rssi_val = data.rssi as i64;
