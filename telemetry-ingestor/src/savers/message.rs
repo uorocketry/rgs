@@ -1,5 +1,5 @@
 use libsql::{params, Connection, Result, Transaction};
-use messages_prost::sbg::SbgMessage;
+use messages_prost::sensor::sbg::SbgMessage;
 use prost::Message as _;
 use chrono::Utc;
 
