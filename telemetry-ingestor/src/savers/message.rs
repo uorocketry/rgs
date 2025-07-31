@@ -1,5 +1,8 @@
 use libsql::{params, Connection, Result, Transaction};
-use messages_prost::sensor::sbg::SbgMessage;
+use messages_prost::{
+    common::Node,
+    sensor::{gps::Gps, sbg::SbgMessage},
+};
 use prost::Message as _;
 use chrono::Utc;
 
@@ -8,12 +11,15 @@ use chrono::Utc;
 // Helper function to save a single message within an existing transaction
 async fn save_single_message_in_transaction(
     transaction: &Transaction,
-    data: &SbgMessage,
+    node: i32,
+    data_type: &str,
 ) -> Result<i64> {
     // Placeholder timestamp handling until protobuf schema finalized
     let time_str = Utc::now().to_rfc3339();
     let time_epoch = Utc::now().timestamp();
-    let node_name = format!("{:?}", data.node);
+    let node_name = Node::try_from(node)
+        .map(|n| format!("{:?}", n))
+        .unwrap_or_else(|_| "Unspecified".to_string());
 
     transaction
         .execute(
@@ -23,7 +29,7 @@ async fn save_single_message_in_transaction(
                 time_str,
                 time_epoch,
                 node_name,
-                "Sbg",
+                data_type,
                 0 // Placeholder for data_id
             ],
         )
@@ -59,20 +65,26 @@ pub async fn save_messages_batch(
     );
 
     for message_bytes in message_bytes_list.iter() {
-        match SbgMessage::decode(&message_bytes[..]) {
-            Ok(message) => {
-                if let Err(e) = save_single_message_in_transaction(&transaction, &message).await {
-                    tracing::error!(
-                        "Error saving decoded message in batch: {:?}. Rolling back.",
-                        e
-                    );
-                    transaction.rollback().await?;
-                    return Err(e);
-                }
+        if let Ok(msg) = SbgMessage::decode(&message_bytes[..]) {
+            if let Err(e) = save_single_message_in_transaction(&transaction, msg.node, "Sbg").await {
+                tracing::error!(
+                    "Error saving decoded SbgMessage in batch: {:?}. Rolling back.",
+                    e
+                );
+                transaction.rollback().await?;
+                return Err(e);
             }
-            Err(e) => {
-                tracing::error!("Failed to decode protobuf message in batch: {:?}. Skipping.", e);
+        } else if let Ok(msg) = Gps::decode(&message_bytes[..]) {
+            if let Err(e) = save_single_message_in_transaction(&transaction, msg.node, "Gps").await {
+                tracing::error!(
+                    "Error saving decoded Gps message in batch: {:?}. Rolling back.",
+                    e
+                );
+                transaction.rollback().await?;
+                return Err(e);
             }
+        } else {
+            tracing::error!("Failed to decode protobuf message in batch. Skipping.");
         }
     }
 
