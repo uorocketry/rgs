@@ -1,6 +1,26 @@
 <script lang="ts">
 	import { page } from '$app/stores';
 	// import { AppRail, AppRailAnchor } from '@skeletonlabs/skeleton'; // Removed Skeleton imports
+
+	type TabItem = {
+		href: string;
+		tip: string;
+		icon: string; // FontAwesome class
+	};
+
+	const TABS: TabItem[] = [
+		{ href: '/health', tip: 'System Health', icon: 'fas fa-heart' },
+		{ href: '/comm', tip: 'Hydra Provider', icon: 'fas fa-broadcast-tower' },
+		{ href: '/mock', tip: 'Mock', icon: 'fas fa-masks-theater' },
+		{ href: '/sbg', tip: 'SBG Sensors', icon: 'fas fa-satellite' },
+		{ href: '/commands', tip: 'Commands', icon: 'fas fa-terminal' },
+		{ href: '/pfd', tip: 'PFD', icon: 'fas fa-plane' },
+		{ href: '/navball', tip: 'Navball', icon: 'fas fa-compass' },
+		{ href: '/radio', tip: 'Radio', icon: 'fas fa-signal' },
+		{ href: '/help', tip: 'Help', icon: 'fas fa-question' },
+		{ href: '/utils', tip: 'Utilities', icon: 'fas fa-tools' },
+		{ href: '/settings', tip: 'Settings', icon: 'fas fa-cog' },
+	];
 </script>
 
 <!-- Using DaisyUI Menu component -->
@@ -20,126 +40,23 @@
 		</a>
 	</li> 
     -->
-	<li>
-		<a
-			href="/health"
-			class="tooltip tooltip-right"
-			class:active={$page.url.pathname === '/health'}
-			data-tip="System Health"
-			aria-label="System Health"
-		>
-			<i class="fas fa-heart text-xl"></i>
-		</a>
-	</li>
-	<li>
-		<a
-			href="/comm"
-			class="tooltip tooltip-right"
-			class:active={$page.url.pathname === '/comm'}
-			data-tip="Hydra Provider"
-			aria-label="Hydra Provider"
-		>
-			<i class="fas fa-broadcast-tower text-xl"></i>
-		</a>
-	</li>
-	<li>
-		<a
-			href="/mock"
-			class="tooltip tooltip-right"
-			class:active={$page.url.pathname === '/mock'}
-			data-tip="Mock"
-			aria-label="Mock"
-		>
-			<i class="fas fa-masks-theater text-xl"></i>
-		</a>
-	</li>
-	<li>
-		<a
-			href="/sbg"
-			class="tooltip tooltip-right"
-			class:active={$page.url.pathname === '/sbg'}
-			data-tip="SBG Sensors"
-			aria-label="SBG Sensors"
-		>
-			<i class="fas fa-satellite text-xl"></i>
-		</a>
-	</li>
-	<li>
-		<a
-			href="/commands"
-			class="tooltip tooltip-right"
-			class:active={$page.url.pathname === '/commands'}
-			data-tip="Commands"
-			aria-label="Command Dispatch"
-		>
-			<i class="fas fa-terminal text-xl"></i>
-		</a>
-	</li>
-	<li>
-		<a
-			href="/pfd"
-			class="tooltip tooltip-right"
-			class:active={$page.url.pathname === '/pfd'}
-			data-tip="PFD"
-			aria-label="Primary Flight Display"
-		>
-			<i class="fas fa-plane text-xl"></i>
-		</a>
-	</li>
-
-        <li>
-                <a
-                        href="/navball"
-                        class="tooltip tooltip-right"
-                        class:active={$page.url.pathname === '/navball'}
-                        data-tip="Navball"
-                        aria-label="Navball"
-                >
-                        <i class="fas fa-compass text-xl"></i>
-                </a>
-        </li>
-        <li>
-                <a
-                        href="/radio"
-                        class="tooltip tooltip-right"
-                        class:active={$page.url.pathname === '/radio'}
-                        data-tip="Radio"
-                        aria-label="Radio Metrics"
-                >
-                        <i class="fas fa-signal text-xl"></i>
-                </a>
-        </li>
+	{#each TABS as tab}
+		<li>
+			<a
+				href={tab.href}
+				class="tooltip tooltip-right"
+				class:active={$page.url.pathname === tab.href || (tab.href === '/utils' && $page.url.pathname.startsWith('/utils'))}
+				data-tip={tab.tip}
+				aria-label={tab.tip}
+			>
+				<i class={`${tab.icon} text-xl`}></i>
+			</a>
+		</li>
+	{/each}
 
 	<!-- Bottom Section (formerly trail slot) -->
 	<div class="flex-grow"></div>
 	<!-- Spacer to push items down -->
-	<li>
-		<a href="/help" class="tooltip tooltip-right" data-tip="Help" aria-label="Help">
-			<i class="fas fa-question text-xl"></i>
-		</a>
-	</li>
-	<li>
-		<a
-			href="/utils"
-			class="tooltip tooltip-right"
-			class:active={$page.url.pathname.startsWith('/utils')}
-			data-tip="Utilities"
-			aria-label="Utilities"
-		>
-			<i class="fas fa-tools text-xl"></i>
-		</a>
-	</li>
-	<li>
-		<a
-			href="/settings"
-			class="tooltip tooltip-right"
-			class:active={$page.url.pathname === '/settings'}
-			data-tip="Settings"
-			aria-label="Settings"
-		>
-			<i class="fas fa-cog text-xl"></i>
-		</a>
-	</li>
 </ul>
 
 <style>

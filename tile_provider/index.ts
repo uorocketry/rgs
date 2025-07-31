@@ -129,8 +129,7 @@ const server = Bun.serve({
         },
       });
     },
-    "/": homepage
-
+    "/": homepage,
   },
   hostname: config.address,
   port: config.port,
