@@ -3,19 +3,18 @@ use libsql::{params, Connection, Result, Transaction};
 use messages_prost::{
     common::Node,
     log::Log,
-    sensor::{gps::Gps, iim20670::Imu, madgwick::Madgwick, sbg::SbgMessage},
+    sensor::{gps::Gps, iim20670::Imu, madgwick::Madgwick, sbg::{SbgMessage, sbg_data}},
     state::StateMessage,
 };
 use prost::Message as _;
 
-// use super::{common::save_common, sbg::save_sbg};
+use super::{gps::save_gps, imu::save_imu, madgwick::save_madgwick, log::save_log, sbg::save_sbg, state_msg::save_state};
 
-// Helper function to save a single protobuf message within a transaction
-async fn save_single_message_in_transaction(
+async fn insert_radio_message(
     transaction: &Transaction,
     node: i32,
     data_type: &str,
-    bytes: &[u8],
+    data_id: i64,
 ) -> Result<i64> {
     let time_str = Utc::now().to_rfc3339();
     let time_epoch = Utc::now().timestamp();
@@ -23,21 +22,12 @@ async fn save_single_message_in_transaction(
         .map(|n| format!("{:?}", n))
         .unwrap_or_else(|_| "Unspecified".to_string());
 
-    // store raw bytes first
-    transaction
-        .execute("INSERT INTO ProtoPayload (bytes) VALUES (?)", params![bytes])
-        .await?;
-    let payload_id = transaction.last_insert_rowid();
-
-    // store radio message referencing payload
     transaction
         .execute(
-            "INSERT INTO RadioMessage (timestamp, timestamp_epoch, node, data_type, data_id)
-             VALUES (?, ?, ?, ?, ?)",
-            params![time_str, time_epoch, node_name, data_type, payload_id],
+            "INSERT INTO RadioMessage (timestamp, timestamp_epoch, node, data_type, data_id) VALUES (?, ?, ?, ?, ?)",
+            params![time_str, time_epoch, node_name, data_type, data_id],
         )
         .await?;
-
     Ok(transaction.last_insert_rowid())
 }
 
@@ -50,74 +40,37 @@ pub async fn save_messages_batch(
     }
 
     let transaction = db_connection.transaction().await?;
-    tracing::info!(
-        "Starting batch save for {} messages",
-        message_bytes_list.len()
-    );
+    tracing::info!("Starting batch save for {} messages", message_bytes_list.len());
 
     for message_bytes in message_bytes_list.iter() {
         if let Ok(msg) = SbgMessage::decode(&message_bytes[..]) {
-            if let Err(e) = save_single_message_in_transaction(&transaction, msg.node, "Sbg", message_bytes).await
-            {
-                tracing::error!(
-                    "Error saving decoded SbgMessage in batch: {:?}. Rolling back.",
-                    e
-                );
-                transaction.rollback().await?;
-                return Err(e);
+            if let Some(data) = &msg.data {
+                let (data_type, data_id) = match data.data.as_ref().unwrap() {
+                    sbg_data::Data::GpsPos(_) => ("SbgGpsPos", save_sbg(&transaction, data).await?),
+                    sbg_data::Data::UtcTime(_) => ("SbgUtcTime", save_sbg(&transaction, data).await?),
+                    sbg_data::Data::Imu(_) => ("SbgImu", save_sbg(&transaction, data).await?),
+                    sbg_data::Data::EkfQuat(_) => ("SbgEkfQuat", save_sbg(&transaction, data).await?),
+                    sbg_data::Data::EkfNav(_) => ("SbgEkfNav", save_sbg(&transaction, data).await?),
+                    sbg_data::Data::GpsVel(_) => ("SbgGpsVel", save_sbg(&transaction, data).await?),
+                    sbg_data::Data::Air(_) => ("SbgAir", save_sbg(&transaction, data).await?),
+                };
+                insert_radio_message(&transaction, msg.node, data_type, data_id).await?;
             }
         } else if let Ok(msg) = Gps::decode(&message_bytes[..]) {
-            if let Err(e) = save_single_message_in_transaction(&transaction, msg.node, "Gps", message_bytes).await
-            {
-                tracing::error!(
-                    "Error saving decoded Gps message in batch: {:?}. Rolling back.",
-                    e
-                );
-                transaction.rollback().await?;
-                return Err(e);
-            }
+            let data_id = save_gps(&transaction, &msg).await?;
+            insert_radio_message(&transaction, msg.node, "Gps", data_id).await?;
         } else if let Ok(msg) = Imu::decode(&message_bytes[..]) {
-            if let Err(e) = save_single_message_in_transaction(&transaction, msg.node, "Imu", message_bytes).await
-            {
-                tracing::error!(
-                    "Error saving decoded Imu message in batch: {:?}. Rolling back.",
-                    e
-                );
-                transaction.rollback().await?;
-                return Err(e);
-            }
+            let data_id = save_imu(&transaction, &msg).await?;
+            insert_radio_message(&transaction, msg.node, "Imu", data_id).await?;
         } else if let Ok(msg) = Madgwick::decode(&message_bytes[..]) {
-            if let Err(e) =
-                save_single_message_in_transaction(&transaction, msg.node, "Madgwick", message_bytes).await
-            {
-                tracing::error!(
-                    "Error saving decoded Madgwick message in batch: {:?}. Rolling back.",
-                    e
-                );
-                transaction.rollback().await?;
-                return Err(e);
-            }
+            let data_id = save_madgwick(&transaction, &msg).await?;
+            insert_radio_message(&transaction, msg.node, "Madgwick", data_id).await?;
         } else if let Ok(msg) = Log::decode(&message_bytes[..]) {
-            if let Err(e) = save_single_message_in_transaction(&transaction, msg.node, "Log", message_bytes).await
-            {
-                tracing::error!(
-                    "Error saving decoded Log message in batch: {:?}. Rolling back.",
-                    e
-                );
-                transaction.rollback().await?;
-                return Err(e);
-            }
+            let data_id = save_log(&transaction, &msg).await?;
+            insert_radio_message(&transaction, msg.node, "Log", data_id).await?;
         } else if let Ok(msg) = StateMessage::decode(&message_bytes[..]) {
-            if let Err(e) =
-                save_single_message_in_transaction(&transaction, msg.node, "State", message_bytes).await
-            {
-                tracing::error!(
-                    "Error saving decoded State message in batch: {:?}. Rolling back.",
-                    e
-                );
-                transaction.rollback().await?;
-                return Err(e);
-            }
+            let data_id = save_state(&transaction, &msg).await?;
+            insert_radio_message(&transaction, msg.node, "State", data_id).await?;
         } else {
             tracing::error!("Failed to decode protobuf message in batch. Skipping.");
         }
