@@ -3,7 +3,6 @@
 	let iframeError = $state(false);
 </script>
 
-<!-- HREF to /tiles/downloader -->
 <iframe
 	src="/tiles/downloader"
 	title="Map Downloader"

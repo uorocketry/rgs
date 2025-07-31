@@ -267,16 +267,7 @@
 </div>
 <div class="grid-background"></div>
 
-	<!-- Sidebar Content -->
-	<!-- {#if !$isImmersiveMode} -->
-		<!-- <div class="drawer-side border-r border-base-300" style="scroll-behavior: smooth;">
-			<SideBar />
-		</div> -->
-	<!-- {/if} -->
-
-
 <style>
-
 .grid-background {
     position: fixed;
 	z-index: -1;
