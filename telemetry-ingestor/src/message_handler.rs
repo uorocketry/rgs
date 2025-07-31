@@ -3,7 +3,7 @@ use chrono::Utc;
 use libsql::Connection;
 use mavlink::uorocketry::MavMessage;
 use mavlink::MavConnection;
-use messages_prost::sbg::SbgMessage;
+use messages_prost::sensor::sbg::SbgMessage;
 use prost::Message as _;
 use std::time::{Duration, Instant};
 use tracing::{error, info, warn};
