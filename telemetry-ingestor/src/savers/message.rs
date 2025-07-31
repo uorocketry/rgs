@@ -10,46 +10,35 @@ use prost::Message as _;
 
 // use super::{common::save_common, sbg::save_sbg};
 
-// Helper function to save a single message within an existing transaction
+// Helper function to save a single protobuf message within a transaction
 async fn save_single_message_in_transaction(
     transaction: &Transaction,
     node: i32,
     data_type: &str,
+    bytes: &[u8],
 ) -> Result<i64> {
-    // Placeholder timestamp handling until protobuf schema finalized
     let time_str = Utc::now().to_rfc3339();
     let time_epoch = Utc::now().timestamp();
     let node_name = Node::try_from(node)
         .map(|n| format!("{:?}", n))
         .unwrap_or_else(|_| "Unspecified".to_string());
 
+    // store raw bytes first
+    transaction
+        .execute("INSERT INTO ProtoPayload (bytes) VALUES (?)", params![bytes])
+        .await?;
+    let payload_id = transaction.last_insert_rowid();
+
+    // store radio message referencing payload
     transaction
         .execute(
             "INSERT INTO RadioMessage (timestamp, timestamp_epoch, node, data_type, data_id)
-         VALUES (?, ?, ?, ?, ?)",
-            params![
-                time_str,
-                time_epoch,
-                node_name,
-                data_type,
-                0 // Placeholder for data_id
-            ],
-        )
-        .await?;
-    let radio_message_id = transaction.last_insert_rowid();
-
-    // Handle RadioData types
-    let data_id = 0;
-
-    // Update the RadioMessage with the actual data_id
-    transaction
-        .execute(
-            "UPDATE RadioMessage SET data_id = ? WHERE id = ?",
-            params![data_id, radio_message_id],
+             VALUES (?, ?, ?, ?, ?)",
+            params![time_str, time_epoch, node_name, data_type, payload_id],
         )
         .await?;
 
-    Ok(radio_message_id)
+    Ok(transaction.last_insert_rowid())
 }
 
 pub async fn save_messages_batch(
@@ -68,7 +57,7 @@ pub async fn save_messages_batch(
 
     for message_bytes in message_bytes_list.iter() {
         if let Ok(msg) = SbgMessage::decode(&message_bytes[..]) {
-            if let Err(e) = save_single_message_in_transaction(&transaction, msg.node, "Sbg").await
+            if let Err(e) = save_single_message_in_transaction(&transaction, msg.node, "Sbg", message_bytes).await
             {
                 tracing::error!(
                     "Error saving decoded SbgMessage in batch: {:?}. Rolling back.",
@@ -78,7 +67,7 @@ pub async fn save_messages_batch(
                 return Err(e);
             }
         } else if let Ok(msg) = Gps::decode(&message_bytes[..]) {
-            if let Err(e) = save_single_message_in_transaction(&transaction, msg.node, "Gps").await
+            if let Err(e) = save_single_message_in_transaction(&transaction, msg.node, "Gps", message_bytes).await
             {
                 tracing::error!(
                     "Error saving decoded Gps message in batch: {:?}. Rolling back.",
@@ -88,7 +77,7 @@ pub async fn save_messages_batch(
                 return Err(e);
             }
         } else if let Ok(msg) = Imu::decode(&message_bytes[..]) {
-            if let Err(e) = save_single_message_in_transaction(&transaction, msg.node, "Imu").await
+            if let Err(e) = save_single_message_in_transaction(&transaction, msg.node, "Imu", message_bytes).await
             {
                 tracing::error!(
                     "Error saving decoded Imu message in batch: {:?}. Rolling back.",
@@ -99,7 +88,7 @@ pub async fn save_messages_batch(
             }
         } else if let Ok(msg) = Madgwick::decode(&message_bytes[..]) {
             if let Err(e) =
-                save_single_message_in_transaction(&transaction, msg.node, "Madgwick").await
+                save_single_message_in_transaction(&transaction, msg.node, "Madgwick", message_bytes).await
             {
                 tracing::error!(
                     "Error saving decoded Madgwick message in batch: {:?}. Rolling back.",
@@ -109,7 +98,7 @@ pub async fn save_messages_batch(
                 return Err(e);
             }
         } else if let Ok(msg) = Log::decode(&message_bytes[..]) {
-            if let Err(e) = save_single_message_in_transaction(&transaction, msg.node, "Log").await
+            if let Err(e) = save_single_message_in_transaction(&transaction, msg.node, "Log", message_bytes).await
             {
                 tracing::error!(
                     "Error saving decoded Log message in batch: {:?}. Rolling back.",
@@ -120,7 +109,7 @@ pub async fn save_messages_batch(
             }
         } else if let Ok(msg) = StateMessage::decode(&message_bytes[..]) {
             if let Err(e) =
-                save_single_message_in_transaction(&transaction, msg.node, "State").await
+                save_single_message_in_transaction(&transaction, msg.node, "State", message_bytes).await
             {
                 tracing::error!(
                     "Error saving decoded State message in batch: {:?}. Rolling back.",

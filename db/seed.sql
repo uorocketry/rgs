@@ -254,6 +254,12 @@ CREATE TABLE IF NOT EXISTS RadioMetrics (
 
 CREATE INDEX IF NOT EXISTS idx_radiometrics_timestamp ON RadioMetrics (timestamp);
 
+-- Generic payload table for protobuf messages
+CREATE TABLE IF NOT EXISTS ProtoPayload (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    bytes BLOB NOT NULL
+);
+
 --#endregion
 
 --#endregion
