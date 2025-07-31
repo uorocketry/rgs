@@ -7,7 +7,8 @@ edition = "2021"
 tokio = { workspace = true }
 serde = { workspace = true }
 serde_json = { workspace = true }
-messages = { workspace = true }
+# legacy message crate removed
+# messages = { workspace = true }
 messages-prost = { workspace = true }
 mavlink = { workspace = true }
 clap = { workspace = true }
