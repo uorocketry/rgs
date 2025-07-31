@@ -1,10 +1,12 @@
+use chrono::Utc;
 use libsql::{params, Connection, Result, Transaction};
 use messages_prost::{
     common::Node,
-    sensor::{gps::Gps, sbg::SbgMessage},
+    log::Log,
+    sensor::{gps::Gps, iim20670::Imu, madgwick::Madgwick, sbg::SbgMessage},
+    state::StateMessage,
 };
 use prost::Message as _;
-use chrono::Utc;
 
 // use super::{common::save_common, sbg::save_sbg};
 
@@ -66,7 +68,8 @@ pub async fn save_messages_batch(
 
     for message_bytes in message_bytes_list.iter() {
         if let Ok(msg) = SbgMessage::decode(&message_bytes[..]) {
-            if let Err(e) = save_single_message_in_transaction(&transaction, msg.node, "Sbg").await {
+            if let Err(e) = save_single_message_in_transaction(&transaction, msg.node, "Sbg").await
+            {
                 tracing::error!(
                     "Error saving decoded SbgMessage in batch: {:?}. Rolling back.",
                     e
@@ -75,9 +78,52 @@ pub async fn save_messages_batch(
                 return Err(e);
             }
         } else if let Ok(msg) = Gps::decode(&message_bytes[..]) {
-            if let Err(e) = save_single_message_in_transaction(&transaction, msg.node, "Gps").await {
+            if let Err(e) = save_single_message_in_transaction(&transaction, msg.node, "Gps").await
+            {
                 tracing::error!(
                     "Error saving decoded Gps message in batch: {:?}. Rolling back.",
+                    e
+                );
+                transaction.rollback().await?;
+                return Err(e);
+            }
+        } else if let Ok(msg) = Imu::decode(&message_bytes[..]) {
+            if let Err(e) = save_single_message_in_transaction(&transaction, msg.node, "Imu").await
+            {
+                tracing::error!(
+                    "Error saving decoded Imu message in batch: {:?}. Rolling back.",
+                    e
+                );
+                transaction.rollback().await?;
+                return Err(e);
+            }
+        } else if let Ok(msg) = Madgwick::decode(&message_bytes[..]) {
+            if let Err(e) =
+                save_single_message_in_transaction(&transaction, msg.node, "Madgwick").await
+            {
+                tracing::error!(
+                    "Error saving decoded Madgwick message in batch: {:?}. Rolling back.",
+                    e
+                );
+                transaction.rollback().await?;
+                return Err(e);
+            }
+        } else if let Ok(msg) = Log::decode(&message_bytes[..]) {
+            if let Err(e) = save_single_message_in_transaction(&transaction, msg.node, "Log").await
+            {
+                tracing::error!(
+                    "Error saving decoded Log message in batch: {:?}. Rolling back.",
+                    e
+                );
+                transaction.rollback().await?;
+                return Err(e);
+            }
+        } else if let Ok(msg) = StateMessage::decode(&message_bytes[..]) {
+            if let Err(e) =
+                save_single_message_in_transaction(&transaction, msg.node, "State").await
+            {
+                tracing::error!(
+                    "Error saving decoded State message in batch: {:?}. Rolling back.",
                     e
                 );
                 transaction.rollback().await?;

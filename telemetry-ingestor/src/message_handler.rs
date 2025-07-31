@@ -3,8 +3,7 @@ use chrono::Utc;
 use libsql::Connection;
 use mavlink::uorocketry::MavMessage;
 use mavlink::MavConnection;
-use messages_prost::sensor::{gps::Gps, sbg::SbgMessage};
-use prost::Message as _;
+// Messages are decoded in batch; no need to parse them here
 use std::time::{Duration, Instant};
 use tracing::{error, info, warn};
 
@@ -51,13 +50,8 @@ pub async fn handle_messages(
 
                 match message {
                     MavMessage::POSTCARD_MESSAGE(data) => {
-                        if SbgMessage::decode(&data.message[..]).is_ok() {
-                            message_buffer.push(data.message.to_vec());
-                        } else if Gps::decode(&data.message[..]).is_ok() {
-                            message_buffer.push(data.message.to_vec());
-                        } else {
-                            error!("Failed to decode protobuf POSTCARD message");
-                        }
+                        // Buffer POSTCARD messages for decoding in batch
+                        message_buffer.push(data.message.to_vec());
                     }
                     MavMessage::RADIO_STATUS(data) => {
                         let rssi_val = data.rssi as i64;
