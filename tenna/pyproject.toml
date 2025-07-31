@@ -5,7 +5,19 @@ description = "Add your description here"
 readme = "README.md"
 requires-python = ">=3.12"
 dependencies = [
-    "fastapi[standard]>=0.116.1",
+    "fastapi>=0.116.1",
+    "odrive>=0.6.10.post0",
     "pybullet>=3.2.7",
+    "pydantic-settings>=2.10.1",
+    "pytest>=8.4.1",
+    "pytest-asyncio>=1.1.0",
+    "structlog>=25.4.0",
     "uvicorn[standard]>=0.35.0",
 ]
+
+[tool.pytest.ini_options]
+asyncio_mode = "auto"
+testpaths = ["tests"]
+python_files = ["test_*.py"]
+python_classes = ["Test*"]
+python_functions = ["test_*"]

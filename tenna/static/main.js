@@ -39,7 +39,7 @@ function createTextLabel(text, position, color) {
     const spriteMaterial = new THREE.SpriteMaterial({ map: texture });
     const sprite = new THREE.Sprite(spriteMaterial);
     sprite.position.set(...position);
-    sprite.scale.set(1.0, 0.5, 1.0);
+    sprite.scale.set(2.0, 1, 2.0);
     return sprite;
 }
 // Reposition labels for Z-up world (North is +Y, East is +X)
@@ -55,7 +55,7 @@ const loader = new URDFLoader();
 loader.load('/turret.urdf', robot => {
     const scale = 2.0;
     robot.scale.set(scale, scale, scale);
-    
+
     // With Z-up, the orientation is much simpler.
     // The robot loads upright by default. We just need to turn it to face North (+Y).
     // Default facing is +X (East), so rotate +90 deg around Z.
@@ -72,7 +72,7 @@ const rocketIndicator = new THREE.Mesh(
 );
 scene.add(rocketIndicator);
 
-camera.lookAt(0,0,0);
+camera.lookAt(0, 0, 0);
 
 // --- STATE MANAGEMENT (Unchanged) ---
 let targetYawRad = 0, targetPitchRad = 0;
@@ -88,7 +88,7 @@ function updateRocketVisualPosition(rocketGPS) {
     const dLon = THREE.MathUtils.degToRad(rocketGPS.lon - antennaPositionGPS.lon);
     const dLat = rocketLatRad - antennaLatRad;
 
-    const a = Math.sin(dLat / 2)**2 + Math.cos(antennaLatRad) * Math.cos(rocketLatRad) * Math.sin(dLon / 2)**2;
+    const a = Math.sin(dLat / 2) ** 2 + Math.cos(antennaLatRad) * Math.cos(rocketLatRad) * Math.sin(dLon / 2) ** 2;
     const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
     const horizontalDistance = EARTH_RADIUS * c;
 
@@ -120,7 +120,7 @@ function animate() {
 
         robotModel.setJointValue('yaw_joint', currentYaw + yawDiff * 0.1);
         robotModel.setJointValue('pitch_joint', currentPitch + (targetPitchRad - currentPitch) * 0.1);
-        
+
         document.getElementById('current-pitch').innerText = THREE.MathUtils.radToDeg(currentPitch).toFixed(2);
         document.getElementById('current-yaw').innerText = ((THREE.MathUtils.radToDeg(currentYaw % (2 * Math.PI)) + 360) % 360).toFixed(2);
     }
@@ -181,7 +181,7 @@ rocketForm.addEventListener('submit', async (e) => {
 
 function debounce(fn, delay) {
     let timeout;
-    return function(...args) {
+    return function (...args) {
         clearTimeout(timeout);
         timeout = setTimeout(() => fn.apply(this, args), delay);
     };
