@@ -4,7 +4,7 @@ import asyncio
 import logging
 from typing import Optional, Tuple, Dict, Any
 
-from app.controllers.base import AbstractMotorController
+from app.controllers.base import MotorController
 from app.controllers.odrive_controller import ODriveController
 from app.controllers.simulation_controller import SimulationController
 from app.core.config import AppConfig
@@ -16,6 +16,7 @@ from app.models.motor import (
     ControllerMode, ControllerStatus, DualAxisConfig, 
     MotorCommand, MotorPosition
 )
+from app.utils.result import Result
 
 
 logger = logging.getLogger(__name__)
@@ -35,7 +36,7 @@ class MotorService:
         self.axis_config = axis_config or DualAxisConfig()
         
         # Controller management
-        self._current_controller: Optional[AbstractMotorController] = None
+        self._current_controller: Optional[MotorController] = None
         self._hardware_controller: Optional[ODriveController] = None
         self._simulation_controller: Optional[SimulationController] = None
         self._current_mode: ControllerMode = ControllerMode.OFFLINE
@@ -47,20 +48,17 @@ class MotorService:
         
         logger.info("Motor service initialized")
     
-    async def initialize(self) -> bool:
+    async def initialize(self) -> Result[None]:
         """Initialize the motor service with automatic hardware detection.
         
         Returns:
-            True if initialization successful, False otherwise
-            
-        Raises:
-            ServiceError: If initialization fails critically
+            Result indicating success or failure with error message
         """
         try:
             async with self._lock:
                 if self._is_initialized:
                     logger.warning("Motor service already initialized")
-                    return True
+                    return Result.ok(None)
                 
                 logger.info("Initializing motor service...")
                 
@@ -72,55 +70,57 @@ class MotorService:
                     self._desired_mode = ControllerMode.SIMULATION
                 
                 # Initialize controllers based on desired mode and hardware availability
-                success = await self._initialize_controllers()
+                result = await self._initialize_controllers()
                 
-                if success:
+                if result.is_ok():
                     self._is_initialized = True
                     logger.info(f"Motor service initialized successfully in {self._current_mode.value} mode")
-                    return True
+                    return Result.ok(None)
                 else:
-                    raise ServiceError("Failed to initialize any motor controller")
+                    return result
                     
         except Exception as e:
             error_msg = f"Motor service initialization failed: {e}"
             logger.error(error_msg)
-            raise ServiceError(error_msg) from e
+            return Result.err(error_msg)
     
-    async def _initialize_controllers(self) -> bool:
+    async def _initialize_controllers(self) -> Result[None]:
         """Initialize controllers with automatic hardware detection and fallback.
         
         Returns:
-            True if at least one controller was initialized successfully
+            Result indicating success or failure with error message
         """
         # Always create simulation controller as fallback
-        await self._create_simulation_controller()
+        sim_result = await self._create_simulation_controller()
+        if sim_result.is_err():
+            return sim_result
         
         # Try to detect and initialize hardware if desired
         if self._desired_mode == ControllerMode.HARDWARE:
-            hardware_available = await self._detect_and_initialize_hardware()
+            hardware_result = await self._detect_and_initialize_hardware()
             
-            if hardware_available:
+            if hardware_result.is_ok():
                 self._current_controller = self._hardware_controller
                 self._current_mode = ControllerMode.HARDWARE
                 logger.info("Using hardware controller (ODrive)")
-                return True
+                return Result.ok(None)
             else:
-                logger.warning("Hardware not available, falling back to simulation")
+                logger.warning(f"Hardware not available ({hardware_result.error}), falling back to simulation")
                 self._current_controller = self._simulation_controller
                 self._current_mode = ControllerMode.SIMULATION
-                return True
+                return Result.ok(None)
         else:
             # Use simulation mode
             self._current_controller = self._simulation_controller
             self._current_mode = ControllerMode.SIMULATION
             logger.info("Using simulation controller")
-            return True
+            return Result.ok(None)
     
-    async def _detect_and_initialize_hardware(self) -> bool:
+    async def _detect_and_initialize_hardware(self) -> Result[None]:
         """Detect and initialize ODrive hardware.
         
         Returns:
-            True if hardware was successfully initialized
+            Result indicating success or failure with error message
         """
         try:
             logger.info("Detecting ODrive hardware...")
@@ -135,27 +135,24 @@ class MotorService:
             if hasattr(self._hardware_controller, 'detect_hardware'):
                 hardware_detected = await self._hardware_controller.detect_hardware()
                 if not hardware_detected:
-                    logger.info("No ODrive hardware detected")
-                    return False
+                    return Result.err("No ODrive hardware detected")
             
             # Initialize the hardware controller
-            success = await self._hardware_controller.initialize()
+            result = await self._hardware_controller.initialize()
             
-            if success:
+            if result.is_ok():
                 logger.info("ODrive hardware initialized successfully")
-                return True
+                return Result.ok(None)
             else:
-                logger.warning("ODrive hardware initialization failed")
-                return False
+                logger.warning(f"ODrive hardware initialization failed: {result.error}")
+                return result
                 
-        except HardwareError as e:
-            logger.warning(f"Hardware initialization failed: {e}")
-            return False
         except Exception as e:
-            logger.error(f"Unexpected error during hardware initialization: {e}")
-            return False
+            error_msg = f"Unexpected error during hardware initialization: {e}"
+            logger.error(error_msg)
+            return Result.err(error_msg)
     
-    async def _create_simulation_controller(self) -> None:
+    async def _create_simulation_controller(self) -> Result[None]:
         """Create and initialize simulation controller."""
         try:
             logger.info("Initializing simulation controller...")
@@ -166,38 +163,36 @@ class MotorService:
                 simulation_config=self.config.simulation_config
             )
             
-            success = await self._simulation_controller.initialize()
+            result = await self._simulation_controller.initialize()
             
-            if not success:
-                raise ServiceError("Failed to initialize simulation controller")
+            if result.is_err():
+                return result
                 
             logger.info("Simulation controller initialized successfully")
+            return Result.ok(None)
             
         except Exception as e:
             error_msg = f"Failed to create simulation controller: {e}"
             logger.error(error_msg)
-            raise ServiceError(error_msg) from e
+            return Result.err(error_msg)
     
-    async def switch_mode(self, target_mode: ControllerMode) -> bool:
+    async def switch_mode(self, target_mode: ControllerMode) -> Result[None]:
         """Switch between simulation and hardware modes.
         
         Args:
             target_mode: Target controller mode
             
         Returns:
-            True if mode switch successful, False otherwise
-            
-        Raises:
-            ServiceError: If mode switch fails
+            Result indicating success or failure with error message
         """
         try:
             async with self._lock:
                 if not self._is_initialized:
-                    raise ServiceError("Motor service not initialized")
+                    return Result.err("Motor service not initialized")
                 
                 if self._current_mode == target_mode:
                     logger.info(f"Already in {target_mode.value} mode")
-                    return True
+                    return Result.ok(None)
                 
                 logger.info(f"Switching from {self._current_mode.value} to {target_mode.value} mode")
                 
@@ -205,15 +200,14 @@ class MotorService:
                 if target_mode == ControllerMode.HARDWARE:
                     if not self._hardware_controller:
                         # Try to initialize hardware
-                        hardware_available = await self._detect_and_initialize_hardware()
-                        if not hardware_available:
-                            logger.warning("Hardware not available for mode switch")
-                            return False
+                        hardware_result = await self._detect_and_initialize_hardware()
+                        if hardware_result.is_err():
+                            logger.warning(f"Hardware not available for mode switch: {hardware_result.error}")
+                            return hardware_result
                     
                     # Check if hardware controller is ready
                     if not await self._hardware_controller.is_ready():
-                        logger.warning("Hardware controller not ready")
-                        return False
+                        return Result.err("Hardware controller not ready")
                     
                     self._current_controller = self._hardware_controller
                     self._current_mode = ControllerMode.HARDWARE
@@ -221,26 +215,27 @@ class MotorService:
                 # Handle switch to simulation mode
                 elif target_mode == ControllerMode.SIMULATION:
                     if not self._simulation_controller:
-                        await self._create_simulation_controller()
+                        sim_result = await self._create_simulation_controller()
+                        if sim_result.is_err():
+                            return sim_result
                     
                     # Check if simulation controller is ready
                     if not await self._simulation_controller.is_ready():
-                        logger.warning("Simulation controller not ready")
-                        return False
+                        return Result.err("Simulation controller not ready")
                     
                     self._current_controller = self._simulation_controller
                     self._current_mode = ControllerMode.SIMULATION
                 
                 else:
-                    raise ServiceError(f"Unsupported target mode: {target_mode}")
+                    return Result.err(f"Unsupported target mode: {target_mode}")
                 
                 logger.info(f"Successfully switched to {target_mode.value} mode")
-                return True
+                return Result.ok(None)
                 
         except Exception as e:
             error_msg = f"Mode switch failed: {e}"
             logger.error(error_msg)
-            raise ServiceError(error_msg) from e
+            return Result.err(error_msg)
     
     async def send_position_command(self, command: MotorCommand) -> bool:
         """Send position command to current controller.

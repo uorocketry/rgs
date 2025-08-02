@@ -6,21 +6,19 @@ from unittest.mock import AsyncMock, MagicMock, patch
 from datetime import datetime
 
 from app.services.motor_service import MotorService
-from app.core.config import AppConfig, SimulationConfig
+from app.core.config import AppConfig, SimulationConfig, create_config_for_testing
 from app.core.exceptions import ServiceError, HardwareError, CommunicationError
 from app.models.motor import (
     ControllerMode, ControllerStatus, DualAxisConfig, 
     MotorCommand, MotorPosition, MotorState
 )
+from app.utils.result import Result
 
 
 @pytest.fixture
 def app_config():
     """Create test application configuration."""
-    config = AppConfig()
-    config.default_mode = "simulation"
-    config.simulation_config = SimulationConfig()
-    return config
+    return create_config_for_testing()
 
 
 @pytest.fixture
@@ -41,11 +39,11 @@ def mock_controller():
     controller = AsyncMock()
     controller.controller_id = "test_controller"
     controller.mode = ControllerMode.SIMULATION
-    controller.initialize.return_value = True
+    controller.initialize.return_value = Result.ok(None)
     controller.is_ready.return_value = True
-    controller.send_command.return_value = True
-    controller.get_position.return_value = (0.0, 0.0)
-    controller.get_status.return_value = ControllerStatus(
+    controller.send_command.return_value = Result.ok(None)
+    controller.get_position.return_value = Result.ok((0.0, 0.0))
+    controller.get_status.return_value = Result.ok(ControllerStatus(
         is_connected=True,
         is_calibrated=True,
         current_position=MotorPosition(0.0, 0.0, datetime.now()),
@@ -53,8 +51,8 @@ def mock_controller():
         errors=[],
         mode=ControllerMode.SIMULATION,
         state=MotorState.IDLE
-    )
-    controller.shutdown = AsyncMock()
+    ))
+    controller.shutdown.return_value = Result.ok(None)
     return controller
 
 
@@ -80,7 +78,7 @@ class TestMotorServiceInitialization:
         result = await motor_service.initialize()
         
         # Verify results
-        assert result is True
+        assert result.success
         assert motor_service.is_initialized
         assert motor_service.current_mode == ControllerMode.SIMULATION
         assert motor_service.is_simulation_available
@@ -94,14 +92,14 @@ class TestMotorServiceInitialization:
                                                    app_config, axis_config, mock_controller):
         """Test initialization in hardware mode with successful hardware detection."""
         # Setup configuration for hardware mode
-        app_config.default_mode = "hardware"
-        service = MotorService(app_config, axis_config)
+        hardware_config = app_config.model_copy(update={"default_mode": "hardware"})
+        service = MotorService(hardware_config, axis_config)
         
         # Setup mocks
         mock_hardware_controller = AsyncMock()
         mock_hardware_controller.controller_id = "odrive_hardware"
         mock_hardware_controller.mode = ControllerMode.HARDWARE
-        mock_hardware_controller.initialize.return_value = True
+        mock_hardware_controller.initialize.return_value = Result.ok(None)
         mock_hardware_controller.detect_hardware.return_value = True
         mock_hardware_controller.is_ready.return_value = True
         
@@ -112,7 +110,7 @@ class TestMotorServiceInitialization:
         result = await service.initialize()
         
         # Verify results
-        assert result is True
+        assert result.success
         assert service.is_initialized
         assert service.current_mode == ControllerMode.HARDWARE
         assert service.is_hardware_available
@@ -127,8 +125,8 @@ class TestMotorServiceInitialization:
                                                     app_config, axis_config, mock_controller):
         """Test initialization in hardware mode with fallback to simulation."""
         # Setup configuration for hardware mode
-        app_config.default_mode = "hardware"
-        service = MotorService(app_config, axis_config)
+        hardware_config = app_config.model_copy(update={"default_mode": "hardware"})
+        service = MotorService(hardware_config, axis_config)
         
         # Setup mocks - hardware fails, simulation succeeds
         mock_hardware_controller = AsyncMock()
@@ -141,7 +139,7 @@ class TestMotorServiceInitialization:
         result = await service.initialize()
         
         # Verify results - should fallback to simulation
-        assert result is True
+        assert result.success
         assert service.is_initialized
         assert service.current_mode == ControllerMode.SIMULATION
         assert service.is_simulation_available
@@ -154,12 +152,13 @@ class TestMotorServiceInitialization:
         """Test initialization failure when simulation controller fails."""
         # Setup mock to fail
         mock_controller = AsyncMock()
-        mock_controller.initialize.return_value = False
+        mock_controller.initialize.return_value = Result.err("Simulation initialization failed")
         mock_sim_class.return_value = mock_controller
         
-        # Initialize service should raise exception
-        with pytest.raises(ServiceError, match="Failed to initialize simulation controller"):
-            await motor_service.initialize()
+        # Initialize service should return error
+        result = await motor_service.initialize()
+        assert not result.success
+        assert "Simulation initialization failed" in result.error
         
         assert not motor_service.is_initialized
     
@@ -167,16 +166,16 @@ class TestMotorServiceInitialization:
         """Test that double initialization is handled gracefully."""
         with patch('app.services.motor_service.SimulationController') as mock_sim_class:
             mock_controller = AsyncMock()
-            mock_controller.initialize.return_value = True
+            mock_controller.initialize.return_value = Result.ok(None)
             mock_sim_class.return_value = mock_controller
             
             # First initialization
             result1 = await motor_service.initialize()
-            assert result1 is True
+            assert result1.success
             
             # Second initialization should return True without re-initializing
             result2 = await motor_service.initialize()
-            assert result2 is True
+            assert result2.success
             
             # Controller should only be initialized once
             mock_controller.initialize.assert_called_once()
@@ -195,7 +194,7 @@ class TestMotorServiceModeSwitch:
         # Switch to same mode
         result = await motor_service.switch_mode(ControllerMode.SIMULATION)
         
-        assert result is True
+        assert result.success
         assert motor_service.current_mode == ControllerMode.SIMULATION
     
     @patch('app.services.motor_service.ODriveController')
@@ -217,7 +216,7 @@ class TestMotorServiceModeSwitch:
         # Switch to hardware mode
         result = await motor_service.switch_mode(ControllerMode.HARDWARE)
         
-        assert result is True
+        assert result.success
         assert motor_service.current_mode == ControllerMode.HARDWARE
         assert motor_service.is_hardware_available
     
@@ -238,7 +237,7 @@ class TestMotorServiceModeSwitch:
         # Switch to hardware mode should fail
         result = await motor_service.switch_mode(ControllerMode.HARDWARE)
         
-        assert result is False
+        assert not result.success
         assert motor_service.current_mode == ControllerMode.SIMULATION  # Should stay in simulation
     
     async def test_switch_mode_not_initialized(self, motor_service):
@@ -263,7 +262,7 @@ class TestMotorServiceCommands:
         # Send command
         result = await motor_service.send_position_command(command)
         
-        assert result is True
+        assert result.success
         mock_controller.send_command.assert_called_once_with(command)
     
     @patch('app.services.motor_service.SimulationController')
@@ -425,8 +424,8 @@ class TestMotorServiceShutdown:
                                                  app_config, axis_config):
         """Test shutdown with both hardware and simulation controllers."""
         # Setup configuration for hardware mode
-        app_config.default_mode = "hardware"
-        service = MotorService(app_config, axis_config)
+        hardware_config = app_config.model_copy(update={"default_mode": "hardware"})
+        service = MotorService(hardware_config, axis_config)
         
         # Setup mocks
         mock_hardware_controller = AsyncMock()
@@ -493,8 +492,8 @@ class TestMotorServiceProperties:
                                            app_config, axis_config, mock_controller):
         """Test properties in hardware mode."""
         # Setup configuration for hardware mode
-        app_config.default_mode = "hardware"
-        service = MotorService(app_config, axis_config)
+        hardware_config = app_config.model_copy(update={"default_mode": "hardware"})
+        service = MotorService(hardware_config, axis_config)
         
         # Setup mocks
         mock_hardware_controller = AsyncMock()

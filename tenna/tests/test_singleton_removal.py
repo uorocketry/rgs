@@ -21,10 +21,10 @@ class TestSingletonRemoval:
     
     def test_motor_service_can_be_instantiated_directly(self):
         """Test that MotorService can be instantiated directly without singleton."""
-        from app.core.config import AppConfig
+        from app.core.config import get_config
         from app.models.motor import DualAxisConfig
         
-        config = AppConfig()
+        config = get_config()
         axis_config = DualAxisConfig()
         
         # Should be able to create multiple instances
@@ -95,10 +95,10 @@ class TestSingletonRemoval:
     
     def test_thread_safety_without_global_state(self):
         """Test that the new approach doesn't rely on global state for thread safety."""
-        from app.core.config import AppConfig
+        from app.core.config import get_config
         from app.models.motor import DualAxisConfig
         
-        config = AppConfig()
+        config = get_config()
         axis_config = DualAxisConfig()
         
         # Create multiple service instances

@@ -1,10 +1,13 @@
 """Main application entry point."""
 
 import uvicorn
-from app.core.config import config
+from app.core.config import get_config
 from app.core.logging import setup_logging
 
 if __name__ == "__main__":
+    # Get configuration
+    config = get_config()
+    
     # Setup logging
     setup_logging()
     

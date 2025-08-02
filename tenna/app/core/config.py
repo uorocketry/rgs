@@ -1,13 +1,12 @@
 """Configuration management using pydantic-settings."""
 
+import os
 from typing import List, Optional
-from dataclasses import dataclass, field
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
-@dataclass
-class ODriveConfig:
+class ODriveConfig(BaseModel):
     """ODrive motor controller configuration."""
     gear_ratio: float = 20.0
     pole_pairs: int = 7
@@ -17,8 +16,7 @@ class ODriveConfig:
     circular_setpoints: bool = True
 
 
-@dataclass
-class SimulationConfig:
+class SimulationConfig(BaseModel):
     """PyBullet simulation configuration."""
     max_torque: float = 5.76
     max_velocity: float = 603.19
@@ -43,11 +41,11 @@ class AppConfig(BaseSettings):
     
     # Motor Configuration
     default_mode: str = "simulation"
-    odrive_config: ODriveConfig = field(default_factory=ODriveConfig)
-    simulation_config: SimulationConfig = field(default_factory=SimulationConfig)
+    odrive_config: ODriveConfig = Field(default_factory=ODriveConfig)
+    simulation_config: SimulationConfig = Field(default_factory=SimulationConfig)
     
     # API Configuration
-    cors_origins: List[str] = field(default_factory=list)
+    cors_origins: List[str] = Field(default_factory=list)
     api_prefix: str = "/api/v1"
     
     # Logging Configuration
@@ -58,5 +56,41 @@ class AppConfig(BaseSettings):
     environment: str = "development"
 
 
-# Global configuration instance
-config = AppConfig()
+def get_config(env_file: Optional[str] = None) -> AppConfig:
+    """Get configuration instance based on environment.
+    
+    Args:
+        env_file: Optional path to environment file. If not provided,
+                 determines based on ENVIRONMENT variable or defaults to .env
+    
+    Returns:
+        Configured AppConfig instance
+    """
+    if env_file is None:
+        environment = os.getenv("ENVIRONMENT", "development").lower()
+        
+        # Determine environment file based on environment
+        env_files = {
+            "development": ".env",
+            "testing": ".env.test",
+            "production": ".env.prod"
+        }
+        env_file = env_files.get(environment, ".env")
+    
+    # Create config with appropriate environment file
+    return AppConfig(_env_file=env_file)
+
+
+def create_config_for_testing() -> AppConfig:
+    """Create configuration instance optimized for testing.
+    
+    Returns:
+        AppConfig instance with testing defaults
+    """
+    return AppConfig(
+        environment="testing",
+        debug=True,
+        log_level="DEBUG",
+        default_mode="simulation",
+        _env_file=".env.test"
+    )

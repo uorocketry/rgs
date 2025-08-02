@@ -10,17 +10,18 @@ from typing import Optional, Tuple
 import pybullet as p
 import pybullet_data
 
-from app.controllers.base import BaseMotorController
+from app.controllers.base import MotorController
 from app.core.config import SimulationConfig
 from app.core.exceptions import MotorControlError, CommunicationError
 from app.models.motor import ControllerMode, ControllerStatus, DualAxisConfig, MotorState
 from app.utils.helpers import calculate_unbounded_target
+from app.utils.result import Result
 
 
 logger = logging.getLogger(__name__)
 
 
-class SimulationController(BaseMotorController):
+class SimulationController(MotorController):
     """PyBullet-based motor simulation controller."""
     
     def __init__(self, controller_id: str = "simulation", 
@@ -56,25 +57,22 @@ class SimulationController(BaseMotorController):
         
         logger.info(f"Initialized simulation controller {controller_id}")
     
-    async def initialize(self) -> bool:
+    async def initialize(self) -> Result[None]:
         """Initialize the PyBullet simulation environment.
         
         Returns:
-            True if initialization successful, False otherwise
-            
-        Raises:
-            MotorControlError: If initialization fails critically
+            Result indicating success or failure with error message
         """
         try:
             async with self._lock:
                 if self._is_initialized:
                     logger.warning("Simulation controller already initialized")
-                    return True
+                    return Result.ok(None)
                 
                 # Connect to PyBullet
                 self._physics_client = p.connect(p.DIRECT)
                 if self._physics_client < 0:
-                    raise MotorControlError("Failed to connect to PyBullet physics engine")
+                    return Result.err("Failed to connect to PyBullet physics engine")
                 
                 # Set up physics environment
                 p.setAdditionalSearchPath(pybullet_data.getDataPath())
@@ -86,11 +84,11 @@ class SimulationController(BaseMotorController):
                 
                 # Load turret URDF
                 if not os.path.exists(self.urdf_path):
-                    raise MotorControlError(f"URDF file not found: {self.urdf_path}")
+                    return Result.err(f"URDF file not found: {self.urdf_path}")
                 
                 self._turret_id = p.loadURDF(self.urdf_path, [0, 0, 0])
                 if self._turret_id < 0:
-                    raise MotorControlError(f"Failed to load URDF: {self.urdf_path}")
+                    return Result.err(f"Failed to load URDF: {self.urdf_path}")
                 
                 # Map joint names to indices
                 self._joint_indices = {}
@@ -104,7 +102,7 @@ class SimulationController(BaseMotorController):
                 required_joints = ['yaw_joint', 'pitch_joint']
                 for joint_name in required_joints:
                     if joint_name not in self._joint_indices:
-                        raise MotorControlError(f"Required joint '{joint_name}' not found in URDF")
+                        return Result.err(f"Required joint '{joint_name}' not found in URDF")
                 
                 # Initialize joint positions
                 yaw_index = self._joint_indices['yaw_joint']
@@ -125,14 +123,14 @@ class SimulationController(BaseMotorController):
                 await self._start_simulation_loop()
                 
                 logger.info("Simulation controller initialized successfully")
-                return True
+                return Result.ok(None)
                 
         except Exception as e:
             error_msg = f"Failed to initialize simulation controller: {e}"
             self.add_error(error_msg)
-            raise MotorControlError(error_msg) from e
+            return Result.err(error_msg)
     
-    async def set_position(self, pitch_rad: float, yaw_rad: float) -> bool:
+    async def set_position(self, pitch_rad: float, yaw_rad: float) -> Result[None]:
         """Set target motor position.
         
         Args:
@@ -140,18 +138,17 @@ class SimulationController(BaseMotorController):
             yaw_rad: Target yaw position in radians
             
         Returns:
-            True if command accepted, False otherwise
-            
-        Raises:
-            MotorControlError: If command fails
+            Result indicating success or failure with error message
         """
         try:
             # Check readiness without lock to avoid deadlock
             if not self._is_initialized or not self._is_connected:
-                raise MotorControlError("Controller not ready for commands")
+                return Result.err("Controller not ready for commands")
             
             # Validate position limits
-            self._validate_position(pitch_rad, yaw_rad)
+            validation_result = self._validate_position(pitch_rad, yaw_rad)
+            if validation_result.is_err():
+                return validation_result
             
             # Get current yaw position for unbounded calculation
             current_yaw = p.getJointState(self._turret_id, self._joint_indices['yaw_joint'])[0]
@@ -183,25 +180,22 @@ class SimulationController(BaseMotorController):
             
             logger.debug(f"Set position command: pitch={math.degrees(pitch_rad):.2f}°, "
                        f"yaw={math.degrees(yaw_rad):.2f}°")
-            return True
+            return Result.ok(None)
                 
         except Exception as e:
             error_msg = f"Failed to set position: {e}"
             self.add_error(error_msg)
-            raise MotorControlError(error_msg) from e
+            return Result.err(error_msg)
     
-    async def get_position(self) -> Tuple[float, float]:
+    async def get_position(self) -> Result[Tuple[float, float]]:
         """Get current motor position.
         
         Returns:
-            Tuple of (pitch_rad, yaw_rad) current positions
-            
-        Raises:
-            CommunicationError: If unable to read position
+            Result containing tuple of (pitch_rad, yaw_rad) or error message
         """
         try:
             if not self._is_connected:
-                raise CommunicationError("Simulation not connected")
+                return Result.err("Simulation not connected")
             
             # Read joint states from PyBullet
             pitch_state = p.getJointState(self._turret_id, self._joint_indices['pitch_joint'])
@@ -213,40 +207,49 @@ class SimulationController(BaseMotorController):
             # Update internal position tracking
             self._update_position(pitch_rad, yaw_rad)
             
-            return (pitch_rad, yaw_rad)
+            return Result.ok((pitch_rad, yaw_rad))
                 
         except Exception as e:
             error_msg = f"Failed to read position: {e}"
             self.add_error(error_msg)
-            raise CommunicationError(error_msg) from e
+            return Result.err(error_msg)
     
-    async def get_status(self) -> ControllerStatus:
+    async def get_status(self) -> Result[ControllerStatus]:
         """Get comprehensive controller status.
         
         Returns:
-            ControllerStatus object with current state
-            
-        Raises:
-            CommunicationError: If unable to read status
+            Result containing ControllerStatus object or error message
         """
         try:
             # Update current position
             if self._is_connected:
-                await self.get_position()
+                position_result = await self.get_position()
+                if position_result.is_err():
+                    return Result.err(f"Failed to get position for status: {position_result.error}")
             
-            # Return status from base class
-            return await super().get_status()
+            # Return status using parent class implementation
+            async with self._lock:
+                status = ControllerStatus(
+                    is_connected=self._is_connected,
+                    is_calibrated=self._is_calibrated,
+                    current_position=self._current_position,
+                    target_position=self._target_position,
+                    errors=self._errors.copy(),
+                    mode=self.mode,
+                    state=self._state
+                )
+                return Result.ok(status)
             
         except Exception as e:
             error_msg = f"Failed to get status: {e}"
             self.add_error(error_msg)
-            raise CommunicationError(error_msg) from e
+            return Result.err(error_msg)
     
-    async def shutdown(self) -> None:
+    async def shutdown(self) -> Result[None]:
         """Shutdown the simulation gracefully.
         
-        Raises:
-            MotorControlError: If shutdown fails
+        Returns:
+            Result indicating success or failure with error message
         """
         try:
             async with self._lock:
@@ -270,11 +273,12 @@ class SimulationController(BaseMotorController):
                 self._joint_indices.clear()
                 
                 logger.info("Simulation controller shutdown complete")
+                return Result.ok(None)
                 
         except Exception as e:
             error_msg = f"Failed to shutdown simulation: {e}"
             self.add_error(error_msg)
-            raise MotorControlError(error_msg) from e
+            return Result.err(error_msg)
     
     async def _start_simulation_loop(self) -> None:
         """Start the physics simulation loop."""
@@ -340,23 +344,25 @@ class SimulationController(BaseMotorController):
             self.add_error(error_msg)
             logger.error(error_msg)
     
-    def _validate_position(self, pitch_rad: float, yaw_rad: float) -> None:
+    def _validate_position(self, pitch_rad: float, yaw_rad: float) -> Result[None]:
         """Validate position values for simulation constraints.
         
         Args:
             pitch_rad: Pitch position in radians
             yaw_rad: Yaw position in radians
             
-        Raises:
-            ValueError: If positions are out of range
+        Returns:
+            Result indicating if validation passed or failed with error message
         """
         # Pitch is limited by URDF joint limits (0 to π/2)
         if not (0 <= pitch_rad <= math.pi/2):
-            raise ValueError(f"Pitch position {pitch_rad} out of range [0, π/2]")
+            return Result.err(f"Pitch position {pitch_rad} out of range [0, π/2]")
         
         # Yaw can be unbounded for continuous rotation
         if abs(yaw_rad) > 100:  # Reasonable sanity check
-            raise ValueError(f"Yaw position {yaw_rad} seems unreasonable")
+            return Result.err(f"Yaw position {yaw_rad} seems unreasonable")
+            
+        return Result.ok(None)
     
     def get_joint_info(self) -> dict:
         """Get information about simulation joints.

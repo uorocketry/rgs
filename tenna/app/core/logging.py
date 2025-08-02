@@ -7,7 +7,7 @@ from typing import Any, Dict
 import structlog
 from structlog.types import EventDict
 
-from .config import config
+from .config import get_config, AppConfig
 
 
 def add_correlation_id(logger: Any, method_name: str, event_dict: EventDict) -> EventDict:
@@ -23,8 +23,14 @@ def add_timestamp(logger: Any, method_name: str, event_dict: EventDict) -> Event
     return event_dict
 
 
-def setup_logging() -> None:
-    """Configure structured logging for the application."""
+def setup_logging(config: AppConfig = None) -> None:
+    """Configure structured logging for the application.
+    
+    Args:
+        config: Application configuration. If not provided, will get current config.
+    """
+    if config is None:
+        config = get_config()
     
     # Configure standard library logging
     logging.basicConfig(

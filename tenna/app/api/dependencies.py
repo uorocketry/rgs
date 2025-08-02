@@ -12,6 +12,7 @@ from app.core.exceptions import (
 from app.models.api import ErrorResponse
 from app.services.motor_service import MotorService
 from app.services.state_manager import state_manager
+from app.core.config import AppConfig, get_config
 
 logger = logging.getLogger(__name__)
 
@@ -52,10 +53,10 @@ async def initialize_motor_service() -> MotorService:
         logger.warning("Motor service already initialized")
         return _motor_service
     
-    from app.core.config import AppConfig
+    from app.core.config import get_config
     from app.models.motor import DualAxisConfig
     
-    config = AppConfig()
+    config = get_config()
     axis_config = DualAxisConfig()
     
     _motor_service = MotorService(config, axis_config)
@@ -107,7 +108,7 @@ def create_error_response(
     
     return JSONResponse(
         status_code=status_code,
-        content=error_response.model_dump()
+        content=error_response.model_dump(mode='json')
     )
 
 
@@ -183,3 +184,12 @@ def validate_gps_coordinates(lat: float, lon: float, alt: float) -> None:
             error_code="ALTITUDE_OUT_OF_RANGE",
             details={"altitude": alt, "valid_range": [-500, 50000]}
         )
+
+
+def get_app_config() -> AppConfig:
+    """Dependency to get the application configuration.
+    
+    Returns:
+        Application configuration instance
+    """
+    return get_config()

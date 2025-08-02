@@ -11,9 +11,17 @@ from app.services.motor_service import MotorService
 
 
 @pytest.fixture
-def client():
-    """Create test client for API testing."""
-    return TestClient(app)
+async def client():
+    """Create test client for API testing with initialized motor service."""
+    # Initialize the motor service for testing
+    from app.api.dependencies import initialize_motor_service, shutdown_motor_service
+    await initialize_motor_service()
+    
+    with TestClient(app) as test_client:
+        yield test_client
+    
+    # Clean up after test
+    await shutdown_motor_service()
 
 
 @pytest.fixture

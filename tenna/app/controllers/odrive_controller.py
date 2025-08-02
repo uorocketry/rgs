@@ -19,19 +19,20 @@ except ImportError:
         CLOSED_LOOP_CONTROL = 8
         IDLE = 1
 
-from app.controllers.base import AbstractMotorController
+from app.controllers.base import MotorController
 from app.core.exceptions import HardwareError, CommunicationError, MotorControlError
 from app.models.motor import (
     ControllerMode, ControllerStatus, DualAxisConfig, 
     MotorPosition, MotorState
 )
 from app.utils.helpers import calculate_unbounded_target
+from app.utils.result import Result
 
 
 logger = logging.getLogger(__name__)
 
 
-class ODriveController(AbstractMotorController):
+class ODriveController(MotorController):
     """ODrive hardware motor controller implementation."""
     
     def __init__(self, controller_id: str = "odrive", 
@@ -58,17 +59,14 @@ class ODriveController(AbstractMotorController):
         if not ODRIVE_AVAILABLE:
             self.add_error("ODrive library not available - install with 'pip install odrive'")
     
-    async def initialize(self) -> bool:
+    async def initialize(self) -> Result[None]:
         """Initialize the ODrive controller.
         
         Returns:
-            True if initialization successful, False otherwise
-            
-        Raises:
-            HardwareError: If ODrive hardware cannot be initialized
+            Result indicating success or failure with error message
         """
         if not ODRIVE_AVAILABLE:
-            raise HardwareError("ODrive library not available - install with 'pip install odrive'")
+            return Result.err("ODrive library not available - install with 'pip install odrive'")
         
         try:
             async with self._lock:
@@ -87,17 +85,17 @@ class ODriveController(AbstractMotorController):
                         timeout=self._connection_timeout
                     )
                 except asyncio.TimeoutError:
-                    raise HardwareError(f"ODrive hardware not found within {self._connection_timeout}s timeout")
+                    return Result.err(f"ODrive hardware not found within {self._connection_timeout}s timeout")
                 
                 if self._odrive_device is None:
-                    raise HardwareError("No ODrive hardware detected")
+                    return Result.err("No ODrive hardware detected")
                 
                 # Verify device is responsive
                 try:
                     serial_number = self._odrive_device.serial_number
                     logger.info(f"Connected to ODrive hardware (Serial: {serial_number})")
                 except Exception as e:
-                    raise HardwareError(f"ODrive hardware not responsive: {e}")
+                    return Result.err(f"ODrive hardware not responsive: {e}")
                 
                 # Clear any existing errors on the device
                 try:
@@ -109,30 +107,31 @@ class ODriveController(AbstractMotorController):
                 self._state = MotorState.IDLE
                 
                 # Configure motors with enhanced error handling
-                await self._configure_motors()
+                config_result = await self._configure_motors()
+                if config_result.is_err():
+                    return config_result
                 
                 # Perform calibration with enhanced error handling
-                await self._calibrate_motors()
+                calibration_result = await self._calibrate_motors()
+                if calibration_result.is_err():
+                    return calibration_result
                 
                 self._is_initialized = True
                 self._is_calibrated = True
                 
                 logger.info("ODrive hardware initialization complete")
-                return True
+                return Result.ok(None)
                 
-        except HardwareError:
-            # Re-raise hardware errors as-is
-            raise
         except Exception as e:
             error_msg = f"ODrive initialization failed: {e}"
             logger.error(error_msg)
             self.add_error(error_msg)
-            raise HardwareError(error_msg) from e
+            return Result.err(error_msg)
     
-    async def _configure_motors(self) -> None:
+    async def _configure_motors(self) -> Result[None]:
         """Configure motor parameters based on axis configuration."""
         if not self._odrive_device:
-            raise HardwareError("ODrive device not connected")
+            return Result.err("ODrive device not connected")
         
         logger.info("Configuring ODrive motors...")
         
@@ -166,11 +165,12 @@ class ODriveController(AbstractMotorController):
                 pitch_axis.controller.config.circular_setpoint_range = 1.0
         
         logger.info("Motor configuration complete")
+        return Result.ok(None)
     
-    async def _calibrate_motors(self) -> None:
+    async def _calibrate_motors(self) -> Result[None]:
         """Perform motor calibration sequence."""
         if not self._odrive_device:
-            raise HardwareError("ODrive device not connected")
+            return Result.err("ODrive device not connected")
         
         logger.info("Starting motor calibration...")
         self._state = MotorState.CALIBRATING
@@ -198,7 +198,7 @@ class ODriveController(AbstractMotorController):
                 
                 await asyncio.sleep(1.0)
             else:
-                raise HardwareError(f"Calibration timeout after {self._calibration_timeout}s")
+                return Result.err(f"Calibration timeout after {self._calibration_timeout}s")
             
             # Enter closed loop control
             yaw_axis.requested_state = AxisState.CLOSED_LOOP_CONTROL
@@ -210,14 +210,15 @@ class ODriveController(AbstractMotorController):
             
             self._state = MotorState.IDLE
             logger.info("Motor calibration complete")
+            return Result.ok(None)
             
         except Exception as e:
             error_msg = f"Motor calibration failed: {e}"
             logger.error(error_msg)
             self.add_error(error_msg)
-            raise HardwareError(error_msg) from e
+            return Result.err(error_msg)
     
-    async def set_position(self, pitch_rad: float, yaw_rad: float) -> bool:
+    async def set_position(self, pitch_rad: float, yaw_rad: float) -> Result[None]:
         """Set target motor position.
         
         Args:
@@ -225,17 +226,16 @@ class ODriveController(AbstractMotorController):
             yaw_rad: Target yaw position in radians
             
         Returns:
-            True if command accepted, False otherwise
-            
-        Raises:
-            MotorControlError: If command fails
+            Result indicating success or failure with error message
         """
         if not await self.is_ready():
-            raise MotorControlError("Controller not ready for commands")
+            return Result.err("Controller not ready for commands")
         
         try:
             async with self._lock:
-                self._validate_position(pitch_rad, yaw_rad)
+                validation_result = self._validate_position(pitch_rad, yaw_rad)
+                if validation_result.is_err():
+                    return validation_result
                 
                 # Convert radians to motor turns accounting for gear ratio
                 yaw_config = self.axis_config.yaw_axis
@@ -280,25 +280,22 @@ class ODriveController(AbstractMotorController):
                 logger.debug(f"Position command sent: pitch={math.degrees(pitch_rad):.2f}°, "
                            f"yaw={math.degrees(yaw_rad):.2f}°")
                 
-                return True
+                return Result.ok(None)
                 
         except Exception as e:
             error_msg = f"Failed to set position: {e}"
             logger.error(error_msg)
             self.add_error(error_msg)
-            raise MotorControlError(error_msg) from e
+            return Result.err(error_msg)
     
-    async def get_position(self) -> Tuple[float, float]:
+    async def get_position(self) -> Result[Tuple[float, float]]:
         """Get current motor position.
         
         Returns:
-            Tuple of (pitch_rad, yaw_rad) current positions
-            
-        Raises:
-            CommunicationError: If unable to read position
+            Result containing tuple of (pitch_rad, yaw_rad) or error message
         """
         if not self._is_connected:
-            raise CommunicationError("ODrive not connected")
+            return Result.err("ODrive not connected")
         
         try:
             # Update position if enough time has passed
@@ -307,12 +304,12 @@ class ODriveController(AbstractMotorController):
                 await self._update_current_position()
                 self._last_position_update = current_time
             
-            return (self._current_position.pitch_rad, self._current_position.yaw_rad)
+            return Result.ok((self._current_position.pitch_rad, self._current_position.yaw_rad))
             
         except Exception as e:
             error_msg = f"Failed to read position: {e}"
             logger.error(error_msg)
-            raise CommunicationError(error_msg) from e
+            return Result.err(error_msg)
     
     async def _update_current_position(self) -> None:
         """Update current position from ODrive encoders."""
@@ -346,14 +343,11 @@ class ODriveController(AbstractMotorController):
         except Exception as e:
             logger.warning(f"Failed to update position: {e}")
     
-    async def get_status(self) -> ControllerStatus:
+    async def get_status(self) -> Result[ControllerStatus]:
         """Get comprehensive controller status.
         
         Returns:
-            ControllerStatus object with current state
-            
-        Raises:
-            CommunicationError: If unable to read status
+            Result containing ControllerStatus object or error message
         """
         try:
             # Update position before returning status
@@ -361,7 +355,7 @@ class ODriveController(AbstractMotorController):
                 await self._update_current_position()
             
             async with self._lock:
-                return ControllerStatus(
+                status = ControllerStatus(
                     is_connected=self._is_connected,
                     is_calibrated=self._is_calibrated,
                     current_position=self._current_position,
@@ -370,17 +364,18 @@ class ODriveController(AbstractMotorController):
                     mode=self.mode,
                     state=self._state
                 )
+                return Result.ok(status)
             
         except Exception as e:
             error_msg = f"Failed to get status: {e}"
             logger.error(error_msg)
-            raise CommunicationError(error_msg) from e
+            return Result.err(error_msg)
     
-    async def shutdown(self) -> None:
+    async def shutdown(self) -> Result[None]:
         """Shutdown the controller gracefully.
         
-        Raises:
-            MotorControlError: If shutdown fails
+        Returns:
+            Result indicating success or failure with error message
         """
         logger.info("Shutting down ODrive controller...")
         
@@ -408,34 +403,37 @@ class ODriveController(AbstractMotorController):
                 self._state = MotorState.DISCONNECTED
                 
                 logger.info("ODrive controller shutdown complete")
+                return Result.ok(None)
                 
         except Exception as e:
             error_msg = f"Error during shutdown: {e}"
             logger.error(error_msg)
-            raise MotorControlError(error_msg) from e
+            return Result.err(error_msg)
     
-    def _validate_position(self, pitch_rad: float, yaw_rad: float) -> None:
+    def _validate_position(self, pitch_rad: float, yaw_rad: float) -> Result[None]:
         """Validate position values for ODrive constraints.
         
         Args:
             pitch_rad: Pitch position in radians
             yaw_rad: Yaw position in radians
             
-        Raises:
-            ValueError: If positions are out of range
+        Returns:
+            Result indicating if validation passed or failed with error message
         """
         # Basic validation
         if not (-3.14159 <= pitch_rad <= 3.14159):
-            raise ValueError(f"Pitch position {pitch_rad} out of range [-π, π]")
+            return Result.err(f"Pitch position {pitch_rad} out of range [-π, π]")
         
         # Yaw can be unbounded for continuous rotation
         if abs(yaw_rad) > 100:  # Reasonable sanity check
-            raise ValueError(f"Yaw position {yaw_rad} seems unreasonable")
+            return Result.err(f"Yaw position {yaw_rad} seems unreasonable")
         
         # Additional ODrive-specific validation
         # Pitch is typically limited to prevent mechanical damage
         if not (-math.pi/2 <= pitch_rad <= math.pi/2):
-            raise ValueError(f"Pitch position {math.degrees(pitch_rad):.2f}° out of safe range [-90°, 90°]")
+            return Result.err(f"Pitch position {math.degrees(pitch_rad):.2f}° out of safe range [-90°, 90°]")
+            
+        return Result.ok(None)
     
     async def detect_hardware(self) -> bool:
         """Detect if ODrive hardware is available.
@@ -457,93 +455,4 @@ class ODriveController(AbstractMotorController):
         except (asyncio.TimeoutError, Exception):
             return False
     
-    # Base implementation methods from AbstractMotorController
-    
-    async def send_command(self, command) -> bool:
-        """Send a motor command.
-        
-        Args:
-            command: MotorCommand to execute
-            
-        Returns:
-            True if command accepted, False otherwise
-        """
-        return await self.set_position(command.target_pitch_rad, command.target_yaw_rad)
-    
-    async def is_ready(self) -> bool:
-        """Check if controller is ready for commands.
-        
-        Returns:
-            True if ready, False otherwise
-        """
-        async with self._lock:
-            return (self._is_initialized and 
-                   self._is_connected and 
-                   self._state not in [MotorState.ERROR, MotorState.DISCONNECTED])
-    
-    def add_error(self, error_message: str) -> None:
-        """Add an error to the error list.
-        
-        Args:
-            error_message: Description of the error
-        """
-        logger.error(f"Controller {self.controller_id}: {error_message}")
-        if error_message not in self._errors:
-            self._errors.append(error_message)
-        self._state = MotorState.ERROR
-    
-    def clear_errors(self) -> None:
-        """Clear all errors."""
-        self._errors.clear()
-        if self._is_connected:
-            self._state = MotorState.IDLE
-    
-    def _update_position(self, pitch_rad: float, yaw_rad: float) -> None:
-        """Update internal position tracking.
-        
-        Args:
-            pitch_rad: Current pitch position in radians
-            yaw_rad: Current yaw position in radians
-        """
-        self._current_position = MotorPosition(pitch_rad, yaw_rad, datetime.now())
-    
-    def _set_target_position(self, pitch_rad: float, yaw_rad: float) -> None:
-        """Set internal target position tracking.
-        
-        Args:
-            pitch_rad: Target pitch position in radians
-            yaw_rad: Target yaw position in radians
-        """
-        self._target_position = MotorPosition(pitch_rad, yaw_rad, datetime.now())
-    
-    async def wait_for_position(self, target_pitch_rad: float, target_yaw_rad: float, 
-                              timeout: float = 10.0) -> bool:
-        """Wait for motor to reach target position.
-        
-        Args:
-            target_pitch_rad: Target pitch position in radians
-            target_yaw_rad: Target yaw position in radians
-            timeout: Maximum time to wait in seconds
-            
-        Returns:
-            True if position reached, False if timeout
-        """
-        start_time = asyncio.get_event_loop().time()
-        
-        while (asyncio.get_event_loop().time() - start_time) < timeout:
-            try:
-                current_pitch, current_yaw = await self.get_position()
-                
-                pitch_error = abs(current_pitch - target_pitch_rad)
-                yaw_error = abs(current_yaw - target_yaw_rad)
-                
-                if pitch_error < self._max_position_error and yaw_error < self._max_position_error:
-                    return True
-                    
-                await asyncio.sleep(0.1)
-                
-            except Exception as e:
-                logger.warning(f"Error checking position: {e}")
-                await asyncio.sleep(0.1)
-        
-        return False 
+    # ODrive-specific methods 
