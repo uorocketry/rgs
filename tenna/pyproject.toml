@@ -5,7 +5,7 @@ description = "Add your description here"
 readme = "README.md"
 requires-python = ">=3.12"
 dependencies = [
-    "fastapi>=0.116.1",
+    "fastapi[standard]",
     "odrive>=0.6.10.post0",
     "pybullet>=3.2.7",
     "pydantic-settings>=2.10.1",

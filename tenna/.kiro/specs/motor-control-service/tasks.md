@@ -23,7 +23,7 @@
   - Write unit tests with mocked ODrive hardware
   - _Requirements: 2.1, 2.2, 2.3, 6.1, 6.2, 6.4_
 
-- [ ] 4. Refactor and enhance simulation controller
+- [x] 4. Refactor and enhance simulation controller
   - Migrate existing PyBullet simulation code to new structure
   - Implement AbstractMotorController interface in simulation controller
   - Add configurable motor parameters and physics settings
@@ -31,7 +31,7 @@
   - Write unit tests for simulation controller
   - _Requirements: 2.1, 2.4, 6.1, 6.5_
 
-- [ ] 5. Implement motor control service layer
+- [x] 5. Implement motor control service layer
   - Create MotorService class that orchestrates controller operations
   - Implement automatic hardware detection and fallback to simulation
   - Add mode switching functionality between simulation and hardware
@@ -39,12 +39,12 @@
   - Write unit tests for service layer with mocked controllers
   - _Requirements: 2.1, 2.2, 2.4, 3.4_
 
-- [ ] 6. Create enhanced state management system
+- [x] 6. Create enhanced state management system
   - Refactor existing state management into StateManager class
   - Implement thread-safe state access with proper locking
   - Add state change notifications and event handling
   - Preserve existing GPS position and manual target functionality
-  - Write unit tests for concurrent state access
+  - Write unit tests for concurrent state access (use "uv run pytest")
   - _Requirements: 1.2, 3.2, 6.1_
 
 - [ ] 7. Implement position calculation service
