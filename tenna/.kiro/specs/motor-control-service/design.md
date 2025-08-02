@@ -2,7 +2,21 @@
 
 ## Overview
 
-This design transforms the existing antenna tracking system into a professional motor control service. The current system already has a solid foundation with FastAPI backend, Three.js frontend, and dual-mode operation (simulation via PyBullet and hardware via ODrive). The reorganization will enhance maintainability, add proper error handling, improve configuration management, and create a more robust service architecture while preserving all existing functionality.
+This design transforms the existing antenna tracking system into a professional motor control service. The current system already has a solid foundation with FastAPI backend, Three.js frontend, and dual-mode operation (simulation via PyBullet and hardware via ODrive). However, a comprehensive code review has identified several architectural issues that need to be addressed:
+
+**Critical Issues Identified:**
+- Over-engineered state management with complex event systems
+- Singleton pattern creating hidden dependencies and testing difficulties
+- Inconsistent error handling patterns throughout the codebase
+- Thread safety concerns with mixed async/sync locking
+- Overly complex controller hierarchy with unnecessary abstractions
+
+**Design Goals:**
+- Simplify architecture while preserving functionality
+- Implement consistent error handling patterns
+- Remove singleton dependencies in favor of proper dependency injection
+- Streamline state management and reduce complexity
+- Maintain existing capabilities with improved maintainability
 
 The system will maintain its current capabilities:
 - Dual-mode operation (simulation and ODrive hardware)
@@ -138,54 +152,86 @@ motor-control-service/
 
 ## Components and Interfaces
 
-### Core Service Layer
+### Core Service Layer (Refactored)
 
-#### Motor Control Service
+#### Motor Control Service (Simplified)
 - **Purpose**: Central orchestrator for all motor control operations
-- **Responsibilities**:
-  - Initialize and manage motor controllers
-  - Handle mode switching (simulation/hardware)
-  - Coordinate position updates and commands
-  - Manage error states and recovery
+- **Current Issues**: Uses singleton pattern, complex initialization logic
+- **Refactoring Goals**:
+  - Remove singleton pattern in favor of dependency injection
+  - Simplify controller management and mode switching
+  - Implement consistent error handling with Result types
+  - Reduce complexity in initialization and lifecycle management
 - **Interface**: Provides high-level methods for position control, status queries, and mode management
 
-#### Configuration Service
+#### Configuration Service (Consolidated)
 - **Purpose**: Centralized configuration management
-- **Responsibilities**:
-  - Load configuration from environment variables and files
-  - Validate configuration parameters
-  - Provide runtime configuration access
+- **Current Issues**: Mixed dataclass/Pydantic patterns, global config instance
+- **Refactoring Goals**:
+  - Consolidate all configuration into single Pydantic model
+  - Remove global configuration instance
+  - Implement environment-specific configuration loading
 - **Interface**: Configuration access methods with type safety and validation
 
-#### State Manager
-- **Purpose**: Thread-safe application state management
-- **Responsibilities**:
-  - Maintain current motor positions and targets
-  - Handle concurrent access to shared state
-  - Provide state change notifications
-- **Interface**: Thread-safe getters/setters with locking mechanisms
+#### State Management (Simplified)
+- **Purpose**: Application state management
+- **Current Issues**: Over-engineered with complex event system, mixed locking patterns
+- **Refactoring Goals**:
+  - Split into focused state containers: `MotorState`, `GPSState`, `ErrorState`
+  - Remove complex event system in favor of simple state updates
+  - Use only async locks for consistency
+  - Remove backward compatibility methods that add complexity
+- **New Architecture**:
+```python
+@dataclass
+class MotorState:
+    position: MotorPosition
+    target: Optional[MotorPosition]
+    mode: ControllerMode
+
+@dataclass  
+class GPSState:
+    antenna_pos: GPSPosition
+    rocket_pos: GPSPosition
+
+@dataclass
+class ErrorState:
+    errors: List[str]
+    history: List[Tuple[str, datetime]]
+```
 
 ### Controller Layer
 
-#### Abstract Motor Controller
+#### Motor Controller Interface (Simplified)
 - **Purpose**: Define common interface for all motor controllers
-- **Interface**:
+- **Current Issues**: Overly complex hierarchy with AbstractMotorController and BaseMotorController
+- **Refactoring Goals**:
+  - Merge AbstractMotorController and BaseMotorController into single interface
+  - Implement consistent Result-based error handling
+  - Remove unnecessary abstractions and helper methods
+- **Simplified Interface**:
 ```python
-class AbstractMotorController(ABC):
+class MotorController(ABC):
     @abstractmethod
-    async def initialize(self) -> bool
+    async def initialize(self) -> Result[None]
     
     @abstractmethod
-    async def set_position(self, pitch_rad: float, yaw_rad: float) -> bool
+    async def set_position(self, pitch_rad: float, yaw_rad: float) -> Result[None]
     
     @abstractmethod
-    async def get_position(self) -> Tuple[float, float]
+    async def get_position(self) -> Result[Tuple[float, float]]
     
     @abstractmethod
-    async def get_status(self) -> ControllerStatus
+    async def get_status(self) -> Result[ControllerStatus]
     
     @abstractmethod
-    async def shutdown(self) -> None
+    async def shutdown(self) -> Result[None]
+
+@dataclass
+class Result[T]:
+    success: bool
+    data: Optional[T]
+    error: Optional[str]
 ```
 
 #### ODrive Controller
@@ -284,6 +330,32 @@ class SimulationConfig:
     physics_timestep: float = 1.0/240.0
 ```
 
+## Refactoring Strategy
+
+### Phase 1: Critical Architecture Fixes
+1. **Remove Singleton Pattern**: Replace motor service singleton with proper dependency injection
+2. **Simplify State Management**: Split complex StateManager into focused state containers
+3. **Standardize Error Handling**: Implement Result-based error handling throughout
+4. **Fix Thread Safety**: Use consistent async locking patterns
+
+### Phase 2: Code Simplification  
+1. **Merge Controller Abstractions**: Combine AbstractMotorController and BaseMotorController
+2. **Consolidate Configuration**: Single Pydantic configuration model
+3. **Remove Backward Compatibility**: Clean up legacy methods and interfaces
+4. **Simplify WebSocket Service**: Split into focused components
+
+### Phase 3: Testing and Validation
+1. **Update Tests**: Modify tests to work with new architecture
+2. **Integration Testing**: Ensure all functionality is preserved
+3. **Performance Testing**: Validate that simplifications don't impact performance
+4. **Documentation**: Update documentation to reflect new architecture
+
+### Migration Path
+- Implement changes incrementally to maintain system functionality
+- Use feature flags where necessary to enable gradual rollout
+- Maintain backward compatibility during transition period
+- Comprehensive testing at each phase to prevent regressions
+
 ## Error Handling
 
 ### Error Categories
@@ -292,13 +364,34 @@ class SimulationConfig:
 3. **Runtime Errors**: Position limits, communication timeouts
 4. **API Errors**: Invalid requests, authentication failures
 
+### Standardized Error Handling (New Approach)
+**Current Issues**: Inconsistent error patterns (some functions return booleans, others raise exceptions)
+
+**New Approach**: Consistent Result-based error handling
+```python
+@dataclass
+class Result[T]:
+    success: bool
+    data: Optional[T] 
+    error: Optional[str]
+    
+    @classmethod
+    def ok(cls, data: T) -> 'Result[T]':
+        return cls(success=True, data=data, error=None)
+    
+    @classmethod
+    def err(cls, error: str) -> 'Result[T]':
+        return cls(success=False, data=None, error=error)
+```
+
 ### Error Recovery Strategies
 - **Automatic Fallback**: Switch to simulation mode on hardware failure
-- **Retry Logic**: Configurable retry attempts for transient failures
+- **Retry Logic**: Configurable retry attempts for transient failures  
 - **Graceful Degradation**: Continue operation with reduced functionality
+- **Circuit Breaker**: Prevent cascading failures in WebSocket updates
 - **Error Reporting**: Structured logging and user notifications
 
-### Exception Hierarchy
+### Simplified Exception Hierarchy
 ```python
 class MotorControlError(Exception):
     """Base exception for motor control errors"""

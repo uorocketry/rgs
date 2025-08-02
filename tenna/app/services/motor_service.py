@@ -437,3 +437,6 @@ class MotorService:
             return await self._current_controller.is_ready()
         except Exception:
             return False
+
+# Motor service instances are now managed through dependency injection
+# No global singleton pattern

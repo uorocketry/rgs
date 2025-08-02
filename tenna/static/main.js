@@ -129,14 +129,38 @@ function animate() {
 }
 animate();
 
-// --- Data Handling and UI (Unchanged) ---
+// --- Data Handling and UI with WebSocket ---
 updateRocketVisualPosition(initialRocketGPS);
-const eventSource = new EventSource("/stream-updates");
-eventSource.onmessage = (event) => {
-    const data = JSON.parse(event.data);
-    targetPitchRad = data.pitch;
-    targetYawRad = data.yaw;
-};
+
+// WebSocket connection for real-time updates
+const socket = io('/ws');
+
+socket.on('connect', () => {
+    console.log('Connected to WebSocket server');
+});
+
+socket.on('disconnect', () => {
+    console.log('Disconnected from WebSocket server');
+});
+
+socket.on('position_update', (data) => {
+    if (data.current) {
+        targetPitchRad = data.current.pitch_rad;
+        targetYawRad = data.current.yaw_rad;
+    }
+});
+
+socket.on('status_update', (data) => {
+    console.log('Status update:', data);
+    // Update UI with status information
+    if (data.mode) {
+        // Update mode indicator if needed
+    }
+});
+
+socket.on('error', (error) => {
+    console.error('WebSocket error:', error);
+});
 
 const trackingControls = document.getElementById('tracking-controls');
 const manualControls = document.getElementById('manual-controls');
