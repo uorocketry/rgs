@@ -2,7 +2,7 @@ use crate::commands::MenuItem;
 use crate::messages::display::SentMessage;
 use messages_prost::common::Node;
 use ratatui::layout::{Constraint, Direction, Layout, Rect};
-use ratatui::style::{Modifier, Style};
+use ratatui::style::{Color, Modifier, Style};
 use ratatui::text::{Line, Span};
 use ratatui::widgets::{Block, Borders, List, ListItem, Paragraph};
 
@@ -46,7 +46,12 @@ pub fn draw(f: &mut ratatui::Frame, state: &AppState) {
     let help = Paragraph::new("↑/↓ select, Enter send, q quit | n/p change target/origin node")
         .block(
             Block::default()
-                .title("manual-command-dispatcher")
+                .title(Span::styled(
+                    "manual-command-dispatcher",
+                    Style::default()
+                        .fg(Color::Magenta)
+                        .add_modifier(Modifier::BOLD),
+                ))
                 .borders(Borders::ALL),
         );
     f.render_widget(help, root[0]);
@@ -62,15 +67,35 @@ pub fn draw(f: &mut ratatui::Frame, state: &AppState) {
         .enumerate()
         .map(|(i, item)| {
             let sel = i == state.selected;
-            let content = if sel {
-                Span::styled(item.label(), Style::default().add_modifier(Modifier::BOLD))
+            let label = if sel {
+                format!("» {}", item.label())
             } else {
-                Span::raw(item.label())
+                item.label().to_string()
+            };
+            let content = if sel {
+                Span::styled(
+                    label,
+                    Style::default()
+                        .fg(Color::White)
+                        .bg(Color::Blue)
+                        .add_modifier(Modifier::BOLD),
+                )
+            } else {
+                Span::styled(item.label(), Style::default().fg(Color::Gray))
             };
             ListItem::new(Line::from(content))
         })
         .collect();
-    let list = List::new(items).block(Block::default().title("Commands").borders(Borders::ALL));
+    let list = List::new(items).block(
+        Block::default()
+            .title(Span::styled(
+                "Commands",
+                Style::default()
+                    .fg(Color::Cyan)
+                    .add_modifier(Modifier::BOLD),
+            ))
+            .borders(Borders::ALL),
+    );
     f.render_widget(list, halves[0]);
 
     // Right: latest sent messages
@@ -88,8 +113,16 @@ pub fn draw(f: &mut ratatui::Frame, state: &AppState) {
         .rev()
         .map(|m| Line::from(Span::raw(m.summary.clone())))
         .collect();
-    let right_sent = Paragraph::new(right_sent_lines)
-        .block(Block::default().title("Latest Sent").borders(Borders::ALL));
+    let right_sent = Paragraph::new(right_sent_lines).block(
+        Block::default()
+            .title(Span::styled(
+                "Latest Sent",
+                Style::default()
+                    .fg(Color::Green)
+                    .add_modifier(Modifier::BOLD),
+            ))
+            .borders(Borders::ALL),
+    );
     f.render_widget(right_sent, right_split[0]);
 
     let right_recv_lines: Vec<Line> = state
@@ -102,7 +135,12 @@ pub fn draw(f: &mut ratatui::Frame, state: &AppState) {
         .collect();
     let right_recv = Paragraph::new(right_recv_lines).block(
         Block::default()
-            .title("Latest Received")
+            .title(Span::styled(
+                "Latest Received",
+                Style::default()
+                    .fg(Color::Yellow)
+                    .add_modifier(Modifier::BOLD),
+            ))
             .borders(Borders::ALL),
     );
     f.render_widget(right_recv, right_split[1]);
@@ -124,7 +162,15 @@ pub fn draw(f: &mut ratatui::Frame, state: &AppState) {
         .collect::<Vec<_>>()
         .join("\n");
     footer.push(Line::from(Span::raw(log_text)));
-    let footer =
-        Paragraph::new(footer).block(Block::default().title("Status").borders(Borders::ALL));
+    let footer = Paragraph::new(footer).block(
+        Block::default()
+            .title(Span::styled(
+                "Status",
+                Style::default()
+                    .fg(Color::Magenta)
+                    .add_modifier(Modifier::BOLD),
+            ))
+            .borders(Borders::ALL),
+    );
     f.render_widget(footer, root[2]);
 }

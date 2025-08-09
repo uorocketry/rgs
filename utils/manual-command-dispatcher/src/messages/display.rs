@@ -92,9 +92,30 @@ pub fn summarize_received_bytes(bytes: &[u8]) -> SentMessage {
                         summary: format!("RadioFrame State from node={:?}", origin),
                     };
                 }
-                Some(radio::radio_frame::Payload::Command(_m)) => {
+                Some(radio::radio_frame::Payload::Command(m)) => {
+                    let detail = match m.data.as_ref() {
+                        Some(cmd::command::Data::Ping(v)) => format!("Ping id={}", v.id),
+                        Some(cmd::command::Data::Pong(v)) => format!("Pong id={}", v.id),
+                        Some(cmd::command::Data::Online(v)) => {
+                            format!("Online online={}", v.online)
+                        }
+                        Some(cmd::command::Data::DeployDrogue(v)) => {
+                            format!("DeployDrogue val={}", v.val)
+                        }
+                        Some(cmd::command::Data::DeployMain(v)) => {
+                            format!("DeployMain val={}", v.val)
+                        }
+                        Some(cmd::command::Data::PowerDown(v)) => format!(
+                            "PowerDown board={:?}",
+                            Node::try_from(v.board).unwrap_or(Node::Unspecified)
+                        ),
+                        Some(cmd::command::Data::RadioRateChange(v)) => {
+                            format!("RadioRateChange rate={}", v.rate)
+                        }
+                        None => "<no data>".to_string(),
+                    };
                     return SentMessage {
-                        summary: format!("RadioFrame Command from node={:?}", origin),
+                        summary: format!("RadioFrame Command from node={:?}: {}", origin, detail),
                     };
                 }
                 None => {
