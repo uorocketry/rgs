@@ -12,6 +12,8 @@ use commands::{build_command, MenuItem};
 use crossterm::event::{self, Event as CEvent, KeyCode, KeyEvent, KeyModifiers};
 use crossterm::terminal::{disable_raw_mode, enable_raw_mode};
 use messages_prost::common::Node;
+use messages_prost::radio::radio_frame::Payload;
+use messages_prost::radio::RadioFrame;
 use ratatui::backend::CrosstermBackend;
 use ratatui::Terminal;
 use std::error::Error;
@@ -20,14 +22,14 @@ use std::io;
 use std::sync::{Arc, Mutex};
 use std::time::{Duration, Instant};
 use tracing::{error, info};
-use transport::{connect_gateway, send_over_mavlink, try_recv_postcard};
+use transport::{spawn_receiver, spawn_sender};
 
 // state, args, and menu items moved to modules
 
 // build_command now lives in commands.rs
 
 fn encode_message<M: prost::Message>(msg: &M) -> Vec<u8> {
-    prost::Message::encode_to_vec(msg)
+    prost::Message::encode_length_delimited_to_vec(msg)
 }
 
 // drawing moved to ui::draw
@@ -54,14 +56,9 @@ async fn main() -> Result<(), Box<dyn Error>> {
         log_path
     );
 
-    // Connect to MAVLink gateway
-    let mut conn = match connect_gateway(&args.gateway_connection_string) {
-        Ok(c) => c,
-        Err(e) => {
-            error!("Failed to connect to gateway: {}", e);
-            return Err(e.into());
-        }
-    };
+    // Spawn IO threads so UI is not blocked
+    let (tx_out, _send_handle) = spawn_sender(args.gateway_connection_string.clone());
+    let (rx_in, _recv_handle) = spawn_receiver(args.gateway_connection_string.clone());
 
     // Setup TUI
     enable_raw_mode()?;
@@ -111,17 +108,23 @@ async fn main() -> Result<(), Box<dyn Error>> {
                             state.target_node,
                             &mut state.ping_counter,
                         );
-                        let bytes = encode_message(&command);
+
+                        // Radio frame
+                        let frame = RadioFrame {
+                            payload: Some(Payload::Command(command)),
+                            node: state.origin_node,
+                        };
+
+                        let bytes = encode_message(&frame);
                         info!("Encoded command {:?} into {} bytes", item, bytes.len());
-                        info!("Sending command over MAVLink...");
-                        match send_over_mavlink(&mut conn, &bytes) {
+                        info!("Queueing frame to sender thread...");
+                        let send_len = bytes.len();
+                        match tx_out.send(bytes) {
                             Ok(_) => {
-                                info!("Send success: {:?} ({} bytes)", item, bytes.len());
-                                state.left_log_lines.push(format!(
-                                    "Sent {:?} ({} bytes)",
-                                    item,
-                                    bytes.len()
-                                ));
+                                info!("Send success: {:?} ({} bytes)", item, send_len);
+                                state
+                                    .left_log_lines
+                                    .push(format!("Sent {:?} ({} bytes)", item, send_len));
                                 let sm = crate::messages::display::summarize_command(
                                     state.origin_node,
                                     &command,
@@ -189,10 +192,16 @@ async fn main() -> Result<(), Box<dyn Error>> {
             }
         }
 
-        // background receive: poll for postcard messages and attempt protobuf decode
-        if let Some(bytes) = try_recv_postcard(&mut conn) {
-            let summary = crate::messages::display::summarize_received_bytes(&bytes);
-            state.right_received_messages.push(summary);
+        // background receive: drain a few frames per tick without blocking
+        for _ in 0..16 {
+            match rx_in.try_recv() {
+                Ok(bytes) => {
+                    let summary = crate::messages::display::summarize_received_bytes(&bytes);
+                    state.right_received_messages.push(summary);
+                }
+                Err(std::sync::mpsc::TryRecvError::Empty) => break,
+                Err(std::sync::mpsc::TryRecvError::Disconnected) => break,
+            }
         }
 
         if last_tick.elapsed() >= tick_rate {

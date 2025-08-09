@@ -1,6 +1,7 @@
 use messages_prost::command as cmd;
 use messages_prost::common::Node;
 use messages_prost::log::Log;
+use messages_prost::radio::{self, RadioFrame};
 use messages_prost::sensor::{
     gps::Gps,
     iim20670::Imu,
@@ -9,6 +10,7 @@ use messages_prost::sensor::{
 };
 use messages_prost::state::StateMessage;
 use prost::Message as _;
+use tracing::{debug, warn};
 
 #[derive(Clone, Debug)]
 pub struct SentMessage {
@@ -37,54 +39,77 @@ pub fn summarize_command(node_from: i32, command: &cmd::Command) -> SentMessage 
 }
 
 pub fn summarize_received_bytes(bytes: &[u8]) -> SentMessage {
-    if let Ok(msg) = SbgMessage::decode(bytes) {
-        if let Some(data) = &msg.data {
-            let kind = match data.data.as_ref() {
-                Some(sbg_data::Data::GpsPos(_)) => "SbgGpsPos",
-                Some(sbg_data::Data::UtcTime(_)) => "SbgUtcTime",
-                Some(sbg_data::Data::Imu(_)) => "SbgImu",
-                Some(sbg_data::Data::EkfQuat(_)) => "SbgEkfQuat",
-                Some(sbg_data::Data::EkfNav(_)) => "SbgEkfNav",
-                Some(sbg_data::Data::GpsVel(_)) => "SbgGpsVel",
-                Some(sbg_data::Data::Air(_)) => "SbgAir",
-                None => "Sbg<unknown>",
-            };
-            return SentMessage {
-                summary: format!(
-                    "Sbg {} from node={:?}",
-                    kind,
-                    Node::try_from(msg.node).unwrap_or(Node::Unspecified)
-                ),
-            };
+    // Only decode as RadioFrame, do not attempt legacy message handling
+    match RadioFrame::decode_length_delimited(bytes) {
+        Ok(frame) => {
+            let origin = Node::try_from(frame.node).unwrap_or(Node::Unspecified);
+            debug!("Successfully decoded RadioFrame from node={:?}", origin);
+            match frame.payload {
+                Some(radio::radio_frame::Payload::Sbg(sbg)) => {
+                    if let Some(inner) = &sbg.data {
+                        let kind = match inner {
+                            sbg_data::Data::GpsPos(_) => "SbgGpsPos",
+                            sbg_data::Data::UtcTime(_) => "SbgUtcTime",
+                            sbg_data::Data::Imu(_) => "SbgImu",
+                            sbg_data::Data::EkfQuat(_) => "SbgEkfQuat",
+                            sbg_data::Data::EkfNav(_) => "SbgEkfNav",
+                            sbg_data::Data::GpsVel(_) => "SbgGpsVel",
+                            sbg_data::Data::Air(_) => "SbgAir",
+                        };
+                        return SentMessage {
+                            summary: format!("RadioFrame Sbg {} from node={:?}", kind, origin),
+                        };
+                    }
+                    return SentMessage {
+                        summary: format!("RadioFrame Sbg <no data> from node={:?}", origin),
+                    };
+                }
+                Some(radio::radio_frame::Payload::Gps(gps)) => {
+                    return SentMessage {
+                        summary: format!(
+                            "RadioFrame Gps type={} from node={:?}",
+                            gps.message_type, origin
+                        ),
+                    };
+                }
+                Some(radio::radio_frame::Payload::Madgwick(_m)) => {
+                    return SentMessage {
+                        summary: format!("RadioFrame Madgwick from node={:?}", origin),
+                    };
+                }
+                Some(radio::radio_frame::Payload::Iim20670(_m)) => {
+                    return SentMessage {
+                        summary: format!("RadioFrame Imu(IIM20670) from node={:?}", origin),
+                    };
+                }
+                Some(radio::radio_frame::Payload::Log(_m)) => {
+                    return SentMessage {
+                        summary: format!("RadioFrame Log from node={:?}", origin),
+                    };
+                }
+                Some(radio::radio_frame::Payload::State(_m)) => {
+                    return SentMessage {
+                        summary: format!("RadioFrame State from node={:?}", origin),
+                    };
+                }
+                Some(radio::radio_frame::Payload::Command(_m)) => {
+                    return SentMessage {
+                        summary: format!("RadioFrame Command from node={:?}", origin),
+                    };
+                }
+                None => {
+                    return SentMessage {
+                        summary: format!("RadioFrame <no payload> from node={:?}", origin),
+                    };
+                }
+            }
         }
-    } else if let Ok(msg) = Gps::decode(bytes) {
-        return SentMessage {
-            summary: format!(
-                "Gps type={} from node={:?}",
-                msg.message_type,
-                Node::try_from(msg.node).unwrap_or(Node::Unspecified)
-            ),
-        };
-    } else if let Ok(_msg) = Imu::decode(bytes) {
-        return SentMessage {
-            summary: "Imu".to_string(),
-        };
-    } else if let Ok(_msg) = Madgwick::decode(bytes) {
-        return SentMessage {
-            summary: "Madgwick".to_string(),
-        };
-    } else if let Ok(_msg) = Log::decode(bytes) {
-        return SentMessage {
-            summary: "Log".to_string(),
-        };
-    } else if let Ok(_msg) = StateMessage::decode(bytes) {
-        return SentMessage {
-            summary: "State".to_string(),
-        };
-    } else if let Ok(_msg) = cmd::Command::decode(bytes) {
-        return SentMessage {
-            summary: "Command".to_string(),
-        };
+        Err(radio_err) => {
+            warn!(
+                "RadioFrame decode failed: {}. Buffer: {:02x?}",
+                radio_err, bytes
+            );
+        }
     }
 
     SentMessage {
