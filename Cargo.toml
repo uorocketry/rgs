@@ -6,7 +6,8 @@ members = [
     "heartbeat",
     "hydrand",
     "coord_mocker",
-    "hydra_manager_daemon"
+    "hydra_manager_daemon",
+    "utils/manual-command-dispatcher"
 ]
 resolver = "2"
 
