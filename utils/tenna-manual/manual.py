@@ -178,7 +178,7 @@ class ManualODriveControl:
         print("\nController mode active. Ctrl-C to exit.")
         base_vel, base_acc, base_dec = 60.0, 30.0, 20.0
         speed_mult = 1.0
-        last_rb = last_lb = last_x = False
+        last_rb = last_lb = last_x = last_y = False
 
         for ax in self.axes.values():
             ax.trap_traj.config.vel_limit = base_vel
@@ -193,13 +193,60 @@ class ManualODriveControl:
                 rb = self.controller.get_button('RB')
                 lb = self.controller.get_button('LB')
                 xb = self.controller.get_button('X')
+                yb = self.controller.get_button('Y')
                 if rb and not last_rb:
                     speed_mult = min(speed_mult * self.cfg['speed_step'], self.cfg['speed_mult_limits'][1])
                 if lb and not last_lb:
                     speed_mult = max(speed_mult / self.cfg['speed_step'], self.cfg['speed_mult_limits'][0])
                 if xb and not last_x:
                     self.zero()
-                last_rb, last_lb, last_x = rb, lb, xb
+                if yb and not last_y:
+                    # Temporarily lower speed to 0.5x while going to zero, then restore
+                    prev_speed_mult = speed_mult
+                    reduced_mult = max(self.cfg['speed_mult_limits'][0], prev_speed_mult * 0.1)
+
+                    # Apply reduced limits immediately
+                    reduced_vel = base_vel * reduced_mult
+                    reduced_acc = base_acc * reduced_mult
+                    reduced_dec = base_dec * reduced_mult
+                    for ax in self.axes.values():
+                        ax.trap_traj.config.vel_limit = reduced_vel
+                        ax.trap_traj.config.accel_limit = reduced_acc
+                        ax.trap_traj.config.decel_limit = reduced_dec
+                        ax.controller.config.vel_limit = reduced_vel
+
+                    # Command move to stored zero point (0 pitch, 0 yaw)
+                    print("Moving to zero point at 0.1x speed")
+                    self.set_pos(0.0, 0.0)
+
+                    # Wait for trajectory to complete with a safety timeout
+                    start_wait = time.time()
+                    while self.controller_active:
+                        in_traj_any = False
+                        for ax in self.axes.values():
+                            if getattr(ax.controller, 'in_traj', False):
+                                in_traj_any = True
+                                break
+                        if not in_traj_any:
+                            break
+                        if time.time() - start_wait > 5.0:
+                            break
+                        time.sleep(0.02)
+
+                    # Restore original limits
+                    orig_vel = base_vel * prev_speed_mult
+                    orig_acc = base_acc * prev_speed_mult
+                    orig_dec = base_dec * prev_speed_mult
+                    for ax in self.axes.values():
+                        ax.trap_traj.config.vel_limit = orig_vel
+                        ax.trap_traj.config.accel_limit = orig_acc
+                        ax.trap_traj.config.decel_limit = orig_dec
+                        ax.controller.config.vel_limit = orig_vel
+
+                    # Ensure state tracking prevents immediate retrigger
+                    yb = False
+                    last_x = False
+                last_rb, last_lb, last_x, last_y = rb, lb, xb, yb
 
                 new_vel = base_vel * speed_mult
                 new_acc = base_acc * speed_mult
