@@ -1,57 +1,34 @@
+use chrono::Utc;
 use libsql::{params, Connection, Result, Transaction};
-use messages::{RadioData, RadioMessage};
-use postcard::from_bytes;
+use messages_prost::{
+    common::Node,
+    log::Log,
+    sensor::{gps::Gps, iim20670::Imu, madgwick::Madgwick, sbg::{SbgMessage, sbg_data}},
+    state::StateMessage,
+};
+use prost::Message as _;
 
-use super::{common::save_common, sbg::save_sbg};
+use super::{gps::save_gps, imu::save_imu, madgwick::save_madgwick, log::save_log, sbg::save_sbg, state_msg::save_state};
 
-// Helper function to save a single message within an existing transaction
-async fn save_single_message_in_transaction(
+async fn insert_radio_message(
     transaction: &Transaction,
-    data: &RadioMessage<'_>,
+    node: i32,
+    data_type: &str,
+    data_id: i64,
 ) -> Result<i64> {
-    // Save the main RadioMessage
-    let time_str = data.timestamp.0.to_string();
-    let time_epoch = data.timestamp.0.and_utc().timestamp();
-    let node_name = serde_json::to_string(&data.node)
-        .map_err(|e| libsql::Error::ToSqlConversionFailure(Box::new(e)))?
-        .trim_matches('"')
-        .to_string();
+    let time_str = Utc::now().to_rfc3339();
+    let time_epoch = Utc::now().timestamp();
+    let node_name = Node::try_from(node)
+        .map(|n| format!("{:?}", n))
+        .unwrap_or_else(|_| "Unspecified".to_string());
 
     transaction
         .execute(
-            "INSERT INTO RadioMessage (timestamp, timestamp_epoch, node, data_type, data_id)
-         VALUES (?, ?, ?, ?, ?)",
-            params![
-                time_str,
-                time_epoch,
-                node_name,
-                match &data.data {
-                    RadioData::Common(_) => "Common",
-                    RadioData::Sbg(_) => "Sbg",
-                    RadioData::Gps(_) => "Gps",
-                },
-                0 // Placeholder for data_id
-            ],
+            "INSERT INTO RadioMessage (timestamp, timestamp_epoch, node, data_type, data_id) VALUES (?, ?, ?, ?, ?)",
+            params![time_str, time_epoch, node_name, data_type, data_id],
         )
         .await?;
-    let radio_message_id = transaction.last_insert_rowid();
-
-    // Handle RadioData types
-    let data_id = match &data.data {
-        RadioData::Common(common) => save_common(transaction, common).await?,
-        RadioData::Sbg(sbg) => save_sbg(transaction, sbg).await?,
-        RadioData::Gps(_) => unimplemented!(), // Skipping GPS for now
-    };
-
-    // Update the RadioMessage with the actual data_id
-    transaction
-        .execute(
-            "UPDATE RadioMessage SET data_id = ? WHERE id = ?",
-            params![data_id, radio_message_id],
-        )
-        .await?;
-
-    Ok(radio_message_id)
+    Ok(transaction.last_insert_rowid())
 }
 
 pub async fn save_messages_batch(
@@ -63,26 +40,39 @@ pub async fn save_messages_batch(
     }
 
     let transaction = db_connection.transaction().await?;
-    tracing::info!(
-        "Starting batch save for {} messages",
-        message_bytes_list.len()
-    );
+    tracing::info!("Starting batch save for {} messages", message_bytes_list.len());
 
     for message_bytes in message_bytes_list.iter() {
-        match from_bytes::<RadioMessage<'_>>(message_bytes) {
-            Ok(message) => {
-                if let Err(e) = save_single_message_in_transaction(&transaction, &message).await {
-                    tracing::error!(
-                        "Error saving deserialized message in batch: {:?}. Rolling back.",
-                        e
-                    );
-                    transaction.rollback().await?;
-                    return Err(e); // Propagate the error
-                }
+        if let Ok(msg) = SbgMessage::decode(&message_bytes[..]) {
+            if let Some(data) = &msg.data {
+                let (data_type, data_id) = match data.data.as_ref().unwrap() {
+                    sbg_data::Data::GpsPos(_) => ("SbgGpsPos", save_sbg(&transaction, data).await?),
+                    sbg_data::Data::UtcTime(_) => ("SbgUtcTime", save_sbg(&transaction, data).await?),
+                    sbg_data::Data::Imu(_) => ("SbgImu", save_sbg(&transaction, data).await?),
+                    sbg_data::Data::EkfQuat(_) => ("SbgEkfQuat", save_sbg(&transaction, data).await?),
+                    sbg_data::Data::EkfNav(_) => ("SbgEkfNav", save_sbg(&transaction, data).await?),
+                    sbg_data::Data::GpsVel(_) => ("SbgGpsVel", save_sbg(&transaction, data).await?),
+                    sbg_data::Data::Air(_) => ("SbgAir", save_sbg(&transaction, data).await?),
+                };
+                insert_radio_message(&transaction, msg.node, data_type, data_id).await?;
             }
-            Err(e) => {
-                tracing::error!("Failed to deserialize message in batch: {:?}. Skipping.", e);
-            }
+        } else if let Ok(msg) = Gps::decode(&message_bytes[..]) {
+            let data_id = save_gps(&transaction, &msg).await?;
+            insert_radio_message(&transaction, msg.node, "Gps", data_id).await?;
+        } else if let Ok(msg) = Imu::decode(&message_bytes[..]) {
+            let data_id = save_imu(&transaction, &msg).await?;
+            insert_radio_message(&transaction, msg.node, "Imu", data_id).await?;
+        } else if let Ok(msg) = Madgwick::decode(&message_bytes[..]) {
+            let data_id = save_madgwick(&transaction, &msg).await?;
+            insert_radio_message(&transaction, msg.node, "Madgwick", data_id).await?;
+        } else if let Ok(msg) = Log::decode(&message_bytes[..]) {
+            let data_id = save_log(&transaction, &msg).await?;
+            insert_radio_message(&transaction, msg.node, "Log", data_id).await?;
+        } else if let Ok(msg) = StateMessage::decode(&message_bytes[..]) {
+            let data_id = save_state(&transaction, &msg).await?;
+            insert_radio_message(&transaction, msg.node, "State", data_id).await?;
+        } else {
+            tracing::error!("Failed to decode protobuf message in batch. Skipping.");
         }
     }
 

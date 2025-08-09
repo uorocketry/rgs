@@ -254,6 +254,50 @@ CREATE TABLE IF NOT EXISTS RadioMetrics (
 
 CREATE INDEX IF NOT EXISTS idx_radiometrics_timestamp ON RadioMetrics (timestamp);
 
+-- Sensor tables for protobuf messages
+CREATE TABLE IF NOT EXISTS Iim20670Imu (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    timestamp_us INTEGER NOT NULL,
+    gyro_x REAL,
+    gyro_y REAL,
+    gyro_z REAL,
+    accel_x REAL,
+    accel_y REAL,
+    accel_z REAL,
+    temperature_1 INTEGER,
+    temperature_2 INTEGER,
+    accel_fs INTEGER,
+    gyro_fs INTEGER,
+    spi_status INTEGER,
+    low_res_accel_x REAL,
+    low_res_accel_y REAL,
+    low_res_accel_z REAL
+);
+
+CREATE TABLE IF NOT EXISTS Madgwick (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    quat_w REAL,
+    quat_x REAL,
+    quat_y REAL,
+    quat_z REAL
+);
+
+CREATE TABLE IF NOT EXISTS Gps (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    message_type TEXT NOT NULL,
+    data BLOB NOT NULL
+);
+
+CREATE TABLE IF NOT EXISTS ProtoLog (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    message BLOB NOT NULL
+);
+
+CREATE TABLE IF NOT EXISTS StateMessage (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    state TEXT NOT NULL
+);
+
 --#endregion
 
 --#endregion

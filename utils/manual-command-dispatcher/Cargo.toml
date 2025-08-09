@@ -1,0 +1,20 @@
+[package]
+name = "manual-command-dispatcher"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+tokio = { workspace = true }
+clap = { workspace = true }
+tracing = { workspace = true }
+tracing-subscriber = { workspace = true }
+mavlink = { workspace = true }
+messages-prost = { workspace = true }
+crossterm = "0.27"
+ratatui = { version = "0.26", default-features = false, features = ["crossterm"] }
+futures = "0.3"
+prost = { version = "0.14", features = ["derive"], default-features = false }
+
+[package.metadata.crane]
+name = "manual-command-dispatcher"
+

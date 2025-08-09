@@ -3,6 +3,7 @@ use chrono::Utc;
 use libsql::Connection;
 use mavlink::uorocketry::MavMessage;
 use mavlink::MavConnection;
+// Messages are decoded in batch; no need to parse them here
 use std::time::{Duration, Instant};
 use tracing::{error, info, warn};
 
@@ -49,6 +50,7 @@ pub async fn handle_messages(
 
                 match message {
                     MavMessage::POSTCARD_MESSAGE(data) => {
+                        // Buffer POSTCARD messages for decoding in batch
                         message_buffer.push(data.message.to_vec());
                     }
                     MavMessage::RADIO_STATUS(data) => {

@@ -6,7 +6,8 @@ members = [
     "heartbeat",
     "hydrand",
     "coord_mocker",
-    "hydra_manager_daemon"
+    "hydra_manager_daemon",
+    "utils/manual-command-dispatcher"
 ]
 resolver = "2"
 
@@ -22,6 +23,7 @@ mavlink = { git = "https://github.com/uorocketry/rust-mavlink.git", features = [
 messages = { git = "https://github.com/uorocketry/messages", features = [
     'std',
 ], default-features = false }
+messages-prost = { git = "https://github.com/uorocketry/messages-prost", features = ['std'], default-features = false }
 chrono = { git = "https://github.com/uorocketry/chrono", features = ['serde'] }
 
 clap = { version = "4.5.16", features = ["derive"] }

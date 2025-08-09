@@ -29,6 +29,8 @@ struct Listen {
     baud: u32,
     #[arg(long, action, default_value = "127.0.0.1:5656")] // Trivia H + Y + D + R +  A = 56 :D
     host: String,
+    #[arg(short, long, action)]
+    verbose: bool,
 }
 
 fn list_available_ports() -> Vec<String> {
@@ -64,7 +66,7 @@ fn main() {
             };
             // endregion
 
-            let shared_state = Arc::new(Mutex::new(SharedState::new()));
+            let shared_state = Arc::new(Mutex::new(SharedState::new(listen.verbose)));
 
             // region:Read & Broadcast
 
@@ -116,6 +118,7 @@ fn main() {
             // region:Handle TCP connections
             let port_clone = port.try_clone().unwrap();
             let shared_state_clone = Arc::clone(&shared_state);
+            let verbose = listen.verbose;
             let tcp_handle_task = std::thread::spawn(move || {
                 loop {
                     let (mut stream, addr) = match listener.accept() {
@@ -142,6 +145,7 @@ fn main() {
 
                     std::thread::spawn(move || {
                         let stop_clone = stop.clone();
+                        let verbose_clone = verbose;
                         let tcp_to_serial_task = std::thread::spawn(move || {
                             loop {
                                 if stop_clone.load(std::sync::atomic::Ordering::Relaxed) {
@@ -156,7 +160,15 @@ fn main() {
                                     // write buffer slice to n
                                     Ok(n) => match port_clone.write_all(&buffer[..n]) {
                                         Ok(_) => {
-                                            println!("Wrote {} bytes to serial port", n);
+                                            if verbose_clone {
+                                                println!(
+                                                    "Wrote {} bytes to serial port: {:?}",
+                                                    n,
+                                                    &buffer[..n]
+                                                );
+                                            } else {
+                                                println!("Wrote {} bytes to serial port", n);
+                                            }
                                         }
                                         Err(e) => {
                                             eprintln!("Error writing to serial port: {:?}", e);
@@ -227,12 +239,14 @@ fn main() {
 
 struct SharedState {
     connections: HashMap<std::net::SocketAddr, Sender<Vec<u8>>>,
+    verbose: bool,
 }
 
 impl SharedState {
-    pub fn new() -> Self {
+    pub fn new(verbose: bool) -> Self {
         SharedState {
             connections: HashMap::new(),
+            verbose,
         }
     }
 
@@ -245,10 +259,22 @@ impl SharedState {
 
     // Broadcast serial data to all TCP connections
     fn broadcast(&mut self, data: Vec<u8>) {
+        if self.verbose {
+            println!(
+                "Broadcasting {} bytes to {} TCP connections: {:?}",
+                data.len(),
+                self.connections.len(),
+                data
+            );
+        }
         let mut to_remove = Vec::new();
         for (addr, serial_sender) in self.connections.iter_mut() {
             match serial_sender.send(data.clone()) {
-                Ok(_) => (),
+                Ok(_) => {
+                    if self.verbose {
+                        println!("Sent {} bytes to TCP connection {}", data.len(), addr);
+                    }
+                }
                 Err(e) => {
                     eprintln!("Error Broadcasting data to TCP connection: {:?}", e);
                     eprintln!("Removing connection from shared state");
