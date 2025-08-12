@@ -5,7 +5,6 @@ edition = "2021"
 
 [dependencies]
 clap = { workspace = true }
-messages = { workspace = true }
 mavlink = {workspace = true}
 postcard = { workspace = true }
 serialport = "4"

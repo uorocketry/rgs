@@ -19,9 +19,6 @@ mavlink = { git = "https://github.com/uorocketry/rust-mavlink.git", features = [
     "direct-serial",
     "serde",
 ], default-features = false }
-messages = { git = "https://github.com/uorocketry/messages", features = [
-    'std',
-], default-features = false }
 messages-prost = { git = "https://github.com/uorocketry/messages-prost", features = ['std'], default-features = false }
 chrono = { git = "https://github.com/uorocketry/chrono", features = ['serde'] }
 
