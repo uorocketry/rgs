@@ -43,7 +43,7 @@ pub async fn run_dispatcher(
 
         if let Some(ref mut current_gateway_conn) = gateway_conn_opt {
             info!("Fetching pending commands...");
-            let mut stmt = match db_conn.prepare(
+            let stmt = match db_conn.prepare(
                 "SELECT id, command_type, parameters, source_service FROM OutgoingCommand WHERE status = 'Pending' ORDER BY created_at ASC LIMIT 10"
             ).await {
                 Ok(s) => s,
