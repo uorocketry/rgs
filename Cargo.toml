@@ -6,6 +6,8 @@ members = [
     "heartbeat",
     "coord_mocker",
     "hydra_manager_daemon",
+    "hydrand",
+    "utils/virtual-serial",
     "utils/manual-command-dispatcher"
 ]
 resolver = "2"
