@@ -1,9 +1,11 @@
 use clap::Parser;
-use messages::mavlink::uorocketry::MavMessage;
-use messages::mavlink::{self, MAVLinkV2MessageRaw};
-use messages::sensor::GpsPos;
-use messages::sensor_status::GpsPositionStatus;
-use messages::FormattedNaiveDateTime;
+use mavlink::uorocketry::MavMessage;
+use mavlink::{self, MAVLinkV2MessageRaw};
+use messages_prost::sensor::sbg::GpsPos;
+use messages_prost::sensor::sbg::sbg_data;
+use messages_prost::radio::{RadioFrame, self};
+use messages_prost::common::Node;
+use prost::Message as _;
 use std::io::Write;
 use std::net::{TcpListener, TcpStream};
 use std::sync::Mutex;
@@ -176,42 +178,35 @@ fn handle_connection(stream: &mut TcpStream, interval: u64, state: std::sync::Ar
         } else {
             // region:Mavlink Sending Mode
             let msg: MavMessage = {
-                // let lat_lon_msg = SensorData::GpsPos1(GpsPos1 {
-                //     latitude: Some(coords.latitude),
-                //     longitude: Some(coords.longitude),
-                // });
-                // let data = messages::Data::Sensor(Sensor::new(lat_lon_msg));
-                let data = messages::RadioData::Sbg(messages::sensor::SbgData::GpsPos(GpsPos {
-                    latitude: Some(coords.latitude),
-                    longitude: Some(coords.longitude),
-                    time_of_week: None,
-                    undulation: None,
-                    altitude: Some(coords.altitude),
+                // Build Sbg GpsPos message
+                let gps = GpsPos {
                     time_stamp: t,
-                    status: GpsPositionStatus::new(0),
-                    latitude_accuracy: None,
-                    longitude_accuracy: None,
-                    altitude_accuracy: None,
-                    num_sv_used: None,
-                    base_station_id: None,
-                    differential_age: None,
-                }));
+                    status: Some(messages_prost::sensor::sbg::GpsPositionStatus { status: 0, r#type: 0 }),
+                    data: Some(messages_prost::sensor::sbg::GpsPosData {
+                        latitude: coords.latitude,
+                        longitude: coords.longitude,
+                        time_of_week: 0,
+                        undulation: 0.0,
+                        altitude: coords.altitude,
+                        latitude_accuracy: 0.0,
+                        longitude_accuracy: 0.0,
+                        altitude_accuracy: 0.0,
+                        num_sv_used: 0,
+                        base_station_id: 0,
+                        differential_age: 0,
+                    }),
+                };
 
-                let msg = messages::RadioMessage::new(
-                    FormattedNaiveDateTime {
-                        0: chrono::Utc::now().naive_utc(),
-                    },
-                    // TODO: Replace by GroundStation node when it is implemented
-                    messages::node::Node::PressureBoard,
-                    // messages::node::Node::GroundStation,
-                    data,
-                );
+                let frame = RadioFrame {
+                    node: Node::PressureBoard as i32,
+                    payload: Some(radio::radio_frame::Payload::Sbg(messages_prost::sensor::sbg::SbgData { data: Some(sbg_data::Data::GpsPos(gps)) })),
+                };
 
+                let bytes = RadioFrame::encode_length_delimited_to_vec(&frame);
                 let mut buf = [0u8; 255];
-                postcard::to_slice(&msg, &mut buf).unwrap();
-                MavMessage::POSTCARD_MESSAGE(mavlink::uorocketry::POSTCARD_MESSAGE_DATA {
-                    message: buf,
-                })
+                let len = bytes.len().min(255);
+                buf[..len].copy_from_slice(&bytes[..len]);
+                MavMessage::POSTCARD_MESSAGE(mavlink::uorocketry::POSTCARD_MESSAGE_DATA { message: buf })
             };
 
             let mut message_raw = MAVLinkV2MessageRaw::new();
