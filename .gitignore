@@ -60,3 +60,6 @@ tmp
 
 # python venv
 .venv
+
+# MkDocs build output
+site/

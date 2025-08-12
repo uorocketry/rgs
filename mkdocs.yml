@@ -5,38 +5,24 @@ repo_url: https://github.com/uorocketry/rgs
 repo_name: uorocketry/rgs
 
 theme:
-  name: material
-  features:
-    - navigation.sections
-    - navigation.top
-    - content.code.copy
-  palette:
-    - scheme: default
-      primary: indigo
-      accent: indigo
-    - scheme: slate
-      primary: indigo
-      accent: indigo
-      toggle:
-        icon: material/weather-night
-        name: Switch to dark mode
+  name: readthedocs
 
 nav:
-  - Home: docs/index.md
+  - Home: index.md
   - Guide:
-      - Overview: docs/guide/index.md
-      - Architecture: docs/guide/architecture.md
+      - Overview: guide/index.md
+      - Architecture: guide/architecture.md
       - Requirements:
-          - Development environment: docs/guide/requirements/development-environment.md
-          - Docker: docs/guide/requirements/docker.md
-          - Bun: docs/guide/requirements/bun.md
-          - Rust: docs/guide/requirements/rust.md
+          - Development environment: guide/requirements/development-environment.md
+          - Docker: guide/requirements/docker.md
+          - Bun: guide/requirements/bun.md
+          - Rust: guide/requirements/rust.md
       - Hands-on:
-          - Modify the database: docs/guide/hands-on/modifying-the-database.md
-          - Altitude widget: docs/guide/hands-on/altitude-widget.md
+          - Modify the database: guide/hands-on/modifying-the-database.md
+          - Altitude widget: guide/hands-on/altitude-widget.md
   - Services:
-      - Hydra Gateway: docs/hydra-gateway/index.md
-      - Web: docs/web/index.md
+      - Hydra Gateway: hydra-gateway/index.md
+      - Web: web/index.md
 
 markdown_extensions:
   - admonition
