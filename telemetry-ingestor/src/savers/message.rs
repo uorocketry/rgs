@@ -2,13 +2,12 @@ use chrono::Utc;
 use libsql::{params, Connection, Result, Transaction};
 use messages_prost::{
     common::Node,
-    log::Log,
-    sensor::{gps::Gps, iim20670::Imu, madgwick::Madgwick, sbg::{SbgMessage, sbg_data}},
-    state::StateMessage,
+    radio::{self, RadioFrame},
+    sensor::sbg::sbg_data,
 };
 use prost::Message as _;
 
-use super::{gps::save_gps, imu::save_imu, madgwick::save_madgwick, log::save_log, sbg::save_sbg, state_msg::save_state};
+use super::{command::save_command, imu::save_imu, log::save_log, madgwick::save_madgwick, sbg::save_sbg, state_msg::save_state};
 
 async fn insert_radio_message(
     transaction: &Transaction,
@@ -24,7 +23,7 @@ async fn insert_radio_message(
 
     transaction
         .execute(
-            "INSERT INTO RadioMessage (timestamp, timestamp_epoch, node, data_type, data_id) VALUES (?, ?, ?, ?, ?)",
+            "INSERT INTO RadioFrame (timestamp, timestamp_epoch, node, data_type, data_id) VALUES (?, ?, ?, ?, ?)",
             params![time_str, time_epoch, node_name, data_type, data_id],
         )
         .await?;
@@ -43,36 +42,58 @@ pub async fn save_messages_batch(
     tracing::info!("Starting batch save for {} messages", message_bytes_list.len());
 
     for message_bytes in message_bytes_list.iter() {
-        if let Ok(msg) = SbgMessage::decode(&message_bytes[..]) {
-            if let Some(data) = &msg.data {
-                let (data_type, data_id) = match data.data.as_ref().unwrap() {
-                    sbg_data::Data::GpsPos(_) => ("SbgGpsPos", save_sbg(&transaction, data).await?),
-                    sbg_data::Data::UtcTime(_) => ("SbgUtcTime", save_sbg(&transaction, data).await?),
-                    sbg_data::Data::Imu(_) => ("SbgImu", save_sbg(&transaction, data).await?),
-                    sbg_data::Data::EkfQuat(_) => ("SbgEkfQuat", save_sbg(&transaction, data).await?),
-                    sbg_data::Data::EkfNav(_) => ("SbgEkfNav", save_sbg(&transaction, data).await?),
-                    sbg_data::Data::GpsVel(_) => ("SbgGpsVel", save_sbg(&transaction, data).await?),
-                    sbg_data::Data::Air(_) => ("SbgAir", save_sbg(&transaction, data).await?),
-                };
-                insert_radio_message(&transaction, msg.node, data_type, data_id).await?;
+        match RadioFrame::decode_length_delimited(&message_bytes[..]) {
+            Ok(frame) => {
+                let node = frame.node;
+                match frame.payload {
+                    Some(radio::radio_frame::Payload::Sbg(sbg)) => {
+                        if let Some(inner) = &sbg.data {
+                            let data_type = match inner {
+                                sbg_data::Data::GpsPos(_) => "SbgGpsPos",
+                                sbg_data::Data::UtcTime(_) => "SbgUtcTime",
+                                sbg_data::Data::Imu(_) => "SbgImu",
+                                sbg_data::Data::EkfQuat(_) => "SbgEkfQuat",
+                                sbg_data::Data::EkfNav(_) => "SbgEkfNav",
+                                sbg_data::Data::GpsVel(_) => "SbgGpsVel",
+                                sbg_data::Data::Air(_) => "SbgAir",
+                            };
+                            let data_id = save_sbg(&transaction, &sbg).await?;
+                            insert_radio_message(&transaction, node, data_type, data_id).await?;
+                        }
+                    }
+                    // Intentionally ignored. Prefer SBG GpsPos/GpsVel.
+                    // It's 8/11 and Phoenix still doesn't implement the new GPS message.
+                    Some(radio::radio_frame::Payload::Gps(_)) => {
+                        tracing::warn!("Generic GPS payload handler removed. Prefer SBG GpsPos/GpsVel.");
+                    }
+                    Some(radio::radio_frame::Payload::Madgwick(m)) => {
+                        let data_id = save_madgwick(&transaction, &m).await?;
+                        insert_radio_message(&transaction, node, "Madgwick", data_id).await?;
+                    }
+                    Some(radio::radio_frame::Payload::Iim20670(m)) => {
+                        let data_id = save_imu(&transaction, &m).await?;
+                        insert_radio_message(&transaction, node, "Imu", data_id).await?;
+                    }
+                    Some(radio::radio_frame::Payload::Log(m)) => {
+                        let data_id = save_log(&transaction, &m).await?;
+                        insert_radio_message(&transaction, node, "Log", data_id).await?;
+                    }
+                    Some(radio::radio_frame::Payload::State(m)) => {
+                        let data_id = save_state(&transaction, &m).await?;
+                        insert_radio_message(&transaction, node, "State", data_id).await?;
+                    }
+                    Some(radio::radio_frame::Payload::Command(m)) => {
+                        let data_id = save_command(&transaction, &m).await?;
+                        insert_radio_message(&transaction, node, "Command", data_id).await?;
+                    }
+                    None => {
+                        tracing::error!("RadioFrame had no payload. Skipping.");
+                    }
+                }
             }
-        } else if let Ok(msg) = Gps::decode(&message_bytes[..]) {
-            let data_id = save_gps(&transaction, &msg).await?;
-            insert_radio_message(&transaction, msg.node, "Gps", data_id).await?;
-        } else if let Ok(msg) = Imu::decode(&message_bytes[..]) {
-            let data_id = save_imu(&transaction, &msg).await?;
-            insert_radio_message(&transaction, msg.node, "Imu", data_id).await?;
-        } else if let Ok(msg) = Madgwick::decode(&message_bytes[..]) {
-            let data_id = save_madgwick(&transaction, &msg).await?;
-            insert_radio_message(&transaction, msg.node, "Madgwick", data_id).await?;
-        } else if let Ok(msg) = Log::decode(&message_bytes[..]) {
-            let data_id = save_log(&transaction, &msg).await?;
-            insert_radio_message(&transaction, msg.node, "Log", data_id).await?;
-        } else if let Ok(msg) = StateMessage::decode(&message_bytes[..]) {
-            let data_id = save_state(&transaction, &msg).await?;
-            insert_radio_message(&transaction, msg.node, "State", data_id).await?;
-        } else {
-            tracing::error!("Failed to decode protobuf message in batch. Skipping.");
+            Err(_) => {
+                tracing::error!("Failed to decode RadioFrame. Skipping buffer.");
+            }
         }
     }
 

@@ -1,30 +1,35 @@
 use libsql::{params, Result, Transaction};
-use messages::{
-    command::{Command, RadioRate},
-    node::Node,
-};
+use messages_prost::command::{self as cmd};
 
-fn node_to_string(node: &Node) -> Result<String> {
-    Ok(serde_json::to_string(node)
-        .map_err(|e| libsql::Error::ToSqlConversionFailure(Box::new(e)))?
-        .trim_matches('"')
-        .to_string())
+fn node_to_string(node: i32) -> Result<String> {
+    let name = messages_prost::common::Node::try_from(node)
+        .map(|n| format!("{:?}", n))
+        .unwrap_or_else(|_| "Unspecified".to_string());
+    Ok(name)
 }
 
-fn radio_rate_to_string(rate: &RadioRate) -> Result<String> {
-    Ok(serde_json::to_string(rate)
-        .map_err(|e| libsql::Error::ToSqlConversionFailure(Box::new(e)))?
-        .trim_matches('"')
-        .to_string())
+fn radio_rate_to_string(rate: i32) -> &'static str {
+    if rate == cmd::RadioRate::RateLow as i32 {
+        "RateLow"
+    } else if rate == cmd::RadioRate::RateMedium as i32 {
+        "RateMedium"
+    } else if rate == cmd::RadioRate::RateHigh as i32 {
+        "RateHigh"
+    } else {
+        "RateLow"
+    }
 }
 
-pub async fn save_command(transaction: &Transaction, command: &Command) -> Result<i64> {
-    let data_type = match command {
-        Command::DeployDrogue(_) => "DeployDrogue",
-        Command::DeployMain(_) => "DeployMain",
-        Command::PowerDown(_) => "PowerDown",
-        Command::RadioRateChange(_) => "RadioRateChange",
-        Command::Online(_) => "Online",
+pub async fn save_command(transaction: &Transaction, command: &cmd::Command) -> Result<i64> {
+    let data_type = match command.data.as_ref() {
+        Some(cmd::command::Data::DeployDrogue(_)) => "DeployDrogue",
+        Some(cmd::command::Data::DeployMain(_)) => "DeployMain",
+        Some(cmd::command::Data::PowerDown(_)) => "PowerDown",
+        Some(cmd::command::Data::RadioRateChange(_)) => "RadioRateChange",
+        Some(cmd::command::Data::Online(_)) => "Online",
+        Some(cmd::command::Data::Ping(_)) => "Ping",
+        Some(cmd::command::Data::Pong(_)) => "Pong",
+        None => "Unknown",
     };
 
     transaction
@@ -36,8 +41,8 @@ pub async fn save_command(transaction: &Transaction, command: &Command) -> Resul
     let command_id = transaction.last_insert_rowid();
 
     // Save the specific Command subtype and get its ID
-    let data_id: i64 = match command {
-        Command::DeployDrogue(deploy) => {
+    let data_id: i64 = match command.data.as_ref().unwrap() {
+        cmd::command::Data::DeployDrogue(deploy) => {
             transaction
                 .execute(
                     "INSERT INTO DeployDrogue (val) VALUES (?)",
@@ -46,7 +51,7 @@ pub async fn save_command(transaction: &Transaction, command: &Command) -> Resul
                 .await?;
             transaction.last_insert_rowid()
         }
-        Command::DeployMain(deploy) => {
+        cmd::command::Data::DeployMain(deploy) => {
             transaction
                 .execute(
                     "INSERT INTO DeployMain (val) VALUES (?)",
@@ -55,25 +60,25 @@ pub async fn save_command(transaction: &Transaction, command: &Command) -> Resul
                 .await?;
             transaction.last_insert_rowid()
         }
-        Command::PowerDown(power_down) => {
+        cmd::command::Data::PowerDown(power_down) => {
             transaction
                 .execute(
                     "INSERT INTO PowerDown (board) VALUES (?)",
-                    params![node_to_string(&power_down.board)?],
+                    params![node_to_string(power_down.board)?],
                 )
                 .await?;
             transaction.last_insert_rowid()
         }
-        Command::RadioRateChange(rate_change) => {
+        cmd::command::Data::RadioRateChange(rate_change) => {
             transaction
                 .execute(
                     "INSERT INTO RadioRateChange (rate) VALUES (?)",
-                    params![radio_rate_to_string(&rate_change.rate)?],
+                    params![radio_rate_to_string(rate_change.rate)],
                 )
                 .await?;
             transaction.last_insert_rowid()
         }
-        Command::Online(online) => {
+        cmd::command::Data::Online(online) => {
             transaction
                 .execute(
                     "INSERT INTO Online (online) VALUES (?)",
@@ -81,6 +86,19 @@ pub async fn save_command(transaction: &Transaction, command: &Command) -> Resul
                 )
                 .await?;
             transaction.last_insert_rowid()
+        }
+        cmd::command::Data::Ping(v) => {
+            // Optional: store ping id somewhere if desired
+            transaction
+                .execute("INSERT INTO ProtoLog (message) VALUES (?)", params![vec![]])
+                .await?;
+            v.id as i64
+        }
+        cmd::command::Data::Pong(v) => {
+            transaction
+                .execute("INSERT INTO ProtoLog (message) VALUES (?)", params![vec![]])
+                .await?;
+            v.id as i64
         }
     };
 
