@@ -79,10 +79,8 @@ async fn main() -> Result<(), Box<dyn Error>> {
             .unwrap_or(Duration::from_secs(0));
 
         if crossterm::event::poll(timeout)? {
-            match event::read()? {
-                CEvent::Key(KeyEvent {
-                    code, modifiers, ..
-                }) => match code {
+            if let CEvent::Key(KeyEvent { code, modifiers, .. }) = event::read()? {
+                match code {
                     KeyCode::Char('q') => break,
                     KeyCode::Up => {
                         if state.selected == 0 {
@@ -187,8 +185,7 @@ async fn main() -> Result<(), Box<dyn Error>> {
                         state.selected = 7;
                     }
                     _ => {}
-                },
-                _ => {}
+                }
             }
         }
 

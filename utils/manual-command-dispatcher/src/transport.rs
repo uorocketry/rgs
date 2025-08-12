@@ -5,15 +5,6 @@ use std::sync::mpsc;
 use std::thread;
 use tracing::{debug, error, info, warn};
 
-pub fn connect_gateway(
-    connection_string: &str,
-) -> Result<Box<dyn MavConnection<MavMessage> + Send + Sync>, Box<dyn Error>> {
-    match connect::<MavMessage>(connection_string) {
-        Ok(c) => Ok(c),
-        Err(e) => Err(e.into()),
-    }
-}
-
 pub fn send_over_mavlink(
     conn: &mut Box<dyn MavConnection<MavMessage> + Send + Sync>,
     bytes: &[u8],
@@ -70,7 +61,7 @@ pub fn spawn_receiver(
     let handle = thread::spawn(move || {
         loop {
             info!("Receiver thread: connecting to {}", connection_string);
-            let mut conn = match connect::<MavMessage>(&connection_string) {
+            let conn = match connect::<MavMessage>(&connection_string) {
                 Ok(c) => c,
                 Err(e) => {
                     warn!("Receiver connect failed: {}. Retrying...", e);

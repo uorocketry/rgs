@@ -1,7 +1,7 @@
 use crate::commands::MenuItem;
 use crate::messages::display::SentMessage;
 use messages_prost::common::Node;
-use ratatui::layout::{Constraint, Direction, Layout, Rect};
+use ratatui::layout::{Constraint, Direction, Layout};
 use ratatui::style::{Color, Modifier, Style};
 use ratatui::text::{Line, Span};
 use ratatui::widgets::{Block, Borders, List, ListItem, Paragraph};

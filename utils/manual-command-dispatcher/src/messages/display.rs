@@ -1,14 +1,7 @@
 use messages_prost::command as cmd;
 use messages_prost::common::Node;
-use messages_prost::log::Log;
 use messages_prost::radio::{self, RadioFrame};
-use messages_prost::sensor::{
-    gps::Gps,
-    iim20670::Imu,
-    madgwick::Madgwick,
-    sbg::{sbg_data, SbgMessage},
-};
-use messages_prost::state::StateMessage;
+use messages_prost::sensor::sbg::sbg_data;
 use prost::Message as _;
 use tracing::{debug, warn};
 
