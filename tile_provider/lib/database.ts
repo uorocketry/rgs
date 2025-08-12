@@ -19,8 +19,9 @@ export class TileDatabase {
 
   constructor(db: Database) {
     this.db = db;
-    this.initializeQueries();
+    // Ensure schema exists before preparing queries that depend on it
     this.initializeSchema();
+    this.initializeQueries();
   }
 
   private initializeSchema() {
