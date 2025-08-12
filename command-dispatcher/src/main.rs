@@ -4,6 +4,7 @@ mod health;
 use health::run_service_status_task;
 mod dispatcher;
 use dispatcher::run_dispatcher;
+mod link;
 mod commands;
 
 use clap::Parser; // For Args::parse()
@@ -45,7 +46,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         }
     });
 
-    info!("Command dispatcher initialized. Starting main dispatch loop...");
+    info!("Command dispatcher initialized. Starting dispatch loop...");
 
     if let Err(e) = run_dispatcher(db_connection, args).await {
         error!("Dispatcher loop exited with critical error: {:?}", e);
