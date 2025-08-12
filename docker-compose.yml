@@ -15,6 +15,7 @@ services:
         - "8080:8080"
         volumes:
         - /var/run/docker.sock:/var/run/docker.sock
+
    
 
     db:
@@ -25,11 +26,6 @@ services:
             - ./db/data:/var/lib/sqld
         networks:
             - web
-        healthcheck:
-            test: ["CMD", "wget", "--spider", "-q", "http://localhost:8080/health"]
-            interval: 10s
-            timeout: 3s
-            retries: 5
         labels:
         - "traefik.enable=true"
         - "traefik.http.routers.db.rule=Host(`db.localhost`)"
@@ -46,33 +42,104 @@ services:
         environment:
             DATABASE_URL: http://db:8080
         depends_on:
-            db:
-                condition: service_healthy   
+            - db
         labels:
             - "traefik.enable=false"
 
-    # tile_provider:
-    #     build:
-    #         context: ./tile_provider
-    #         dockerfile: Dockerfile
-    #     # ports:
-    #         # - "6565:6565"
-    #     volumes:
-    #         - ./tile_provider/tiles_data:/var/lib/tile_provider:rw
-    #     labels:
-    #         - "traefik.enable=true"
-    #         - "traefik.http.routers.tile_provider.rule=Host(`tile_provider.localhost`)"
-    #         - "traefik.http.services.tile_provider.loadbalancer.server.port=6565"
-    #         - "traefik.http.routers.tile_provider.middlewares=tiles-proxy"
-    #         - "traefik.http.middlewares.tiles-proxy.replacepathregex.regex=^/tiles/(.*)"
-    #         - "traefik.http.middlewares.tiles-proxy.replacepathregex.replacement=/$1"
+    # Web dashboard running behind Traefik
+    web:
+        build:
+            context: ./web
+            dockerfile: Dockerfile.dev
+        environment:
+            - NODE_ENV=development
+            - PORT=3000
+            - WEB_SERVER_PORT=3000
+            - DB_URL=http://db:8080
+        volumes:
+            - ./web:/usr/src/app
+            - /usr/src/app/node_modules
+            - /var/run/docker.sock:/var/run/docker.sock
+        networks:
+            - web
+        depends_on:
+            - db
+        labels:
+            - "traefik.enable=true"
+            - "traefik.http.routers.web.rule=Host(`rgs.localhost`)"
+            - "traefik.http.routers.web.entrypoints=web"
+            - "traefik.http.services.web.loadbalancer.server.port=3000"
+
+    tile_provider:
+        build:
+            context: ./tile_provider
+            dockerfile: Dockerfile
+        volumes:
+            - ./tile_provider/tiles_data:/var/lib/tile_provider:rw
+        networks:
+            - web
+        labels:
+            - "traefik.enable=true"
+            # Dedicated host for tile provider (avoids /bun conflicts)
+            - "traefik.http.routers.tile_provider_host.rule=Host(`tiles.rgs.localhost`)"
+            - "traefik.http.routers.tile_provider_host.entrypoints=web"
+            - "traefik.http.routers.tile_provider_host.priority=3000"
+            # Exact path /tiles/downloader -> rewrite to /
+            - "traefik.http.routers.tile_provider_home.rule=Host(`rgs.localhost`) && Path(`/tiles/downloader`)"
+            - "traefik.http.routers.tile_provider_home.entrypoints=web"
+            - "traefik.http.routers.tile_provider_home.priority=2000"
+            - "traefik.http.routers.tile_provider_home.middlewares=tile_provider-home-rewrite"
+            - "traefik.http.middlewares.tile_provider-home-rewrite.replacepath.path=/"
+            # Static assets served by Bun at /bun/* should be routed to tile_provider
+            - "traefik.http.routers.tile_provider_assets.rule=Host(`rgs.localhost`) && PathPrefix(`/bun/`)"
+            - "traefik.http.routers.tile_provider_assets.entrypoints=web"
+            - "traefik.http.routers.tile_provider_assets.priority=1500"
+            # All other /tiles/* go straight to the service unchanged
+            - "traefik.http.routers.tile_provider_tiles.rule=Host(`rgs.localhost`) && PathPrefix(`/tiles/`)"
+            - "traefik.http.routers.tile_provider_tiles.entrypoints=web"
+            - "traefik.http.routers.tile_provider_tiles.priority=1000"
+            - "traefik.http.services.tile_provider.loadbalancer.server.port=6565"
 
     heartbeat:
         image: rust
+        networks:
+            - web
         volumes:
             - ./target/debug/heartbeat:/app/heartbeat:ro
-        command: /app/heartbeat --libsql-url http://db:8080
+        command: ["/app/heartbeat", "--libsql-url", "http://db:8080"]
         restart: unless-stopped
+        depends_on:
+            - db
+        labels:
+            - "traefik.enable=false"
+
+    telemetry-ingestor:
+        build:
+            context: .
+            dockerfile: utils/docker/Dockerfile.rust-service
+            args:
+                CRATE: telemetry-ingestor
+        networks:
+            - web
+        command: ["/app/bin/telemetry-ingestor", "--libsql-url", "http://db:8080", "--gateway-connection-string", "tcpout:sergw:5656"]
+        restart: unless-stopped
+        depends_on:
+            - db
+        labels:
+            - "traefik.enable=false"
+
+    command-dispatcher:
+        build:
+            context: .
+            dockerfile: utils/docker/Dockerfile.rust-service
+            args:
+                CRATE: command-dispatcher
+        networks:
+            - web
+        command: ["/app/bin/command-dispatcher", "--libsql-url", "http://db:8080", "--gateway-connection-string", "tcpout:sergw:5656"]
+        restart: unless-stopped
+        depends_on:
+            - db
         labels:
             - "traefik.enable=false"
 

@@ -4,7 +4,7 @@
 </script>
 
 <iframe
-	src="/tiles/downloader"
+	src="//tiles.rgs.localhost/"
 	title="Map Downloader"
 	class="h-full w-full"
 	allowfullscreen

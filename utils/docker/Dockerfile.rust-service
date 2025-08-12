@@ -1,0 +1,48 @@
+# Multi-stage build to compile a single workspace crate in a Debian environment
+
+ARG DEBIAN_VERSION=bookworm
+ARG CRATE
+
+FROM rust:latest AS builder
+ARG CRATE
+ENV CRATE=${CRATE}
+ENV CARGO_HOME=/usr/local/cargo
+ENV PROTOC=/usr/bin/protoc
+
+# System deps for building (protobuf for prost-build; clang for bindgen)
+RUN apt-get update \
+    && apt-get install -y --no-install-recommends \
+       protobuf-compiler \
+       clang \
+       llvm-dev \
+       libclang-dev \
+       pkg-config \
+       libssl-dev \
+       ca-certificates \
+       git \
+    && rm -rf /var/lib/apt/lists/*
+WORKDIR /app
+COPY Cargo.toml Cargo.lock ./
+COPY command-dispatcher ./command-dispatcher
+COPY telemetry-ingestor ./telemetry-ingestor
+COPY heartbeat ./heartbeat
+COPY sergw ./sergw
+COPY coord_mocker ./coord_mocker
+COPY hydra_manager_daemon ./hydra_manager_daemon
+COPY utils/manual-command-dispatcher ./utils/manual-command-dispatcher
+
+# Build only the requested crate in release mode
+RUN --mount=type=cache,id=cargo-registry-${CRATE},target=/usr/local/cargo/registry,sharing=locked \
+    --mount=type=cache,id=cargo-git-${CRATE},target=/usr/local/cargo/git,sharing=locked \
+    --mount=type=cache,id=cargo-target-${CRATE},target=/app/target,sharing=locked \
+    mkdir -p /out && \
+    cargo build --locked --release -p ${CRATE} && \
+    install -Dm755 /app/target/release/${CRATE} /out/${CRATE}
+
+FROM debian:${DEBIAN_VERSION}-slim AS runtime
+ARG CRATE
+ENV CRATE=${CRATE}
+RUN apt-get update && apt-get install -y ca-certificates && rm -rf /var/lib/apt/lists/*
+WORKDIR /app/bin
+COPY --from=builder /out/${CRATE} /app/bin/${CRATE}
+
