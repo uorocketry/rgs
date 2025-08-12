@@ -25,6 +25,11 @@ services:
             - ./db/data:/var/lib/sqld
         networks:
             - web
+        healthcheck:
+            test: ["CMD", "wget", "--spider", "-q", "http://localhost:8080/health"]
+            interval: 10s
+            timeout: 3s
+            retries: 5
         labels:
         - "traefik.enable=true"
         - "traefik.http.routers.db.rule=Host(`db.localhost`)"
@@ -40,8 +45,9 @@ services:
         command: [ "sh", "-c", "bun install && bun index.ts" ]
         environment:
             DATABASE_URL: http://db:8080
-        restart: on-failure:3
-   
+        depends_on:
+            db:
+                condition: service_healthy   
         labels:
             - "traefik.enable=false"
 
