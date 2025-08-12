@@ -130,6 +130,7 @@
 		{ href: '/navball', tip: 'Navball', icon: 'fas fa-compass' },
 		{ href: '/radio', tip: 'Radio', icon: 'fas fa-signal' },
 		{ href: '/utils', tip: 'Utilities', icon: 'fas fa-tools' },
+		{ href: '/utils/services', tip: 'Service Manager', icon: 'fas fa-server' },
 		{ href: '/settings', tip: 'Settings', icon: 'fas fa-cog' },
 	];
 

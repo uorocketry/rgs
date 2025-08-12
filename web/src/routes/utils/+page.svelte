@@ -11,6 +11,11 @@
 				<p class="text-sm text-gray-500">Download and manage offline maps</p>
 			</div>
 		</a>
-		<!-- Add more utility cards here -->
+        <a href="/utils/services" class="card bg-base-100 shadow-xl hover:shadow-2xl transition-shadow">
+            <div class="card-body">
+                <h2 class="card-title">Service Manager</h2>
+                <p class="text-sm text-gray-500">Start, stop and restart backend services</p>
+            </div>
+        </a>
 	</div>
 </div> 
