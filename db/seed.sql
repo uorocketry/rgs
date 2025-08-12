@@ -54,30 +54,13 @@ CREATE INDEX IF NOT EXISTS idx_serviceping_service_db_timestamp ON ServicePing (
 --#endregion
 
 --#region Incoming telemetry tables
-CREATE TABLE IF NOT EXISTS RadioMessage (
+CREATE TABLE IF NOT EXISTS RadioFrame (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     timestamp TEXT NOT NULL, -- ISO 8601 format
     timestamp_epoch INTEGER NOT NULL, -- UNIX epoch time for range queries
     node TEXT NOT NULL, -- Enum Node type (PressureBoard, StrainBoard, etc)
-    data_type TEXT NOT NULL, -- Enum RadioData type ("Common", "SbgUtcTime", "SbgAir", "SbgEkfQuat", "SbgEkfNav", "SbgImu", "SbgGpsVel", "SbgGpsPos")
+    data_type TEXT NOT NULL, -- Payload type: "Command" | "Log" | "State" | "SbgGpsPos" | "SbgUtcTime" | "SbgImu" | "SbgEkfQuat" | "SbgEkfNav" | "SbgGpsVel" | "SbgAir" | "Gps" | "Imu" | "Madgwick"
     data_id INTEGER NOT NULL -- Foreign key to specific data table
-);
-
-
---#region Common
-
-CREATE TABLE IF NOT EXISTS Common (
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
-    data_type TEXT NOT NULL, -- Enum Common subtype (e.g., "ResetReason", "Command", "Log", "State")
-    data_id INTEGER -- Foreign key to subtype-specific table
-);
-
--- Common subtypes
-
-CREATE TABLE IF NOT EXISTS ResetReason (
-	id INTEGER PRIMARY KEY AUTOINCREMENT,
-	reset_reason TEXT NOT NULL
-	-- rcc_rsr NUMBER -- Raw register value if reason could not be determined
 );
 
 
@@ -115,9 +98,6 @@ CREATE TABLE IF NOT EXISTS RadioRateChange (
 );
 
 
-
-
---#endregion
 
 
 CREATE TABLE IF NOT EXISTS Log (
@@ -282,16 +262,7 @@ CREATE TABLE IF NOT EXISTS Madgwick (
     quat_z REAL
 );
 
-CREATE TABLE IF NOT EXISTS Gps (
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
-    message_type TEXT NOT NULL,
-    data BLOB NOT NULL
-);
-
-CREATE TABLE IF NOT EXISTS ProtoLog (
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
-    message BLOB NOT NULL
-);
+-- Removed deprecated generic GPS and ProtoLog tables
 
 CREATE TABLE IF NOT EXISTS StateMessage (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
