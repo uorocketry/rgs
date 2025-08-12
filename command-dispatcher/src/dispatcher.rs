@@ -145,9 +145,8 @@ pub async fn run_dispatcher(
                 .await;
         }
 
-        if gateway_conn_opt.is_some() {
-            tokio::time::sleep(Duration::from_secs(args.poll_interval_secs)).await;
-        }
+        // Always sleep a bit so we don't busy loop even when not connected
+        tokio::time::sleep(Duration::from_secs(args.poll_interval_secs)).await;
     }
     // Unreachable code
     // Ok(())
