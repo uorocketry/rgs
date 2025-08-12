@@ -1,0 +1,54 @@
+site_name: RGS Docs
+site_description: Rocket Ground Station documentation
+site_url: https://uorocketry.github.io/rgs
+repo_url: https://github.com/uorocketry/rgs
+repo_name: uorocketry/rgs
+
+theme:
+  name: material
+  features:
+    - navigation.sections
+    - navigation.top
+    - content.code.copy
+  palette:
+    - scheme: default
+      primary: indigo
+      accent: indigo
+    - scheme: slate
+      primary: indigo
+      accent: indigo
+      toggle:
+        icon: material/weather-night
+        name: Switch to dark mode
+
+nav:
+  - Home: docs/index.md
+  - Guide:
+      - Overview: docs/guide/index.md
+      - Architecture: docs/guide/architecture.md
+      - Requirements:
+          - Development environment: docs/guide/requirements/development-environment.md
+          - Docker: docs/guide/requirements/docker.md
+          - Node: docs/guide/requirements/node.md
+          - Rust: docs/guide/requirements/rust.md
+      - Hands-on:
+          - Modify the database: docs/guide/hands-on/modifying-the-database.md
+          - Altitude widget: docs/guide/hands-on/altitude-widget.md
+  - Services:
+      - Hydra Gateway: docs/hydra-gateway/index.md
+      - Web: docs/web/index.md
+
+markdown_extensions:
+  - admonition
+  - codehilite
+  - toc:
+      permalink: true
+  - tables
+  - footnotes
+
+extra:
+  social:
+    - icon: fontawesome/brands/github
+      link: https://github.com/uorocketry
+
+
