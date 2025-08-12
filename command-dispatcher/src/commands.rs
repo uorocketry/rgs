@@ -1,15 +1,11 @@
 use chrono::Utc;
 use libsql::{params as libsql_params, Connection};
 use mavlink::{uorocketry::MavMessage, MavConnection, MavHeader};
-use messages::{
-    command::{
-        Command as RgsCommand, DeployDrogue as RgsDeployDrogue, DeployMain as RgsDeployMain,
-        Online as RgsOnline, PowerDown as RgsPowerDown, RadioRate as RgsRadioRate,
-        RadioRateChange as RgsRadioRateChange,
-    },
-    node::Node,
-    FormattedNaiveDateTime,
-};
+use messages_prost::command as cmd;
+use messages_prost::common::Node;
+use messages_prost::radio::radio_frame::Payload;
+use messages_prost::radio::RadioFrame;
+use prost::Message as _;
 use serde::Deserialize;
 use serde_json;
 use tracing::{error, info};
@@ -41,6 +37,26 @@ struct RadioRateChangeParams {
     rate: String,
 }
 
+fn parse_board(s: &str) -> Node {
+    match s {
+        "PressureBoard" => Node::PressureBoard,
+        "StrainBoard" => Node::StrainBoard,
+        "TemperatureBoard" => Node::TemperatureBoard,
+        "GroundStation" => Node::GroundStation,
+        "Phoenix" => Node::Phoenix,
+        _ => Node::Unspecified,
+    }
+}
+
+fn parse_radio_rate(s: &str) -> i32 {
+    match s.to_lowercase().as_str() {
+        "low" | "slow" | "0" => cmd::RadioRate::RateLow as i32,
+        "medium" | "1" => cmd::RadioRate::RateMedium as i32,
+        "high" | "fast" | "2" => cmd::RadioRate::RateHigh as i32,
+        _ => cmd::RadioRate::RateLow as i32,
+    }
+}
+
 pub async fn process_single_command(
     db_conn: &Connection,
     gateway_conn: &mut Box<dyn MavConnection<MavMessage> + Sync + Send>,
@@ -59,18 +75,26 @@ pub async fn process_single_command(
     ).await.map_err(|e| (cmd_id, e.into()))?;
     info!("[Cmd ID: {}] Marked as 'Sending'.", cmd_id);
 
-    let command_payload = match command_row.command_type.as_str() {
+    let default_target = Node::PressureBoard as i32;
+
+    let command_payload: cmd::Command = match command_row.command_type.as_str() {
         "DeployDrogue" => {
             let params: DeployDrogueParams =
                 serde_json::from_str(command_row.parameters.as_deref().unwrap_or("{}"))
                     .map_err(|e| (cmd_id, Box::new(e) as Box<dyn std::error::Error>))?;
-            RgsCommand::DeployDrogue(RgsDeployDrogue { val: params.val })
+            cmd::Command {
+                node: default_target,
+                data: Some(cmd::command::Data::DeployDrogue(cmd::DeployDrogue { val: params.val })),
+            }
         }
         "DeployMain" => {
             let params: DeployMainParams =
                 serde_json::from_str(command_row.parameters.as_deref().unwrap_or("{}"))
                     .map_err(|e| (cmd_id, Box::new(e) as Box<dyn std::error::Error>))?;
-            RgsCommand::DeployMain(RgsDeployMain { val: params.val })
+            cmd::Command {
+                node: default_target,
+                data: Some(cmd::command::Data::DeployMain(cmd::DeployMain { val: params.val })),
+            }
         }
         "PowerDown" => {
             let params_str = command_row.parameters.as_deref().ok_or_else(|| {
@@ -84,26 +108,8 @@ pub async fn process_single_command(
             })?;
             let params: PowerDownParams = serde_json::from_str(params_str)
                 .map_err(|e| (cmd_id, Box::new(e) as Box<dyn std::error::Error>))?;
-            match params.board.as_str() {
-                "PressureBoard" => RgsCommand::PowerDown(RgsPowerDown {
-                    board: Node::PressureBoard,
-                }),
-                "StrainBoard" => RgsCommand::PowerDown(RgsPowerDown {
-                    board: Node::StrainBoard,
-                }),
-                "TemperatureBoard" => RgsCommand::PowerDown(RgsPowerDown {
-                    board: Node::TemperatureBoard,
-                }),
-                _ => {
-                    return Err((
-                        cmd_id,
-                        Box::new(std::io::Error::new(
-                            std::io::ErrorKind::InvalidInput,
-                            format!("Invalid board name: {}", params.board),
-                        )),
-                    ))
-                }
-            }
+            let board = parse_board(&params.board) as i32;
+            cmd::Command { node: board, data: Some(cmd::command::Data::PowerDown(cmd::PowerDown { board })) }
         }
         "RadioRateChange" => {
             let params_str = command_row.parameters.as_deref().ok_or_else(|| {
@@ -117,25 +123,12 @@ pub async fn process_single_command(
             })?;
             let params: RadioRateChangeParams = serde_json::from_str(params_str)
                 .map_err(|e| (cmd_id, Box::new(e) as Box<dyn std::error::Error>))?;
-            match params.rate.as_str() {
-                "Fast" => RgsCommand::RadioRateChange(RgsRadioRateChange {
-                    rate: RgsRadioRate::Fast,
-                }),
-                "Slow" => RgsCommand::RadioRateChange(RgsRadioRateChange {
-                    rate: RgsRadioRate::Slow,
-                }),
-                _ => {
-                    return Err((
-                        cmd_id,
-                        Box::new(std::io::Error::new(
-                            std::io::ErrorKind::InvalidInput,
-                            format!("Invalid radio rate: {}", params.rate),
-                        )),
-                    ))
-                }
+            cmd::Command {
+                node: default_target,
+                data: Some(cmd::command::Data::RadioRateChange(cmd::RadioRateChange { rate: parse_radio_rate(&params.rate) })),
             }
         }
-        "Ping" => RgsCommand::Online(RgsOnline { online: true }),
+        "Ping" => cmd::Command { node: default_target, data: Some(cmd::command::Data::Ping(cmd::Ping { id: 0 })) },
         _ => {
             let err_msg = format!("Unknown command type: {}", command_row.command_type);
             error!("[Cmd ID: {}] {}", cmd_id, err_msg);
@@ -147,19 +140,12 @@ pub async fn process_single_command(
         }
     };
 
-    let radio_msg = messages::RadioMessage::new(
-        FormattedNaiveDateTime(Utc::now().naive_utc()),
-        Node::PressureBoard,
-        messages::Common::Command(command_payload),
-    );
-
-    let mut buf = [0u8; 255];
-    let postcard_data = postcard::to_slice(&radio_msg, &mut buf)
-        .map_err(|e| (cmd_id, Box::new(e) as Box<dyn std::error::Error>))?;
+    let frame = RadioFrame { node: Node::GroundStation as i32, payload: Some(Payload::Command(command_payload)) };
+    let bytes = RadioFrame::encode_length_delimited_to_vec(&frame);
 
     let mut fixed_payload = [0u8; 255];
-    let len = postcard_data.len().min(255);
-    fixed_payload[..len].copy_from_slice(&postcard_data[..len]);
+    let len = bytes.len().min(255);
+    fixed_payload[..len].copy_from_slice(&bytes[..len]);
     let send_msg = MavMessage::POSTCARD_MESSAGE(mavlink::uorocketry::POSTCARD_MESSAGE_DATA {
         message: fixed_payload,
     });
