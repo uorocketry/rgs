@@ -29,7 +29,7 @@ nav:
       - Requirements:
           - Development environment: docs/guide/requirements/development-environment.md
           - Docker: docs/guide/requirements/docker.md
-          - Node: docs/guide/requirements/node.md
+          - Bun: docs/guide/requirements/bun.md
           - Rust: docs/guide/requirements/rust.md
       - Hands-on:
           - Modify the database: docs/guide/hands-on/modifying-the-database.md

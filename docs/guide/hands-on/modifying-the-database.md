@@ -1,7 +1,16 @@
 # Modifying the Database
 
-Our schema is defined in the `db/schema/` directory. The schema is defined using the [Drizzle ORM](https://orm.drizzle.team/docs/overview) and is written in TypeScript.
+Our schema lives in `db/seed.sql` and is applied using a small Bun script in `db/index.ts` which executes the SQL statements against LibSQL.
 
-Please look at their [Schema Declaration Guide](https://orm.drizzle.team/docs/sql-schema-declaration) for more information.
+Steps to modify the database:
 
-Make sure to read the [Database README]([../db/README.md](https://github.com/uorocketry/rgs/tree/main/db)) for how to apply your changes.
+1) Edit `db/seed.sql` and add/adjust tables/indexes as needed.
+2) Start your LibSQL instance (see Requirements → Docker).
+3) Apply the schema with Bun:
+
+```sh
+cd db
+bun run index.ts
+```
+
+If any statement fails, the script will print the failed SQL and exit non-zero.

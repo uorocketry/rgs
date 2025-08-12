@@ -8,9 +8,10 @@ It is designed to be extensible and easy to use, with a focus on logging and vis
 
 ## Tech Stack
 
-The RGS infrastructure is made possible by combining the following technologies:
+The RGS infrastructure is built with:
 
-- [SvelteKit](https://kit.svelte.dev/docs/introduction) - A web framework that facilitates the development of visualization tools.
-- [TimescaleDB](https://www.timescale.com/) - A PostgreSQL flavor that is optimized for time-series data.
-- [Drizzle ORM](https://orm.drizzle.team/docs/overview) - A TypeScript-first ORM that is used to define the database schema.
-- [Mavlink](https://mavlink.io/en/) - A lightweight protocol used for communication between the rocket and ground stations.
+- [SvelteKit](https://kit.svelte.dev/docs/introduction) — main dashboard/web UI
+- [LibSQL](https://libsql.org/) — database, seeded by SQL (`db/seed.sql`) via a small Bun script (`db/index.ts`)
+- [messages-prost](https://github.com/uorocketry/messages-prost) — Protobuf message types used over radio
+- [MAVLink](https://mavlink.io/en/) — transport between ground and rocket
+- Rust services — `telemetry-ingestor`, `command-dispatcher`, `sergw`
