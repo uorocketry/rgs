@@ -59,7 +59,7 @@ CREATE TABLE IF NOT EXISTS RadioFrame (
     timestamp TEXT NOT NULL, -- ISO 8601 format
     timestamp_epoch INTEGER NOT NULL, -- UNIX epoch time for range queries
     node TEXT NOT NULL, -- Enum Node type (PressureBoard, StrainBoard, etc)
-    data_type TEXT NOT NULL, -- Payload type: "Command" | "Log" | "State" | "SbgGpsPos" | "SbgUtcTime" | "SbgImu" | "SbgEkfQuat" | "SbgEkfNav" | "SbgGpsVel" | "SbgAir" | "Gps" | "Imu" | "Madgwick"
+    data_type TEXT NOT NULL, -- Payload type: "Command" | "Log" | "State" | "SbgGpsPos" | "SbgUtcTime" | "SbgImu" | "SbgEkfQuat" | "SbgEkfNav" | "SbgGpsVel" | "SbgAir" | "Gps" | "Imu" | "Madgwick" | "Barometer"
     data_id INTEGER NOT NULL -- Foreign key to specific data table
 );
 
@@ -260,6 +260,15 @@ CREATE TABLE IF NOT EXISTS Madgwick (
     quat_x REAL,
     quat_y REAL,
     quat_z REAL
+);
+
+-- Barometer message table
+CREATE TABLE IF NOT EXISTS Barometer (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    timestamp_us INTEGER NOT NULL,
+    pressure_pa REAL,
+    temperature_c REAL,
+    altitude_m REAL
 );
 
 -- Removed deprecated generic GPS and ProtoLog tables

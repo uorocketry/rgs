@@ -7,7 +7,10 @@ use messages_prost::{
 };
 use prost::Message as _;
 
-use super::{command::save_command, imu::save_imu, log::save_log, madgwick::save_madgwick, sbg::save_sbg, state_msg::save_state};
+use super::{
+    barometer::save_barometer, command::save_command, imu::save_imu, log::save_log,
+    madgwick::save_madgwick, sbg::save_sbg, state_msg::save_state,
+};
 
 async fn insert_radio_message(
     transaction: &Transaction,
@@ -39,13 +42,20 @@ pub async fn save_messages_batch(
     }
 
     let transaction = db_connection.transaction().await?;
-    tracing::info!("Starting batch save for {} messages", message_bytes_list.len());
+    tracing::info!(
+        "Starting batch save for {} messages",
+        message_bytes_list.len()
+    );
 
     for message_bytes in message_bytes_list.iter() {
         match RadioFrame::decode_length_delimited(&message_bytes[..]) {
             Ok(frame) => {
                 let node = frame.node;
                 match frame.payload {
+                    Some(radio::radio_frame::Payload::Barometer(m)) => {
+                        let data_id = save_barometer(&transaction, &m).await?;
+                        insert_radio_message(&transaction, node, "Barometer", data_id).await?;
+                    }
                     Some(radio::radio_frame::Payload::Sbg(sbg)) => {
                         if let Some(inner) = &sbg.data {
                             let data_type = match inner {
@@ -64,7 +74,9 @@ pub async fn save_messages_batch(
                     // Intentionally ignored. Prefer SBG GpsPos/GpsVel.
                     // It's 8/11 and Phoenix still doesn't implement the new GPS message.
                     Some(radio::radio_frame::Payload::Gps(_)) => {
-                        tracing::warn!("Generic GPS payload handler removed. Prefer SBG GpsPos/GpsVel.");
+                        tracing::warn!(
+                            "Generic GPS payload handler removed. Prefer SBG GpsPos/GpsVel."
+                        );
                     }
                     Some(radio::radio_frame::Payload::Madgwick(m)) => {
                         let data_id = save_madgwick(&transaction, &m).await?;

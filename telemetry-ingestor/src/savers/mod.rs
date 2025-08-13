@@ -1,9 +1,10 @@
+pub mod barometer;
+pub mod command;
 pub mod gps;
 pub mod imu;
-pub mod madgwick;
 pub mod log;
+pub mod madgwick;
 pub mod message;
 pub mod radio;
 pub mod sbg;
 pub mod state_msg;
-pub mod command;

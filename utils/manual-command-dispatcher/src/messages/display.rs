@@ -75,6 +75,11 @@ pub fn summarize_received_bytes(bytes: &[u8]) -> SentMessage {
                         summary: format!("RadioFrame Imu(IIM20670) from node={:?}", origin),
                     };
                 }
+                Some(radio::radio_frame::Payload::Barometer(_m)) => {
+                    return SentMessage {
+                        summary: format!("RadioFrame Baro from node={:?}", origin),
+                    };
+                }
                 Some(radio::radio_frame::Payload::Log(_m)) => {
                     return SentMessage {
                         summary: format!("RadioFrame Log from node={:?}", origin),
