@@ -26,9 +26,11 @@ services:
             - ./db/data:/var/lib/sqld
         networks:
             - web
+        ports:
+            - "5001:8080"
         labels:
         - "traefik.enable=true"
-        - "traefik.http.routers.db.rule=Host(`db.localhost`)"
+        - "traefik.http.routers.db.rule=Host(`db.uorocketry.infra`)"
         - "traefik.http.services.db.loadbalancer.server.port=8080"
 
     migration:
@@ -66,7 +68,7 @@ services:
             - db
         labels:
             - "traefik.enable=true"
-            - "traefik.http.routers.web.rule=Host(`rgs.localhost`)"
+            - "traefik.http.routers.web.rule=Host(`uorocketry.infra`)"
             - "traefik.http.routers.web.entrypoints=web"
             - "traefik.http.services.web.loadbalancer.server.port=3000"
 
@@ -78,24 +80,31 @@ services:
             - ./tile_provider/tiles_data:/var/lib/tile_provider:rw
         networks:
             - web
+        ports:
+            - "6565:6565"
         labels:
             - "traefik.enable=true"
             # Dedicated host for tile provider (avoids /bun conflicts)
-            - "traefik.http.routers.tile_provider_host.rule=Host(`tiles.rgs.localhost`)"
+            - "traefik.http.routers.tile_provider_host.rule=Host(`tiles.uorocketry.infra`)"
             - "traefik.http.routers.tile_provider_host.entrypoints=web"
             - "traefik.http.routers.tile_provider_host.priority=3000"
             # Exact path /tiles/downloader -> rewrite to /
-            - "traefik.http.routers.tile_provider_home.rule=Host(`rgs.localhost`) && Path(`/tiles/downloader`)"
+            - "traefik.http.routers.tile_provider_home.rule=Host(`uorocketry.infra`) && Path(`/tiles/downloader`)"
             - "traefik.http.routers.tile_provider_home.entrypoints=web"
             - "traefik.http.routers.tile_provider_home.priority=2000"
             - "traefik.http.routers.tile_provider_home.middlewares=tile_provider-home-rewrite"
             - "traefik.http.middlewares.tile_provider-home-rewrite.replacepath.path=/"
             # Static assets served by Bun at /bun/* should be routed to tile_provider
-            - "traefik.http.routers.tile_provider_assets.rule=Host(`rgs.localhost`) && PathPrefix(`/bun/`)"
+            - "traefik.http.routers.tile_provider_assets.rule=Host(`uorocketry.infra`) && PathPrefix(`/bun/`)"
             - "traefik.http.routers.tile_provider_assets.entrypoints=web"
             - "traefik.http.routers.tile_provider_assets.priority=1500"
             # All other /tiles/* go straight to the service unchanged
-            - "traefik.http.routers.tile_provider_tiles.rule=Host(`rgs.localhost`) && PathPrefix(`/tiles/`)"
+            - "traefik.http.routers.tile_provider_tiles.rule=Host(`uorocketry.infra`) && PathPrefix(`/tiles/`)"
+            # Route API calls from main host to the tile provider
+            - "traefik.http.routers.tile_provider_api.rule=Host(`uorocketry.infra`) && PathPrefix(`/api/`)"
+            - "traefik.http.routers.tile_provider_api.entrypoints=web"
+            - "traefik.http.routers.tile_provider_api.priority=1000"
+            - "traefik.http.services.tile_provider_api.loadbalancer.server.port=6565"
             - "traefik.http.routers.tile_provider_tiles.entrypoints=web"
             - "traefik.http.routers.tile_provider_tiles.priority=1000"
             - "traefik.http.services.tile_provider.loadbalancer.server.port=6565"
