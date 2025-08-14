@@ -158,6 +158,11 @@
 				{ href: '/mock', tip: 'Mock', icon: 'fas fa-masks-theater' },
 				{ href: '/map-downloader', tip: 'Map Downloader', icon: 'fas fa-map' }
 			]
+		},
+		{
+			title: 'Debug',
+			icon: 'fas fa-bug',
+			items: [{ href: '/debug/coord-mock', tip: 'Coord Mock', icon: 'fas fa-crosshairs' }]
 		}
 	];
 

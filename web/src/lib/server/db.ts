@@ -1,6 +1,6 @@
 import { createClient, type Client } from "@libsql/client";
 
-const LIBSQL_URL = process.env.DB_URL || "http://db.uorocketry.ca"; // Prefer Traefik DNS in deployment; override with DB_URL
+const LIBSQL_URL = process.env.DB_URL || "http://localhost:5001"; // Prefer Traefik DNS in deployment; override with DB_URL
 let client: Client | null = null;
 
 /**
