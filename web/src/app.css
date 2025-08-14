@@ -1,79 +1,14 @@
 @import 'tailwindcss';
 
-@plugin "daisyui" {
-	themes: light, dark --prefersdark, uorocketry --default;
-	exclude: rootscrollgutter;
-}
-
-@plugin "daisyui/theme" {
-	name: "uorocketry";
-	color-scheme: "light";
-
-	/* Map uoRocketry theme to DaisyUI variables */
-	--color-primary: rgb(55 116 186);
-	--color-primary-content: rgb(255 255 255);
-	--color-secondary: rgb(42 117 103);
-	--color-secondary-content: rgb(255 255 255);
-	--color-accent: rgb(45 45 44);
-	/* Mapped from tertiary */
-	--color-accent-content: rgb(255 255 255);
-	--color-neutral: rgb(206 208 212);
-	/* Mapped from surface-100 */
-	--color-neutral-content: rgb(5 10 19);
-	/* Mapped from surface-900 */
-
-	--color-base-100: rgb(255 255 255);
-	/* White base */
-	--color-base-200: rgb(218 220 222);
-	/* Mapped from surface-50 */
-	--color-base-300: rgb(206 208 212);
-	/* Mapped from surface-100 */
-	--color-base-content: rgb(5 10 19);
-	/* Mapped from surface-900 */
-
-	--color-info: rgb(55 116 186);
-	/* Re-using primary */
-	--color-info-content: rgb(255 255 255);
-	--color-success: rgb(117 189 108);
-	--color-success-content: rgb(0 0 0);
-	--color-warning: rgb(183 190 69);
-	--color-warning-content: rgb(0 0 0);
-	--color-error: rgb(216 67 66);
-	--color-error-content: rgb(0 0 0);
-
-	/* Map radii & borders */
-	--radius-selector: 0rem;
-	/* From theme-rounded-base */
-	--radius-field: 0rem;
-	/* From theme-rounded-base */
-	--radius-box: 0rem;
-	/* From theme-rounded-container */
-	--border: 2px;
-	/* From theme-border-base */
-
-	/* Defaults from example */
-	--size-selector: 0.25rem;
-	--size-field: 0.25rem;
-	--depth: 1;
-	--noise: 0;
-}
+/* Carbon Design System Styles */
+@import "carbon-components-svelte/css/all.css";
+@import "@carbon/charts-svelte/styles.css";
 
 /* FontAwesome */
-
 @import '@fortawesome/fontawesome-free/css/all.min.css';
 
-/* Keep existing custom styles below */
 
-body,
-html {
-	height: 100%;
-	margin: 0px auto;
-	padding: 0px auto;
-	overflow: hidden;
-}
-
-/* ScrollBar */
-
+/* Custom ScrollBar */
 ::-webkit-scrollbar-thumb:hover {
 	background: rgba(0, 0, 0, 0.6);
 }
@@ -113,13 +48,8 @@ html {
 	background: rgba(0, 0, 0, 0);
 }
 
-
-
-
 /* Prevent IOS zoom */
-
 @media screen and (-webkit-min-device-pixel-ratio: 0) {
-
 	select,
 	textarea,
 	input {
@@ -127,9 +57,7 @@ html {
 	}
 }
 
-
-/* Corner Bracketed */
-
+/* Custom Corner Bracketed Component */
 .corner-bracketed {
 	position: relative;
 }
@@ -145,13 +73,20 @@ html {
 .corner-bracketed::before {
 	top: 0;
 	left: 0;
-	border-top: 2px solid var(--color-primary-content);
-	border-left: 2px solid var(--color-primary-content);
+	border-top: 2px solid var(--cds-text-primary);
+	border-left: 2px solid var(--cds-text-primary);
 }
 
 .corner-bracketed::after {
 	bottom: 0;
 	right: 0;
-	border-bottom: 2px solid var(--color-primary-content);
-	border-right: 2px solid var(--color-primary-content);
+	border-bottom: 2px solid var(--cds-text-primary);
+	border-right: 2px solid var(--cds-text-primary);
+}
+
+
+/* Carbon overrides */
+
+.bx--content {
+	padding: 0px;
 }

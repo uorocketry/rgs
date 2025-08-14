@@ -18,47 +18,202 @@ async function getLatestRow(tableName: string): Promise<Row | null> {
 	}
 }
 
-export const GET: RequestHandler = async () => {
-	console.log("API request received for latest SBG data...");
+// Map of supported metrics to their safe table/column definitions
+// This prevents SQL injection since table/columns are not taken directly from user input
+const METRICS: Record<string, { table: string; columns: { key: string; label: string }[] }> = {
+    air_altitude: { table: 'SbgAir', columns: [{ key: 'altitude', label: 'Altitude (m)' }] },
+    air_pressure: {
+        table: 'SbgAir',
+        columns: [
+            { key: 'pressure_abs', label: 'Abs Pressure (Pa)' },
+            { key: 'pressure_diff', label: 'Diff Pressure (Pa)' }
+        ]
+    },
+    air_true_airspeed: { table: 'SbgAir', columns: [{ key: 'true_airspeed', label: 'True Airspeed (m/s)' }] },
+    ekf_altitude: { table: 'SbgEkfNav', columns: [{ key: 'position_altitude', label: 'Altitude (m)' }] },
+    gpsvel_velocity: {
+        table: 'SbgGpsVel',
+        columns: [
+            { key: 'velocity_north', label: 'Vel North (m/s)' },
+            { key: 'velocity_east', label: 'Vel East (m/s)' },
+            { key: 'velocity_down', label: 'Vel Down (m/s)' }
+        ]
+    },
+    gpsvel_course: { table: 'SbgGpsVel', columns: [{ key: 'course', label: 'Course (deg)' }] },
+    imu_temperature: { table: 'SbgImu', columns: [{ key: 'temperature', label: 'IMU Temp (°C)' }] },
+    imu_accel: {
+        table: 'SbgImu',
+        columns: [
+            { key: 'accelerometer_x', label: 'Accel X (m/s²)' },
+            { key: 'accelerometer_y', label: 'Accel Y (m/s²)' },
+            { key: 'accelerometer_z', label: 'Accel Z (m/s²)' }
+        ]
+    },
+    imu_gyro: {
+        table: 'SbgImu',
+        columns: [
+            { key: 'gyroscope_x', label: 'Gyro X (rad/s)' },
+            { key: 'gyroscope_y', label: 'Gyro Y (rad/s)' },
+            { key: 'gyroscope_z', label: 'Gyro Z (rad/s)' }
+        ]
+    }
+};
 
-	try {
-		// Fetch latest data in parallel
-		const [
-			latestUtcTime,
-			latestAir,
-			latestEkfQuat,
-			latestEkfNav,
-			latestImu,
-			latestGpsVel,
-			latestGpsPos
-		] = await Promise.all([
-			getLatestRow('SbgUtcTime'),
-			getLatestRow('SbgAir'),
-			getLatestRow('SbgEkfQuat'),
-			getLatestRow('SbgEkfNav'),
-			getLatestRow('SbgImu'),
-			getLatestRow('SbgGpsVel'),
-			getLatestRow('SbgGpsPos')
-		]);
+async function getMetricSeries(metric: string, minutes: number) {
+    const def = METRICS[metric];
+    if (!def) {
+        throw error(400, `Unsupported metric: ${metric}`);
+    }
+    const db = getDbClient();
+    const seconds = Math.max(1, Math.floor(minutes * 60));
 
-		console.log("API finished fetching SBG data.");
+    // Build a SELECT that returns ts and one column per requested series
+    const selectCols = ['time_stamp AS ts', ...def.columns.map((c) => `${c.key} AS ${c.key}`)].join(', ');
+    const sql = `SELECT ${selectCols} FROM ${def.table} WHERE time_stamp >= strftime('%s','now') - ? ORDER BY time_stamp ASC`;
 
-		// Structure the response data
-		const responseData = {
-			utcTime: latestUtcTime ?? {},
-			air: latestAir ?? {},
-			ekfQuat: latestEkfQuat ?? {},
-			ekfNav: latestEkfNav ?? {},
-			imu: latestImu ?? {},
-			gpsVel: latestGpsVel ?? {},
-			gpsPos: latestGpsPos ?? {},
-		};
+    const result = await db.execute({ sql, args: [seconds] });
 
-		return json(responseData);
+    // Convert rows into Carbon Charts data format: { group, date, value }
+    const data: Array<{ group: string; date: Date; value: number }> = [];
+    for (const row of result.rows) {
+        const ts = Number(row.ts);
+        for (const col of def.columns) {
+            const val = row[col.key] as number | null | undefined;
+            if (typeof val === 'number') {
+                data.push({ group: col.label, date: new Date(ts * 1000), value: val });
+            }
+        }
+    }
 
-	} catch (e: any) {
-		// Catch any unexpected errors during the parallel fetch or processing
-		console.error("Error in SBG API GET handler:", e);
-		throw error(500, `Failed to fetch SBG data: ${e.message}`);
-	}
-}; 
+    return {
+        metric,
+        table: def.table,
+        seriesLabels: def.columns.map((c) => c.label),
+        data
+    };
+}
+
+export const GET: RequestHandler = async ({ url, request }) => {
+    const metric = url.searchParams.get('metric');
+    const minutes = Number(url.searchParams.get('minutes') || '10');
+    const useSSE = url.searchParams.get('sse') === '1';
+
+    if (metric && useSSE) {
+        // SSE stream for metric + snapshot updates
+        let cancelled = false;
+        let intervalId: any;
+        const stream = new ReadableStream({
+            start(controller) {
+                const encoder = new TextEncoder();
+
+                function sendEvent(event: string, payload: unknown) {
+                    if (cancelled) return;
+                    const data = typeof payload === 'string' ? payload : JSON.stringify(payload);
+                    const chunk = `event: ${event}\n` + `data: ${data}\n\n`;
+                    controller.enqueue(encoder.encode(chunk));
+                }
+
+                const push = async () => {
+                    if (cancelled) return;
+                    try {
+                        const [series, snapshot] = await Promise.all([
+                            getMetricSeries(metric, minutes),
+                            Promise.all([
+                                getLatestRow('SbgUtcTime'),
+                                getLatestRow('SbgAir'),
+                                getLatestRow('SbgEkfQuat'),
+                                getLatestRow('SbgEkfNav'),
+                                getLatestRow('SbgImu'),
+                                getLatestRow('SbgGpsVel'),
+                                getLatestRow('SbgGpsPos')
+                            ]).then(([utc, air, quat, nav, imu, vel, pos]) => ({
+                                utcTime: utc ?? {},
+                                air: air ?? {},
+                                ekfQuat: quat ?? {},
+                                ekfNav: nav ?? {},
+                                imu: imu ?? {},
+                                gpsVel: vel ?? {},
+                                gpsPos: pos ?? {}
+                            }))
+                        ]);
+                        if (cancelled) return;
+                        sendEvent('metric', series);
+                        sendEvent('snapshot', snapshot);
+                    } catch (e) {
+                        sendEvent('error', { message: 'Failed to fetch data' });
+                        console.error('SSE push error:', e);
+                    }
+                };
+
+                // initial push immediately, then interval
+                push();
+                intervalId = setInterval(push, 5000);
+
+                // Close stream on client disconnect
+                request.signal.addEventListener('abort', () => {
+                    cancelled = true;
+                    clearInterval(intervalId);
+                });
+            },
+            cancel() {
+                cancelled = true;
+                if (intervalId) clearInterval(intervalId);
+            }
+        });
+
+        return new Response(stream, {
+            headers: {
+                'Content-Type': 'text/event-stream',
+                'Cache-Control': 'no-cache, no-transform',
+                Connection: 'keep-alive'
+            }
+        });
+    }
+
+    if (metric) {
+        try {
+            const series = await getMetricSeries(metric, minutes);
+            return json(series);
+        } catch (e: any) {
+            if (e?.status && e?.body) throw e; // forward handled errors
+            console.error('Error fetching metric series:', e);
+            throw error(500, `Failed to fetch metric series: ${e.message}`);
+        }
+    }
+
+    // Fallback: latest snapshot, preserving existing behavior
+    try {
+        const [
+            latestUtcTime,
+            latestAir,
+            latestEkfQuat,
+            latestEkfNav,
+            latestImu,
+            latestGpsVel,
+            latestGpsPos
+        ] = await Promise.all([
+            getLatestRow('SbgUtcTime'),
+            getLatestRow('SbgAir'),
+            getLatestRow('SbgEkfQuat'),
+            getLatestRow('SbgEkfNav'),
+            getLatestRow('SbgImu'),
+            getLatestRow('SbgGpsVel'),
+            getLatestRow('SbgGpsPos')
+        ]);
+
+        const responseData = {
+            utcTime: latestUtcTime ?? {},
+            air: latestAir ?? {},
+            ekfQuat: latestEkfQuat ?? {},
+            ekfNav: latestEkfNav ?? {},
+            imu: latestImu ?? {},
+            gpsVel: latestGpsVel ?? {},
+            gpsPos: latestGpsPos ?? {}
+        };
+
+        return json(responseData);
+    } catch (e: any) {
+        console.error('Error in SBG API GET handler:', e);
+        throw error(500, `Failed to fetch SBG data: ${e.message}`);
+    }
+};

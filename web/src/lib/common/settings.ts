@@ -48,17 +48,11 @@ const uiSettings = {
 	name: 'ui',
 	settings: [
 		{
-			name: 'sidebarLeft',
-			description: 'Show side bar on the left side, otherwise on the right side',
-			valueDescription: 'boolean',
-			value: persistentStore('ui.sidebarLeft', true)
-		},
-		{
 			name: 'theme',
 			description: 'Select the application theme',
 			valueDescription: 'enum',
-			options: ['system', 'light', 'dark', 'uorocketry'],
-			value: persistentStore('ui.theme', 'system')
+			options: ['white', 'g10', 'g80', 'g90', 'g100'],
+			value: persistentStore('ui.theme', 'g100')
 		}
 	]
 } satisfies SettingsGroup;
@@ -77,7 +71,6 @@ const notificationSettings = {
 
 export const settings = [uiSettings, notificationSettings];
 
-// ui.sidebarLeft
 export const findSetting = (name: string): Setting | undefined => {
 	const groupName = name.split('.')[0];
 	const group = settings.find((group) => group.name === groupName);

@@ -1,6 +1,6 @@
 <script lang="ts">
-	import type { Writable } from 'svelte/store';
-	import { get } from 'svelte/store';
+    import type { Writable } from 'svelte/store';
+    import { Toggle } from 'carbon-components-svelte';
 
 	type $$Props = {
 		setting: {
@@ -14,11 +14,8 @@
 	const settingVal = setting.value;
 </script>
 
-<div class="form-control">
-	<label class="label cursor-pointer justify-start gap-4">
-		<input type="checkbox" class="toggle toggle-primary" bind:checked={$settingVal} />
-		{#if setting.description}
-			<span class="label-text">{setting.description}</span>
-		{/if}
-	</label>
-</div>
+<Toggle
+    labelText={setting.description || 'Toggle setting'}
+    bind:toggled={$settingVal}
+    size="sm"
+/>

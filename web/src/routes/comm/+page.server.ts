@@ -1,9 +1,11 @@
 import type { PageServerLoad } from './$types';
 
+const DAEMON_URL = process.env.COMM_DAEMON_URL || 'http://127.0.0.1:3030';
+
 export const load: PageServerLoad = async ({ fetch }) => {
 	try {
 		// Fetch initial status from the Hydra Manager Daemon API endpoint
-		const statusResponse = await fetch('http://127.0.0.1:3030/service/status');
+		const statusResponse = await fetch(`${DAEMON_URL}/service/status`);
 		if (!statusResponse.ok) {
 			console.error(`Failed to fetch initial service status: ${statusResponse.status}`);
 			// Still try to fetch logs even if status fails, but log the error

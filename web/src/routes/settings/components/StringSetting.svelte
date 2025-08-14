@@ -1,6 +1,6 @@
 <script lang="ts">
-	import type { Writable } from 'svelte/store';
-	import { get } from 'svelte/store';
+    import type { Writable } from 'svelte/store';
+    import { TextInput } from 'carbon-components-svelte';
 
 	type $$Props = {
 		setting: {
@@ -15,16 +15,9 @@
 	const settingVal = setting.value;
 </script>
 
-<div class="form-control w-full">
-	<label class="label">
-		{#if setting.description}
-			<span class="label-text">{setting.description}</span>
-		{/if}
-	</label>
-	<input
-		type="text"
-		placeholder={setting.placeholder ?? 'Enter text...'}
-		class="input input-bordered w-full"
-		bind:value={$settingVal}
-	/>
-</div>
+<TextInput
+    labelText={setting.description || 'Text setting'}
+    placeholder={setting.placeholder ?? 'Enter text...'}
+    bind:value={$settingVal}
+    size="sm"
+/>

@@ -1,56 +1,107 @@
 <script lang="ts">
 	import type { PageData } from './$types';
 	import { onMount } from 'svelte';
+	import {
+		Grid,
+		Row,
+		Column,
+		Tile,
+		Loading,
+		Tag,
+		Dropdown,
+		InlineLoading,
+		StructuredList,
+		StructuredListBody,
+		StructuredListCell,
+		StructuredListHead,
+		StructuredListRow,
+		Header
+	} from 'carbon-components-svelte';
+import { LineChart, ScaleTypes, type LineChartOptions } from '@carbon/charts-svelte';
+import { carbonTheme } from '$lib/common/theme';
+import { get } from 'svelte/store';
+	import '@carbon/charts-svelte/styles.min.css';
+	import { Heading } from 'carbon-icons-svelte';
+	import { toastStore } from '$lib/stores/toastStore';
 
 	let { data } = $props<{ data: PageData }>();
 
-	// Use $state for reactive updates from the API polling
+	// Snapshot polling state
 	let sbgData = $state(data.sbgData);
 	let lastUpdated = $state(new Date());
 	let isLoading = $state(false);
 	let error = $state<string | null>(null);
 
-	// Function to fetch latest data from the API
-	async function fetchLatestData() {
-		isLoading = true;
-		error = null;
-		try {
-			const response = await fetch('/sbg/api');
-			if (!response.ok) {
-				throw new Error(`API Error: ${response.status} ${response.statusText}`);
-			}
-			const latestData = await response.json();
-			// Only update if the timestamp has actually changed for a key source (e.g., EKF Nav)
-			// This prevents unnecessary screen flicker if data hasn't changed yet
-			if (latestData?.ekfNav?.time_stamp !== sbgData?.ekfNav?.time_stamp) {
-				sbgData = latestData;
-				lastUpdated = new Date();
-			}
-		} catch (err: any) {
-			console.error('Failed to fetch latest SBG data:', err);
-			error = err.message ?? 'An unknown error occurred while fetching data.';
-		} finally {
-			isLoading = false;
+	// Metric chart state
+	const METRIC_OPTIONS = [
+		{ id: 'air_altitude', text: 'Air Altitude' },
+		{ id: 'air_pressure', text: 'Air Pressure (abs/diff)' },
+		{ id: 'air_true_airspeed', text: 'True Airspeed' },
+		{ id: 'ekf_altitude', text: 'EKF Altitude' },
+		{ id: 'gpsvel_velocity', text: 'GPS Velocity (N/E/D)' },
+		{ id: 'gpsvel_course', text: 'GPS Course' },
+		{ id: 'imu_temperature', text: 'IMU Temperature' },
+		{ id: 'imu_accel', text: 'IMU Acceleration (X/Y/Z)' },
+		{ id: 'imu_gyro', text: 'IMU Gyroscope (X/Y/Z)' }
+	];
+
+	let selectedMetric = $state(METRIC_OPTIONS[0]);
+	let chartData = $state<Array<{ group: string; date: Date; value: number }>>([]);
+	let chartOptions = $derived<LineChartOptions>({
+		title: selectedMetric.text,
+		axes: {
+			left: { mapsTo: 'value', scaleType: ScaleTypes.LINEAR },
+			bottom: { mapsTo: 'date', scaleType: ScaleTypes.TIME }
+		},
+		height: '480px',
+		legend: { position: 'top' },
+		theme: get(carbonTheme)
+	});
+
+	let eventSource: EventSource | null = null;
+
+	function connectSSE() {
+		if (eventSource) {
+			eventSource.close();
+			eventSource = null;
 		}
+		const params = new URLSearchParams({ metric: selectedMetric.id, minutes: '15', sse: '1' });
+		const es = new EventSource(`/sbg/api?${params.toString()}`);
+		eventSource = es;
+
+		isLoading = true;
+		es.addEventListener('metric', (e: MessageEvent) => {
+			try {
+				const body = JSON.parse(e.data);
+				chartData = body.data ?? [];
+			} catch {}
+		});
+		es.addEventListener('snapshot', (e: MessageEvent) => {
+			try {
+				const latestData = JSON.parse(e.data);
+				if (latestData?.ekfNav?.time_stamp !== sbgData?.ekfNav?.time_stamp) {
+					sbgData = latestData;
+					lastUpdated = new Date();
+				}
+				isLoading = false;
+			} catch {}
+		});
+		es.addEventListener('error', (e) => {
+			console.error('SSE error:', e);
+		});
 	}
 
-	// Set up polling on component mount
 	onMount(() => {
-		const intervalId = setInterval(fetchLatestData, 5000); // Poll every 5 seconds
-
-		// Clear interval on component destroy
+		connectSSE();
 		return () => {
-			clearInterval(intervalId);
+			if (eventSource) eventSource.close();
 		};
 	});
 
-	// Helper to format numbers, handling null/undefined
 	function formatNum(value: number | null | undefined, decimals = 3): string {
 		if (value === null || typeof value === 'undefined') return 'N/A';
 		return value.toFixed(decimals);
 	}
-
-	// Helper to format time_stamp (assuming Unix epoch seconds)
 	function formatTimestamp(ts: number | null | undefined): string {
 		if (ts === null || typeof ts === 'undefined') return 'N/A';
 		try {
@@ -59,136 +110,197 @@
 			return 'Invalid Date';
 		}
 	}
+	function getStatusKind(status: string | null | undefined): 'red' | 'green' | 'cool-gray' {
+		if (!status) return 'cool-gray';
+		const s = status.toLowerCase();
+		if (s.includes('ok') || s.includes('valid') || s.includes('good')) return 'green';
+		if (s.includes('error') || s.includes('invalid') || s.includes('bad')) return 'red';
+		return 'cool-gray';
+	}
+
+	// Toast any error changes
+	let lastErrorMessage = $state<string | null>(null);
+	$effect(() => {
+		if (error && error !== lastErrorMessage) {
+			toastStore.error(`SBG: ${error}`, 0);
+		}
+		lastErrorMessage = error;
+	});
 </script>
 
 <svelte:head>
 	<title>SBG Sensor Status</title>
 	<meta name="description" content="Real-time SBG sensor data summary" />
+	<style>
+		.bx--structured-list {
+			margin-bottom: 1rem;
+		}
+	</style>
 </svelte:head>
 
-<div class="container mx-auto p-4">
-	<h1 class="text-2xl font-bold mb-4">SBG Sensor Summary</h1>
+<Grid padding={true}>
+	<Row>
+		<Column>
+			<Tile>
+				<Tag>
+					Last updated: {lastUpdated.toLocaleString()}
+					{#if isLoading}
+						<InlineLoading description="Updating..." />
+					{/if}
+				</Tag>
 
-	<div class="mb-4 text-sm text-gray-600">
-		Last updated: {lastUpdated.toLocaleString()}
-		{#if isLoading}(updating...){/if}
-	</div>
+				<h2>
+					EKF Navigation
+					<Tag type={getStatusKind(sbgData.ekfNav?.status)}>{sbgData.ekfNav?.status ?? 'N/A'}</Tag>
+				</h2>
+				<StructuredList condensed>
+					<StructuredListHead>
+						<StructuredListRow head>
+							<StructuredListCell head>Field</StructuredListCell>
+							<StructuredListCell head>Value</StructuredListCell>
+						</StructuredListRow>
+					</StructuredListHead>
+					<StructuredListBody>
+						<StructuredListRow>
+							<StructuredListCell>Timestamp</StructuredListCell>
+							<StructuredListCell>{formatTimestamp(sbgData.ekfNav?.time_stamp)}</StructuredListCell>
+						</StructuredListRow>
+						<StructuredListRow>
+							<StructuredListCell>Latitude</StructuredListCell>
+							<StructuredListCell
+								>{formatNum(sbgData.ekfNav?.position_latitude, 7)}° (±{formatNum(
+									sbgData.ekfNav?.position_std_dev_latitude,
+									2
+								)}m)</StructuredListCell
+							>
+						</StructuredListRow>
+						<StructuredListRow>
+							<StructuredListCell>Longitude</StructuredListCell>
+							<StructuredListCell
+								>{formatNum(sbgData.ekfNav?.position_longitude, 7)}° (±{formatNum(
+									sbgData.ekfNav?.position_std_dev_longitude,
+									2
+								)}m)</StructuredListCell
+							>
+						</StructuredListRow>
+						<StructuredListRow>
+							<StructuredListCell>Altitude</StructuredListCell>
+							<StructuredListCell
+								>{formatNum(sbgData.ekfNav?.position_altitude, 2)} m (±{formatNum(
+									sbgData.ekfNav?.position_std_dev_altitude,
+									2
+								)}m)</StructuredListCell
+							>
+						</StructuredListRow>
+						<StructuredListRow>
+							<StructuredListCell>Vel N/E/D</StructuredListCell>
+							<StructuredListCell
+								>{formatNum(sbgData.ekfNav?.velocity_north)} / {formatNum(
+									sbgData.ekfNav?.velocity_east
+								)} / {formatNum(sbgData.ekfNav?.velocity_down)} m/s</StructuredListCell
+							>
+						</StructuredListRow>
+					</StructuredListBody>
+				</StructuredList>
 
-	{#if error}
-		<div
-			class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative mb-4"
-			role="alert"
-		>
-			<strong class="font-bold">Error:</strong>
-			<span class="block sm:inline">{error}</span>
-		</div>
-	{/if}
+				<h2>
+					Air Data
+					<Tag type={getStatusKind(sbgData.air?.status)}>{sbgData.air?.status ?? 'N/A'}</Tag>
+				</h2>
+				<StructuredList condensed>
+					<StructuredListHead>
+						<StructuredListRow head>
+							<StructuredListCell head>Field</StructuredListCell>
+							<StructuredListCell head>Value</StructuredListCell>
+						</StructuredListRow>
+					</StructuredListHead>
+					<StructuredListBody>
+						<StructuredListRow>
+							<StructuredListCell>Timestamp</StructuredListCell>
+							<StructuredListCell>{formatTimestamp(sbgData.air?.time_stamp)}</StructuredListCell>
+						</StructuredListRow>
+						<StructuredListRow>
+							<StructuredListCell>Abs Pressure</StructuredListCell>
+							<StructuredListCell>{formatNum(sbgData.air?.pressure_abs, 2)} Pa</StructuredListCell>
+						</StructuredListRow>
+						<StructuredListRow>
+							<StructuredListCell>Altitude</StructuredListCell>
+							<StructuredListCell>{formatNum(sbgData.air?.altitude, 2)} m</StructuredListCell>
+						</StructuredListRow>
+						<StructuredListRow>
+							<StructuredListCell>Diff Pressure</StructuredListCell>
+							<StructuredListCell>{formatNum(sbgData.air?.pressure_diff, 2)} Pa</StructuredListCell>
+						</StructuredListRow>
+						<StructuredListRow>
+							<StructuredListCell>True Airspeed</StructuredListCell>
+							<StructuredListCell>{formatNum(sbgData.air?.true_airspeed, 2)} m/s</StructuredListCell
+							>
+						</StructuredListRow>
+						<StructuredListRow>
+							<StructuredListCell>Temperature</StructuredListCell>
+							<StructuredListCell
+								>{formatNum(sbgData.air?.air_temperature, 1)} °C</StructuredListCell
+							>
+						</StructuredListRow>
+					</StructuredListBody>
+				</StructuredList>
 
-	<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-		<!-- EKF Navigation -->
-		<div class="border p-4 rounded shadow">
-			<h2 class="font-semibold mb-2">EKF Navigation</h2>
-			<p>Timestamp: {formatTimestamp(sbgData.ekfNav?.time_stamp)}</p>
-			<p>Status: {sbgData.ekfNav?.status ?? 'N/A'}</p>
-			<p>
-				Lat: {formatNum(sbgData.ekfNav?.position_latitude, 7)}&deg; (&plusmn;{formatNum(
-					sbgData.ekfNav?.position_std_dev_latitude,
-					2
-				)}m)
-			</p>
-			<p>
-				Lon: {formatNum(sbgData.ekfNav?.position_longitude, 7)}&deg; (&plusmn;{formatNum(
-					sbgData.ekfNav?.position_std_dev_longitude,
-					2
-				)}m)
-			</p>
-			<p>
-				Alt: {formatNum(sbgData.ekfNav?.position_altitude, 2)}m (&plusmn;{formatNum(
-					sbgData.ekfNav?.position_std_dev_altitude,
-					2
-				)}m)
-			</p>
-			<p>
-				Vel N/E/D: {formatNum(sbgData.ekfNav?.velocity_north)} / {formatNum(
-					sbgData.ekfNav?.velocity_east
-				)} / {formatNum(sbgData.ekfNav?.velocity_down)} m/s
-			</p>
-		</div>
+				<h2>
+					IMU Data
+					<Tag type={getStatusKind(sbgData.imu?.status)}>{sbgData.imu?.status ?? 'N/A'}</Tag>
+				</h2>
+				<StructuredList condensed>
+					<StructuredListHead>
+						<StructuredListRow head>
+							<StructuredListCell head>Field</StructuredListCell>
+							<StructuredListCell head>Value</StructuredListCell>
+						</StructuredListRow>
+					</StructuredListHead>
+					<StructuredListBody>
+						<StructuredListRow>
+							<StructuredListCell>Timestamp</StructuredListCell>
+							<StructuredListCell>{formatTimestamp(sbgData.imu?.time_stamp)}</StructuredListCell>
+						</StructuredListRow>
+						<StructuredListRow>
+							<StructuredListCell>Accel X/Y/Z</StructuredListCell>
+							<StructuredListCell
+								>{formatNum(sbgData.imu?.accelerometer_x)} / {formatNum(
+									sbgData.imu?.accelerometer_y
+								)} / {formatNum(sbgData.imu?.accelerometer_z)} m/s²</StructuredListCell
+							>
+						</StructuredListRow>
+						<StructuredListRow>
+							<StructuredListCell>Gyro X/Y/Z</StructuredListCell>
+							<StructuredListCell
+								>{formatNum(sbgData.imu?.gyroscope_x)} / {formatNum(sbgData.imu?.gyroscope_y)} / {formatNum(
+									sbgData.imu?.gyroscope_z
+								)} rad/s</StructuredListCell
+							>
+						</StructuredListRow>
+						<StructuredListRow>
+							<StructuredListCell>Temperature</StructuredListCell>
+							<StructuredListCell>{formatNum(sbgData.imu?.temperature, 1)} °C</StructuredListCell>
+						</StructuredListRow>
+					</StructuredListBody>
+				</StructuredList>
+			</Tile>
+		</Column>
 
-		<!-- Air Data -->
-		<div class="border p-4 rounded shadow">
-			<h2 class="font-semibold mb-2">Air Data</h2>
-			<p>Timestamp: {formatTimestamp(sbgData.air?.time_stamp)}</p>
-			<p>Status: {sbgData.air?.status ?? 'N/A'}</p>
-			<p>Abs Pressure: {formatNum(sbgData.air?.pressure_abs, 2)} Pa</p>
-			<p>Altitude: {formatNum(sbgData.air?.altitude, 2)} m</p>
-			<p>Diff Pressure: {formatNum(sbgData.air?.pressure_diff, 2)} Pa</p>
-			<p>Airspeed: {formatNum(sbgData.air?.true_airspeed, 2)} m/s</p>
-			<p>Temperature: {formatNum(sbgData.air?.air_temperature, 1)} &deg;C</p>
-		</div>
-
-		<!-- IMU Data -->
-		<div class="border p-4 rounded shadow">
-			<h2 class="font-semibold mb-2">IMU Data</h2>
-			<p>Timestamp: {formatTimestamp(sbgData.imu?.time_stamp)}</p>
-			<p>Status: {sbgData.imu?.status ?? 'N/A'}</p>
-			<p>
-				Accel X/Y/Z: {formatNum(sbgData.imu?.accelerometer_x)} / {formatNum(
-					sbgData.imu?.accelerometer_y
-				)} / {formatNum(sbgData.imu?.accelerometer_z)} m/s&sup2;
-			</p>
-			<p>
-				Gyro X/Y/Z: {formatNum(sbgData.imu?.gyroscope_x)} / {formatNum(sbgData.imu?.gyroscope_y)} / {formatNum(
-					sbgData.imu?.gyroscope_z
-				)} rad/s
-			</p>
-			<p>Temp: {formatNum(sbgData.imu?.temperature, 1)} &deg;C</p>
-		</div>
-
-		<!-- GPS Position -->
-		<div class="border p-4 rounded shadow">
-			<h2 class="font-semibold mb-2">GPS Position</h2>
-			<p>Timestamp: {formatTimestamp(sbgData.gpsPos?.time_stamp)}</p>
-			<p>Status: {sbgData.gpsPos?.status ?? 'N/A'}</p>
-			<p>
-				Lat: {formatNum(sbgData.gpsPos?.latitude, 7)}&deg; (&plusmn;{formatNum(
-					sbgData.gpsPos?.latitude_accuracy,
-					2
-				)}m)
-			</p>
-			<p>
-				Lon: {formatNum(sbgData.gpsPos?.longitude, 7)}&deg; (&plusmn;{formatNum(
-					sbgData.gpsPos?.longitude_accuracy,
-					2
-				)}m)
-			</p>
-			<p>
-				Alt: {formatNum(sbgData.gpsPos?.altitude, 2)}m (&plusmn;{formatNum(
-					sbgData.gpsPos?.altitude_accuracy,
-					2
-				)}m)
-			</p>
-			<p>SVs Used: {sbgData.gpsPos?.num_sv_used ?? 'N/A'}</p>
-		</div>
-
-		<!-- GPS Velocity -->
-		<div class="border p-4 rounded shadow">
-			<h2 class="font-semibold mb-2">GPS Velocity</h2>
-			<p>Timestamp: {formatTimestamp(sbgData.gpsVel?.time_stamp)}</p>
-			<p>Status: {sbgData.gpsVel?.status ?? 'N/A'}</p>
-			<p>
-				Vel N/E/D: {formatNum(sbgData.gpsVel?.velocity_north)} / {formatNum(
-					sbgData.gpsVel?.velocity_east
-				)} / {formatNum(sbgData.gpsVel?.velocity_down)} m/s
-			</p>
-			<p>
-				Course: {formatNum(sbgData.gpsVel?.course, 2)}&deg; (&plusmn;{formatNum(
-					sbgData.gpsVel?.course_acc,
-					2
-				)}&deg;)
-			</p>
-		</div>
-
-		<!-- Add other sections as needed (e.g., UTC Time, EKF Quaternion) -->
-	</div>
-</div>
+		<Column>
+			<Tile>
+				<Dropdown
+					items={METRIC_OPTIONS}
+					selectedId={selectedMetric.id}
+					itemToString={(i) => i?.text ?? ''}
+					on:select={(e) => {
+						selectedMetric = e.detail.selectedItem;
+						connectSSE();
+					}}
+					size="sm"
+					label="Metric"
+				/>
+				<LineChart data={chartData} options={chartOptions} />
+			</Tile>
+		</Column>
+	</Row>
+</Grid>

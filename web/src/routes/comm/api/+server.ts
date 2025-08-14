@@ -1,7 +1,7 @@
 import { error, json } from '@sveltejs/kit';
 import type { RequestHandler } from './$types';
 
-const DAEMON_URL = 'http://127.0.0.1:3030';
+const DAEMON_URL = process.env.COMM_DAEMON_URL || 'http://127.0.0.1:3030';
 
 export const GET: RequestHandler = async () => {
 	// Proxy status

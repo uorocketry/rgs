@@ -1,6 +1,7 @@
 <script lang="ts">
 	import { toastStore } from '$lib/stores/toastStore';
 	import { onMount } from 'svelte';
+	import { Grid, Row, Column, Tile, Button, NumberInput, InlineNotification, InlineLoading } from 'carbon-components-svelte';
 	// onMount is fine for effects that need cleanup
 
 	// --- State for the form inputs ---
@@ -181,275 +182,87 @@
 	}
 </script>
 
-<div class="container mx-auto p-4">
-	<h1 class="text-2xl font-bold mb-6">Mock SBG IMU Data Inserter</h1>
+<Grid padding={true}>
+  <Row>
+    <Column>
+      <h1>Mock SBG IMU Data Inserter</h1>
+    </Column>
+  </Row>
 
-	<div class="mb-4 p-4 card bg-base-200 shadow">
-		<h2 class="text-xl font-semibold mb-2">Device Sensors Control</h2>
-		{#if sensorError}
-			<div class="alert alert-warning text-sm">
-				<span>Sensor Error: {sensorError}</span>
-			</div>
-		{/if}
-		{#if !isListeningToSensors}
-			<button class="btn btn-accent" onclick={startSensorListeners}>
-				<svg
-					xmlns="http://www.w3.org/2000/svg"
-					fill="none"
-					viewBox="0 0 24 24"
-					stroke-width="1.5"
-					stroke="currentColor"
-					class="w-6 h-6 mr-2"
-				>
-					<path
-						stroke-linecap="round"
-						stroke-linejoin="round"
-						d="M15.042 21.672L13.684 16.6m0 0l-2.51 2.225.569-9.47 5.227 7.917-3.286-.672zm-7.518-.267A8.25 8.25 0 1120.25 10.5M8.288 14.212A5.25 5.25 0 1117.25 10.5"
-					/>
-				</svg>
-				Use Device Sensors
-			</button>
-		{:else}
-			<button class="btn btn-warning" onclick={stopSensorListeners}>
-				<svg
-					xmlns="http://www.w3.org/2000/svg"
-					fill="none"
-					viewBox="0 0 24 24"
-					stroke-width="1.5"
-					stroke="currentColor"
-					class="w-6 h-6 mr-2"
-				>
-					<path
-						stroke-linecap="round"
-						stroke-linejoin="round"
-						d="M5.25 7.5A2.25 2.25 0 017.5 5.25h9a2.25 2.25 0 012.25 2.25v9a2.25 2.25 0 01-2.25 2.25h-9a2.25 2.25 0 01-2.25-2.25v-9z"
-					/>
-				</svg>
-				Stop Device Sensors
-			</button>
-		{/if}
-		<p class="text-xs mt-2 text-base-content/70">
-			Note: Uses device orientation (alpha, beta, gamma) for gyroscope fields. May require
-			permissions (especially on iOS). Accelerometer data includes gravity.
-		</p>
-	</div>
+  <Row>
+    <Column>
+      <Tile>
+        <h2 class="cds--type-productive-heading-03">Device Sensors Control</h2>
+        {#if sensorError}
+          <InlineNotification kind="warning" title="Sensor Error" subtitle={sensorError} />
+        {/if}
+        {#if !isListeningToSensors}
+          <Button kind="tertiary" on:click={startSensorListeners}>Use Device Sensors</Button>
+        {:else}
+          <Button kind="danger" on:click={stopSensorListeners}>Stop Device Sensors</Button>
+        {/if}
+        <p class="cds--label-01" style="margin-top: .5rem;">
+          Uses device orientation (alpha, beta, gamma) for gyroscope fields; may require permissions.
+        </p>
+      </Tile>
+    </Column>
+  </Row>
 
-	<div class="card bg-base-100 shadow-xl">
-		<div class="card-body">
-			<form
-				onsubmit={(event) => {
-					event.preventDefault();
-					handleSubmit();
-				}}
-				class="space-y-4"
-			>
-				<div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-					<div>
-						<label class="label" for={id('timestamp')}>
-							<span class="label-text">Timestamp (Unix Epoch Seconds)</span>
-						</label>
-						<input
-							id={id('timestamp')}
-							type="number"
-							class="input input-bordered w-full"
-							bind:value={time_stamp}
-							required
-							readonly={isListeningToSensors}
-						/>
-					</div>
-				</div>
+  <Row>
+    <Column>
+      <Tile>
+        <form onsubmit={(e) => { e.preventDefault(); handleSubmit(); }}>
+          <Row>
+            <Column sm={16} md={8} lg={8}>
+              <NumberInput label="Timestamp (Unix seconds)" bind:value={time_stamp} readonly={isListeningToSensors} />
+            </Column>
+          </Row>
 
-				<h3 class="text-lg font-semibold pt-2">Accelerometers (m/s²)</h3>
-				<div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-					<div>
-						<label class="label" for={id('accel_x')}>
-							<span class="label-text">Accelerometer X</span>
-						</label>
-						<input
-							id={id('accel_x')}
-							type="number"
-							step="any"
-							class="input input-bordered w-full"
-							bind:value={accelerometer_x}
-							readonly={isListeningToSensors}
-						/>
-					</div>
-					<div>
-						<label class="label" for={id('accel_y')}>
-							<span class="label-text">Accelerometer Y</span>
-						</label>
-						<input
-							id={id('accel_y')}
-							type="number"
-							step="any"
-							class="input input-bordered w-full"
-							bind:value={accelerometer_y}
-							readonly={isListeningToSensors}
-						/>
-					</div>
-					<div>
-						<label class="label" for={id('accel_z')}>
-							<span class="label-text">Accelerometer Z</span>
-						</label>
-						<input
-							id={id('accel_z')}
-							type="number"
-							step="any"
-							class="input input-bordered w-full"
-							bind:value={accelerometer_z}
-							readonly={isListeningToSensors}
-						/>
-					</div>
-				</div>
+          <h3 class="cds--type-productive-heading-03" style="margin-top: .75rem;">Accelerometers (m/s²)</h3>
+          <Row>
+            <Column sm={16} md={5} lg={5}><NumberInput label="Accel X" bind:value={accelerometer_x} step={0.01} readonly={isListeningToSensors} /></Column>
+            <Column sm={16} md={5} lg={5}><NumberInput label="Accel Y" bind:value={accelerometer_y} step={0.01} readonly={isListeningToSensors} /></Column>
+            <Column sm={16} md={6} lg={6}><NumberInput label="Accel Z" bind:value={accelerometer_z} step={0.01} readonly={isListeningToSensors} /></Column>
+          </Row>
 
-				<h3 class="text-lg font-semibold pt-2">Gyroscopes (Device Orientation α, β, γ)</h3>
-				<div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-					<div>
-						<label class="label" for={id('gyro_x')}>
-							<span class="label-text">Gyro X (Alpha °)</span>
-						</label>
-						<input
-							id={id('gyro_x')}
-							type="number"
-							step="any"
-							class="input input-bordered w-full"
-							bind:value={gyroscope_alpha}
-							readonly={isListeningToSensors}
-						/>
-					</div>
-					<div>
-						<label class="label" for={id('gyro_y')}>
-							<span class="label-text">Gyro Y (Beta °)</span>
-						</label>
-						<input
-							id={id('gyro_y')}
-							type="number"
-							step="any"
-							class="input input-bordered w-full"
-							bind:value={gyroscope_beta}
-							readonly={isListeningToSensors}
-						/>
-					</div>
-					<div>
-						<label class="label" for={id('gyro_z')}>
-							<span class="label-text">Gyro Z (Gamma °)</span>
-						</label>
-						<input
-							id={id('gyro_z')}
-							type="number"
-							step="any"
-							class="input input-bordered w-full"
-							bind:value={gyroscope_gamma}
-							readonly={isListeningToSensors}
-						/>
-					</div>
-				</div>
+          <h3 class="cds--type-productive-heading-03" style="margin-top: .75rem;">Gyroscopes (α, β, γ)</h3>
+          <Row>
+            <Column sm={16} md={5} lg={5}><NumberInput label="Gyro X (Alpha °)" bind:value={gyroscope_alpha} step={0.01} readonly={isListeningToSensors} /></Column>
+            <Column sm={16} md={5} lg={5}><NumberInput label="Gyro Y (Beta °)" bind:value={gyroscope_beta} step={0.01} readonly={isListeningToSensors} /></Column>
+            <Column sm={16} md={6} lg={6}><NumberInput label="Gyro Z (Gamma °)" bind:value={gyroscope_gamma} step={0.01} readonly={isListeningToSensors} /></Column>
+          </Row>
 
-				<h3 class="text-lg font-semibold pt-2">Delta Velocity (m/s) - Manual Input</h3>
-				<div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-					<div>
-						<label class="label" for={id('dv_x')}>
-							<span class="label-text">Delta Vel. X</span>
-						</label>
-						<input
-							id={id('dv_x')}
-							type="number"
-							step="any"
-							class="input input-bordered w-full"
-							bind:value={delta_velocity_x}
-						/>
-					</div>
-					<div>
-						<label class="label" for={id('dv_y')}>
-							<span class="label-text">Delta Vel. Y</span>
-						</label>
-						<input
-							id={id('dv_y')}
-							type="number"
-							step="any"
-							class="input input-bordered w-full"
-							bind:value={delta_velocity_y}
-						/>
-					</div>
-					<div>
-						<label class="label" for={id('dv_z')}>
-							<span class="label-text">Delta Vel. Z</span>
-						</label>
-						<input
-							id={id('dv_z')}
-							type="number"
-							step="any"
-							class="input input-bordered w-full"
-							bind:value={delta_velocity_z}
-						/>
-					</div>
-				</div>
+          <h3 class="cds--type-productive-heading-03" style="margin-top: .75rem;">Delta Velocity (m/s)</h3>
+          <Row>
+            <Column sm={16} md={5} lg={5}><NumberInput label="ΔV X" bind:value={delta_velocity_x} step={0.01} /></Column>
+            <Column sm={16} md={5} lg={5}><NumberInput label="ΔV Y" bind:value={delta_velocity_y} step={0.01} /></Column>
+            <Column sm={16} md={6} lg={6}><NumberInput label="ΔV Z" bind:value={delta_velocity_z} step={0.01} /></Column>
+          </Row>
 
-				<h3 class="text-lg font-semibold pt-2">Delta Angle (rad) - Manual Input</h3>
-				<div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-					<div>
-						<label class="label" for={id('da_x')}>
-							<span class="label-text">Delta Angle X</span>
-						</label>
-						<input
-							id={id('da_x')}
-							type="number"
-							step="any"
-							class="input input-bordered w-full"
-							bind:value={delta_angle_x}
-						/>
-					</div>
-					<div>
-						<label class="label" for={id('da_y')}>
-							<span class="label-text">Delta Angle Y</span>
-						</label>
-						<input
-							id={id('da_y')}
-							type="number"
-							step="any"
-							class="input input-bordered w-full"
-							bind:value={delta_angle_y}
-						/>
-					</div>
-					<div>
-						<label class="label" for={id('da_z')}>
-							<span class="label-text">Delta Angle Z</span>
-						</label>
-						<input
-							id={id('da_z')}
-							type="number"
-							step="any"
-							class="input input-bordered w-full"
-							bind:value={delta_angle_z}
-						/>
-					</div>
-				</div>
+          <h3 class="cds--type-productive-heading-03" style="margin-top: .75rem;">Delta Angle (rad)</h3>
+          <Row>
+            <Column sm={16} md={5} lg={5}><NumberInput label="Δθ X" bind:value={delta_angle_x} step={0.01} /></Column>
+            <Column sm={16} md={5} lg={5}><NumberInput label="Δθ Y" bind:value={delta_angle_y} step={0.01} /></Column>
+            <Column sm={16} md={6} lg={6}><NumberInput label="Δθ Z" bind:value={delta_angle_z} step={0.01} /></Column>
+          </Row>
 
-				<div class="form-control w-full max-w-xs">
-					<label class="label" for={id('temperature')}>
-						<span class="label-text">Temperature (°C)</span>
-					</label>
-					<input
-						id={id('temperature')}
-						type="number"
-						step="any"
-						class="input input-bordered w-full"
-						bind:value={temperature}
-						readonly={isListeningToSensors}
-					/>
-				</div>
+          <Row>
+            <Column sm={16} md={6} lg={6}><NumberInput label="Temperature (°C)" bind:value={temperature} step={0.1} readonly={isListeningToSensors} /></Column>
+          </Row>
 
-				<div class="card-actions justify-end pt-4">
-					<button type="submit" class="btn btn-primary" disabled={isLoading}>
-						{#if isLoading}
-							<span class="loading loading-spinner"></span>
-							Submitting...
-						{:else}
-							Insert Mock IMU Data
-						{/if}
-					</button>
-				</div>
-			</form>
-		</div>
-	</div>
-</div>
+          <Row>
+            <Column>
+              <Button type="submit" kind="primary" disabled={isLoading}>
+                {#if isLoading}
+                  <InlineLoading description="Submitting..." />
+                {:else}
+                  Insert Mock IMU Data
+                {/if}
+              </Button>
+            </Column>
+          </Row>
+        </form>
+      </Tile>
+    </Column>
+  </Row>
+</Grid>

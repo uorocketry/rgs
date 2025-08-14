@@ -1,4 +1,5 @@
 <script lang="ts">
+    import { Grid, Row, Column, Tile, InlineNotification, Tag } from 'carbon-components-svelte';
 	import { Quaternion, Vector3, MathUtils, Euler } from 'three';
 	import NavBall from '$lib/components/Navball/NavBall.svelte';
 	import HeadingCompass from '$lib/components/HeadingCompass/HeadingCompass.svelte';
@@ -64,43 +65,33 @@
 	});
 </script>
 
-<div class="h-full w-full bg-base-300 relative">
-	<div class="z-10 absolute top-2 left-2 bg-base-100 p-4 rounded-box shadow-lg">
-		<div class="stats stats-vertical bg-base-200">
-			<div class="stat">
-				<div class="stat-title text-base-content">Roll</div>
-				<div class="stat-value text-primary">{roll.toFixed(2)}°</div>
-			</div>
-			<div class="stat">
-				<div class="stat-title text-base-content">Pitch</div>
-				<div class="stat-value text-secondary">{pitch.toFixed(2)}°</div>
-			</div>
-			<div class="stat">
-				<div class="stat-title text-base-content">Pointing</div>
-				<div class="stat-value text-accent">{pitch > 0 ? 'Up' : 'Down'}</div>
-			</div>
-			{#if imuData}
-				<div class="stat">
-					<div class="stat-title text-base-content">Status</div>
-					<div class="stat-value text-info">{imuData.status}</div>
-				</div>
-			{/if}
-		</div>
-	</div>
-
-	{#if error}
-		<div class="alert alert-error absolute top-2 right-2 z-20">
-			<span>{error}</span>
-		</div>
-	{/if}
-
-	<div class="absolute bg-base-300 h-full w-full"></div>
-
-	<div class="z-0 absolute inset-0">
-		<NavBall {targetRotation} />
-	</div>
-
-	<div class="z-0 absolute h-full w-full pointer-events-none">
-		<HeadingCompass heading={(heading * Math.PI) / 180} />
-	</div>
-</div>
+<Grid padding={true}>
+    <Row>
+        <Column sm={16} md={12} lg={12}>
+            <Tile>
+                <div style="position: relative; height: 60vh;">
+                    {#if error}
+                        <InlineNotification kind="error" title="Navball Error" subtitle={error} hideCloseButton />
+                    {/if}
+                    <div style="position:absolute; inset:0;">
+                        <NavBall {targetRotation} />
+                    </div>
+                    <div style="position:absolute; inset:0; pointer-events:none;">
+                        <HeadingCompass heading={(heading * Math.PI) / 180} />
+                    </div>
+                </div>
+            </Tile>
+        </Column>
+        <Column sm={16} md={4} lg={4}>
+            <Tile>
+                <h2>IMU Readout</h2>
+                <p><strong>Roll:</strong> <Tag>{roll.toFixed(2)}°</Tag></p>
+                <p><strong>Pitch:</strong> <Tag>{pitch.toFixed(2)}°</Tag></p>
+                <p><strong>Pointing:</strong> <Tag type={pitch > 0 ? 'green' : 'red'}>{pitch > 0 ? 'Up' : 'Down'}</Tag></p>
+                {#if imuData}
+                    <p><strong>Status:</strong> <Tag type="blue">{imuData.status}</Tag></p>
+                {/if}
+            </Tile>
+        </Column>
+    </Row>
+</Grid>

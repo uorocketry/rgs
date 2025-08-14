@@ -1,6 +1,27 @@
 <script lang="ts">
-	import type { PageData } from './$types';
 	import { gsap } from 'gsap';
+	import type { PageData } from './$types';
+// Carbon Charts
+	import { HeatmapChart, ScaleTypes, type BarChartOptions, type HeatmapChartOptions } from '@carbon/charts-svelte';
+	import '@carbon/charts-svelte/styles.min.css';
+// Carbon Components
+	import { toastStore } from '$lib/stores/toastStore';
+	import {
+		Column,
+		Grid,
+		InlineLoading,
+		Row,
+		Table,
+		TableBody,
+		TableCell,
+		TableHead,
+		TableHeader,
+		TableRow,
+		Tag,
+		Tile
+	} from 'carbon-components-svelte';
+	import { carbonTheme } from '$lib/common/theme';
+	import { get } from 'svelte/store';
 
 	let { data } = $props<{ data: PageData }>();
 
@@ -43,8 +64,8 @@
 	let errorMessage = $state<string | null>(null);
 	let progressPercent = $state(0);
 	let lastFetchStartTime = $state(Date.now());
-	let dataFetchIntervalId: ReturnType<typeof setInterval> | null = null;
 	let progressAnimation: gsap.core.Tween | null = null;
+	let eventSource: EventSource | null = null;
 
 	// Derived State
 	let serviceStatuses = $derived(
@@ -85,56 +106,145 @@
 		})()
 	);
 
+	// Notify on overall status changes via toast API
+	let lastOverallKind = $state<'success' | 'error' | null>(null);
+	$effect(() => {
+		const kind: 'success' | 'error' =
+			overallStatus.alertClass === 'alert-success' ? 'success' : 'error';
+		if (lastOverallKind !== null && lastOverallKind !== kind) {
+			if (kind === 'success') {
+				toastStore.success(overallStatus.text, 5000);
+			} else {
+				toastStore.error(overallStatus.text, 5000);
+			}
+		}
+		lastOverallKind = kind;
+	});
+
+	// Toast on API errors instead of inline notification
+	let lastErrorMessage = $state<string | null>(null);
+	$effect(() => {
+		if (errorMessage && errorMessage !== lastErrorMessage) {
+			toastStore.error(`Error Loading Status: ${errorMessage}`, 0);
+		}
+		lastErrorMessage = errorMessage;
+	});
+
+	// Chart data preparation (bar chart retained for reference) and heatmap
+	let uptimeChartData = $state<
+		Array<{
+			group: string;
+			timeframe: string;
+			status: string;
+			value: number;
+			timestamp: number;
+		}>
+	>([]);
+
+    let heatmapData = $state<Array<{ service: string; bucket: string; value: number }>>([]);
+    const serviceNames = $derived(serviceStatuses.map((s) => s.name));
+
+	// removed gaugeData
+
+	// Update chart data when service statuses change
+	$effect(() => {
+        if (!currentHealthData) {
+            uptimeChartData = [];
+            heatmapData = [];
+            return;
+        }
+
+		const numBars = currentHealthData.parameters.numBuckets;
+		const historyMinutes = currentHealthData.parameters.historyMinutes;
+		const bucketDurationMs = (historyMinutes * 60 * 1000) / numBars;
+		const now = new Date();
+
+		uptimeChartData = serviceStatuses.flatMap((service) => {
+			return service.history.map((isOperational, index) => {
+				const startTime = new Date(now.getTime() - (numBars - index) * bucketDurationMs);
+				const endTime = new Date(startTime.getTime() + bucketDurationMs);
+
+				return {
+					group: service.name,
+					timeframe: `${startTime.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: false })} - ${endTime.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: false })}`,
+					status: isOperational ? 'Operational' : 'Outage',
+					value: isOperational ? 1 : 0,
+					timestamp: startTime.getTime()
+				};
+			});
+		});
+
+        heatmapData = serviceStatuses.flatMap((service) => {
+			return service.history.map((isOperational, index) => {
+				const startTime = new Date(now.getTime() - (numBars - index) * bucketDurationMs);
+                const endTime = new Date(startTime.getTime() + bucketDurationMs);
+                const label = `${startTime.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: false })}-${endTime.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: false })}`;
+                return { service: service.name, bucket: label, value: isOperational ? 1 : 0 };
+			});
+		});
+
+		// removed gauge percentage computation
+	});
+
+	// Chart options
+
+    const heatmapOptions: HeatmapChartOptions = $derived({
+		title: 'Service Uptime (Heatmap)',
+		height: '320px',
+        theme: get(carbonTheme),
+		heatmap: {
+			divider: { state: 'auto' },
+            colorLegend: { title: 'Uptime' }
+		},
+		color: {
+			scale: { 0: '#da1e28', 1: '#24a148' }
+		},
+		legend: { enabled: false },
+		axes: {
+            left: { mapsTo: 'service', scaleType: ScaleTypes.LABELS },
+            bottom: { mapsTo: 'bucket', scaleType: ScaleTypes.LABELS }
+		}
+	});
+
+
 	// Effects
 	$effect(() => {
 		function startProgressAnimation() {
 			if (progressAnimation) progressAnimation.kill();
 			lastFetchStartTime = Date.now();
 			progressPercent = 0;
-
-			progressAnimation = gsap.to(
-				{},
-				{
-					duration: REFRESH_INTERVAL_MS / 1000,
-					ease: 'none',
-					onUpdate: function () {
-						progressPercent = this.progress() * 100;
-					}
-				}
-			);
+			progressAnimation = gsap.to({}, {
+				duration: REFRESH_INTERVAL_MS / 1000,
+				ease: 'none',
+				onUpdate: function () { progressPercent = this.progress() * 100; }
+			});
 		}
 
-		async function fetchHealthData() {
-			if (isLoading) return;
-			isLoading = true;
-			startProgressAnimation();
-
-			try {
-				const response = await fetch('/health/api');
-				if (!response.ok) {
-					const errorText = await response.text();
-					throw new Error(`API Error ${response.status}: ${response.statusText || errorText}`);
-				}
-				currentHealthData = (await response.json()) as HealthApiResponse;
-				errorMessage = null;
-			} catch (err: any) {
-				console.error('Error fetching health data on client:', err);
-				errorMessage = err.message || 'An unknown error occurred';
-			} finally {
-				isLoading = false;
+		function connectSSE() {
+			if (eventSource) {
+				eventSource.close();
+				eventSource = null;
 			}
-		}
-
-		if (!currentHealthData && !errorMessage) {
-			fetchHealthData();
-		} else {
 			startProgressAnimation();
+			const es = new EventSource('/health/api?sse=1');
+			eventSource = es;
+			isLoading = true;
+			es.addEventListener('health', (e: MessageEvent) => {
+				try {
+					currentHealthData = JSON.parse(e.data) as HealthApiResponse;
+					errorMessage = null;
+					isLoading = false;
+					startProgressAnimation();
+				} catch {}
+			});
+			es.addEventListener('error', () => {
+				isLoading = false;
+			});
 		}
-		dataFetchIntervalId = setInterval(fetchHealthData, REFRESH_INTERVAL_MS);
 
-		// Cleanup
+		connectSSE();
 		return () => {
-			if (dataFetchIntervalId) clearInterval(dataFetchIntervalId);
+			if (eventSource) eventSource.close();
 			if (progressAnimation) progressAnimation.kill();
 		};
 	});
@@ -145,26 +255,8 @@
 		return new Date(epochSeconds * 1000).toLocaleString();
 	}
 
-	// Return DaisyUI badge classes based on service status
-	function getStatusBadgeClass(status: 'Operational' | 'Outage'): string {
-		return status === 'Operational' ? 'badge-success' : 'badge-error';
-	}
-
-	// Return DaisyUI background classes based on history data point
-	function getBarColor(isOperational: boolean): string {
-		return isOperational ? 'bg-success' : 'bg-base-300';
-	}
-
-	function formatTimeHM(date: Date): string {
-		return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: false });
-	}
-
-	function getBarTimeFrame(index: number, numBars: number, historyMinutes: number): string {
-		const now = new Date();
-		const bucketDurationMs = (historyMinutes * 60 * 1000) / numBars;
-		const start = new Date(now.getTime() - (numBars - index) * bucketDurationMs);
-		const end = new Date(start.getTime() + bucketDurationMs);
-		return `[${formatTimeHM(start)} - ${formatTimeHM(end)}]`;
+	function getStatusTagType(status: 'Operational' | 'Outage'): 'green' | 'red' {
+		return status === 'Operational' ? 'green' : 'red';
 	}
 </script>
 
@@ -172,138 +264,63 @@
 	<title>Service Health Status</title>
 </svelte:head>
 
-<div class="container mx-auto p-4 md:p-8">
-	<div role="alert" class="alert {overallStatus.alertClass} mb-6 shadow-md">
-		{#if overallStatus.alertClass === 'alert-success'}
-			<svg
-				xmlns="http://www.w3.org/2000/svg"
-				class="stroke-current shrink-0 h-6 w-6"
-				fill="none"
-				viewBox="0 0 24 24"
-				><path
-					stroke-linecap="round"
-					stroke-linejoin="round"
-					stroke-width="2"
-					d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"
-				/></svg
-			>
-		{:else if overallStatus.alertClass === 'alert-error'}
-			<svg
-				xmlns="http://www.w3.org/2000/svg"
-				class="stroke-current shrink-0 h-6 w-6"
-				fill="none"
-				viewBox="0 0 24 24"
-				><path
-					stroke-linecap="round"
-					stroke-linejoin="round"
-					stroke-width="2"
-					d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z"
-				/></svg
-			>
-		{:else}
-			<svg
-				xmlns="http://www.w3.org/2000/svg"
-				fill="none"
-				viewBox="0 0 24 24"
-				class="stroke-current shrink-0 w-6 h-6"
-				><path
-					stroke-linecap="round"
-					stroke-linejoin="round"
-					stroke-width="2"
-					d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
-				></path></svg
-			>
-		{/if}
-		<span class="text-lg font-semibold">{overallStatus.text}</span>
-	</div>
+<Grid padding={true}>
+    <Row>
+        <Column>
+            <h1 class="cds--type-productive-heading-03">
+                Service Health Status
+                <Tag>Last updated: {currentHealthData?.checkTime
+                    ? new Date(currentHealthData.checkTime).toLocaleString()
+                    : 'N/A'}</Tag>
+                {#if isLoading}
+                    <InlineLoading description="Updating..." />
+                {/if}
+            </h1>
+        </Column>
+    </Row>
 
-	{#if isLoading && !currentHealthData}
-		<p class="text-center text-base-content opacity-70 my-8">Loading initial status...</p>
-	{:else if errorMessage}
-		<div role="alert" class="alert alert-error mb-6 shadow-md">
-			<svg
-				xmlns="http://www.w3.org/2000/svg"
-				class="stroke-current shrink-0 h-6 w-6"
-				fill="none"
-				viewBox="0 0 24 24"
-				><path
-					stroke-linecap="round"
-					stroke-linejoin="round"
-					stroke-width="2"
-					d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z"
-				/></svg
-			>
-			<div>
-				<strong class="font-bold">Error Loading Status:</strong>
-				<span class="block sm:inline">{errorMessage}</span>
-			</div>
-		</div>
-	{/if}
+	<Row>
+		<Column>
+			<Tile class="h-full">
+				<Table>
+					<TableHead>
+						<TableRow>
+							<TableHeader>Service</TableHeader>
+							<TableHeader>Status</TableHeader>
+							<TableHeader>Last Seen</TableHeader>
+							<TableHeader>Hostname</TableHeader>
+							<TableHeader>Latency (s)</TableHeader>
+						</TableRow>
+					</TableHead>
+					<TableBody>
+						{#each serviceStatuses as service (service.id)}
+							<TableRow>
+								<TableCell>{service.name}</TableCell>
+								<TableCell>
+									<Tag type={getStatusTagType(service.status)} >
+										{service.status}
+									</Tag>
+								</TableCell>
+								<TableCell>{formatTimestamp(service.lastSeen)}</TableCell>
+								<TableCell>{service.details ? service.details.hostname || '-' : '-'}</TableCell>
+								<TableCell>{service.details && service.details.latency_secs != null ? service.details.latency_secs : '-'}</TableCell>
+							</TableRow>
+						{/each}
+					</TableBody>
+				</Table>
+			</Tile>
+		</Column>
+	</Row>
 
-	<div class="mb-4">
-		<div class="flex justify-end items-center text-sm text-base-content opacity-70 mb-1">
-			Last updated: {currentHealthData?.checkTime
-				? new Date(currentHealthData.checkTime).toLocaleString()
-				: 'N/A'}
-			{#if isLoading}<span class="ml-2 animate-pulse">(Updating...)</span>{/if}
-			<span class="ml-4"
-				>Refreshing in {Math.max(
-					0,
-					Math.round((REFRESH_INTERVAL_MS / 1000) * (1 - progressPercent / 100))
-				)}s</span
-			>
-		</div>
-		<progress class="progress progress-info w-full h-1" max="100" value={progressPercent}
-		></progress>
-	</div>
-
-	<div class="space-y-6">
-		{#each serviceStatuses as service (service.id)}
-			{@const numBars = service.history.length || DEFAULT_NUM_BARS}
-			{@const historyMinutes =
-				currentHealthData?.parameters?.historyMinutes ?? DEFAULT_HISTORY_MINUTES}
-			<div class="card bg-base-100 shadow-md border border-base-300">
-				<div class="card-body p-4">
-					<div class="flex justify-between items-center mb-2">
-						<h3 class="card-title text-lg text-base-content">{service.name}</h3>
-						<span class="badge {getStatusBadgeClass(service.status)}">
-							{service.status}
-						</span>
-					</div>
-
-					<div class="mb-2">
-						<div class="flex space-x-px" title={`Uptime over the last ${historyMinutes} minutes`}>
-							{#each { length: numBars } as _, i}
-								{@const historyIndex = i}
-								{@const isUp = service.history[historyIndex] ?? false}
-								<div
-									class="h-8 flex-1 {getBarColor(isUp)} rounded-sm tooltip tooltip-top"
-									data-tip={getBarTimeFrame(historyIndex, numBars, historyMinutes)}
-								></div>
-							{/each}
-						</div>
-						<div class="flex justify-between text-xs text-base-content opacity-60 mt-1">
-							<span>{historyMinutes} min ago</span>
-							<span>Now</span>
-						</div>
-					</div>
-
-					<div
-						class="text-xs text-base-content opacity-70 flex justify-between items-center border-t border-base-200 pt-2 mt-2"
-					>
-						<span>Last seen: {formatTimestamp(service.lastSeen)}</span>
-						{#if service.details}
-							<span title="Hostname / Latency">
-								{service.details.hostname || '-'} / {service.details.latency_secs ?? '-'}s
-							</span>
-						{/if}
-					</div>
-				</div>
-			</div>
-		{/each}
-	</div>
-
-	<footer class="mt-8 text-center text-sm text-base-content opacity-60">
-		<!-- <a href="/health/history" class="hover:underline">View historical uptime</a> -->
-	</footer>
-</div>
+	<Row>
+		<Column>
+			<Tile>
+				{#if heatmapData.length > 0}
+					<HeatmapChart  data={heatmapData} options={heatmapOptions} />
+				{:else}
+					<InlineLoading description="Loading chart..." />
+				{/if}
+			</Tile>
+		</Column>
+	</Row>
+</Grid>

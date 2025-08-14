@@ -6,7 +6,9 @@
 	let w = 100;
 	let h = 100;
 
-	export let heading = 0;
+  export let heading = 0;
+  import { carbonTheme } from '$lib/common/theme';
+  import { get } from 'svelte/store';
 
 	let headingTweened = tweened(0, {
 		duration: 250,
@@ -101,24 +103,24 @@
 	bind:clientWidth={w}
 	class="w-full h-full flex-col text-center select-none"
 >
-	<svg
+  <svg
 		class="w-full h-full"
 		transform="rotate({-90 - $headingTweened * RAD2DEG})"
 		width={w}
 		height={h}
 		xmlns="http://www.w3.org/2000/svg"
 	>
-		<circle cx={w / 2} cy={h / 2} r={radius} stroke="white" stroke-width="2" fill="none" />
+		<circle cx={w / 2} cy={h / 2} r={radius} stroke="var(--cds-border-subtle)" stroke-width="2" fill="none" />
 
 		{#each lines as line}
-			<line x1={line.x} y1={line.y} x2={line.x2} y2={line.y2} stroke="white" />
+			<line x1={line.x} y1={line.y} x2={line.x2} y2={line.y2} stroke="var(--cds-text-secondary)" />
 		{/each}
 
 		{#each texts as text}
 			<text
 				x={text.x}
 				y={text.y}
-				fill={text.color ?? 'white'}
+				fill={text.color ?? 'var(--cds-text-secondary)'}
 				transform={`rotate(${text.r} ${text.x} ${text.y})`}
 				text-anchor="middle"
 				alignment-baseline="middle"
@@ -141,7 +143,7 @@
 			y1={h / 2 - radius * 0.9}
 			x2={w / 2}
 			y2={h / 2 - radius}
-			stroke="red"
+			stroke="var(--cds-support-error)"
 			stroke-width="2"
 		/>
 		<!-- Text -->
@@ -150,7 +152,7 @@
 			y={h / 2 - radius - 20}
 			width={100}
 			height={40}
-			fill="white"
+			fill="var(--cds-background)"
 			stroke-width="2"
 			rx="5"
 			ry="5"
@@ -159,7 +161,7 @@
 		<text
 			x={w / 2}
 			y={h / 2 - radius}
-			fill="black"
+			fill="var(--cds-text-primary)"
 			text-anchor="middle"
 			alignment-baseline="middle"
 			font-size="24"

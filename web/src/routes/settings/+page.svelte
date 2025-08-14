@@ -1,50 +1,47 @@
 <script lang="ts">
-	// Boolean
-	import { settings } from '$lib/common/settings';
-	import BooleanSetting from './components/BooleanSetting.svelte';
-	import StringSetting from './components/StringSetting.svelte';
-	import NumberSetting from './components/NumberSetting.svelte';
-	import EnumSetting from './components/EnumSetting.svelte';
-	import UnsupportedSetting from './components/UnsupportedSetting.svelte';
-	import type { ComponentType } from 'svelte';
+    import { settings } from '$lib/common/settings';
+    import BooleanSetting from './components/BooleanSetting.svelte';
+    import StringSetting from './components/StringSetting.svelte';
+    import NumberSetting from './components/NumberSetting.svelte';
+    import EnumSetting from './components/EnumSetting.svelte';
+    import UnsupportedSetting from './components/UnsupportedSetting.svelte';
+    import { Grid, Row, Column, Tile, Button } from 'carbon-components-svelte';
 
-	function camelCaseToFormatted(str: string) {
-		return str.replace(/([A-Z])/g, ' $1').replace(/^./, (str) => str.toUpperCase());
-	}
+    function camelCaseToFormatted(str: string) {
+        return str.replace(/([A-Z])/g, ' $1').replace(/^./, (s) => s.toUpperCase());
+    }
 
-	const componentMap: Record<string, any> = {
-		boolean: BooleanSetting,
-		string: StringSetting,
-		number: NumberSetting,
-		enum: EnumSetting
-		// Add mappings for other types as they are implemented
-	};
+    const componentMap: Record<string, any> = {
+        boolean: BooleanSetting,
+        string: StringSetting,
+        number: NumberSetting,
+        enum: EnumSetting
+    };
 
-	function getComponentForSetting(valueDescription: string): any {
-		return componentMap[valueDescription] ?? UnsupportedSetting;
-	}
+    function getComponentForSetting(valueDescription: string): any {
+        return componentMap[valueDescription] ?? UnsupportedSetting;
+    }
 </script>
 
-<div class="container mx-auto p-4">
+<Grid padding={true}>
+    <Row>
+        <Column>
+            <h1>Settings</h1>
+            <Button kind="secondary" size="small" on:click={() => window.location.reload()}>Hard Reload</Button>
+        </Column>
+    </Row>
 
-	<button class="btn btn-primary" onclick={() => {
-		window.location.reload();
-	}}>
-		Hard Reload
-	</button>
-
-	{#each settings as settingGroup}
-		<div class="card bg-base-100 shadow-xl mb-4">
-			<div class="card-body">
-				<h2 class="card-title text-xl font-bold mb-4">{camelCaseToFormatted(settingGroup.name)}</h2>
-
-				<div class="space-y-4">
-					{#each settingGroup.settings as setting}
-						{@const Component = getComponentForSetting(setting.valueDescription)}
-						<Component {setting} />
-					{/each}
-				</div>
-			</div>
-		</div>
-	{/each}
-</div>
+    {#each settings as settingGroup}
+        <Row>
+            <Column>
+                <Tile>
+                    <h2 class="cds--type-productive-heading-03">{camelCaseToFormatted(settingGroup.name)}</h2>
+                    {#each settingGroup.settings as setting}
+                        {@const Component = getComponentForSetting(setting.valueDescription)}
+                        <Component {setting} />
+                    {/each}
+                </Tile>
+            </Column>
+        </Row>
+    {/each}
+</Grid>

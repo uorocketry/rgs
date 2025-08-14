@@ -2,6 +2,20 @@
 	import { toastStore } from '$lib/stores/toastStore';
 	import { onMount } from 'svelte';
 	import type { PageData } from './$types';
+	import {
+		Grid,
+		Row,
+		Column,
+		Tile,
+		InlineNotification,
+		InlineLoading,
+		Dropdown,
+		TextInput,
+		NumberInput,
+		Button,
+		Tag,
+		CodeSnippet
+	} from 'carbon-components-svelte';
 
 	let { data } = $props<{ data: PageData }>();
 
@@ -128,202 +142,92 @@
 	});
 </script>
 
-<div class="container mx-auto p-4">
-	<h1 class="text-2xl font-bold mb-6">Hydra Manager Daemon</h1>
+<Grid padding={true}>
+    <Row>
+        <Column>
+            <h1>Hydra Manager Daemon</h1>
+        </Column>
+    </Row>
 
 	<!-- Status Card -->
-	<div class="card bg-base-100 shadow-xl mb-6">
-		<div class="card-body">
-			<h2 class="card-title">Service Status</h2>
-			{#if error}
-				<div class="alert alert-error">
-					<span>{error}</span>
-				</div>
-			{:else if status}
-				<div class="stats shadow">
-					<div class="stat">
-						<div class="stat-title">Active Service</div>
-						<div class="stat-value text-lg">{status.active_service || 'None'}</div>
-						{#if status.details}
-							<div class="stat-desc">{status.details}</div>
-						{/if}
-					</div>
-					<div class="stat">
-						<div class="stat-title">Status Message</div>
-						<div class="stat-value text-lg">{status.message}</div>
-					</div>
-				</div>
-			{:else}
-				<div class="flex justify-center">
-					<span class="loading loading-spinner loading-lg"></span>
-				</div>
-			{/if}
-		</div>
-	</div>
+    <Row>
+        <Column>
+            <Tile>
+                <h2>Service Status</h2>
+                {#if error}
+                    <InlineNotification kind="error" title="Error" subtitle={error} hideCloseButton />
+                {:else if status}
+                    <p>
+                        <strong>Active Service:</strong>
+                        <Tag type={status.active_service ? 'green' : 'gray'}>{status.active_service || 'None'}</Tag>
+                    </p>
+                    <p><strong>Status Message:</strong> {status.message}</p>
+                    {#if status.details}<p>{status.details}</p>{/if}
+                {:else}
+                    <InlineLoading description="Loading status..." />
+                {/if}
+            </Tile>
+        </Column>
+    </Row>
 
 	<!-- Service Control and Logs Flex Container -->
-	<div class="flex flex-wrap gap-6 mb-6">
-		<!-- Control Card -->
-		<div class="card bg-base-100 shadow-xl flex-1 min-w-[320px]">
-			<div class="card-body">
-				<h2 class="card-title">Service Control</h2>
-
-				<!-- Service Type Selection -->
-				<div class="form-control w-full max-w-xs mb-4">
-					<label class="label" for="serviceTypeSelect">
-						<span class="label-text">Service Type</span>
-					</label>
-					<select
-						id="serviceTypeSelect"
-						class="select select-bordered w-full"
-						bind:value={selectedService}
-					>
-						<option value="SerGW">Serial Gateway (SerGW)</option>
-						<option value="Hydrand">Random Data Generator (Hydrand)</option>
-					</select>
-				</div>
+    <Row>
+        <Column sm={16} md={8} lg={8}>
+            <Tile>
+                <h2>Service Control</h2>
+                <Dropdown
+                    items={[{ id: 'SerGW', text: 'Serial Gateway (SerGW)' }, { id: 'Hydrand', text: 'Random Data Generator (Hydrand)' }]}
+                    selectedId={selectedService}
+                    label="Service Type"
+                    on:select={(e) => (selectedService = e.detail.selectedItem.id)}
+                    size="sm"
+                />
 
 				<!-- SerGW Specific Settings -->
-				{#if selectedService === 'SerGW'}
-					<div class="form-control w-full max-w-xs mb-4">
-						<label class="label" for="serialPortInput">
-							<span class="label-text">Serial Port</span>
-						</label>
-						<input
-							id="serialPortInput"
-							type="text"
-							class="input input-bordered w-full"
-							bind:value={serialPort}
-							placeholder="/dev/ttyUSB0"
-						/>
-					</div>
-					<div class="form-control w-full max-w-xs mb-4">
-						<label class="label" for="baudRateInput">
-							<span class="label-text">Baud Rate</span>
-						</label>
-						<input
-							id="baudRateInput"
-							type="number"
-							class="input input-bordered w-full"
-							bind:value={baudRate}
-						/>
-					</div>
-				{/if}
+                {#if selectedService === 'SerGW'}
+                    <TextInput labelText="Serial Port" bind:value={serialPort} placeholder="/dev/ttyUSB0" size="sm" />
+                    <NumberInput label="Baud Rate" bind:value={baudRate} size="sm" />
+                {/if}
 
 				<!-- Hydrand Specific Settings -->
-				{#if selectedService === 'Hydrand'}
-					<div class="form-control w-full max-w-xs mb-4">
-						<label class="label" for="intervalInput">
-							<span class="label-text">Interval (ms)</span>
-						</label>
-						<input
-							id="intervalInput"
-							type="number"
-							class="input input-bordered w-full"
-							bind:value={interval}
-						/>
-					</div>
-					<div class="form-control w-full max-w-xs mb-4">
-						<label class="label" for="libsqlUrlInput">
-							<span class="label-text">LibSQL URL</span>
-						</label>
-						<input
-							id="libsqlUrlInput"
-							type="text"
-							class="input input-bordered w-full"
-							bind:value={libsqlUrl}
-							placeholder="http://localhost:8080"
-						/>
-					</div>
-				{/if}
+                {#if selectedService === 'Hydrand'}
+                    <NumberInput label="Interval (ms)" bind:value={interval} size="sm" />
+                    <TextInput labelText="LibSQL URL" bind:value={libsqlUrl} placeholder="http://localhost:8080" size="sm" />
+                {/if}
 
 				<!-- Common Settings -->
-				<div class="form-control w-full max-w-xs mb-4">
-					<label class="label" for="outputAddressInput">
-						<span class="label-text">Output TCP Address</span>
-					</label>
-					<input
-						id="outputAddressInput"
-						type="text"
-						class="input input-bordered w-full"
-						bind:value={outputAddress}
-						placeholder="127.0.0.1"
-					/>
-				</div>
-				<div class="form-control w-full max-w-xs mb-4">
-					<label class="label" for="outputPortInput">
-						<span class="label-text">Output TCP Port</span>
-					</label>
-					<input
-						id="outputPortInput"
-						type="number"
-						class="input input-bordered w-full"
-						bind:value={outputPort}
-					/>
-				</div>
+                <TextInput labelText="Output TCP Address" bind:value={outputAddress} placeholder="127.0.0.1" size="sm" />
+                <NumberInput label="Output TCP Port" bind:value={outputPort} size="sm" />
 
 				<!-- Action Buttons -->
-				<div class="flex gap-4">
-					<button class="btn btn-primary" onclick={startService} disabled={isLoading}>
-						{#if isLoading}
-							<span class="loading loading-spinner"></span>
-						{:else}
-							Start Service
-						{/if}
-					</button>
-					<button class="btn btn-error" onclick={stopService} disabled={isLoading}>
-						{#if isLoading}
-							<span class="loading loading-spinner"></span>
-						{:else}
-							Stop Service
-						{/if}
-					</button>
-				</div>
-			</div>
-		</div>
+                <div>
+                    <Button kind="primary" size="small" on:click={startService} disabled={isLoading}>Start Service</Button>
+                    <Button kind="danger" size="small" on:click={stopService} disabled={isLoading}>Stop Service</Button>
+                    {#if isLoading}
+                        <InlineLoading description="Processing..." />
+                    {/if}
+                </div>
+            </Tile>
+        </Column>
 
 		<!-- Daemon Logs Card -->
-		<div class="card bg-base-100 shadow-xl flex-1 min-w-[320px]">
-			<div class="card-body">
-				<div class="flex justify-between items-center">
-					<h2 class="card-title">Daemon Logs</h2>
-					<button
-						class="btn btn-sm btn-ghost"
-						onclick={fetchDaemonLogs}
-						title="Refresh Logs"
-						aria-label="Refresh Logs"
-					>
-						<svg
-							xmlns="http://www.w3.org/2000/svg"
-							fill="none"
-							viewBox="0 0 24 24"
-							stroke-width="1.5"
-							stroke="currentColor"
-							class="w-5 h-5"
-						>
-							<path
-								stroke-linecap="round"
-								stroke-linejoin="round"
-								d="M16.023 9.348h4.992v-.001M2.985 19.644v-4.992m0 0h4.992m-4.993 0 3.181 3.183a8.25 8.25 0 0 0 13.803-3.7M4.031 9.865a8.25 8.25 0 0 1 13.803-3.7l3.181 3.182m0-4.991v4.99"
-							/>
-						</svg>
-					</button>
-				</div>
-				{#if logsError}
-					<div class="alert alert-warning">
-						<span>Error fetching logs: {logsError}</span>
-					</div>
-				{/if}
-				{#if daemonLogs && daemonLogs.length > 0}
-					<div class="bg-base-200 p-3 rounded-md max-h-96 overflow-y-auto text-xs font-mono">
-						{#each daemonLogs as logLine}
-							<div>{logLine}</div>
-						{/each}
-					</div>
-				{:else if !logsError}
-					<p class="text-sm text-base-content/70">No logs to display or logs are loading...</p>
-				{/if}
-			</div>
-		</div>
-	</div>
-</div>
+        <Column sm={16} md={8} lg={8}>
+            <Tile>
+                <div style="display:flex; justify-content: space-between; align-items: center;">
+                    <h2>Daemon Logs</h2>
+                    <Button kind="ghost" size="small" on:click={fetchDaemonLogs}>Refresh</Button>
+                </div>
+                {#if logsError}
+                    <InlineNotification kind="warning" title="Logs Error" subtitle={logsError} hideCloseButton />
+                {/if}
+                {#if daemonLogs && daemonLogs.length > 0}
+                    <CodeSnippet type="multi" wrapText>
+{daemonLogs.join('\n')}
+                    </CodeSnippet>
+                {:else if !logsError}
+                    <p>No logs to display or logs are loading...</p>
+                {/if}
+            </Tile>
+        </Column>
+    </Row>
+</Grid>

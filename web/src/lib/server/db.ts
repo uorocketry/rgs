@@ -1,7 +1,6 @@
 import { createClient, type Client } from "@libsql/client";
 
-const LIBSQL_URL = process.env.DB_URL || "http://localhost:5001"; // Database URL - Docker service exposed on port 5001
-
+const LIBSQL_URL = process.env.DB_URL || "http://db.uorocketry.infra"; // Prefer Traefik DNS in deployment; override with DB_URL
 let client: Client | null = null;
 
 /**

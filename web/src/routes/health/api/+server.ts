@@ -33,7 +33,8 @@ interface HealthApiResponse {
 // ---------------------------
 
 /** @type {import('./$types').RequestHandler} */
-export async function GET({ url }) {
+export async function GET({ url, request }) {
+    const sse = url.searchParams.get('sse') === '1';
 	const db = getDbClient();
 	const nowTimestamp = Math.floor(Date.now() / 1000);
 	const historyStartTime = nowTimestamp - (HISTORY_MINUTES * 60);
@@ -90,83 +91,99 @@ export async function GET({ url }) {
             service_id, bucket_index_from_start;
     `;
 
-	try {
-		console.log(`Fetching health data: latest pings and ${HISTORY_MINUTES}m history (${NUM_HISTORY_BUCKETS} buckets)...`);
+    async function fetchPayload(): Promise<HealthApiResponse> {
+        const now = Math.floor(Date.now() / 1000);
+        const start = now - (HISTORY_MINUTES * 60);
 
-		// Execute both queries in parallel
-		const [latestPingResult, historyResult] = await Promise.all([
-			db.execute({
-				sql: latestPingSql,
-				args: [nowTimestamp, OPERATIONAL_THRESHOLD_SECONDS]
-			}),
-			db.execute({
-				sql: historySql,
-				args: [historyStartTime, BUCKET_DURATION_SECONDS, historyStartTime, nowTimestamp]
-			})
-		]);
+        const [latestPingResult, historyResult] = await Promise.all([
+            db.execute({ sql: latestPingSql, args: [now, OPERATIONAL_THRESHOLD_SECONDS] }),
+            db.execute({ sql: historySql, args: [start, BUCKET_DURATION_SECONDS, start, now] })
+        ]);
 
-		console.log(`Found ${latestPingResult.rows.length} distinct services with recent pings.`);
-		console.log(`Found ${historyResult.rows.length} historical ping bucket entries.`);
+        const serviceDataMap = new Map<string, HealthServiceHistory>();
+        for (const row of latestPingResult.rows) {
+            const serviceId = row.service_id as string;
+            const dbTimestamp = row.db_timestamp as number;
+            let status: HealthServiceHistory['status'] = 'Outage';
+            if (dbTimestamp >= (now - OPERATIONAL_THRESHOLD_SECONDS)) status = 'Operational';
+            serviceDataMap.set(serviceId, {
+                service_id: serviceId,
+                hostname: row.hostname as string | null,
+                latest_app_timestamp: row.app_timestamp as number,
+                latest_db_timestamp: dbTimestamp,
+                latency_secs: row.latency_secs as number,
+                status,
+                history: Array(NUM_HISTORY_BUCKETS).fill(false)
+            });
+        }
+        for (const row of historyResult.rows) {
+            const serviceId = row.service_id as string;
+            const bucketIndex = row.bucket_index_from_start as number;
+            const entry = serviceDataMap.get(serviceId);
+            if (entry && bucketIndex >= 0 && bucketIndex < NUM_HISTORY_BUCKETS) {
+                entry.history[bucketIndex] = true;
+            }
+        }
+        const servicesResult = Array.from(serviceDataMap.values());
+        return {
+            checkTime: new Date().toISOString(),
+            parameters: {
+                historyMinutes: HISTORY_MINUTES,
+                numBuckets: NUM_HISTORY_BUCKETS,
+                bucketDurationSeconds: BUCKET_DURATION_SECONDS,
+                operationalThresholdSeconds: OPERATIONAL_THRESHOLD_SECONDS
+            },
+            services: servicesResult
+        };
+    }
 
-		// Process results
-		const serviceDataMap = new Map<string, HealthServiceHistory>();
+    if (sse) {
+        let cancelled = false;
+        let intervalId: any;
+        const stream = new ReadableStream({
+            async start(controller) {
+                const enc = new TextEncoder();
+                const send = (event: string, data: unknown) => {
+                    if (cancelled) return;
+                    const chunk = `event: ${event}\n` + `data: ${JSON.stringify(data)}\n\n`;
+                    controller.enqueue(enc.encode(chunk));
+                };
+                const push = async () => {
+                    if (cancelled) return;
+                    try {
+                        const payload = await fetchPayload();
+                        send('health', payload);
+                    } catch (e) {
+                        send('error', { message: 'Failed to fetch health payload' });
+                    }
+                };
+                await push();
+                // Stream updates every 5 seconds
+                intervalId = setInterval(push, 5000);
+                request.signal.addEventListener('abort', () => {
+                    cancelled = true;
+                    if (intervalId) clearInterval(intervalId);
+                });
+            },
+            cancel() {
+                cancelled = true;
+                if (intervalId) clearInterval(intervalId);
+            }
+        });
+        return new Response(stream, {
+            headers: {
+                'Content-Type': 'text/event-stream',
+                'Cache-Control': 'no-cache, no-transform',
+                Connection: 'keep-alive'
+            }
+        });
+    }
 
-		// 1. Populate map with latest ping data and determine current status
-		for (const row of latestPingResult.rows) {
-			const serviceId = row.service_id as string;
-			const dbTimestamp = row.db_timestamp as number;
-			let status: HealthServiceHistory['status'] = 'Outage'; // Assume outage initially
-
-			if (dbTimestamp >= (nowTimestamp - OPERATIONAL_THRESHOLD_SECONDS)) {
-				status = 'Operational';
-			}
-
-			serviceDataMap.set(serviceId, {
-				service_id: serviceId,
-				hostname: row.hostname as string | null,
-				latest_app_timestamp: row.app_timestamp as number,
-				latest_db_timestamp: dbTimestamp,
-				latency_secs: row.latency_secs as number,
-				status: status,
-				history: Array(NUM_HISTORY_BUCKETS).fill(false) // Initialize history
-			});
-		}
-
-		// 2. Fill in history data from the second query
-		for (const row of historyResult.rows) {
-			const serviceId = row.service_id as string;
-			const bucketIndex = row.bucket_index_from_start as number;
-
-			if (serviceDataMap.has(serviceId)) {
-				const serviceEntry = serviceDataMap.get(serviceId)!;
-				if (bucketIndex >= 0 && bucketIndex < NUM_HISTORY_BUCKETS) {
-					// Ensure bucket index is valid before assigning
-					serviceEntry.history[bucketIndex] = true; // Mark bucket as having pings
-				}
-			}
-			// else: If a service only has historical pings but no *recent* one,
-			// it won't be in the map from step 1, so we ignore its history for now.
-			// You could adapt this to show services with only old history if needed.
-		}
-
-		// Convert map values to array for the response
-		const servicesResult = Array.from(serviceDataMap.values());
-
-		const responsePayload: HealthApiResponse = {
-			checkTime: new Date().toISOString(),
-			parameters: {
-				historyMinutes: HISTORY_MINUTES,
-				numBuckets: NUM_HISTORY_BUCKETS,
-				bucketDurationSeconds: BUCKET_DURATION_SECONDS,
-				operationalThresholdSeconds: OPERATIONAL_THRESHOLD_SECONDS
-			},
-			services: servicesResult
-		};
-
-		return json(responsePayload);
-
-	} catch (e: any) {
-		console.error("Failed to fetch service pings:", e);
-		throw error(500, `Database query failed: ${e.message}`);
-	}
+    try {
+        const payload = await fetchPayload();
+        return json(payload);
+    } catch (e: any) {
+        console.error("Failed to fetch service pings:", e);
+        throw error(500, `Database query failed: ${e.message}`);
+    }
 } 
