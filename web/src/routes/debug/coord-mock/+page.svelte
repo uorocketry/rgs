@@ -136,7 +136,6 @@
 		top: 16px;
 		right: 16px;
 		z-index: 1000;
-		max-width: 360px;
 	}
 	.row {
 		display: grid;

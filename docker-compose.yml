@@ -86,22 +86,22 @@ services:
             - "traefik.http.routers.web-protected.service=web"
             - "traefik.http.routers.web-protected.middlewares=protected-subnet"
 
-    tile_provider:
+    tiles:
         build:
             context: ./tile_provider
             dockerfile: Dockerfile
         volumes:
-            - ./tile_provider/tiles_data:/var/lib/tile_provider:rw
+            - ./tile_provider/tiles_data:/var/lib/tiles:rw
         networks:
             - web
         ports:
             - "6565:6565"
         labels:
             - "traefik.enable=true"
-            - "traefik.http.routers.tile_provider.rule=Host(`tiles.uorocketry.ca`)"
-            - "traefik.http.routers.tile_provider.entrypoints=web"
-            - "traefik.http.routers.tile_provider.priority=100"
-            - "traefik.http.services.tile_provider.loadbalancer.server.port=6565"
+            - "traefik.http.routers.tiles.rule=Host(`tiles.uorocketry.ca`)"
+            - "traefik.http.routers.tiles.entrypoints=web"
+            - "traefik.http.routers.tiles.priority=100"
+            - "traefik.http.services.tiles.loadbalancer.server.port=6565"
 
     heartbeat:
         image: golang:bookworm
@@ -116,52 +116,50 @@ services:
             - db
         labels:
             - "traefik.enable=false"
+    # telemetry-ingestor:
+    #     build:
+    #         context: .
+    #         dockerfile: utils/docker/Dockerfile.rust-service
+    #         args:
+    #             CRATE: telemetry-ingestor
+    #     networks:
+    #         - web
+    #     command: [ "/app/bin/telemetry-ingestor", "--libsql-url", "http://db:8080", "--gateway-connection-string", "tcpout:sergw:5656" ]
+    #     restart: unless-stopped
+    #     depends_on:
+    #         - db
+    #     labels:
+    #         - "traefik.enable=false"
 
-    telemetry-ingestor:
-        build:
-            context: .
-            dockerfile: utils/docker/Dockerfile.rust-service
-            args:
-                CRATE: telemetry-ingestor
-        networks:
-            - web
-        command: [ "/app/bin/telemetry-ingestor", "--libsql-url", "http://db:8080", "--gateway-connection-string", "tcpout:sergw:5656" ]
-        restart: unless-stopped
-        depends_on:
-            - db
-        labels:
-            - "traefik.enable=false"
-
-    command-dispatcher:
-        build:
-            context: .
-            dockerfile: utils/docker/Dockerfile.rust-service
-            args:
-                CRATE: command-dispatcher
-        networks:
-            - web
-        command: [ "/app/bin/command-dispatcher", "--libsql-url", "http://db:8080", "--gateway-connection-string", "tcpout:sergw:5656" ]
-        restart: unless-stopped
-        depends_on:
-            - db
-        labels:
-            - "traefik.enable=false"
-
-    sergw:
-        image: golang:bookworm
-        networks:
-            - web
-        volumes:
-            - ./sergw:/app
-        working_dir: /app
-        devices:
-            - /dev/ttyUSB0:/dev/ttyUSB0:rwm
-        ports:
-            - "5656:5656"
-        restart: unless-stopped
-        labels:
-            - "traefik.enable=false"
-        command: [ "go", "run", ".", "listen", "--serial", "/dev/ttyUSB0", "--baud", "57600", "--verbose", "--host", "0.0.0.0:5656" ]
+    # command-dispatcher:
+    #     build:
+    #         context: .
+    #         dockerfile: utils/docker/Dockerfile.rust-service
+    #         args:
+    #             CRATE: command-dispatcher
+    #     networks:
+    #         - web
+    #     command: [ "/app/bin/command-dispatcher", "--libsql-url", "http://db:8080", "--gateway-connection-string", "tcpout:sergw:5656" ]
+    #     restart: unless-stopped
+    #     depends_on:
+    #         - db
+    #     labels:
+    #         - "traefik.enable=false"
+    # sergw:
+    #     image: golang:bookworm
+    #     networks:
+    #         - web
+    #     volumes:
+    #         - ./sergw:/app
+    #     working_dir: /app
+    #     devices:
+    #         - /dev/ttyUSB0:/dev/ttyUSB0:rwm
+    #     ports:
+    #         - "5656:5656"
+    #     restart: unless-stopped
+    #     labels:
+    #         - "traefik.enable=false"
+    #     command: [ "go", "run", ".", "listen", "--serial", "/dev/ttyUSB0", "--baud", "57600", "--verbose", "--host", "0.0.0.0:5656" ]
 
 networks:
     web:

@@ -1,9 +1,7 @@
 [workspace]
 members = [
-    "sergw",
     "telemetry-ingestor",
     "command-dispatcher",
-    "coord_mocker",
     "hydra_manager_daemon",
     "utils/manual-command-dispatcher"
 ]

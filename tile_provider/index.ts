@@ -30,6 +30,18 @@ const tileDb = new TileDatabase(db);
 const downloadQueue = new DownloadQueue(db);
 
 // -----------------------
+// CORS helper function
+// -----------------------
+function corsHeaders(): Record<string, string> {
+  return {
+    "Access-Control-Allow-Origin": "*",
+    "Access-Control-Allow-Methods": "GET, POST, PUT, DELETE, OPTIONS",
+    "Access-Control-Allow-Headers": "Content-Type, Authorization",
+    "Access-Control-Max-Age": "86400",
+  };
+}
+
+// -----------------------
 // HTTP handler
 // -----------------------
 async function handleTileRequest(
@@ -45,7 +57,7 @@ async function handleTileRequest(
       headers: {
         "Content-Type": "image/png",
         "Cache-Control": "public, max-age=31536000",
-        "Access-Control-Allow-Origin": "*",
+        ...corsHeaders(),
       },
     });
   }
@@ -59,7 +71,7 @@ async function handleTileRequest(
       status: 500,
       headers: {
         "Content-Type": "text/plain",
-        "Access-Control-Allow-Origin": "*",
+        ...corsHeaders(),
       },
     });
   }
@@ -72,7 +84,7 @@ async function handleTileRequest(
     headers: {
       "Content-Type": "image/png",
       "Cache-Control": "public, max-age=31536000",
-      "Access-Control-Allow-Origin": "*",
+      ...corsHeaders(),
     },
   });
 }
@@ -83,23 +95,39 @@ async function handleTileRequest(
 const server = Bun.serve({
   development: process.env.NODE_ENV !== "production",
   routes: {
-    "/health": () => new Response("OK"),
+    "/health": () => new Response("OK", { headers: corsHeaders() }),
     "/tiles/:zoom/:x/:y": async (req) => {
       const { zoom, x, y } = req.params;
       return handleTileRequest(zoom, x, y);
     },
     "/api/download": async (req) => {
+      // Handle OPTIONS preflight request
+      if (req.method === "OPTIONS") {
+        return new Response(null, {
+          status: 200,
+          headers: corsHeaders(),
+        });
+      }
+
       const body = await req.json();
       const result = await downloadQueue.queueDownload(body);
       return new Response(JSON.stringify(result), {
         status: result.success ? 200 : 400,
         headers: {
           "Content-Type": "application/json",
-          "Access-Control-Allow-Origin": "*",
+          ...corsHeaders(),
         },
       });
     },
     "/api/download/:jobId/status": async (req) => {
+      // Handle OPTIONS preflight request
+      if (req.method === "OPTIONS") {
+        return new Response(null, {
+          status: 200,
+          headers: corsHeaders(),
+        });
+      }
+
       const { jobId } = req.params;
       const job = await downloadQueue.getJobStatus(jobId);
       if (!job) {
@@ -107,25 +135,33 @@ const server = Bun.serve({
           status: 404,
           headers: {
             "Content-Type": "application/json",
-            "Access-Control-Allow-Origin": "*",
+            ...corsHeaders(),
           },
         });
       }
       return new Response(JSON.stringify(job), {
         headers: {
           "Content-Type": "application/json",
-          "Access-Control-Allow-Origin": "*",
+          ...corsHeaders(),
         },
       });
     },
     "/api/download/:jobId/cancel": async (req) => {
+      // Handle OPTIONS preflight request
+      if (req.method === "OPTIONS") {
+        return new Response(null, {
+          status: 200,
+          headers: corsHeaders(),
+        });
+      }
+
       const { jobId } = req.params;
       const success = await downloadQueue.cancelDownload(jobId);
       return new Response(JSON.stringify({ success }), {
         status: success ? 200 : 404,
         headers: {
           "Content-Type": "application/json",
-          "Access-Control-Allow-Origin": "*",
+          ...corsHeaders(),
         },
       });
     },
@@ -144,9 +180,9 @@ function shutdown(signal: string) {
   try {
     console.log(`[tile_provider] Received ${signal}, shutting down...`);
     // Stop accepting new requests
-    try { server.stop(); } catch {}
+    try { server.stop(); } catch { }
     // Stop background work
-    try { downloadQueue.shutdown(); } catch {}
+    try { downloadQueue.shutdown(); } catch { }
   } finally {
     // Force exit if cleanup hangs
     setTimeout(() => process.exit(0), 2000).unref();
@@ -156,4 +192,4 @@ function shutdown(signal: string) {
 try {
   process.on('SIGTERM', () => shutdown('SIGTERM'));
   process.on('SIGINT', () => shutdown('SIGINT'));
-} catch {}
+} catch { }

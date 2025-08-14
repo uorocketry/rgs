@@ -60,29 +60,41 @@
 		localStorage.setItem('mapDownloaderState', JSON.stringify(state));
 	}
 
+	function validateCoordinates(lat: number, lon: number): boolean {
+		return lat >= -90 && lat <= 90 && lon >= -180 && lon <= 180;
+	}
+
 	function restoreState() {
 		try {
 			const raw = localStorage.getItem('mapDownloaderState');
 			if (!raw) return;
 			const state = JSON.parse(raw);
 
-			minZoom = Number.isInteger(state?.minZoom) ? Math.max(0, Math.min(19, state.minZoom)) : 1;
-			maxZoom = Number.isInteger(state?.maxZoom) ? Math.max(0, Math.min(19, state.maxZoom)) : 19;
+			minZoom = Number.isInteger(state?.minZoom) ? Math.max(0, Math.min(19, state?.minZoom)) : 1;
+			maxZoom = Number.isInteger(state?.maxZoom) ? Math.max(0, Math.min(19, state?.maxZoom)) : 19;
 			if (minZoom > maxZoom) {
 				minZoom = 1;
 				maxZoom = 19;
 			}
-			radiusKm = Number.isFinite(state?.radiusKm) ? Math.max(0.1, Math.min(25, state.radiusKm)) : 5;
+			radiusKm = Number.isFinite(state?.radiusKm)
+				? Math.max(0.1, Math.min(25, state?.radiusKm))
+				: 5;
 
 			if (
 				state?.center &&
 				typeof state.center.lat === 'number' &&
-				typeof state.center.lng === 'number'
+				typeof state.center.lng === 'number' &&
+				validateCoordinates(state.center.lat, state.center.lng)
 			) {
 				map?.setView([state.center.lat, state.center.lng], state.zoom || 2);
 			}
 
-			if (state?.job && typeof state.job.lat === 'number' && typeof state.job.lon === 'number') {
+			if (
+				state?.job &&
+				typeof state.job.lat === 'number' &&
+				typeof state.job.lon === 'number' &&
+				validateCoordinates(state.job.lat, state.job.lon)
+			) {
 				job = {
 					...state.job,
 					radius: Math.max(0.1, Math.min(25, state.job.radius ?? radiusKm))
@@ -158,6 +170,13 @@
 		if (!map || !selectionCircle) return;
 		const center = selectionCircle.getLatLng();
 		const radiusMeters = selectionCircle.getRadius();
+
+		// Validate coordinates before proceeding
+		if (!validateCoordinates(center.lat, center.lng)) {
+			console.error('Invalid coordinates:', center.lat, center.lng);
+			alert('Invalid coordinates detected. Please click on the map again to set a valid location.');
+			return;
+		}
 
 		job = {
 			id: '',

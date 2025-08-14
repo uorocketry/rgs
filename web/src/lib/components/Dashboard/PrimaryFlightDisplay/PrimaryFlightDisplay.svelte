@@ -47,6 +47,8 @@
 	let containerWidth = $state(0);
 	let containerHeight = $state(0);
 
+	const TILE_BASE = '//tiles.uorocketry.ca';
+
 	onMount(() => {
 		// Optional: Add Ion token here if needed later for Ion assets.
 		// Cesium.Ion.defaultAccessToken = 'YOUR_TOKEN';
@@ -68,10 +70,9 @@
 
 			baseLayer: new Cesium.ImageryLayer(
 				new Cesium.UrlTemplateImageryProvider({
-					url: window.location.origin + '/tiles/{z}/{x}/{y}'
+					url: TILE_BASE + '/tiles/{z}/{x}/{y}'
 				})
 			)
-
 		});
 
 		// Disable mouse interactions

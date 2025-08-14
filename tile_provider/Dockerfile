@@ -20,4 +20,4 @@ FROM base AS release
 COPY --from=prerelease . .
 
 EXPOSE 6565/tcp
-ENTRYPOINT [  "bun", "run", "/usr/src/app/index.ts", "--database", "/var/lib/tile_provider/tiles.db", "--port", "6565" ]
+ENTRYPOINT [  "bun", "run", "/usr/src/app/index.ts", "--database", "/var/lib/tiles/tiles.db", "--port", "6565" ]
