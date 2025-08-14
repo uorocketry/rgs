@@ -21,7 +21,7 @@ nav:
           - Modify the database: guide/hands-on/modifying-the-database.md
           - Altitude widget: guide/hands-on/altitude-widget.md
   - Services:
-      - Hydra Gateway: hydra-gateway/index.md
+      - Sergw: sergw/index.md
       - Web: web/index.md
 
 markdown_extensions:
