@@ -27,19 +27,16 @@
 		"@typescript-eslint/eslint-plugin": "^8.39.1",
 		"@typescript-eslint/parser": "^8.39.1",
 		"@vitejs/plugin-basic-ssl": "^2.1.0",
+		"carbon-preprocess-svelte": "^0.11.11",
 		"cesium": "^1.132.0",
-		"chart.js": "^4.5.0",
-		"daisyui": "^5.0.50",
 		"eslint": "^9.33.0",
 		"eslint-config-prettier": "^10.1.8",
 		"eslint-plugin-svelte": "^3.11.0",
 		"prettier": "^3.6.2",
 		"prettier-plugin-svelte": "^3.4.0",
 		"svelte": "^5.38.1",
-		"svelte-chartjs": "^3.1.5",
 		"svelte-check": "^4.3.1",
 		"svelte-preprocess": "^6.0.3",
-		"tailwindcss": "^4.1.11",
 		"three": "^0.176.0",
 		"tslib": "^2.8.1",
 		"typescript": "^5.9.2",
@@ -50,13 +47,19 @@
 		"vitest": "^3.2.4"
 	},
 	"dependencies": {
+		"@carbon/charts": "^1.23.17",
+		"@carbon/charts-svelte": "^1.22.18",
 		"@jupyterlab/theme-light-extension": "^4.4.5",
 		"@libsql/client": "^0.15.10",
 		"@lumino/default-theme": "^2.1.10",
 		"@lumino/messaging": "^2.0.3",
 		"@lumino/widgets": "^2.7.1",
-		"@tailwindcss/vite": "^4.1.11",
 		"@types/cesium": "^1.70.4",
-		"gsap": "^3.13.0"
+		"@types/leaflet": "^1.9.20",
+		"carbon-components-svelte": "^0.89.5",
+		"carbon-icons-svelte": "^12.13.0",
+		"d3": "^7.9.0",
+		"gsap": "^3.13.0",
+		"leaflet": "^1.9.4"
 	}
 }
