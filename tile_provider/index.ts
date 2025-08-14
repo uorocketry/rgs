@@ -136,3 +136,24 @@ const server = Bun.serve({
 });
 
 console.log(`Starting server at ${config.address}:${config.port}`);
+
+// -----------------------
+// Graceful shutdown
+// -----------------------
+function shutdown(signal: string) {
+  try {
+    console.log(`[tile_provider] Received ${signal}, shutting down...`);
+    // Stop accepting new requests
+    try { server.stop(); } catch {}
+    // Stop background work
+    try { downloadQueue.shutdown(); } catch {}
+  } finally {
+    // Force exit if cleanup hangs
+    setTimeout(() => process.exit(0), 2000).unref();
+  }
+}
+
+try {
+  process.on('SIGTERM', () => shutdown('SIGTERM'));
+  process.on('SIGINT', () => shutdown('SIGINT'));
+} catch {}

@@ -78,6 +78,8 @@ export class DownloadQueue {
   private isProcessing = false;
   private db: TileDatabase;
   private currentJobId: string | null = null;
+  private shuttingDown = false;
+  private inflightAbort: AbortController | null = null;
 
   constructor(db: Database) {
     this.db = new TileDatabase(db);
@@ -129,12 +131,19 @@ export class DownloadQueue {
     return false;
   }
 
+  shutdown(): void {
+    this.shuttingDown = true;
+    if (this.inflightAbort) {
+      try { this.inflightAbort.abort(); } catch {}
+    }
+  }
+
   async getJobStatus(jobId: string): Promise<DownloadJob | null> {
     return this.jobs.get(jobId) || null;
   }
 
   private async processQueue(): Promise<void> {
-    if (this.jobs.size === 0) {
+    if (this.jobs.size === 0 || this.shuttingDown) {
       this.isProcessing = false;
       return;
     }
@@ -163,7 +172,7 @@ export class DownloadQueue {
       console.log(`Processing download job ${job.id}: ${tilesToDownload.length} tiles to download`);
 
       for (const url of tilesToDownload) {
-        if (job.status !== 'processing') {
+        if (job.status !== 'processing' || this.shuttingDown) {
           break;
         }
 
@@ -174,13 +183,21 @@ export class DownloadQueue {
               job.downloaded++;
             }
           }
-          // Add small delay to avoid overwhelming the source
+          // Add small delay to avoid overwhelming the source; skip if shutting down
+          if (this.shuttingDown) break;
           await new Promise(resolve => setTimeout(resolve, config.download.delayMs));
         } catch (error) {
+          if ((error as any)?.name === 'AbortError') {
+            // Graceful shutdown; mark as cancelled
+            job.status = 'cancelled';
+            break;
+          }
           console.error(`Failed to download tile: ${url}`, error);
           job.status = 'failed';
           job.error = error instanceof Error ? error.message : 'Unknown error';
           break;
+        } finally {
+          this.inflightAbort = null;
         }
       }
 
@@ -194,13 +211,15 @@ export class DownloadQueue {
     } finally {
       this.currentJobId = null;
       // Process next job
-      this.processQueue();
+      if (!this.shuttingDown) this.processQueue();
     }
   }
 
   private async fetchTileFromSource(zoom: number, x: number, y: number) {
     const url = `${config.tileSource.baseUrl}&x=${x}&y=${y}&z=${zoom}`;
-    const response = await fetch(url);
+    const controller = new AbortController();
+    this.inflightAbort = controller;
+    const response = await fetch(url, { signal: controller.signal });
 
     if (!response.ok) {
       return { ok: false, error: response.statusText };
