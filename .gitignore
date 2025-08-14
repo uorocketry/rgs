@@ -69,5 +69,3 @@ bin/
 *.so
 *.dll
 *.dylib
-sergw
-heartbeat-bin
