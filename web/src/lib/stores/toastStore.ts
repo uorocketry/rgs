@@ -6,7 +6,7 @@ export interface Toast {
 	id: number;
 	message: string;
 	type: ToastType;
-	duration?: number; // Optional duration in ms
+	duration?: number; // Optional duration in ms; used by Carbon's ToastNotification
 }
 
 const { subscribe, update } = writable<Toast[]>([]);
@@ -16,12 +16,6 @@ let nextId = 0;
 function addToast(message: string, type: ToastType = 'info', duration: number = 3000) {
 	const id = nextId++;
 	update((toasts) => [...toasts, { id, message, type, duration }]);
-
-	if (duration > 0) {
-		setTimeout(() => {
-			removeToast(id);
-		}, duration);
-	}
 }
 
 function removeToast(id: number) {
@@ -36,4 +30,4 @@ export const toastStore = {
 	success: (message: string, duration?: number) => addToast(message, 'success', duration),
 	warning: (message: string, duration?: number) => addToast(message, 'warning', duration),
 	error: (message: string, duration?: number) => addToast(message, 'error', duration)
-}; 
+};
