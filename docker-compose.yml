@@ -104,14 +104,13 @@ services:
             - "traefik.http.services.tile_provider.loadbalancer.server.port=6565"
 
     heartbeat:
-        build:
-            context: .
-            dockerfile: utils/docker/Dockerfile.rust-service
-            args:
-                CRATE: heartbeat
+        image: golang:bookworm
         networks:
             - web
-        command: [ "/app/bin/heartbeat", "--libsql-url", "http://db:8080" ]
+        volumes:
+            - ./heartbeat:/app
+        working_dir: /app
+        command: [ "go", "run", ".", "--libsql-url", "http://db:8080" ]
         restart: unless-stopped
         depends_on:
             - db
@@ -149,20 +148,20 @@ services:
             - "traefik.enable=false"
 
     sergw:
-        build:
-            context: .
-            dockerfile: utils/docker/Dockerfile.sergw
+        image: golang:bookworm
         networks:
             - web
+        volumes:
+            - ./sergw:/app
+        working_dir: /app
         devices:
-            # - /dev/ttyUSB0:/dev/ttyUSB0:rwm
-            - /tmp/sergw-serial:/tmp/sergw-serial:r
+            - /dev/ttyUSB0:/dev/ttyUSB0:rwm
         ports:
             - "5656:5656"
         restart: unless-stopped
         labels:
             - "traefik.enable=false"
-        command: [ "sergw", "listen", "--serial", "/tmp/sergw-serial", "--baud", "57600" ]
+        command: [ "go", "run", ".", "listen", "--serial", "/dev/ttyUSB0", "--baud", "57600", "--verbose", "--host", "0.0.0.0:5656" ]
 
 networks:
     web:

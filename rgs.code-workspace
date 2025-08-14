@@ -8,16 +8,31 @@
             "path": "./db"
         },
         {
-            "path": "./hydra_gateway"
-        },
-        {
             "path": "./telemetry-ingestor"
         },
         {
-            "path": "./hydra_provider"
+            "path": "./hydrand"
         },
         {
-            "path": "./hydrand"
+            "path": "./sergw"
+        },
+        {
+            "path": "./heartbeat"
+        },
+        {
+            "path": "./command-dispatcher"
+        },
+        {
+            "path": "./coord_mocker"
+        },
+        {
+            "path": "./tile_provider"
+        },
+        {
+            "path": "./utils"
+        },
+        {
+            "path": "./tenna"
         },
         {
             "path": "./scripts"
