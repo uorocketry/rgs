@@ -100,7 +100,7 @@ func runListen(a Args) error {
 		Port:              a.Serial,
 		Baud:              a.Baud,
 		ReadTimeout:       2 * time.Second,
-		ReconnectBase:     200 * time.Millisecond,
+		ReconnectBase:     time.Second,
 		ReconnectMax:      2 * time.Second,
 		WriteBufferLimit:  256 * 1024, // bytes buffered while unplugged
 		Verbose:           a.Verbose,

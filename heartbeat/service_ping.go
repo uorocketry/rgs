@@ -12,7 +12,7 @@ import (
 
 const healthPingInterval = 30 * time.Second
 
-func runServicePingTask(dbURL, authToken string) {
+func runServicePingTask(remoteURL string) {
 	host, err := os.Hostname()
 	if err != nil || host == "" {
 		host = "unknown_hostname"
@@ -20,8 +20,7 @@ func runServicePingTask(dbURL, authToken string) {
 
 	slog.Info("ServicePing task started",
 		"service_id", SERVICE_ID,
-		"db", dbURL,
-		"auth_token_provided", authToken != "",
+		"db", remoteURL,
 		"interval_secs", int(healthPingInterval.Seconds()),
 		"hostname", host,
 	)
@@ -33,12 +32,6 @@ func runServicePingTask(dbURL, authToken string) {
 
 	for {
 		<-ticker.C
-
-		remoteURL, err := buildRemoteURL(dbURL, authToken)
-		if err != nil {
-			slog.Warn("ServicePing: invalid DB URL", "error", err)
-			continue
-		}
 
 		db, err := sql.Open("libsql", remoteURL)
 		if err != nil {

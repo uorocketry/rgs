@@ -40,7 +40,7 @@ func New(cfg Config, broadcast func([]byte)) *Manager {
 		cfg.ReadTimeout = 2 * time.Second
 	}
 	if cfg.ReconnectBase <= 0 {
-		cfg.ReconnectBase = 200 * time.Millisecond
+		cfg.ReconnectBase = time.Second
 	}
 	if cfg.ReconnectMax < cfg.ReconnectBase {
 		cfg.ReconnectMax = 2 * time.Second
@@ -89,10 +89,8 @@ func (m *Manager) Run(ctx context.Context) {
 		if err != nil {
 			slog.Warn("Open serial failed; will retry", "port", m.cfg.Port, "error", err, "delay", backoff)
 			time.Sleep(backoff)
-			backoff *= 2
-			if backoff > m.cfg.ReconnectMax {
-				backoff = m.cfg.ReconnectMax
-			}
+			// Linear backoff: always use 1 second
+			backoff = time.Second
 			continue
 		}
 		_ = sp.SetReadTimeout(m.cfg.ReadTimeout)

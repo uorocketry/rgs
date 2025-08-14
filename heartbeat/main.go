@@ -71,16 +71,17 @@ func main() {
 		"auth_token_provided", authUsed,
 	)
 
-	// Spawn the service health ping goroutine
-	go runServicePingTask(args.LibsqlURL, args.LibsqlAuthToken)
-
-	// Establish DB connection for OutgoingCommands
+	// Build the remote URL first
 	remoteURL, err := buildRemoteURL(args.LibsqlURL, args.LibsqlAuthToken)
 	if err != nil {
 		slog.Error("Invalid DB config", "error", err)
 		os.Exit(1)
 	}
 
+	// Spawn the service health ping goroutine with the built URL
+	go runServicePingTask(remoteURL)
+
+	// Establish DB connection for OutgoingCommands
 	db, err := sql.Open("libsql", remoteURL)
 	if err != nil {
 		slog.Error("Failed to open DB", "error", err)
