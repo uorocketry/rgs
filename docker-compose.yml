@@ -6,17 +6,21 @@ services:
         networks:
             - web
         command:
-        - "--api.insecure=true"
-        - "--providers.docker=true"
-        - "--entrypoints.web.address=:80"
-        - "--log.level=INFO"
+            - "--api.insecure=true"
+            - "--providers.docker=true"
+            - "--entrypoints.web.address=:80"
+            - "--log.level=INFO"
         ports:
-        - "80:80"
-        - "8080:8080"
+            - "80:80"
+            - "8080:8080"
         volumes:
-        - /var/run/docker.sock:/var/run/docker.sock
-
-   
+            - /var/run/docker.sock:/var/run/docker.sock
+        labels:
+            - "traefik.enable=true"
+            - "traefik.http.routers.deny-all.rule=HostRegexp(`{host:.+}`)"
+            - "traefik.http.routers.deny-all.entrypoints=web"
+            - "traefik.http.routers.deny-all.priority=1"
+            - "traefik.http.routers.deny-all.service=noop@internal"
 
     db:
         image: ghcr.io/tursodatabase/libsql-server:latest
@@ -29,9 +33,7 @@ services:
         ports:
             - "5001:8080"
         labels:
-        - "traefik.enable=true"
-        - "traefik.http.routers.db.rule=Host(`db.uorocketry.infra`)"
-        - "traefik.http.services.db.loadbalancer.server.port=8080"
+            - "traefik.enable=false"
 
     migration:
         image: docker.io/oven/bun:1
@@ -58,6 +60,10 @@ services:
             - PORT=3000
             - WEB_SERVER_PORT=3000
             - DB_URL=http://db:8080
+            - VITE_ALLOWED_HOSTS=uorocketry.ca,localhost,127.0.0.1
+            - SVELTEKIT_ALLOWED_HOSTS=uorocketry.ca,localhost,127.0.0.1
+            - ALLOWED_SUBNETS=192.168.8.0/24,127.0.0.1/32
+            - PROTECTED_PATH_PREFIXES=/services/api
         volumes:
             - ./web:/usr/src/app
             - /usr/src/app/node_modules
@@ -68,9 +74,17 @@ services:
             - db
         labels:
             - "traefik.enable=true"
-            - "traefik.http.routers.web.rule=Host(`uorocketry.infra`)"
+            - "traefik.http.routers.web.rule=Host(`uorocketry.ca`)"
             - "traefik.http.routers.web.entrypoints=web"
+            - "traefik.http.routers.web.service=web"
+            - "traefik.http.routers.web.priority=100"
             - "traefik.http.services.web.loadbalancer.server.port=3000"
+            - "traefik.http.middlewares.protected-subnet.ipallowlist.sourcerange=192.168.8.0/24,127.0.0.1/32"
+            - "traefik.http.routers.web-protected.rule=Host(`uorocketry.ca`) && (PathPrefix(`/services/api`))"
+            - "traefik.http.routers.web-protected.entrypoints=web"
+            - "traefik.http.routers.web-protected.priority=150"
+            - "traefik.http.routers.web-protected.service=web"
+            - "traefik.http.routers.web-protected.middlewares=protected-subnet"
 
     tile_provider:
         build:
@@ -84,38 +98,20 @@ services:
             - "6565:6565"
         labels:
             - "traefik.enable=true"
-            # Dedicated host for tile provider (avoids /bun conflicts)
-            - "traefik.http.routers.tile_provider_host.rule=Host(`tiles.uorocketry.infra`)"
-            - "traefik.http.routers.tile_provider_host.entrypoints=web"
-            - "traefik.http.routers.tile_provider_host.priority=3000"
-            # Exact path /tiles/downloader -> rewrite to /
-            - "traefik.http.routers.tile_provider_home.rule=Host(`uorocketry.infra`) && Path(`/tiles/downloader`)"
-            - "traefik.http.routers.tile_provider_home.entrypoints=web"
-            - "traefik.http.routers.tile_provider_home.priority=2000"
-            - "traefik.http.routers.tile_provider_home.middlewares=tile_provider-home-rewrite"
-            - "traefik.http.middlewares.tile_provider-home-rewrite.replacepath.path=/"
-            # Static assets served by Bun at /bun/* should be routed to tile_provider
-            - "traefik.http.routers.tile_provider_assets.rule=Host(`uorocketry.infra`) && PathPrefix(`/bun/`)"
-            - "traefik.http.routers.tile_provider_assets.entrypoints=web"
-            - "traefik.http.routers.tile_provider_assets.priority=1500"
-            # All other /tiles/* go straight to the service unchanged
-            - "traefik.http.routers.tile_provider_tiles.rule=Host(`uorocketry.infra`) && PathPrefix(`/tiles/`)"
-            # Route API calls from main host to the tile provider
-            - "traefik.http.routers.tile_provider_api.rule=Host(`uorocketry.infra`) && PathPrefix(`/api/`)"
-            - "traefik.http.routers.tile_provider_api.entrypoints=web"
-            - "traefik.http.routers.tile_provider_api.priority=1000"
-            - "traefik.http.services.tile_provider_api.loadbalancer.server.port=6565"
-            - "traefik.http.routers.tile_provider_tiles.entrypoints=web"
-            - "traefik.http.routers.tile_provider_tiles.priority=1000"
+            - "traefik.http.routers.tile_provider.rule=Host(`tiles.uorocketry.ca`)"
+            - "traefik.http.routers.tile_provider.entrypoints=web"
+            - "traefik.http.routers.tile_provider.priority=100"
             - "traefik.http.services.tile_provider.loadbalancer.server.port=6565"
 
     heartbeat:
-        image: rust
+        build:
+            context: .
+            dockerfile: utils/docker/Dockerfile.rust-service
+            args:
+                CRATE: heartbeat
         networks:
             - web
-        volumes:
-            - ./target/debug/heartbeat:/app/heartbeat:ro
-        command: ["/app/heartbeat", "--libsql-url", "http://db:8080"]
+        command: [ "/app/bin/heartbeat", "--libsql-url", "http://db:8080" ]
         restart: unless-stopped
         depends_on:
             - db
@@ -130,7 +126,7 @@ services:
                 CRATE: telemetry-ingestor
         networks:
             - web
-        command: ["/app/bin/telemetry-ingestor", "--libsql-url", "http://db:8080", "--gateway-connection-string", "tcpout:sergw:5656"]
+        command: [ "/app/bin/telemetry-ingestor", "--libsql-url", "http://db:8080", "--gateway-connection-string", "tcpout:sergw:5656" ]
         restart: unless-stopped
         depends_on:
             - db
@@ -145,13 +141,29 @@ services:
                 CRATE: command-dispatcher
         networks:
             - web
-        command: ["/app/bin/command-dispatcher", "--libsql-url", "http://db:8080", "--gateway-connection-string", "tcpout:sergw:5656"]
+        command: [ "/app/bin/command-dispatcher", "--libsql-url", "http://db:8080", "--gateway-connection-string", "tcpout:sergw:5656" ]
         restart: unless-stopped
         depends_on:
             - db
         labels:
             - "traefik.enable=false"
 
+    sergw:
+        build:
+            context: .
+            dockerfile: utils/docker/Dockerfile.sergw
+        networks:
+            - web
+        devices:
+            # - /dev/ttyUSB0:/dev/ttyUSB0:rwm
+            - /tmp/sergw-serial:/tmp/sergw-serial:r
+        ports:
+            - "5656:5656"
+        restart: unless-stopped
+        labels:
+            - "traefik.enable=false"
+        command: [ "sergw", "listen", "--serial", "/tmp/sergw-serial", "--baud", "57600" ]
+
 networks:
-  web:
-    driver: bridge
+    web:
+        driver: bridge

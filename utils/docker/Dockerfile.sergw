@@ -1,0 +1,18 @@
+FROM rust-base AS base
+
+FROM base AS sergw
+
+# Install sergw via cargo
+RUN cargo install sergw
+
+# Switch to non-root user
+USER rustuser
+
+# Change working directory to user's home
+WORKDIR /home/rustuser
+
+# Expose the port
+EXPOSE 5656
+
+# Default command
+CMD ["sergw", "listen", "--serial", "/tmp/sergw-serial", "--baud", "57600"]

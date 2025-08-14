@@ -21,13 +21,27 @@
 		HeaderNav,
 		HeaderNavItem,
 		HeaderNavMenu,
+		SideNav,
+		SideNavItems,
+		SideNavMenu,
+		SideNavMenuItem,
+		SideNavLink,
 		Content,
-		Theme
+		Theme,
+		breakpointObserver
 	} from 'carbon-components-svelte';
 	import type { CarbonTheme } from 'carbon-components-svelte/src/Theme/Theme.svelte';
 
-
 	let { children } = $props();
+
+	// control SideNav (Svelte 5 runes)
+	let sideOpen = $state(false);
+
+	// Use Carbon's breakpoint observer for responsive behavior
+
+	import { readable } from 'svelte/store';
+	const breakpoint = browser ? breakpointObserver() : { smallerThan: () => readable(false) };
+	const isMobile = breakpoint.smallerThan('lg'); // lg = 1056px
 
 	const consoleNotifications = findSetting('notifications.consoleNotifications')
 		?.value as Writable<boolean>;
@@ -97,8 +111,6 @@
 	let currentTheme = $state<'white' | 'g10' | 'g80' | 'g90' | 'g100'>('g100');
 	$effect(() => carbonTheme.subscribe((t) => (currentTheme = t)));
 
-
-
 	type TabItem = {
 		href: string;
 		tip: string;
@@ -115,11 +127,11 @@
 		{
 			title: 'System & Monitoring',
 			icon: 'fas fa-heartbeat',
-            items: [
-                { href: '/health', tip: 'System Health', icon: 'fas fa-heart' },
-                { href: '/metrics', tip: 'Metrics', icon: 'fas fa-chart-line' },
-                { href: '/services', tip: 'Service Manager', icon: 'fas fa-server' }
-            ]
+			items: [
+				{ href: '/health', tip: 'System Health', icon: 'fas fa-heart' },
+				{ href: '/metrics', tip: 'Metrics', icon: 'fas fa-chart-line' },
+				{ href: '/services', tip: 'Service Manager', icon: 'fas fa-server' }
+			]
 		},
 		{
 			title: 'Communication',
@@ -142,10 +154,10 @@
 		{
 			title: 'Development',
 			icon: 'fas fa-code',
-            items: [
-                { href: '/mock', tip: 'Mock', icon: 'fas fa-masks-theater' },
-                { href: '/map-downloader', tip: 'Map Downloader', icon: 'fas fa-map' }
-            ]
+			items: [
+				{ href: '/mock', tip: 'Mock', icon: 'fas fa-masks-theater' },
+				{ href: '/map-downloader', tip: 'Map Downloader', icon: 'fas fa-map' }
+			]
 		}
 	];
 
@@ -235,7 +247,7 @@
 
 	<!-- Carbon Layout -->
 	{#if !$isImmersiveMode}
-		<Header company="UORocketry" platformName="Ground Station">
+		<Header company="UORocketry" platformName="Ground Station" bind:isSideNavOpen={sideOpen}>
 			<HeaderNav>
 				{#each MENU_GROUPS as group}
 					<HeaderNavMenu text={group.title}>
@@ -259,14 +271,49 @@
 				{/each}
 			</HeaderNav>
 		</Header>
+		<!-- This is what the hamburger toggles on small screens - only show on mobile -->
+		{#if $isMobile}
+			<SideNav isOpen={sideOpen} fixed={false} on:close={() => (sideOpen = false)}>
+				<SideNavItems>
+					{#each MENU_GROUPS as group}
+						<SideNavMenu text={group.title}>
+							{#each group.items as item}
+								<SideNavMenuItem
+									href={item.href}
+									isSelected={$page.url.pathname === item.href ||
+										($page.url.pathname.startsWith(item.href + '/') && item.href !== '/')}
+									on:click={() => {
+										if ($isMobile) sideOpen = false;
+									}}
+								>
+									{item.tip}
+								</SideNavMenuItem>
+							{/each}
+						</SideNavMenu>
+					{/each}
+
+					{#each STANDALONE_TABS as tab}
+						<SideNavLink
+							href={tab.href}
+							isSelected={$page.url.pathname === tab.href}
+							on:click={() => {
+								if ($isMobile) sideOpen = false;
+							}}
+						>
+							{tab.tip}
+						</SideNavLink>
+					{/each}
+				</SideNavItems>
+			</SideNav>
+		{/if}
+
+		<!-- Command Box (Modal) -->
+		<MasterCommandBox />
+
+		<!-- Main Content -->
+		<Content>
+			{@render children?.()}
+		</Content>
+		<GridBackground />
 	{/if}
-
-	<!-- Command Box (Modal) -->
-	<MasterCommandBox />
-
-	<!-- Main Content -->
-	<Content>
-		{@render children?.()}
-	</Content>
-	<GridBackground />
 </Theme>

@@ -1,48 +1,76 @@
-# Multi-stage build to compile a single workspace crate in a Debian environment
+# Multi-stage build to compile a single workspace crate using rust-base
 
-ARG DEBIAN_VERSION=bookworm
 ARG CRATE
 
-FROM rust:latest AS builder
-ARG CRATE
-ENV CRATE=${CRATE}
-ENV CARGO_HOME=/usr/local/cargo
-ENV PROTOC=/usr/bin/protoc
+FROM rust-base AS base
 
-# System deps for building (protobuf for prost-build; clang for bindgen)
-RUN apt-get update \
-    && apt-get install -y --no-install-recommends \
-       protobuf-compiler \
-       clang \
-       llvm-dev \
-       libclang-dev \
-       pkg-config \
-       libssl-dev \
-       ca-certificates \
-       git \
-    && rm -rf /var/lib/apt/lists/*
-WORKDIR /app
+FROM base AS builder
+ARG BUILD_MODE=dev
+
+# 1) Pre-install the pinned Rust toolchain as a separate cached layer
+# Ensure toolchain is pinned via rust-toolchain.toml if present (rust:slim already has stable)
+COPY rust-toolchain.toml ./
+
+# 2) Prime dependency cache by copying only manifests
 COPY Cargo.toml Cargo.lock ./
-COPY command-dispatcher ./command-dispatcher
-COPY telemetry-ingestor ./telemetry-ingestor
-COPY heartbeat ./heartbeat
-COPY sergw ./sergw
-COPY coord_mocker ./coord_mocker
-COPY hydra_manager_daemon ./hydra_manager_daemon
-COPY utils/manual-command-dispatcher ./utils/manual-command-dispatcher
+COPY command-dispatcher/Cargo.toml ./command-dispatcher/Cargo.toml
+COPY telemetry-ingestor/Cargo.toml ./telemetry-ingestor/Cargo.toml
+COPY heartbeat/Cargo.toml ./heartbeat/Cargo.toml
+COPY sergw/Cargo.toml ./sergw/Cargo.toml
+COPY coord_mocker/Cargo.toml ./coord_mocker/Cargo.toml
+COPY hydra_manager_daemon/Cargo.toml ./hydra_manager_daemon/Cargo.toml
+COPY utils/manual-command-dispatcher/Cargo.toml ./utils/manual-command-dispatcher/Cargo.toml
 
-# Build only the requested crate in release mode
-RUN --mount=type=cache,id=cargo-registry-${CRATE},target=/usr/local/cargo/registry,sharing=locked \
-    --mount=type=cache,id=cargo-git-${CRATE},target=/usr/local/cargo/git,sharing=locked \
-    --mount=type=cache,id=cargo-target-${CRATE},target=/app/target,sharing=locked \
-    mkdir -p /out && \
-    cargo build --locked --release -p ${CRATE} && \
-    install -Dm755 /app/target/release/${CRATE} /out/${CRATE}
+# 3) Create minimal dummy sources so Cargo can resolve and compile deps without real source
+RUN mkdir -p \
+    command-dispatcher/src \
+    telemetry-ingestor/src \
+    heartbeat/src \
+    sergw/src \
+    coord_mocker/src \
+    hydra_manager_daemon/src \
+    utils/manual-command-dispatcher/src \
+    && printf 'fn main(){}\n' | tee \
+    command-dispatcher/src/main.rs \
+    telemetry-ingestor/src/main.rs \
+    heartbeat/src/main.rs \
+    sergw/src/main.rs \
+    coord_mocker/src/main.rs \
+    hydra_manager_daemon/src/main.rs \
+    utils/manual-command-dispatcher/src/main.rs >/dev/null
 
-FROM debian:${DEBIAN_VERSION}-slim AS runtime
+# 4) Build only dependencies (and tiny dummies) with lockfile for reproducibility
+RUN if [ "$BUILD_MODE" = "prod" ]; then \
+    cargo build --locked --release --workspace --bins; \
+    else \
+    cargo build --release --workspace --bins; \
+    fi
+
+# 5) Now copy the full workspace sources (invalidates only from here on code changes)
+COPY . .
+
+# 6) Build only the requested crate in release mode using cached deps
 ARG CRATE
 ENV CRATE=${CRATE}
-RUN apt-get update && apt-get install -y ca-certificates && rm -rf /var/lib/apt/lists/*
+RUN if [ "$BUILD_MODE" = "prod" ]; then \
+    cargo build --locked --release -p ${CRATE}; \
+    else \
+    cargo build --release -p ${CRATE}; \
+    fi
+
+# 7) Export the requested binary
+RUN mkdir -p /out && install -Dm755 /app/target/release/${CRATE} /out/${CRATE}
+
+FROM debian:bookworm-slim AS runtime
+ARG CRATE
+ENV CRATE=${CRATE}
+
+# Install only runtime dependencies (no build tools)
+# RUN apt-get update \
+#     && apt-get install -y --no-install-recommends \
+#         ca-certificates \
+#         && rm -rf /var/lib/apt/lists/*
+
 WORKDIR /app/bin
 COPY --from=builder /out/${CRATE} /app/bin/${CRATE}
 

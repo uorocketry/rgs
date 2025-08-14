@@ -1,0 +1,42 @@
+# Rust build artifacts
+target/
+**/target/
+
+# Node.js dependencies
+node_modules/
+**/node_modules/
+
+# Build outputs
+dist/
+build/
+*.tar.gz
+*.zip
+
+# Git
+.git/
+.gitignore
+
+# IDE files
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Temporary files
+tmp/
+temp/
+*.tmp
+*.log
+
+# Database files
+*.db
+*.sqlite
+
+# Large data files
+tiles_data/
+*.hdr
+*.glb

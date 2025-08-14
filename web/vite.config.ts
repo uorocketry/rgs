@@ -2,14 +2,13 @@ import { sveltekit } from '@sveltejs/kit/vite';
 import { loadEnv } from 'vite';
 import { viteStaticCopy } from 'vite-plugin-static-copy';
 import { defineConfig } from 'vitest/config';
-import tailwindcss from '@tailwindcss/vite';
 
 const cesiumSource = './node_modules/cesium/Build/Cesium';
 const cesiumBaseUrl = 'cesium';
 
 const config = (mode: string) => {
 	// Make environment variables available from .env available
-	process.env = { ...process.env, ...loadEnv(mode, '../', '') };
+	process.env = { ...process.env, ...loadEnv(mode, '.', '') };
 	return defineConfig({
 		test: {
 			dir: './src',
@@ -17,11 +16,13 @@ const config = (mode: string) => {
 		},
 
 		server: {
-			port: parseInt(process.env['WEB_SERVER_PORT'] ?? '') || 3000
+			port: parseInt(process.env['WEB_SERVER_PORT'] ?? '') || 3000,
+			host: '0.0.0.0',
+			strictPort: false,
+			allowedHosts: true
 		},
 
 		plugins: [
-			tailwindcss(),
 			sveltekit(),
 			viteStaticCopy({
 				targets: [
@@ -38,5 +39,5 @@ const config = (mode: string) => {
 	});
 };
 
-export default config;
+export default (mode: string) => config(mode);
 

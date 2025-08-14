@@ -32,7 +32,7 @@
 	let job: DownloadState = $state(null);
 	let pollHandle: number | null = null;
 
-	const TILE_BASE = '//tiles.uorocketry.infra';
+	const TILE_BASE = '//tiles.uorocketry.ca';
 
 	function clampConfig() {
 		if (!Number.isInteger(minZoom)) minZoom = 1;
@@ -55,7 +55,7 @@
 			minZoom,
 			maxZoom,
 			radiusKm,
-			job,
+			job
 		};
 		localStorage.setItem('mapDownloaderState', JSON.stringify(state));
 	}
@@ -74,7 +74,11 @@
 			}
 			radiusKm = Number.isFinite(state?.radiusKm) ? Math.max(0.1, Math.min(25, state.radiusKm)) : 5;
 
-			if (state?.center && typeof state.center.lat === 'number' && typeof state.center.lng === 'number') {
+			if (
+				state?.center &&
+				typeof state.center.lat === 'number' &&
+				typeof state.center.lng === 'number'
+			) {
 				map?.setView([state.center.lat, state.center.lng], state.zoom || 2);
 			}
 
@@ -92,7 +96,7 @@
 							fillColor: '#3388ff',
 							fillOpacity: 0.2,
 							weight: 2,
-							dashArray: '5, 10',
+							dashArray: '5, 10'
 						}).addTo(map);
 					}
 					if (job.status === 'processing' && job.id) startPolling(job.id);
@@ -127,7 +131,7 @@
 						downloaded: j.downloaded || 0,
 						total: j.total || 0,
 						status: j.status || 'failed',
-						error: j.error,
+						error: j.error
 					};
 					saveState();
 					if (j.status !== 'processing') {
@@ -177,8 +181,8 @@
 					lon: center.lng,
 					radiusKm: radiusMeters / 1000,
 					minZoom,
-					maxZoom,
-				}),
+					maxZoom
+				})
 			});
 			if (!res.ok) throw new Error('Download request failed');
 			const result = await res.json();
@@ -228,7 +232,7 @@
 			fillColor: '#3388ff',
 			fillOpacity: 0.2,
 			weight: 2,
-			dashArray: '5, 10',
+			dashArray: '5, 10'
 		}).addTo(map);
 		saveState();
 	}
@@ -268,57 +272,90 @@
 <div class="mapdl-container">
 	<div class="map" bind:this={mapContainer}></div>
 
-    <div class="control-wrap">
-    <Tile>
-		<h3>Download Settings</h3>
+	<div class="control-wrap">
+		<Tile>
+			<h3>Download Settings</h3>
 
-		<NumberInput id="min-zoom" label="Minimum Zoom Level" min={0} max={19} bind:value={minZoom} onchange={clampConfig} />
-		<NumberInput id="max-zoom" label="Maximum Zoom Level" min={0} max={19} bind:value={maxZoom} onchange={clampConfig} />
+			<NumberInput
+				id="min-zoom"
+				label="Minimum Zoom Level"
+				min={0}
+				max={19}
+				bind:value={minZoom}
+				onchange={clampConfig}
+			/>
+			<NumberInput
+				id="max-zoom"
+				label="Maximum Zoom Level"
+				min={0}
+				max={19}
+				bind:value={maxZoom}
+				onchange={clampConfig}
+			/>
 
-		<Slider id="radius" min={0.1} max={25} step={0.1} bind:value={radiusKm} labelText={`Radius (${radiusKm.toFixed(1)} km)`} oninput={clampConfig} />
+			<Slider
+				id="radius"
+				min={0.1}
+				max={25}
+				step={0.1}
+				bind:value={radiusKm}
+				labelText={`Radius (${radiusKm.toFixed(1)} km)`}
+				oninput={clampConfig}
+			/>
 
-		<div class="btn-row">
-			<Button kind="primary" onclick={startDownload} disabled={!selectionCircle || job?.status === 'processing'}>Download</Button>
-			{#if job?.status === 'processing'}
-				<Button kind="danger" onclick={cancelDownload}>Cancel</Button>
-			{/if}
-		</div>
-
-		{#if job}
-			<div class="progress">
-				<div class="bar">
-					<div class="fill" style={`width:${job.total > 0 ? (job.downloaded / job.total) * 100 : 0}%`}></div>
-				</div>
-				<div class="text">{job.downloaded}/{job.total} tiles</div>
-				<div class="cfg">
-					<div>Lat: {job.lat.toFixed(6)}</div>
-					<div>Lon: {job.lon.toFixed(6)}</div>
-					<div>Zoom: {job.minZoom}-{job.maxZoom}</div>
-					<div>Radius: {job.radius.toFixed(1)}km</div>
-				</div>
-				{#if job.status === 'failed'}
-					<div class="btn-center">
-						<Button kind="secondary" onclick={startDownload}>Retry Download</Button>
-					</div>
-				{/if}
-				{#if job.status !== 'processing'}
-					<div class="btn-center">
-						<Button kind="tertiary" onclick={clearJob}>Clear</Button>
-					</div>
+			<div class="btn-row">
+				<Button
+					kind="primary"
+					onclick={startDownload}
+					disabled={!selectionCircle || job?.status === 'processing'}>Download</Button
+				>
+				{#if job?.status === 'processing'}
+					<Button kind="danger" onclick={cancelDownload}>Cancel</Button>
 				{/if}
 			</div>
-		{/if}
 
-		{#if job?.status}
-			<InlineNotification
-				kind={job.status === 'failed' ? 'error' : job.status === 'completed' ? 'success' : 'info'}
-				title={job.status === 'failed' ? 'Download failed' : job.status === 'completed' ? 'Download complete' : 'Download status'}
-				subtitle={job.error ? job.error : job.status}
-				lowContrast
-			/>
-		{/if}
-    </Tile>
-    </div>
+			{#if job}
+				<div class="progress">
+					<div class="bar">
+						<div
+							class="fill"
+							style={`width:${job.total > 0 ? (job.downloaded / job.total) * 100 : 0}%`}
+						></div>
+					</div>
+					<div class="text">{job.downloaded}/{job.total} tiles</div>
+					<div class="cfg">
+						<div>Lat: {job.lat.toFixed(6)}</div>
+						<div>Lon: {job.lon.toFixed(6)}</div>
+						<div>Zoom: {job.minZoom}-{job.maxZoom}</div>
+						<div>Radius: {job.radius.toFixed(1)}km</div>
+					</div>
+					{#if job.status === 'failed'}
+						<div class="btn-center">
+							<Button kind="secondary" onclick={startDownload}>Retry Download</Button>
+						</div>
+					{/if}
+					{#if job.status !== 'processing'}
+						<div class="btn-center">
+							<Button kind="tertiary" onclick={clearJob}>Clear</Button>
+						</div>
+					{/if}
+				</div>
+			{/if}
+
+			{#if job?.status}
+				<InlineNotification
+					kind={job.status === 'failed' ? 'error' : job.status === 'completed' ? 'success' : 'info'}
+					title={job.status === 'failed'
+						? 'Download failed'
+						: job.status === 'completed'
+							? 'Download complete'
+							: 'Download status'}
+					subtitle={job.error ? job.error : job.status}
+					lowContrast
+				/>
+			{/if}
+		</Tile>
+	</div>
 </div>
 
 <style>
@@ -334,24 +371,53 @@
 		right: 0;
 		bottom: 0;
 	}
-    .control-wrap {
-        position: absolute;
-        top: 16px;
-        right: 16px;
-        z-index: 1000;
-    }
+	.control-wrap {
+		position: absolute;
+		top: 16px;
+		right: 16px;
+		z-index: 1000;
+	}
 	.btn-row {
 		display: flex;
 		gap: 8px;
 		margin-top: 8px;
 	}
 
-	.progress { margin-top: 12px; padding: 10px; background: #f8f9fa; border-radius: 4px; }
-	.bar { height: 20px; background: #e9ecef; border-radius: 10px; overflow: hidden; margin-bottom: 6px; }
-	.fill { height: 100%; background: #28a745; transition: width 0.3s ease; }
-	.text { text-align: center; font-weight: 600; color: #666; margin-bottom: 6px; }
-	.cfg { font-size: 0.9em; color: #666; display: grid; grid-template-columns: 1fr 1fr; gap: 6px; }
-	.btn-center { margin-top: 10px; text-align: center; }
+	.progress {
+		margin-top: 12px;
+		padding: 10px;
+		background: #f8f9fa;
+		border-radius: 4px;
+	}
+	.bar {
+		height: 20px;
+		background: #e9ecef;
+		border-radius: 10px;
+		overflow: hidden;
+		margin-bottom: 6px;
+	}
+	.fill {
+		height: 100%;
+		background: #28a745;
+		transition: width 0.3s ease;
+	}
+	.text {
+		text-align: center;
+		font-weight: 600;
+		color: #666;
+		margin-bottom: 6px;
+	}
+	.cfg {
+		font-size: 0.9em;
+		color: #666;
+		display: grid;
+		grid-template-columns: 1fr 1fr;
+		gap: 6px;
+	}
+	.btn-center {
+		margin-top: 10px;
+		text-align: center;
+	}
 
-    /* Notification handled by Carbon InlineNotification */
+	/* Notification handled by Carbon InlineNotification */
 </style>

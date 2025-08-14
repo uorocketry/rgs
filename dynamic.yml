@@ -1,0 +1,42 @@
+http:
+  routers:
+    allow-main:
+      rule: "Host(`uorocketry.ca`)"
+      entryPoints: ["web", "websecure"]
+      service: main-svc
+
+    allow-tiles:
+      rule: "Host(`tiles.uorocketry.ca`)"
+      entryPoints: ["web", "websecure"]
+      service: tiles-svc
+
+    block-everything-else:
+      rule: "HostRegexp(`{any:.+}`)"   # match any host
+      entryPoints: ["web", "websecure"]
+      priority: 1                      # lower than the allowed hosts
+      service: deny-svc
+
+  services:
+    main-svc:
+      loadBalancer:
+        servers:
+          - url: "http://127.0.0.1:8080"    # your main site
+
+    tiles-svc:
+      loadBalancer:
+        servers:
+          - url: "http://127.0.0.1:8090"    # your tiles service
+
+    deny-svc:
+      loadBalancer:
+        servers:
+          - url: "http://0.0.0.0"           # dummy, won't be hit if middleware returns 403
+
+  middlewares:
+    deny-all:
+      errorpage:
+        status:
+          - "403"
+        service: deny-svc
+        query: "/"
+

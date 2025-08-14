@@ -1,34 +1,34 @@
 <script>
-  import BarChart from './BarGraph/BarGraph.svelte';
-  import { LatestAltitude } from './types';
-  
-  $: LatestAltitudeData = $LatestAltitude.data;
+	// import BarChart from './BarGraph/BarGraph.svelte';
+	// import { LatestAltitude } from './types';
 
+	// $: LatestAltitudeData = $LatestAltitude.data;
 
-  // Previous altitude and velocity
-  $: latestAltitude = LatestAltitudeData?.rocket_sensor_air[0]?.altitude ?? 0;
-  let previousAltitude = latestAltitude;
-  let velocity = 0;
-  let lastUpdateTime = Date.now(); // Track the last update time
+	// Previous altitude and velocity
+	// $: latestAltitude = LatestAltitudeData?.rocket_sensor_air[0]?.altitude ?? 0;
+	let latestAltitude = 0;
+	let previousAltitude = latestAltitude;
+	let velocity = 0;
+	let lastUpdateTime = Date.now(); // Track the last update time
 
-  // Calculate velocity based on altitude change
-  $: {
-      if (latestAltitude !== previousAltitude) {
-          console.log('Latest altitude', latestAltitude);
-          const currentTime = Date.now();
-          const elapsedTime = (currentTime - lastUpdateTime) / 1000; 
-          const altitudeChange = latestAltitude - previousAltitude;
+	// Calculate velocity based on altitude change
+	$: {
+		if (latestAltitude !== previousAltitude) {
+			console.log('Latest altitude', latestAltitude);
+			const currentTime = Date.now();
+			const elapsedTime = (currentTime - lastUpdateTime) / 1000;
+			const altitudeChange = latestAltitude - previousAltitude;
 
-          // Calculate vertical velocity in meters per second
-          velocity = altitudeChange / elapsedTime; 
-          previousAltitude = latestAltitude;
-          lastUpdateTime = currentTime; 
-      }
-  }
+			// Calculate vertical velocity in meters per second
+			velocity = altitudeChange / elapsedTime;
+			previousAltitude = latestAltitude;
+			lastUpdateTime = currentTime;
+		}
+	}
 
-  console.log('Current velocity:', velocity);
+	console.log('Current velocity:', velocity);
 
-  let clientWidth = 0;
+	let clientWidth = 0;
 	let clientHeight = 0;
 
 	// HACK To force restart of the chart component
@@ -43,11 +43,13 @@
 			restart += 1;
 		}
 	}
-
 </script>
 
 <main class="h-full w-full" bind:clientWidth bind:clientHeight>
-  {#key restart}
-  <BarChart {velocity} />
-  {/key}
+	{#key restart}
+		<!-- <BarChart {velocity} /> -->
+		<div class="flex items-center justify-center h-full">
+			<p class="text-gray-500">Velocity: {velocity.toFixed(2)} m/s</p>
+		</div>
+	{/key}
 </main>

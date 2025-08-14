@@ -1,0 +1,26 @@
+# Base Rust image with all common dependencies
+FROM rust:slim
+
+# Install all system dependencies that any Rust service might need
+RUN apt-get update \
+    && apt-get install -y --no-install-recommends \
+    pkg-config \
+    libssl-dev \
+    ca-certificates \
+    git \
+    protobuf-compiler \
+    clang \
+    llvm-dev \
+    libclang-dev \
+    libudev-dev \
+    && rm -rf /var/lib/apt/lists/*
+
+# Set common environment variables
+ENV CARGO_HOME=/usr/local/cargo
+ENV PROTOC=/usr/bin/protoc
+
+# Create a non-root user for services that need it
+RUN useradd -m -u 1000 rustuser
+
+# Set working directory
+WORKDIR /app

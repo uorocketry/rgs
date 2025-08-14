@@ -5,7 +5,10 @@ const config = {
 	compilerOptions: {
 	},
 	kit: {
-		adapter: adapter()
+		adapter: adapter(),
+		csrf: {
+			checkOrigin: false
+		}
 	}
 };
 
