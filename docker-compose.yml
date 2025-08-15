@@ -62,12 +62,13 @@ services:
             - DB_URL=http://db:8080
             - VITE_ALLOWED_HOSTS=uorocketry.ca,localhost,127.0.0.1
             - SVELTEKIT_ALLOWED_HOSTS=uorocketry.ca,localhost,127.0.0.1
-            - ALLOWED_SUBNETS=192.168.8.0/24,127.0.0.1/32
-            - PROTECTED_PATH_PREFIXES=/services/api
+            - ALLOWED_SUBNETS=192.168.8.0/24,127.0.0.1/32,172.18.0.0/16
+            # - PROTECTED_PATH_PREFIXES=/services/api
         volumes:
             - ./web:/usr/src/app
             - /usr/src/app/node_modules
             - /var/run/docker.sock:/var/run/docker.sock
+            - ./docker-compose.yml:/usr/src/app/docker-compose.yml:ro
         networks:
             - web
         depends_on:
@@ -79,12 +80,6 @@ services:
             - "traefik.http.routers.web.service=web"
             - "traefik.http.routers.web.priority=100"
             - "traefik.http.services.web.loadbalancer.server.port=3000"
-            - "traefik.http.middlewares.protected-subnet.ipallowlist.sourcerange=192.168.8.0/24,127.0.0.1/32"
-            - "traefik.http.routers.web-protected.rule=Host(`uorocketry.ca`) && (PathPrefix(`/services/api`))"
-            - "traefik.http.routers.web-protected.entrypoints=web"
-            - "traefik.http.routers.web-protected.priority=150"
-            - "traefik.http.routers.web-protected.service=web"
-            - "traefik.http.routers.web-protected.middlewares=protected-subnet"
 
     tiles:
         build:
