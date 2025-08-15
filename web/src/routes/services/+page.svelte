@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { onMount } from 'svelte';
+	import { onMount, onDestroy, tick } from 'svelte';
 	import {
 		Grid,
 		Row,
@@ -16,7 +16,6 @@
 		Dropdown,
 		TextInput,
 		NumberInput,
-		InlineLoading,
 		CodeSnippet
 	} from 'carbon-components-svelte';
 	import { toastStore } from '$lib/stores/toastStore';
@@ -29,13 +28,60 @@
 	let services: Service[] = [];
 	let loading = false;
 	let errorMsg: string | null = null;
+
 	let selectedService: string | null = null;
+
 	let logText = '';
 	let logFilter = '';
 	let logTail = 50;
+
 	let eventSource: EventSource | null = null;
 	let streaming = false;
-	let logEl: HTMLElement | null = null;
+
+	// The scrollable wrapper we control (bind below)
+	let logWrapEl: HTMLDivElement | null = null;
+
+	// Buffer writes to avoid layout thrash on heavy streams
+	let buf: string[] = [];
+	let flushScheduled = false;
+
+	function scheduleFlush() {
+		if (flushScheduled) return;
+		flushScheduled = true;
+		requestAnimationFrame(() => {
+			flushScheduled = false;
+			if (buf.length) {
+				const wasAtBottom = isAtBottom();
+				logText += (logText ? '\n' : '') + buf.join('\n');
+				buf = [];
+				// keep pinned to bottom if user hasn't scrolled up
+				if (wasAtBottom) queueMicrotask(scrollToBottom);
+			}
+		});
+	}
+
+	function isAtBottom() {
+		const el = logWrapEl;
+		if (!el) return true;
+		const slack = 4; // px tolerance
+		return el.scrollTop + el.clientHeight >= el.scrollHeight - slack;
+	}
+
+	function scrollToBottom() {
+		logWrapEl?.scrollTo({ top: logWrapEl.scrollHeight });
+	}
+
+	function validateRegex(pattern: string): RegExp | null {
+		if (!pattern) return null;
+		try {
+			// basic hardening: cap length to avoid pathological inputs
+			const p = pattern.slice(0, 256);
+			return new RegExp(p, 'i');
+		} catch {
+			toastStore.error('Invalid regex filter', 3000);
+			return null;
+		}
+	}
 
 	async function fetchServices() {
 		loading = true;
@@ -45,7 +91,7 @@
 			if (!res.ok) throw new Error(await res.text());
 			services = await res.json();
 		} catch (err: any) {
-			errorMsg = err.message ?? 'Failed to load services';
+			errorMsg = err?.message ?? 'Failed to load services';
 		} finally {
 			loading = false;
 		}
@@ -59,73 +105,151 @@
 			const proceed =
 				typeof window !== 'undefined' ? window.confirm(`Confirm ${verb} for ${name}?`) : true;
 			if (!proceed) return;
-			const res = await fetch(
-				`/services/api?action=${op}&service=${encodeURIComponent(name)}`,
-				{ method: 'POST' }
-			);
+			const res = await fetch(`/services/api?action=${op}&service=${encodeURIComponent(name)}`, {
+				method: 'POST'
+			});
 			if (!res.ok) throw new Error(await res.text());
 			await fetchServices();
 		} catch (err: any) {
-			errorMsg = err.message ?? 'Operation failed';
+			errorMsg = err?.message ?? 'Operation failed';
 		} finally {
 			loading = false;
 		}
 	}
 
 	onMount(fetchServices);
+	onDestroy(() => stopStream());
+
+	// --- Non-stream (one-shot) logs -----------------------------------------
+	let lastLogsAbort: AbortController | null = null;
 
 	async function fetchLogs() {
 		if (!selectedService) return;
+		lastLogsAbort?.abort();
+		const ac = new AbortController();
+		lastLogsAbort = ac;
 		try {
 			const params = new URLSearchParams({ service: selectedService, tail: String(logTail) });
 			if (logFilter) params.set('grep', logFilter);
-			const res = await fetch(`/services/logs/api?${params.toString()}`);
+			const res = await fetch(`/services/logs/api?${params.toString()}`, { signal: ac.signal });
+			if (!res.ok) throw new Error(await res.text());
 			logText = await res.text();
-		} catch (e) {
-			logText = 'Failed to fetch logs';
+			await tick();
+			scrollToBottom();
+		} catch (e: any) {
+			if (e?.name !== 'AbortError') {
+				logText = 'Failed to fetch logs';
+			}
 		}
 	}
+
+	// --- Streaming via SSE ---------------------------------------------------
+	let reconnectAttempts = 0;
+	const maxReconnectDelay = 30_000;
 
 	function startStream() {
 		if (!selectedService) return;
 		stopStream();
-		const params = new URLSearchParams({ service: selectedService, tail: String(logTail) });
+
+		const params = new URLSearchParams({
+			service: selectedService,
+			tail: String(logTail)
+		});
+		// NOTE: we send filter to server for efficiency; we also keep client-side filter as a guard.
+		if (logFilter) params.set('grep', logFilter);
+
 		const url = `/services/logs/stream?${params.toString()}`;
-		eventSource = new EventSource(url);
+
 		logText = '';
+		buf = [];
 		streaming = true;
-		eventSource.onmessage = (ev) => {
-			const line = ev.data;
-			if (logFilter) {
-				try {
-					const re = new RegExp(logFilter, 'i');
-					if (!re.test(line)) return;
-				} catch {}
+
+		const re = validateRegex(logFilter); // may be null
+
+		const es = new EventSource(url);
+		eventSource = es;
+
+		es.onmessage = (ev) => {
+			let msg: any;
+			try {
+				msg = JSON.parse(ev.data);
+			} catch {
+				// Fallback: treat as plain line (older servers)
+				if (
+					!logFilter ||
+					(re?.test(ev.data) ?? ev.data.toLowerCase().includes(logFilter.toLowerCase()))
+				) {
+					buf.push(ev.data);
+					scheduleFlush();
+				}
+				return;
 			}
-			logText += (logText ? '\n' : '') + line;
-			queueMicrotask(() => {
-				logEl?.scrollTo({ top: logEl.scrollHeight });
-			});
+
+			switch (msg?.type) {
+				case 'connected':
+					reconnectAttempts = 0;
+					break;
+				case 'heartbeat':
+					// ignored (EventSource would also ignore ":" comment heartbeats)
+					break;
+				case 'log': {
+					const line: string = String(msg.line ?? '');
+					if (!line) break;
+					if (re && !re.test(line)) break; // extra guard client-side
+					buf.push(line);
+					scheduleFlush();
+					break;
+				}
+				case 'error': {
+					const line: string = String(msg.line ?? 'unknown error');
+					toastStore.error(`Log stream error: ${line}`, 4000);
+					break;
+				}
+				case 'closed': {
+					toastStore.info(`Stream closed (code ${msg.code ?? 'n/a'})`, 3000);
+					stopStream(false); // no reconnect — server closed
+					break;
+				}
+				default:
+					// ignore unknown types
+					break;
+			}
 		};
-		eventSource.onerror = () => {
-			stopStream();
+
+		es.onerror = () => {
+			// network/server hiccup — try to reconnect with backoff
+			stopStream(false);
+			reconnectAttempts += 1;
+			const delay = Math.min(maxReconnectDelay, 500 * 2 ** (reconnectAttempts - 1));
+			setTimeout(() => {
+				if (!streaming) return; // user may have stopped
+				startStream();
+			}, delay);
 		};
 	}
 
-	function stopStream() {
+	function stopStream(clear = true) {
 		if (eventSource) {
 			eventSource.close();
 			eventSource = null;
 		}
-		streaming = false;
+		if (clear) {
+			streaming = false;
+		}
 	}
 
 	function toggleStream() {
 		streaming ? stopStream() : startStream();
 	}
 
-	// Dropdown items from services
+	// Update dropdown items
 	$: serviceItems = services.map((s) => ({ id: s.name, text: s.name }));
+
+	// Switch stream when user changes service
+	$: if (streaming && selectedService) {
+		// restart stream for the new service
+		startStream();
+	}
 
 	// Toast on error changes
 	let lastError: string | null = null;
@@ -140,16 +264,19 @@
 <Grid padding={true}>
 	<Row>
 		<Column>
-			<h1>Service Manager</h1>
+			<div style="display: flex; justify-content: space-between; align-items: center;">
+				<h1>Service Manager</h1>
+				<a href="/services/logs" class="cds--link"> View Service Logs → </a>
+			</div>
 		</Column>
 	</Row>
 
 	<Row>
 		<Column sm={16} md={8} lg={8}>
-			<Tile >
-				<Table >
-					<TableHead >
-						<TableRow >
+			<Tile>
+				<Table>
+					<TableHead>
+						<TableRow>
 							<TableHeader>Service</TableHeader>
 							<TableHeader>Status</TableHeader>
 							<TableHeader>Actions</TableHeader>
@@ -157,10 +284,11 @@
 					</TableHead>
 					<TableBody>
 						{#if !loading && services.length === 0}
-							<TableRow
-								><TableCell>No services found</TableCell><TableCell></TableCell><TableCell
-								></TableCell></TableRow
-							>
+							<TableRow>
+								<TableCell>No services found</TableCell>
+								<TableCell></TableCell>
+								<TableCell></TableCell>
+							</TableRow>
 						{:else}
 							{#each services as s}
 								<TableRow>
@@ -189,8 +317,11 @@
 													on:click={() => action(s.name, 'start')}>Start</Button
 												>
 											{/if}
-							<Button size="small" kind="danger" on:click={() => action(s.name, 'restart')} disabled={s.status !== 'running'}
-												>Restart</Button
+											<Button
+												size="small"
+												kind="danger"
+												on:click={() => action(s.name, 'restart')}
+												disabled={s.status !== 'running'}>Restart</Button
 											>
 											<Button
 												size="small"
@@ -216,28 +347,28 @@
 		<Column sm={16} md={8} lg={8}>
 			<Tile>
 				<Row>
-          <Column >
-            <Dropdown
-              items={serviceItems}
-              selectedId={selectedService}
-              titleText="Service"               
-              itemToString={(i) => i?.text ?? ''}
-              on:select={(e) => {
-                selectedService = e.detail.selectedItem?.id ?? null;
-              }}
-              size="sm"
-            />
-          </Column>
-        
-          <Column >
-            <TextInput
-              labelText="Filter (regex)"        
-              bind:value={logFilter}
-              placeholder="e.g. error|warn"
-              size="sm"
-            />
-          </Column>
-        </Row>
+					<Column>
+						<Dropdown
+							items={serviceItems}
+							selectedId={selectedService}
+							titleText="Service"
+							itemToString={(i) => i?.text ?? ''}
+							on:select={(e) => {
+								selectedService = e.detail.selectedItem?.id ?? null;
+							}}
+							size="sm"
+						/>
+					</Column>
+
+					<Column>
+						<TextInput
+							labelText="Filter (regex)"
+							bind:value={logFilter}
+							placeholder="e.g. error|warn"
+							size="sm"
+						/>
+					</Column>
+				</Row>
 				<Row>
 					<Column>
 						<NumberInput
@@ -267,9 +398,10 @@
 				</Row>
 				<Row>
 					<Column>
-						<CodeSnippet type="multi" wrapText>
-							{logText}
-						</CodeSnippet>
+						<!-- Wrap CodeSnippet to control scrolling explicitly -->
+						<div class="logwrap" bind:this={logWrapEl}>
+							<CodeSnippet type="multi" wrapText>{logText}</CodeSnippet>
+						</div>
 					</Column>
 				</Row>
 			</Tile>
@@ -287,7 +419,6 @@
 				'left right';
 			gap: var(--cds-spacing-02);
 		}
-
 		.action-grid > :nth-child(1) {
 			grid-area: main;
 		}
@@ -306,6 +437,12 @@
 					'left'
 					'right';
 			}
+		}
+
+		/* Make logs scrollable and keep layout stable */
+		.logwrap {
+			max-height: 50vh;
+			overflow: auto;
 		}
 	</style>
 </svelte:head>

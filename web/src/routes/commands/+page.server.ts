@@ -58,6 +58,12 @@ export const actions: Actions = {
 					if (!board) throw new Error('Board parameter is required for PowerDown.');
 					params.board = board;
 					break;
+				case 'PowerUpCamera':
+					// no parameters
+					break;
+				case 'PowerDownCamera':
+					// no parameters
+					break;
 				case 'RadioRateChange':
 					const rate = formData.get('param_rate') as string;
 					if (!rate) throw new Error('Rate parameter is required for RadioRateChange.');

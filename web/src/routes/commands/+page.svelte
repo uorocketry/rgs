@@ -32,6 +32,8 @@
 		DeployDrogue: { params: [] as string[] },
 		DeployMain: { params: [] as string[] },
 		PowerDown: { params: ['board'] },
+		PowerUpCamera: { params: [] as string[] },
+		PowerDownCamera: { params: [] as string[] },
 		RadioRateChange: { params: ['rate'] }
 	};
 	type CommandName = keyof typeof availableCommands;
@@ -39,10 +41,23 @@
 	const commandTypes = Object.keys(availableCommands) as CommandName[];
 	const boardOptions = ['PressureBoard', 'StrainBoard', 'TemperatureBoard']; // Add others if needed
 	const rateOptions = ['Fast', 'Slow'];
-import {
-    Grid, Row, Column, Tile, Dropdown, Button, InlineNotification, InlineLoading,
-    Table, TableHead, TableRow, TableHeader, TableBody, TableCell, Tag
-} from 'carbon-components-svelte';
+	import {
+		Grid,
+		Row,
+		Column,
+		Tile,
+		Dropdown,
+		Button,
+		InlineNotification,
+		InlineLoading,
+		Table,
+		TableHead,
+		TableRow,
+		TableHeader,
+		TableBody,
+		TableCell,
+		Tag
+	} from 'carbon-components-svelte';
 
 	// Function to format timestamps
 	function formatTimestamp(ts: number | null): string {
@@ -82,90 +97,181 @@ import {
 </script>
 
 <Grid padding={true}>
-    <Row>
-        <Column>
-            <Tile>
-                <h2>Dispatch New Command</h2>
-                <form method="POST" action="?/dispatch" use:enhance={({ cancel }) => { dispatching = true; return async ({ update }) => { await update({ reset: false }); }; }}>
-                    <Dropdown items={commandTypes.map((c) => ({ id: c, text: c }))} selectedId={selectedCommand} label="Command Type" on:select={(e) => (selectedCommand = e.detail.selectedItem.id)} size="sm" />
-                    {#if needsParams}
-                        <div>
-                            <h3>Parameters</h3>
-                            {#if currentParams.includes('board')}
-                                <Dropdown items={boardOptions.map((b) => ({ id: b, text: b }))} selectedId={param_board} label="Target Board" on:select={(e) => (param_board = e.detail.selectedItem.id)} size="sm" />
-                            {/if}
-                            {#if currentParams.includes('rate')}
-                                <Dropdown items={rateOptions.map((r) => ({ id: r, text: r }))} selectedId={param_rate} label="Radio Rate" on:select={(e) => (param_rate = e.detail.selectedItem.id)} size="sm" />
-                            {/if}
-                        </div>
-                    {/if}
-                    <div>
-                        <Button kind="primary" size="default" type="submit" disabled={dispatching || deleting}>{#if dispatching}<InlineLoading description="Dispatching..." />{:else}Dispatch Command{/if}</Button>
-                    </div>
-                </form>
-            </Tile>
-        </Column>
-    </Row>
+	<Row>
+		<Column>
+			<Tile>
+				<h2>Dispatch New Command</h2>
+				<form
+					method="POST"
+					action="?/dispatch"
+					use:enhance={({ cancel }) => {
+						dispatching = true;
+						return async ({ update }) => {
+							await update({ reset: false });
+						};
+					}}
+				>
+					<Dropdown
+						items={commandTypes.map((c) => ({ id: c, text: c }))}
+						selectedId={selectedCommand}
+						label="Command Type"
+						on:select={(e) => (selectedCommand = e.detail.selectedItem.id)}
+						size="sm"
+					/>
+					<input type="hidden" name="command_type" value={selectedCommand} />
+					{#if needsParams}
+						<div>
+							<h3>Parameters</h3>
+							{#if currentParams.includes('board')}
+								<Dropdown
+									items={boardOptions.map((b) => ({ id: b, text: b }))}
+									selectedId={param_board}
+									label="Target Board"
+									on:select={(e) => (param_board = e.detail.selectedItem.id)}
+									size="sm"
+								/>
+								<input type="hidden" name="param_board" value={param_board} />
+							{/if}
+							{#if currentParams.includes('rate')}
+								<Dropdown
+									items={rateOptions.map((r) => ({ id: r, text: r }))}
+									selectedId={param_rate}
+									label="Radio Rate"
+									on:select={(e) => (param_rate = e.detail.selectedItem.id)}
+									size="sm"
+								/>
+								<input type="hidden" name="param_rate" value={param_rate} />
+							{/if}
+						</div>
+					{/if}
+					<div>
+						<Button kind="primary" size="default" type="submit" disabled={dispatching || deleting}
+							>{#if dispatching}<InlineLoading description="Dispatching..." />{:else}Dispatch
+								Command{/if}</Button
+						>
+					</div>
+				</form>
+			</Tile>
+		</Column>
+	</Row>
 
-    <Row>
-        <Column>
-            <Tile>
-                <div style="display:flex; justify-content: space-between; align-items: center;">
-                    <h2>Command History (Last 100)</h2>
-                    <div>
-                        <Button kind="secondary" size="default" on:click={() => invalidateAll()} disabled={deleting || dispatching}>Refresh</Button>
-                        <form method="POST" action="?/deleteAll" use:enhance={({ cancel }) => { if (!confirmDeleteAll()) { cancel(); return; } deleting = true; return async ({ update }) => { await update(); }; }} style="display:inline-block; margin-left: 0.5rem;">
-                            <Button kind="danger" size="default" type="submit" disabled={deleting || dispatching} title="Delete All Commands">{#if deleting}<InlineLoading description="Deleting..." />{/if}Delete All</Button>
-                        </form>
-                    </div>
-                </div>
-                {#if data.error}
-                    <InlineNotification kind="error" title="Error" subtitle={data.error} hideCloseButton />
-                {/if}
-                <Table>
-                    <TableHead>
-                        <TableRow>
-                            <TableHeader>ID</TableHeader>
-                            <TableHeader>Type</TableHeader>
-                            <TableHeader>Params</TableHeader>
-                            <TableHeader>Status</TableHeader>
-                            <TableHeader>Attempts</TableHeader>
-                            <TableHeader>Created</TableHeader>
-                            <TableHeader>Queued</TableHeader>
-                            <TableHeader>Sent</TableHeader>
-                            <TableHeader>Source</TableHeader>
-                            <TableHeader>Error</TableHeader>
-                            <TableHeader>Actions</TableHeader>
-                        </TableRow>
-                    </TableHead>
-                    <TableBody>
-                        {#each data.commands as command (command.id)}
-                            <TableRow>
-                                <TableCell>{command.id}</TableCell>
-                                <TableCell>{command.command_type}</TableCell>
-                                <TableCell>{command.parameters || '-'}</TableCell>
-                                <TableCell><Tag type={command.status === 'Sent' ? 'green' : command.status === 'Failed' ? 'red' : 'cyan'} size="sm">{command.status}</Tag></TableCell>
-                                <TableCell>{command.attempts}</TableCell>
-                                <TableCell>{formatTimestamp(command.created_at)}</TableCell>
-                                <TableCell>{formatTimestamp(command.queued_at)}</TableCell>
-                                <TableCell>{formatTimestamp(command.sent_at)}</TableCell>
-                                <TableCell>{command.source_service}</TableCell>
-                                <TableCell>{command.error_message || '-'}</TableCell>
-                                <TableCell>
-                                    <form method="POST" action="?/deleteSingle" use:enhance={({ cancel }) => { if (!confirmDeleteSingle(command.id)) { cancel(); return; } deleting = true; return async ({ update }) => { await update(); }; }} class="inline-block">
-                                        <input type="hidden" name="id" value={command.id} />
-                                        <Button kind="danger" size="default" type="submit" disabled={deleting || dispatching} title={`Delete Command ${command.id}`}>{#if deleting}<InlineLoading description="Deleting..." />{:else}Delete{/if}</Button>
-                                    </form>
-                                </TableCell>
-                            </TableRow>
-                        {:else}
-                            <TableRow>
-                                <TableCell>No commands found.</TableCell>
-                            </TableRow>
-                        {/each}
-                    </TableBody>
-                </Table>
-            </Tile>
-        </Column>
-    </Row>
+	<Row>
+		<Column>
+			<Tile>
+				<div style="display:flex; justify-content: space-between; align-items: center;">
+					<h2>Command History (Last 100)</h2>
+					<div>
+						<Button
+							kind="secondary"
+							size="default"
+							on:click={() => invalidateAll()}
+							disabled={deleting || dispatching}>Refresh</Button
+						>
+						<form
+							method="POST"
+							action="?/deleteAll"
+							use:enhance={({ cancel }) => {
+								if (!confirmDeleteAll()) {
+									cancel();
+									return;
+								}
+								deleting = true;
+								return async ({ update }) => {
+									await update();
+								};
+							}}
+							style="display:inline-block; margin-left: 0.5rem;"
+						>
+							<Button
+								kind="danger"
+								size="default"
+								type="submit"
+								disabled={deleting || dispatching}
+								title="Delete All Commands"
+								>{#if deleting}<InlineLoading description="Deleting..." />{/if}Delete All</Button
+							>
+						</form>
+					</div>
+				</div>
+				{#if data.error}
+					<InlineNotification kind="error" title="Error" subtitle={data.error} hideCloseButton />
+				{/if}
+				<Table>
+					<TableHead>
+						<TableRow>
+							<TableHeader>ID</TableHeader>
+							<TableHeader>Type</TableHeader>
+							<TableHeader>Params</TableHeader>
+							<TableHeader>Status</TableHeader>
+							<TableHeader>Attempts</TableHeader>
+							<TableHeader>Created</TableHeader>
+							<TableHeader>Queued</TableHeader>
+							<TableHeader>Sent</TableHeader>
+							<TableHeader>Source</TableHeader>
+							<TableHeader>Error</TableHeader>
+							<TableHeader>Actions</TableHeader>
+						</TableRow>
+					</TableHead>
+					<TableBody>
+						{#each data.commands as command (command.id)}
+							<TableRow>
+								<TableCell>{command.id}</TableCell>
+								<TableCell>{command.command_type}</TableCell>
+								<TableCell>{command.parameters || '-'}</TableCell>
+								<TableCell
+									><Tag
+										type={command.status === 'Sent'
+											? 'green'
+											: command.status === 'Failed'
+												? 'red'
+												: 'cyan'}
+										size="sm">{command.status}</Tag
+									></TableCell
+								>
+								<TableCell>{command.attempts}</TableCell>
+								<TableCell>{formatTimestamp(command.created_at)}</TableCell>
+								<TableCell>{formatTimestamp(command.queued_at)}</TableCell>
+								<TableCell>{formatTimestamp(command.sent_at)}</TableCell>
+								<TableCell>{command.source_service}</TableCell>
+								<TableCell>{command.error_message || '-'}</TableCell>
+								<TableCell>
+									<form
+										method="POST"
+										action="?/deleteSingle"
+										use:enhance={({ cancel }) => {
+											if (!confirmDeleteSingle(command.id)) {
+												cancel();
+												return;
+											}
+											deleting = true;
+											return async ({ update }) => {
+												await update();
+											};
+										}}
+										class="inline-block"
+									>
+										<input type="hidden" name="id" value={command.id} />
+										<Button
+											kind="danger"
+											size="default"
+											type="submit"
+											disabled={deleting || dispatching}
+											title={`Delete Command ${command.id}`}
+											>{#if deleting}<InlineLoading
+													description="Deleting..."
+												/>{:else}Delete{/if}</Button
+										>
+									</form>
+								</TableCell>
+							</TableRow>
+						{:else}
+							<TableRow>
+								<TableCell>No commands found.</TableCell>
+							</TableRow>
+						{/each}
+					</TableBody>
+				</Table>
+			</Tile>
+		</Column>
+	</Row>
 </Grid>
