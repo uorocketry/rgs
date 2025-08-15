@@ -104,6 +104,7 @@ export const handle: Handle = async ({ event, resolve }) => {
     if (isProtectedPath(event.url.pathname, protectedPrefixes)) {
         const ok = ip !== 'unknown' && ipInCidrs(ip, allowedCidrs);
         if (!ok) {
+            console.log(`[req] ${event.request.method} ${event.url.pathname} ip=${ip} denied`);
             return new Response('Forbidden! This page is for internal use only. Want to know more? Come visit our booth!', { status: 403 });
         }
     }
