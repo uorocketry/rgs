@@ -6,6 +6,8 @@ pub enum MenuItem {
     DeployDrogue,
     DeployMain,
     PowerDown,
+    PowerUpCamera,
+    PowerDownCamera,
     RadioRateLow,
     RadioRateMedium,
     RadioRateHigh,
@@ -20,6 +22,8 @@ impl MenuItem {
             DeployDrogue,
             DeployMain,
             PowerDown,
+            PowerUpCamera,
+            PowerDownCamera,
             RadioRateLow,
             RadioRateMedium,
             RadioRateHigh,
@@ -34,6 +38,8 @@ impl MenuItem {
             MenuItem::DeployDrogue => "DeployDrogue { val: true }",
             MenuItem::DeployMain => "DeployMain { val: true }",
             MenuItem::PowerDown => "PowerDown { board: <node> }",
+            MenuItem::PowerUpCamera => "PowerUpCamera",
+            MenuItem::PowerDownCamera => "PowerDownCamera",
             MenuItem::RadioRateLow => "RadioRateChange { rate: LOW }",
             MenuItem::RadioRateMedium => "RadioRateChange { rate: MEDIUM }",
             MenuItem::RadioRateHigh => "RadioRateChange { rate: HIGH }",
@@ -70,6 +76,14 @@ pub fn build_command(
             data: Some(cmd::command::Data::PowerDown(cmd::PowerDown {
                 board: target_node,
             })),
+        },
+        MenuItem::PowerUpCamera => cmd::Command {
+            node: target_node,
+            data: Some(cmd::command::Data::PowerUpCamera(cmd::PowerUpCamera {})),
+        },
+        MenuItem::PowerDownCamera => cmd::Command {
+            node: target_node,
+            data: Some(cmd::command::Data::PowerDownCamera(cmd::PowerDownCamera {})),
         },
         MenuItem::RadioRateLow => cmd::Command {
             node: target_node,

@@ -25,6 +25,8 @@ pub async fn save_command(transaction: &Transaction, command: &cmd::Command) -> 
         Some(cmd::command::Data::DeployDrogue(_)) => "DeployDrogue",
         Some(cmd::command::Data::DeployMain(_)) => "DeployMain",
         Some(cmd::command::Data::PowerDown(_)) => "PowerDown",
+        Some(cmd::command::Data::PowerUpCamera(_)) => "PowerUpCamera",
+        Some(cmd::command::Data::PowerDownCamera(_)) => "PowerDownCamera",
         Some(cmd::command::Data::RadioRateChange(_)) => "RadioRateChange",
         Some(cmd::command::Data::Online(_)) => "Online",
         Some(cmd::command::Data::Ping(_)) => "Ping",
@@ -65,6 +67,24 @@ pub async fn save_command(transaction: &Transaction, command: &cmd::Command) -> 
                 .execute(
                     "INSERT INTO PowerDown (board) VALUES (?)",
                     params![node_to_string(power_down.board)?],
+                )
+                .await?;
+            transaction.last_insert_rowid()
+        }
+        cmd::command::Data::PowerUpCamera(_) => {
+            transaction
+                .execute(
+                    "INSERT INTO PowerUpCamera DEFAULT VALUES",
+                    params![],
+                )
+                .await?;
+            transaction.last_insert_rowid()
+        }
+        cmd::command::Data::PowerDownCamera(_) => {
+            transaction
+                .execute(
+                    "INSERT INTO PowerDownCamera DEFAULT VALUES",
+                    params![],
                 )
                 .await?;
             transaction.last_insert_rowid()

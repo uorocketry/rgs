@@ -21,6 +21,8 @@ pub fn summarize_command(node_from: i32, command: &cmd::Command) -> SentMessage 
             "PowerDown board={:?} ",
             Node::try_from(v.board).unwrap_or(Node::Unspecified)
         ),
+        Some(cmd::command::Data::PowerUpCamera(_)) => "PowerUpCamera".to_string(),
+        Some(cmd::command::Data::PowerDownCamera(_)) => "PowerDownCamera".to_string(),
         Some(cmd::command::Data::RadioRateChange(v)) => format!("RadioRateChange rate={} ", v.rate),
         Some(cmd::command::Data::Ping(v)) => format!("Ping id={} ", v.id),
         Some(cmd::command::Data::Pong(v)) => format!("Pong id={} ", v.id),
@@ -107,6 +109,8 @@ pub fn summarize_received_bytes(bytes: &[u8]) -> SentMessage {
                             "PowerDown board={:?}",
                             Node::try_from(v.board).unwrap_or(Node::Unspecified)
                         ),
+                        Some(cmd::command::Data::PowerUpCamera(_)) => "PowerUpCamera".to_string(),
+                        Some(cmd::command::Data::PowerDownCamera(_)) => "PowerDownCamera".to_string(),
                         Some(cmd::command::Data::RadioRateChange(v)) => {
                             format!("RadioRateChange rate={}", v.rate)
                         }

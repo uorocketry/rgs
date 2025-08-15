@@ -97,6 +97,15 @@ CREATE TABLE IF NOT EXISTS RadioRateChange (
     rate TEXT NOT NULL
 );
 
+-- Camera power control commands (no additional fields for now)
+CREATE TABLE IF NOT EXISTS PowerUpCamera (
+    id INTEGER PRIMARY KEY AUTOINCREMENT
+);
+
+CREATE TABLE IF NOT EXISTS PowerDownCamera (
+    id INTEGER PRIMARY KEY AUTOINCREMENT
+);
+
 
 
 

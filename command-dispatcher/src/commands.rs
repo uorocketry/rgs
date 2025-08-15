@@ -111,6 +111,12 @@ pub async fn process_single_command(
             let board = parse_board(&params.board) as i32;
             cmd::Command { node: board, data: Some(cmd::command::Data::PowerDown(cmd::PowerDown { board })) }
         }
+        "PowerUpCamera" => {
+            cmd::Command { node: default_target, data: Some(cmd::command::Data::PowerUpCamera(cmd::PowerUpCamera {})) }
+        }
+        "PowerDownCamera" => {
+            cmd::Command { node: default_target, data: Some(cmd::command::Data::PowerDownCamera(cmd::PowerDownCamera {})) }
+        }
         "RadioRateChange" => {
             let params_str = command_row.parameters.as_deref().ok_or_else(|| {
                 (
