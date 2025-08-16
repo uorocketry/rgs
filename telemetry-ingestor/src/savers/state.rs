@@ -6,12 +6,7 @@ pub async fn save_state(transaction: &Transaction, state_value: i32) -> Result<i
         .map(|s| format!("{:?}", s))
         .unwrap_or_else(|_| "UNKNOWN".to_string());
     transaction
-        .execute(
-            "INSERT INTO State (state) VALUES (?)",
-            params![state_str],
-        )
+        .execute("INSERT INTO State (state) VALUES (?)", params![state_str])
         .await?;
     Ok(transaction.last_insert_rowid())
 }
-
-

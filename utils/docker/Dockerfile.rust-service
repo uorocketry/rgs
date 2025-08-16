@@ -15,9 +15,6 @@ COPY rust-toolchain.toml ./
 COPY Cargo.toml Cargo.lock ./
 COPY command-dispatcher/Cargo.toml ./command-dispatcher/Cargo.toml
 COPY telemetry-ingestor/Cargo.toml ./telemetry-ingestor/Cargo.toml
-COPY heartbeat/Cargo.toml ./heartbeat/Cargo.toml
-COPY sergw/Cargo.toml ./sergw/Cargo.toml
-COPY coord_mocker/Cargo.toml ./coord_mocker/Cargo.toml
 COPY hydra_manager_daemon/Cargo.toml ./hydra_manager_daemon/Cargo.toml
 COPY utils/manual-command-dispatcher/Cargo.toml ./utils/manual-command-dispatcher/Cargo.toml
 
@@ -25,17 +22,11 @@ COPY utils/manual-command-dispatcher/Cargo.toml ./utils/manual-command-dispatche
 RUN mkdir -p \
     command-dispatcher/src \
     telemetry-ingestor/src \
-    heartbeat/src \
-    sergw/src \
-    coord_mocker/src \
     hydra_manager_daemon/src \
     utils/manual-command-dispatcher/src \
     && printf 'fn main(){}\n' | tee \
     command-dispatcher/src/main.rs \
     telemetry-ingestor/src/main.rs \
-    heartbeat/src/main.rs \
-    sergw/src/main.rs \
-    coord_mocker/src/main.rs \
     hydra_manager_daemon/src/main.rs \
     utils/manual-command-dispatcher/src/main.rs >/dev/null
 

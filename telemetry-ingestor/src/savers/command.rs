@@ -73,19 +73,13 @@ pub async fn save_command(transaction: &Transaction, command: &cmd::Command) -> 
         }
         cmd::command::Data::PowerUpCamera(_) => {
             transaction
-                .execute(
-                    "INSERT INTO PowerUpCamera DEFAULT VALUES",
-                    params![],
-                )
+                .execute("INSERT INTO PowerUpCamera DEFAULT VALUES", params![])
                 .await?;
             transaction.last_insert_rowid()
         }
         cmd::command::Data::PowerDownCamera(_) => {
             transaction
-                .execute(
-                    "INSERT INTO PowerDownCamera DEFAULT VALUES",
-                    params![],
-                )
+                .execute("INSERT INTO PowerDownCamera DEFAULT VALUES", params![])
                 .await?;
             transaction.last_insert_rowid()
         }
@@ -107,18 +101,17 @@ pub async fn save_command(transaction: &Transaction, command: &cmd::Command) -> 
                 .await?;
             transaction.last_insert_rowid()
         }
-        cmd::command::Data::Ping(v) => {
-            // Optional: store ping id somewhere if desired
+        cmd::command::Data::Ping(ping) => {
             transaction
-                .execute("INSERT INTO ProtoLog (message) VALUES (?)", params![vec![]])
+                .execute("INSERT INTO Ping (ping_id) VALUES (?)", params![ping.id])
                 .await?;
-            v.id as i64
+            transaction.last_insert_rowid()
         }
-        cmd::command::Data::Pong(v) => {
+        cmd::command::Data::Pong(pong) => {
             transaction
-                .execute("INSERT INTO ProtoLog (message) VALUES (?)", params![vec![]])
+                .execute("INSERT INTO Pong (pong_id) VALUES (?)", params![pong.id])
                 .await?;
-            v.id as i64
+            transaction.last_insert_rowid()
         }
     };
 

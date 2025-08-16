@@ -111,50 +111,54 @@ services:
             - db
         labels:
             - "traefik.enable=false"
-    # telemetry-ingestor:
-    #     build:
-    #         context: .
-    #         dockerfile: utils/docker/Dockerfile.rust-service
-    #         args:
-    #             CRATE: telemetry-ingestor
-    #     networks:
-    #         - web
-    #     command: [ "/app/bin/telemetry-ingestor", "--libsql-url", "http://db:8080", "--gateway-connection-string", "tcpout:sergw:5656" ]
-    #     restart: unless-stopped
-    #     depends_on:
-    #         - db
-    #     labels:
-    #         - "traefik.enable=false"
+    telemetry-ingestor:
+        image: archlinux:latest
+        networks:
+            - web
+        volumes:
+            - ./target/debug:/app/bin:ro
+        working_dir: /app
+        command: [ "/app/bin/telemetry-ingestor", "--libsql-url", "http://db:8080", "--gateway-connection-string", "tcpout:sergw:5656" ]
+        restart: unless-stopped
+        depends_on:
+            - db
+        labels:
+            - "traefik.enable=false"
 
-    # command-dispatcher:
-    #     build:
-    #         context: .
-    #         dockerfile: utils/docker/Dockerfile.rust-service
-    #         args:
-    #             CRATE: command-dispatcher
-    #     networks:
-    #         - web
-    #     command: [ "/app/bin/command-dispatcher", "--libsql-url", "http://db:8080", "--gateway-connection-string", "tcpout:sergw:5656" ]
-    #     restart: unless-stopped
-    #     depends_on:
-    #         - db
-    #     labels:
-    #         - "traefik.enable=false"
-    # sergw:
-    #     image: golang:bookworm
-    #     networks:
-    #         - web
-    #     volumes:
-    #         - ./sergw:/app
-    #     working_dir: /app
-    #     devices:
-    #         - /dev/ttyUSB0:/dev/ttyUSB0:rwm
-    #     ports:
-    #         - "5656:5656"
-    #     restart: unless-stopped
-    #     labels:
-    #         - "traefik.enable=false"
-    #     command: [ "go", "run", ".", "listen", "--serial", "/dev/ttyUSB0", "--baud", "57600", "--verbose", "--host", "0.0.0.0:5656" ]
+    command-dispatcher:
+        # build:
+        #     context: .
+        #     dockerfile: utils/docker/Dockerfile.rust-service
+        #     args:
+        #         CRATE: command-dispatcher
+        image: archlinux:latest
+        volumes:
+            - ./target/debug:/app/bin:ro
+        working_dir: /app
+        networks:
+            - web
+        # command: [ "/app/bin/command-dispatcher", "--libsql-url", "http://db:8080", "--gateway-connection-string", "tcpout:sergw:5656" ]
+        command: [ "/app/bin/command-dispatcher", "--libsql-url", "http://db:8080", "--gateway-connection-string", "tcpout:sergw:5656" ]
+        restart: unless-stopped
+        depends_on:
+            - db
+        labels:
+            - "traefik.enable=false"
+    sergw:
+        image: golang:bookworm
+        networks:
+            - web
+        volumes:
+            - ./sergw:/app
+        working_dir: /app
+        devices:
+            - /dev/ttyUSB0:/dev/ttyUSB0:rwm
+        ports:
+            - "5656:5656"
+        restart: unless-stopped
+        labels:
+            - "traefik.enable=false"
+        command: [ "go", "run", ".", "listen", "--serial", "/dev/ttyUSB0", "--baud", "57600", "--verbose", "--host", "0.0.0.0:5656" ]
 
 networks:
     web:

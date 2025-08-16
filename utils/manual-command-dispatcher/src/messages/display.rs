@@ -43,13 +43,24 @@ pub fn summarize_received_bytes(bytes: &[u8]) -> SentMessage {
                 Some(radio::radio_frame::Payload::Sbg(sbg)) => {
                     if let Some(inner) = &sbg.data {
                         let kind = match inner {
-                            sbg_data::Data::GpsPos(_) => "SbgGpsPos",
-                            sbg_data::Data::UtcTime(_) => "SbgUtcTime",
-                            sbg_data::Data::Imu(_) => "SbgImu",
-                            sbg_data::Data::EkfQuat(_) => "SbgEkfQuat",
-                            sbg_data::Data::EkfNav(_) => "SbgEkfNav",
-                            sbg_data::Data::GpsVel(_) => "SbgGpsVel",
-                            sbg_data::Data::Air(_) => "SbgAir",
+                            sbg_data::Data::GpsPos(v) => match &v.data {
+                                Some(gps_data) => format!(
+                                    "SbgGpsPos lat: {:?}, lon: {:?}",
+                                    gps_data.latitude, gps_data.longitude
+                                ),
+                                None => match &v.status {
+                                    Some(status) => {
+                                        format!("SbgGpsPos <no data> status: {:?}", status)
+                                    }
+                                    None => "SbgGpsPos <no data> <no status>".to_string(),
+                                },
+                            },
+                            sbg_data::Data::UtcTime(_) => "SbgUtcTime".to_string(),
+                            sbg_data::Data::Imu(_) => "SbgImu".to_string(),
+                            sbg_data::Data::EkfQuat(_) => "SbgEkfQuat".to_string(),
+                            sbg_data::Data::EkfNav(_) => "SbgEkfNav".to_string(),
+                            sbg_data::Data::GpsVel(_) => "SbgGpsVel".to_string(),
+                            sbg_data::Data::Air(_) => "SbgAir".to_string(),
                         };
                         return SentMessage {
                             summary: format!("RadioFrame Sbg {} from node={:?}", kind, origin),
@@ -115,7 +126,9 @@ pub fn summarize_received_bytes(bytes: &[u8]) -> SentMessage {
                             Node::try_from(v.board).unwrap_or(Node::Unspecified)
                         ),
                         Some(cmd::command::Data::PowerUpCamera(_)) => "PowerUpCamera".to_string(),
-                        Some(cmd::command::Data::PowerDownCamera(_)) => "PowerDownCamera".to_string(),
+                        Some(cmd::command::Data::PowerDownCamera(_)) => {
+                            "PowerDownCamera".to_string()
+                        }
                         Some(cmd::command::Data::RadioRateChange(v)) => {
                             format!("RadioRateChange rate={}", v.rate)
                         }

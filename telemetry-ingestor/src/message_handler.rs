@@ -54,6 +54,7 @@ pub async fn handle_messages(
                         message_buffer.push(data.message.to_vec());
                     }
                     MavMessage::RADIO_STATUS(data) => {
+                        info!("Received radio status: {:?}", data);
                         let rssi_val = data.rssi as i64;
                         let ts = Utc::now().timestamp();
                         let conn_clone = db_connection.clone();

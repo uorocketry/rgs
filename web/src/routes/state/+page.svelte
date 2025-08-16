@@ -15,10 +15,9 @@
 		TableCell
 	} from 'carbon-components-svelte';
 
-	type StateUpdate = { id: number; state: string; ts: number | null };
+	type Item = { id: number; kind: 'State' | 'Event'; value: string; ts: number | null };
 
-	let current: StateUpdate | null = null;
-	let history: StateUpdate[] = [];
+	let items: Item[] = [];
 	let connected = false;
 	let error: string | null = null;
 	let eventSource: EventSource | null = null;
@@ -30,14 +29,17 @@
 			connected = true;
 			error = null;
 
-			es.addEventListener('state', (e: MessageEvent) => {
+			es.addEventListener('snapshot', (e: MessageEvent) => {
 				try {
-					const data = JSON.parse(e.data) as StateUpdate;
-					current = data;
-					history = [data, ...history].slice(0, 50);
-				} catch (err) {
-					console.error('Failed to parse state payload', err);
-				}
+					items = JSON.parse(e.data) as Item[];
+				} catch {}
+			});
+
+			es.addEventListener('append', (e: MessageEvent) => {
+				try {
+					const newItems = JSON.parse(e.data) as Item[];
+					items = [...newItems, ...items].slice(0, 100);
+				} catch {}
 			});
 
 			es.onerror = (e) => {
@@ -71,11 +73,7 @@
 		<Column>
 			<h1 class="cds--type-productive-heading-03">
 				Flight State
-				{#if current}
-					<Tag>{formatTs(current.ts)}</Tag>
-				{:else}
-					<Tag>Waiting…</Tag>
-				{/if}
+				<Tag>{items[0] ? formatTs(items[0].ts) : 'Waiting…'}</Tag>
 				{#if !connected}
 					<InlineLoading description={error ?? 'Connecting…'} />
 				{/if}
@@ -86,12 +84,15 @@
 	<Row>
 		<Column>
 			<Tile>
-				{#if current}
+				<h3>Latest</h3>
+				{#if items[0]}
 					<p>
-						Current: <Tag type="green">{current.state}</Tag>
+						<Tag type={items[0].kind === 'State' ? 'green' : 'cyan'}>{items[0].kind}</Tag>
+						<Tag>{items[0].value}</Tag>
+						<span> {formatTs(items[0].ts)}</span>
 					</p>
 				{:else}
-					<p>No state yet…</p>
+					<p>No data yet…</p>
 				{/if}
 			</Tile>
 		</Column>
@@ -100,29 +101,48 @@
 	<Row>
 		<Column>
 			<Tile>
-				<h3>Recent changes</h3>
-				{#if history.length === 0}
-					<p>—</p>
-				{:else}
-					<Table>
-						<TableHead>
+				<h3>Recent State changes</h3>
+				<Table>
+					<TableHead>
+						<TableRow>
+							<TableHeader>ID</TableHeader>
+							<TableHeader>State</TableHeader>
+							<TableHeader>Timestamp</TableHeader>
+						</TableRow>
+					</TableHead>
+					<TableBody>
+						{#each items.filter((i) => i.kind === 'State') as it (it.id)}
 							<TableRow>
-								<TableHeader>ID</TableHeader>
-								<TableHeader>State</TableHeader>
-								<TableHeader>Timestamp</TableHeader>
+								<TableCell>{it.id}</TableCell>
+								<TableCell><Tag type="green">{it.value}</Tag></TableCell>
+								<TableCell>{formatTs(it.ts)}</TableCell>
 							</TableRow>
-						</TableHead>
-						<TableBody>
-							{#each history as h (h.id)}
-								<TableRow>
-									<TableCell>{h.id}</TableCell>
-									<TableCell><Tag>{h.state}</Tag></TableCell>
-									<TableCell>{formatTs(h.ts)}</TableCell>
-								</TableRow>
-							{/each}
-						</TableBody>
-					</Table>
-				{/if}
+						{/each}
+					</TableBody>
+				</Table>
+			</Tile>
+		</Column>
+		<Column>
+			<Tile>
+				<h3>Recent Event changes</h3>
+				<Table>
+					<TableHead>
+						<TableRow>
+							<TableHeader>ID</TableHeader>
+							<TableHeader>Event</TableHeader>
+							<TableHeader>Timestamp</TableHeader>
+						</TableRow>
+					</TableHead>
+					<TableBody>
+						{#each items.filter((i) => i.kind === 'Event') as it (it.id)}
+							<TableRow>
+								<TableCell>{it.id}</TableCell>
+								<TableCell><Tag type="cyan">{it.value}</Tag></TableCell>
+								<TableCell>{formatTs(it.ts)}</TableCell>
+							</TableRow>
+						{/each}
+					</TableBody>
+				</Table>
 			</Tile>
 		</Column>
 	</Row>
