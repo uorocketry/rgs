@@ -146,6 +146,7 @@
 			title: 'Flight Data',
 			icon: 'fas fa-rocket',
 			items: [
+				{ href: '/state', tip: 'State', icon: 'fas fa-flag-checkered' },
 				{ href: '/sbg', tip: 'SBG Sensors', icon: 'fas fa-satellite' },
 				{ href: '/pfd', tip: 'PFD', icon: 'fas fa-plane' },
 				{ href: '/navball', tip: 'Navball', icon: 'fas fa-compass' }

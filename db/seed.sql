@@ -285,9 +285,6 @@ CREATE TABLE IF NOT EXISTS Barometer (
     altitude_m REAL
 );
 
--- Removed deprecated generic GPS and ProtoLog tables
-
--- Removed deprecated StateMessage table in favor of separate State and Event tables
 
 --#endregion
 
