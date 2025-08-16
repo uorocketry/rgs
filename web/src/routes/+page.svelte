@@ -1,37 +1,37 @@
-<div>
-	<article class="bg-green-600">
-		<h1>RGS Ground server</h1>
-	</article>
+<script>
+	import {
+		Grid,
+		Row,
+		Column,
+		Header,
+		HeaderNav,
+		HeaderNavItem,
+		Content,
+		ClickableTile
+	} from 'carbon-components-svelte';
+</script>
 
-	<!-- Test navigation buttons -->
-
-	<button>B1</button>
-	<button>B2</button>
-	<button>B3</button>
-
-
-		<h1 class="p-4 corner-bracketed w-min relative text-2xl">Test</h1>
-</div>
-
-<style>
-button {
-	background-color: #fff;
-	color: #000;
-	border: 1px solid #000;
-	padding: 10px;
-	border-radius: 5px;
-	cursor: pointer;
-}
-
-button:focus {
-	background-color: #000;
-	outline: 2px solid #000;
-	outline-offset: 2px;
-}
-
-button:active {
-	background-color: #000;
-	color: #fff;
-}
-</style>
-
+<Content>
+	<Grid>
+		<Row>
+			<Column>
+				<ClickableTile href="/comm">
+					<h2>Communications</h2>
+					<p>Go to Communications</p>
+				</ClickableTile>
+			</Column>
+			<Column>
+				<ClickableTile href="/health">
+					<h2>Health</h2>
+					<p>Go to Health</p>
+				</ClickableTile>
+			</Column>
+			<Column>
+				<ClickableTile href="/settings">
+					<h2>Settings</h2>
+					<p>Go to Settings</p>
+				</ClickableTile>
+			</Column>
+		</Row>
+	</Grid>
+</Content>
