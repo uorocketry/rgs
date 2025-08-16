@@ -87,9 +87,14 @@ pub fn summarize_received_bytes(bytes: &[u8]) -> SentMessage {
                         summary: format!("RadioFrame Log from node={:?}", origin),
                     };
                 }
-                Some(radio::radio_frame::Payload::State(_m)) => {
+                Some(radio::radio_frame::Payload::State(_s)) => {
                     return SentMessage {
                         summary: format!("RadioFrame State from node={:?}", origin),
+                    };
+                }
+                Some(radio::radio_frame::Payload::Event(_e)) => {
+                    return SentMessage {
+                        summary: format!("RadioFrame Event from node={:?}", origin),
                     };
                 }
                 Some(radio::radio_frame::Payload::Command(m)) => {

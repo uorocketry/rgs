@@ -120,6 +120,11 @@ CREATE TABLE IF NOT EXISTS State (
     state TEXT NOT NULL
 );
 
+CREATE TABLE IF NOT EXISTS Event (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    event TEXT NOT NULL
+);
+
 
 --#endregion
 
@@ -282,10 +287,7 @@ CREATE TABLE IF NOT EXISTS Barometer (
 
 -- Removed deprecated generic GPS and ProtoLog tables
 
-CREATE TABLE IF NOT EXISTS StateMessage (
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
-    state TEXT NOT NULL
-);
+-- Removed deprecated StateMessage table in favor of separate State and Event tables
 
 --#endregion
 

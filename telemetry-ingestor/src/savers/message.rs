@@ -9,7 +9,7 @@ use prost::Message as _;
 
 use super::{
     barometer::save_barometer, command::save_command, imu::save_imu, log::save_log,
-    madgwick::save_madgwick, sbg::save_sbg, state_msg::save_state,
+    madgwick::save_madgwick, sbg::save_sbg, state::save_state, event::save_event,
 };
 
 async fn insert_radio_message(
@@ -90,9 +90,13 @@ pub async fn save_messages_batch(
                         let data_id = save_log(&transaction, &m).await?;
                         insert_radio_message(&transaction, node, "Log", data_id).await?;
                     }
-                    Some(radio::radio_frame::Payload::State(m)) => {
-                        let data_id = save_state(&transaction, &m).await?;
+                    Some(radio::radio_frame::Payload::State(s)) => {
+                        let data_id = save_state(&transaction, s).await?;
                         insert_radio_message(&transaction, node, "State", data_id).await?;
+                    }
+                    Some(radio::radio_frame::Payload::Event(e)) => {
+                        let data_id = save_event(&transaction, e).await?;
+                        insert_radio_message(&transaction, node, "Event", data_id).await?;
                     }
                     Some(radio::radio_frame::Payload::Command(m)) => {
                         let data_id = save_command(&transaction, &m).await?;
