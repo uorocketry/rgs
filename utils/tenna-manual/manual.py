@@ -21,7 +21,7 @@ class ManualODriveControl:
         self.controller_active = False
 
         self.cfg = {
-            'gear_ratio': 40,
+            'gear_ratios': {'yaw': 30, 'pitch': 36},
             'pole_pairs': 7,
             'torque_constant': 8.27 / 150,
             'current_limit': 8.0,
@@ -31,8 +31,8 @@ class ManualODriveControl:
             'speed_step': 1.5,
             'speed_mult_limits': (0.1, 3.0),
             'limits': {
-                'yaw': (-90, 90),
-                'pitch': (-80, 80),
+                'yaw': (-370, 370),
+                'pitch': (-100, 13),
             },
             'gains': {
                 'pos': 4.0,
@@ -110,7 +110,7 @@ class ManualODriveControl:
         pos = {}
         for name, axis in self.axes.items():
             turns = axis.controller.input_pos - self.offsets[name]
-            pos[name] = (turns / self.cfg['gear_ratio']) * 360.0
+            pos[name] = (turns / self.cfg['gear_ratios'][name]) * 360.0
         return pos
 
     def set_pos(self, pitch=None, yaw=None, verbose=True):
@@ -121,8 +121,10 @@ class ManualODriveControl:
             clamped = max(lo, min(hi, deg))
             if verbose and clamped != deg:
                 print(f"WARNING: {name.capitalize()} clamped to {clamped}°")
-            turns = (clamped / 360.0) * self.cfg['gear_ratio'] + self.offsets[name]
+            turns = (clamped / 360.0) * self.cfg['gear_ratios'][name] + self.offsets[name]
             self.axes[name].controller.input_pos = turns
+
+        print(f"Pitch Degrees: {pitch}, Yaw Degrees: {yaw}")
         return not self.has_errors()
 
     def stop(self):
