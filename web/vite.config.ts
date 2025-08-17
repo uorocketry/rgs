@@ -1,10 +1,10 @@
 import { sveltekit } from '@sveltejs/kit/vite';
 import { loadEnv } from 'vite';
-import { viteStaticCopy } from 'vite-plugin-static-copy';
+// import { viteStaticCopy } from 'vite-plugin-static-copy';
 import { defineConfig } from 'vitest/config';
-
-const cesiumSource = './node_modules/cesium/Build/Cesium';
-const cesiumBaseUrl = 'cesium';
+import tailwindcss from '@tailwindcss/vite'
+// const cesiumSource = './node_modules/cesium/Build/Cesium';
+// const cesiumBaseUrl = 'cesium';
 
 const config = (mode: string) => {
 	// Make environment variables available from .env available
@@ -24,14 +24,15 @@ const config = (mode: string) => {
 
 		plugins: [
 			sveltekit(),
-			viteStaticCopy({
-				targets: [
-					{ src: `${cesiumSource}/ThirdParty`, dest: cesiumBaseUrl },
-					{ src: `${cesiumSource}/Workers`, dest: cesiumBaseUrl },
-					{ src: `${cesiumSource}/Assets`, dest: cesiumBaseUrl },
-					{ src: `${cesiumSource}/Widgets`, dest: cesiumBaseUrl }
-				]
-			})
+			tailwindcss(),
+			// viteStaticCopy({
+			// 	targets: [
+			// 		{ src: `${cesiumSource}/ThirdParty`, dest: cesiumBaseUrl },
+			// 		{ src: `${cesiumSource}/Workers`, dest: cesiumBaseUrl },
+			// 		{ src: `${cesiumSource}/Assets`, dest: cesiumBaseUrl },
+			// 		{ src: `${cesiumSource}/Widgets`, dest: cesiumBaseUrl }
+			// 	]
+			// })
 		],
 		ssr: {
 			noExternal: ['three']
