@@ -31,14 +31,33 @@
 
 			es.addEventListener('snapshot', (e: MessageEvent) => {
 				try {
-					items = JSON.parse(e.data) as Item[];
+					const newItems = JSON.parse(e.data) as Item[];
+					// Deduplicate items by id and timestamp to prevent key conflicts
+					const seen = new Set<string>();
+					items = newItems.filter((item) => {
+						const key = `${item.id}-${item.ts}`;
+						if (seen.has(key)) return false;
+						seen.add(key);
+						return true;
+					});
 				} catch {}
 			});
 
 			es.addEventListener('append', (e: MessageEvent) => {
 				try {
 					const newItems = JSON.parse(e.data) as Item[];
-					items = [...newItems, ...items].slice(0, 100);
+					// Deduplicate and merge new items
+					const seen = new Set<string>();
+					const existingKeys = new Set(items.map((item) => `${item.id}-${item.ts}`));
+
+					const uniqueNewItems = newItems.filter((item) => {
+						const key = `${item.id}-${item.ts}`;
+						if (seen.has(key) || existingKeys.has(key)) return false;
+						seen.add(key);
+						return true;
+					});
+
+					items = [...uniqueNewItems, ...items].slice(0, 100);
 				} catch {}
 			});
 
@@ -61,6 +80,11 @@
 		if (!ts) return 'N/A';
 		const d = new Date(ts * 1000);
 		return d.toLocaleString();
+	}
+
+	// Create unique keys for each items to prevent Svelte key conflicts
+	function getUniqueKey(item: Item, index: number): string {
+		return `${item.id}-${item.ts}-${index}`;
 	}
 </script>
 
@@ -111,7 +135,7 @@
 						</TableRow>
 					</TableHead>
 					<TableBody>
-						{#each items.filter((i) => i.kind === 'State') as it (it.id)}
+						{#each items.filter((i) => i.kind === 'State') as it, index (getUniqueKey(it, index))}
 							<TableRow>
 								<TableCell>{it.id}</TableCell>
 								<TableCell><Tag type="green">{it.value}</Tag></TableCell>
@@ -134,7 +158,7 @@
 						</TableRow>
 					</TableHead>
 					<TableBody>
-						{#each items.filter((i) => i.kind === 'Event') as it (it.id)}
+						{#each items.filter((i) => i.kind === 'Event') as it, index (getUniqueKey(it, index))}
 							<TableRow>
 								<TableCell>{it.id}</TableCell>
 								<TableCell><Tag type="cyan">{it.value}</Tag></TableCell>
