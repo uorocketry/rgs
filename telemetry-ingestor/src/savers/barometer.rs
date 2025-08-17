@@ -1,11 +1,11 @@
 use libsql::{params, Result, Transaction};
+use messages_prost::sensor::ms5611::Barometer as Ms5611Barometer;
 
-pub async fn save_barometer<T>(transaction: &Transaction, _baro: &T) -> Result<i64> {
-    // Minimal insert to satisfy schema; fields can be populated as message schema stabilizes
+pub async fn save_barometer(transaction: &Transaction, baro: &Ms5611Barometer) -> Result<i64> {
     transaction
         .execute(
-            "INSERT INTO Barometer (timestamp_us, pressure_pa, temperature_c, altitude_m) VALUES (?, ?, ?, ?)",
-            params![0i64, Option::<f64>::None, Option::<f64>::None, Option::<f64>::None],
+            "INSERT INTO Barometer (pressure_kpa, temperature_celsius) VALUES (?, ?)",
+            params![baro.pressure_kpa, baro.temperature_celsius],
         )
         .await?;
     Ok(transaction.last_insert_rowid())

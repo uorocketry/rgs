@@ -1,5 +1,5 @@
 use libsql::{params, Result, Transaction};
-use messages_prost::sensor::sbg::{sbg_data, SbgData};
+use messages_prost::sbg::{sbg_data, SbgData};
 
 pub async fn save_sbg(transaction: &Transaction, sbg: &SbgData) -> Result<i64> {
     let data_id: i64 = match sbg.data.as_ref().unwrap() {

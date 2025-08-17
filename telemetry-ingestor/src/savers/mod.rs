@@ -1,7 +1,7 @@
+pub mod argus;
 pub mod barometer;
 pub mod command;
 pub mod event;
-pub mod gps;
 pub mod imu;
 pub mod log;
 pub mod madgwick;

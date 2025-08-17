@@ -3,13 +3,20 @@ use libsql::{params, Connection, Result, Transaction};
 use messages_prost::{
     common::Node,
     radio::{self, RadioFrame},
-    sensor::sbg::sbg_data,
+    sbg::sbg_data,
 };
 use prost::Message as _;
 
 use super::{
-    barometer::save_barometer, command::save_command, imu::save_imu, log::save_log,
-    madgwick::save_madgwick, sbg::save_sbg, state::save_state, event::save_event,
+    argus::{save_argus_pressure, save_argus_strain, save_argus_temperature},
+    barometer::save_barometer,
+    command::save_command,
+    event::{save_argus_event, save_phoenix_event},
+    imu::save_imu,
+    log::save_log,
+    madgwick::save_madgwick,
+    sbg::save_sbg,
+    state::{save_argus_state, save_phoenix_state},
 };
 
 async fn insert_radio_message(
@@ -17,6 +24,7 @@ async fn insert_radio_message(
     node: i32,
     data_type: &str,
     data_id: i64,
+    millis_since_start: Option<i64>,
 ) -> Result<i64> {
     let time_str = Utc::now().to_rfc3339();
     let time_epoch = Utc::now().timestamp();
@@ -26,8 +34,8 @@ async fn insert_radio_message(
 
     transaction
         .execute(
-            "INSERT INTO RadioFrame (timestamp, timestamp_epoch, node, data_type, data_id) VALUES (?, ?, ?, ?, ?)",
-            params![time_str, time_epoch, node_name, data_type, data_id],
+            "INSERT INTO RadioFrame (timestamp, timestamp_epoch, node, data_type, data_id, millis_since_start) VALUES (?, ?, ?, ?, ?, ?)",
+            params![time_str, time_epoch, node_name, data_type, data_id, millis_since_start],
         )
         .await?;
     Ok(transaction.last_insert_rowid())
@@ -51,10 +59,12 @@ pub async fn save_messages_batch(
         match RadioFrame::decode_length_delimited(&message_bytes[..]) {
             Ok(frame) => {
                 let node = frame.node;
+                let millis = Some(frame.millis_since_start as i64);
                 match frame.payload {
                     Some(radio::radio_frame::Payload::Barometer(m)) => {
                         let data_id = save_barometer(&transaction, &m).await?;
-                        insert_radio_message(&transaction, node, "Barometer", data_id).await?;
+                        insert_radio_message(&transaction, node, "Barometer", data_id, millis)
+                            .await?;
                     }
                     Some(radio::radio_frame::Payload::Sbg(sbg)) => {
                         if let Some(inner) = &sbg.data {
@@ -68,39 +78,74 @@ pub async fn save_messages_batch(
                                 sbg_data::Data::Air(_) => "SbgAir",
                             };
                             let data_id = save_sbg(&transaction, &sbg).await?;
-                            insert_radio_message(&transaction, node, data_type, data_id).await?;
+                            insert_radio_message(&transaction, node, data_type, data_id, millis)
+                                .await?;
                         }
                     }
                     // Intentionally ignored. Prefer SBG GpsPos/GpsVel.
-                    // It's 8/11 and Phoenix still doesn't implement the new GPS message.
-                    Some(radio::radio_frame::Payload::Gps(_)) => {
+                    Some(radio::radio_frame::Payload::Gps(gps_data)) => {
                         tracing::warn!(
                             "Generic GPS payload handler removed. Prefer SBG GpsPos/GpsVel."
                         );
                     }
                     Some(radio::radio_frame::Payload::Madgwick(m)) => {
                         let data_id = save_madgwick(&transaction, &m).await?;
-                        insert_radio_message(&transaction, node, "Madgwick", data_id).await?;
+                        insert_radio_message(&transaction, node, "Madgwick", data_id, millis)
+                            .await?;
                     }
                     Some(radio::radio_frame::Payload::Iim20670(m)) => {
                         let data_id = save_imu(&transaction, &m).await?;
-                        insert_radio_message(&transaction, node, "Imu", data_id).await?;
+                        insert_radio_message(&transaction, node, "Imu", data_id, millis).await?;
                     }
                     Some(radio::radio_frame::Payload::Log(m)) => {
                         let data_id = save_log(&transaction, &m).await?;
-                        insert_radio_message(&transaction, node, "Log", data_id).await?;
+                        insert_radio_message(&transaction, node, "Log", data_id, millis).await?;
                     }
-                    Some(radio::radio_frame::Payload::State(s)) => {
-                        let data_id = save_state(&transaction, s).await?;
-                        insert_radio_message(&transaction, node, "State", data_id).await?;
+                    Some(radio::radio_frame::Payload::PhoenixState(s)) => {
+                        let data_id = save_phoenix_state(&transaction, s).await?;
+                        insert_radio_message(&transaction, node, "PhoenixState", data_id, millis)
+                            .await?;
                     }
-                    Some(radio::radio_frame::Payload::Event(e)) => {
-                        let data_id = save_event(&transaction, e).await?;
-                        insert_radio_message(&transaction, node, "Event", data_id).await?;
+                    Some(radio::radio_frame::Payload::PhoenixEvent(e)) => {
+                        let data_id = save_phoenix_event(&transaction, e).await?;
+                        insert_radio_message(&transaction, node, "PhoenixEvent", data_id, millis)
+                            .await?;
+                    }
+                    Some(radio::radio_frame::Payload::ArgusState(s)) => {
+                        let data_id = save_argus_state(&transaction, s).await?;
+                        insert_radio_message(&transaction, node, "ArgusState", data_id, millis)
+                            .await?;
+                    }
+                    Some(radio::radio_frame::Payload::ArgusEvent(e)) => {
+                        let data_id = save_argus_event(&transaction, e).await?;
+                        insert_radio_message(&transaction, node, "ArgusEvent", data_id, millis)
+                            .await?;
+                    }
+                    Some(radio::radio_frame::Payload::ArgusPressure(m)) => {
+                        let data_id = save_argus_pressure(&transaction, &m).await?;
+                        insert_radio_message(&transaction, node, "ArgusPressure", data_id, millis)
+                            .await?;
+                    }
+                    Some(radio::radio_frame::Payload::ArgusTemperature(m)) => {
+                        let data_id = save_argus_temperature(&transaction, &m).await?;
+                        insert_radio_message(
+                            &transaction,
+                            node,
+                            "ArgusTemperature",
+                            data_id,
+                            millis,
+                        )
+                        .await?;
+                    }
+                    Some(radio::radio_frame::Payload::ArgusStrain(m)) => {
+                        let data_id = save_argus_strain(&transaction, &m).await?;
+                        insert_radio_message(&transaction, node, "ArgusStrain", data_id, millis)
+                            .await?;
                     }
                     Some(radio::radio_frame::Payload::Command(m)) => {
                         let data_id = save_command(&transaction, &m).await?;
-                        insert_radio_message(&transaction, node, "Command", data_id).await?;
+                        insert_radio_message(&transaction, node, "Command", data_id, millis)
+                            .await?;
                     }
                     None => {
                         tracing::error!("RadioFrame had no payload. Skipping.");

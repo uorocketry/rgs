@@ -6,8 +6,8 @@ pub async fn save_log(transaction: &Transaction, log_msg: &Log) -> Result<i64> {
     let event = format!("{:?}", log_msg.event);
     transaction
         .execute(
-            "INSERT INTO Log (level, event) VALUES (?, ?)",
-            params![level, event],
+            "INSERT INTO Log (level, event, message) VALUES (?, ?, ?)",
+            params![level, event, log_msg.message.as_slice()],
         )
         .await?;
     Ok(transaction.last_insert_rowid())

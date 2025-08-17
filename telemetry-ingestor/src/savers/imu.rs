@@ -1,5 +1,5 @@
 use libsql::{params, Result, Transaction};
-use messages_prost::sensor::iim20670::Imu;
+use messages_prost::iim20670::Imu;
 
 pub async fn save_imu(transaction: &Transaction, imu: &Imu) -> Result<i64> {
     if let Some(data) = &imu.data {

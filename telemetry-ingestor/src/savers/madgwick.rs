@@ -1,5 +1,5 @@
 use libsql::{params, Result, Transaction};
-use messages_prost::sensor::madgwick::Madgwick;
+use messages_prost::madgwick::Madgwick;
 
 pub async fn save_madgwick(transaction: &Transaction, madgwick: &Madgwick) -> Result<i64> {
     if let Some(quat) = &madgwick.data {
