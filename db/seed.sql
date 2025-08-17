@@ -59,8 +59,9 @@ CREATE TABLE IF NOT EXISTS RadioFrame (
     timestamp TEXT NOT NULL, -- ISO 8601 format
     timestamp_epoch INTEGER NOT NULL, -- UNIX epoch time for range queries
     node TEXT NOT NULL, -- Enum Node type (PressureBoard, StrainBoard, etc)
-    data_type TEXT NOT NULL, -- Payload type: "Command" | "Log" | "State" | "SbgGpsPos" | "SbgUtcTime" | "SbgImu" | "SbgEkfQuat" | "SbgEkfNav" | "SbgGpsVel" | "SbgAir" | "Gps" | "Imu" | "Madgwick" | "Barometer"
-    data_id INTEGER NOT NULL -- Foreign key to specific data table
+    data_type TEXT NOT NULL, -- Payload type: "Command" | "Log" | "PhoenixState" | "PhoenixEvent" | "ArgusState" | "ArgusEvent" | "SbgGpsPos" | "SbgUtcTime" | "SbgImu" | "SbgEkfQuat" | "SbgEkfNav" | "SbgGpsVel" | "SbgAir" | "Gps" | "Imu" | "Madgwick" | "Barometer" | "ArgusPressure" | "ArgusTemperature" | "ArgusStrain"
+    data_id INTEGER NOT NULL, -- Foreign key to specific data table
+    millis_since_start INTEGER -- Milliseconds since node start, if provided
 );
 
 
@@ -119,7 +120,8 @@ CREATE TABLE IF NOT EXISTS Pong (
 CREATE TABLE IF NOT EXISTS Log (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     level TEXT NOT NULL,
-    event TEXT NOT NULL
+    event TEXT NOT NULL,
+    message BLOB
 );
 
 CREATE TABLE IF NOT EXISTS State (
@@ -283,13 +285,52 @@ CREATE TABLE IF NOT EXISTS Madgwick (
     quat_z REAL
 );
 
--- Barometer message table
+-- Barometer message table (MS5611)
 CREATE TABLE IF NOT EXISTS Barometer (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
-    timestamp_us INTEGER NOT NULL,
-    pressure_pa REAL,
-    temperature_c REAL,
-    altitude_m REAL
+    pressure_kpa REAL,
+    temperature_celsius REAL
+);
+
+-- Phoenix state/event tables
+CREATE TABLE IF NOT EXISTS PhoenixState (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    state TEXT NOT NULL
+);
+
+CREATE TABLE IF NOT EXISTS PhoenixEvent (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    event TEXT NOT NULL
+);
+
+-- Argus state/event tables
+CREATE TABLE IF NOT EXISTS ArgusState (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    state TEXT NOT NULL
+);
+
+CREATE TABLE IF NOT EXISTS ArgusEvent (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    event TEXT NOT NULL
+);
+
+-- Argus sensor tables
+CREATE TABLE IF NOT EXISTS ArgusPressure (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    pressure REAL,
+    sensor_id INTEGER
+);
+
+CREATE TABLE IF NOT EXISTS ArgusTemperature (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    temperature REAL,
+    sensor_id INTEGER
+);
+
+CREATE TABLE IF NOT EXISTS ArgusStrain (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    strain REAL,
+    sensor_id INTEGER
 );
 
 
