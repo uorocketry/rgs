@@ -24,24 +24,24 @@ class ManualODriveControl:
             'gear_ratios': {'yaw': 30, 'pitch': 36},
             'pole_pairs': 7,
             'torque_constant': 8.27 / 150,
-            'current_limit': 8.0,
+            'current_limit': 7.0,
             'regen_current_limit': 0.001, # Amps
             'dc_max_negative_current': -0.01, # Amps
             'dc_max_positive_current': 10.0, # Amps
             'calibration_current': 5.0, # Amps
             'calibration_timeout': 30.0,
-            'ctrl_speed_scale': 20.0,
+            'ctrl_speed_scale': 2, # How fast the controller affects the target position
             'speed_step': 1.5,
             'speed_mult_limits': (0.1, 2.0),
             'limits': {
                 # 'yaw': (-370, 370),
                 'yaw': (-80, 80),
-                'pitch': (-100, 0),
+                'pitch': (-10, 90),
             },
             'gains': {
-                'pos': 4.0,
-                'vel': 0.16,
-                'vel_int': 6.0,
+                'pos': 2.0,
+                'vel': 0.10,
+                'vel_int': 3.0,
             }
         }
 
@@ -72,7 +72,7 @@ class ManualODriveControl:
         self.device.config.dc_max_positive_current = self.cfg['dc_max_positive_current']
         self.device.config.max_regen_current = self.cfg['regen_current_limit']
         for name, axis in self.axes.items():
-            axis.config.vel_limit = 92 #revs/sec (max safe limit)
+            axis.controller.config.vel_limit = float('inf') #revs/sec (max safe limit)
             mcfg = axis.motor.config
             ccfg = axis.controller.config
             tcfg = axis.trap_traj.config
@@ -96,20 +96,27 @@ class ManualODriveControl:
         return True
 
     def calibrate(self):
-        print(f"Calibrating (timeout: {self.cfg['calibration_timeout']}s)...")
-        for ax in self.axes.values():
+        print("Clearing errors and calibrating axes...")
+        self.device.clear_errors()  # Clear any existing errors before calibration
+        print(f"Calibrating axes individually (timeout: {self.cfg['calibration_timeout']}s each)...")
+        for name, ax in self.axes.items():
+            print(f"Calibrating {name} axis...")
             ax.requested_state = AxisState.FULL_CALIBRATION_SEQUENCE
-        start = time.time()
-        while any(ax.current_state != AxisState.IDLE for ax in self.axes.values()):
-            if time.time() - start > self.cfg['calibration_timeout']:
-                print("ERROR: Calibration timed out")
-                return False
-            time.sleep(0.2)
-        for ax in self.axes.values():
+            start = time.time()
+            while ax.current_state != AxisState.IDLE:
+                if time.time() - start > self.cfg['calibration_timeout']:
+                    print(f"ERROR: Calibration timed out for {name} axis")
+                    return False
+                time.sleep(0.2)
             ax.requested_state = AxisState.CLOSED_LOOP_CONTROL
-        time.sleep(0.5)
+            time.sleep(0.5)
+            if ax.error != 0:
+                print(f"ERROR: {name} axis has error after calibration")
+                dump_errors(self.device)
+                return False
+            print(f"{name.capitalize()} axis calibration complete.")
         self.calibrated = True
-        print("Calibration complete.")
+        print("All axes calibrated.")
         return not self.has_errors()
 
     def has_errors(self):
@@ -162,6 +169,27 @@ class ManualODriveControl:
         print(f"Calibrated: {self.calibrated}")
         self.has_errors()
 
+    def disengage(self):
+        """Set both axes to IDLE state (disengaged)"""
+        print("Disengaging motors...")
+        for name, ax in self.axes.items():
+            ax.requested_state = AxisState.IDLE
+        time.sleep(0.5)  # Allow time for state change
+        print("Motors disengaged.")
+        return not self.has_errors()
+
+    def engage(self):
+        """Set both axes to CLOSED_LOOP_CONTROL state (engaged)"""
+        if not self.calibrated:
+            print("ERROR: Cannot engage - motors not calibrated. Run calibration first.")
+            return False
+        print("Engaging motors...")
+        for name, ax in self.axes.items():
+            ax.requested_state = AxisState.CLOSED_LOOP_CONTROL
+        time.sleep(0.5)  # Allow time for state change
+        print("Motors engaged.")
+        return not self.has_errors()
+
     def toggle_debug(self, on):
         self.debug = on
         print("Debug", "ON" if on else "OFF")
@@ -196,40 +224,33 @@ class ManualODriveControl:
             return
         print("\nController mode active. Ctrl-C to exit.")
         print("Hold 'A' button to bypass position limits.")
-        base_vel, base_acc, base_dec = 60.0, 30.0, 20.0
-        speed_mult = 1.0
-        last_rb = last_lb = last_x = last_y = False
+        # Fixed speed settings - no dynamic speed changes
+        fixed_vel, fixed_acc, fixed_dec = 120.0, 20.0, 20.0
+        last_x = last_y = False
 
         for ax in self.axes.values():
-            ax.trap_traj.config.vel_limit = base_vel
-            ax.trap_traj.config.accel_limit = base_acc
-            ax.trap_traj.config.decel_limit = base_dec
+            ax.trap_traj.config.vel_limit = fixed_vel
+            ax.trap_traj.config.accel_limit = fixed_acc
+            ax.trap_traj.config.decel_limit = fixed_dec
 
         try:
             while self.controller_active:
                 if not self.controller.is_connected():
                     print("Controller disconnected.")
                     break
-                rb = self.controller.get_button('RB')
-                lb = self.controller.get_button('LB')
                 xb = self.controller.get_button('X')
                 yb = self.controller.get_button('Y')
                 ab = self.controller.get_button('A')
-                if rb and not last_rb:
-                    speed_mult = min(speed_mult * self.cfg['speed_step'], self.cfg['speed_mult_limits'][1])
-                if lb and not last_lb:
-                    speed_mult = max(speed_mult / self.cfg['speed_step'], self.cfg['speed_mult_limits'][0])
                 if xb and not last_x:
                     self.zero()
                 if yb and not last_y:
-                    # Temporarily lower speed to 0.5x while going to zero, then restore
-                    prev_speed_mult = speed_mult
-                    reduced_mult = max(self.cfg['speed_mult_limits'][0], prev_speed_mult * 0.1)
+                    # Temporarily lower speed to 0.1x while going to zero, then restore
+                    reduced_mult = 0.1
 
                     # Apply reduced limits immediately
-                    reduced_vel = base_vel * reduced_mult
-                    reduced_acc = base_acc * reduced_mult
-                    reduced_dec = base_dec * reduced_mult
+                    reduced_vel = fixed_vel * reduced_mult
+                    reduced_acc = fixed_acc * reduced_mult
+                    reduced_dec = fixed_dec * reduced_mult
                     for ax in self.axes.values():
                         ax.trap_traj.config.vel_limit = reduced_vel
                         ax.trap_traj.config.accel_limit = reduced_acc
@@ -254,9 +275,9 @@ class ManualODriveControl:
                         time.sleep(0.02)
 
                     # Restore original limits
-                    orig_vel = base_vel * prev_speed_mult
-                    orig_acc = base_acc * prev_speed_mult
-                    orig_dec = base_dec * prev_speed_mult
+                    orig_vel = fixed_vel
+                    orig_acc = fixed_acc
+                    orig_dec = fixed_dec
                     for ax in self.axes.values():
                         ax.trap_traj.config.vel_limit = orig_vel
                         ax.trap_traj.config.accel_limit = orig_acc
@@ -265,20 +286,12 @@ class ManualODriveControl:
                     # Ensure state tracking prevents immediate retrigger
                     yb = False
                     last_x = False
-                last_rb, last_lb, last_x, last_y = rb, lb, xb, yb
-
-                new_vel = base_vel * speed_mult
-                new_acc = base_acc * speed_mult
-                new_dec = base_dec * speed_mult
-                for ax in self.axes.values():
-                    ax.trap_traj.config.vel_limit = new_vel
-                    ax.trap_traj.config.accel_limit = new_acc
-                    ax.trap_traj.config.decel_limit = new_dec
+                last_x, last_y = xb, yb
 
                 yaw_in = self.controller.get_axis('LX')
                 pitch_in = -self.controller.get_axis('RY')
                 if abs(yaw_in) > 0.05 or abs(pitch_in) > 0.05:
-                    scale = self.cfg['ctrl_speed_scale'] * 0.05 * speed_mult
+                    scale = self.cfg['ctrl_speed_scale'] 
                     pos = self.get_pos()
                     if ab:  # A button held - bypass limits
                         tgt_yaw = pos['yaw'] + yaw_in*scale
@@ -301,7 +314,7 @@ def main():
     ctl = ManualODriveControl()
     if not (ctl.connect() and ctl.configure() and ctl.calibrate()):
         return
-    cmds = ['help','status','zero','stop','pos','debug','controller','quit']
+    cmds = ['help','status','zero','stop','pos','debug','controller','engage','disengage','calibrate','quit']
     readline.parse_and_bind("tab: complete")
     readline.set_completer(lambda t,s: [c for c in cmds if c.startswith(t)][s] if s < len(cmds) else None)
     print("Ready. Type 'help'.")
@@ -313,14 +326,17 @@ def main():
             if cmd in ('quit','exit'):
                 break
             if cmd == 'help':
-                print("Commands: status, zero, stop, pos <pitch> <yaw>, debug <on|off>, controller, quit")
-                print("Controller: LB/RB=speed, X=zero here, Y=go to zero, A=bypass limits")
+                print("Commands: status, zero, stop, pos <pitch> <yaw>, debug <on|off>, controller, engage, disengage, calibrate, quit")
+                print("Controller: X=zero here, Y=go to zero, A=bypass limits")
             elif cmd == 'status': ctl.status()
             elif cmd == 'zero': ctl.zero()
             elif cmd == 'stop': ctl.stop()
             elif cmd == 'pos' and len(args)==2: ctl.set_pos(float(args[0]), float(args[1]), bypass_limits=False)
             elif cmd == 'debug' and args: ctl.toggle_debug(args[0]=='on')
             elif cmd == 'controller': ctl.run_controller_loop()
+            elif cmd == 'engage': ctl.engage()
+            elif cmd == 'disengage': ctl.disengage()
+            elif cmd == 'calibrate': ctl.calibrate()
             else:
                 print("Unknown command")
         except KeyboardInterrupt:
