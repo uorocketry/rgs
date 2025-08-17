@@ -25,12 +25,14 @@ class ManualODriveControl:
             'pole_pairs': 7,
             'torque_constant': 8.27 / 150,
             'current_limit': 8.0,
-            'dc_max_negative_current': -0.01,
-            'calibration_current': 5.0,
+            'regen_current_limit': 0.001, # Amps
+            'dc_max_negative_current': -0.01, # Amps
+            'dc_max_positive_current': 10.0, # Amps
+            'calibration_current': 5.0, # Amps
             'calibration_timeout': 30.0,
             'ctrl_speed_scale': 20.0,
             'speed_step': 1.5,
-            'speed_mult_limits': (0.1, 3.0),
+            'speed_mult_limits': (0.1, 2.0),
             'limits': {
                 # 'yaw': (-370, 370),
                 'yaw': (-80, 80),
@@ -60,9 +62,17 @@ class ManualODriveControl:
 
     def configure(self):
         print("Configuring motors...")
+
+
+
+        self.device.config.enable_brake_resistor = True
+        self.device.config.brake_resistance = 2.0
+
         self.device.config.dc_max_negative_current = self.cfg['dc_max_negative_current']
-        self.device.config.max_regen_current = self.cfg['current_limit']
+        self.device.config.dc_max_positive_current = self.cfg['dc_max_positive_current']
+        self.device.config.max_regen_current = self.cfg['regen_current_limit']
         for name, axis in self.axes.items():
+            axis.config.vel_limit = 92 #revs/sec (max safe limit)
             mcfg = axis.motor.config
             ccfg = axis.controller.config
             tcfg = axis.trap_traj.config
@@ -115,14 +125,19 @@ class ManualODriveControl:
             pos[name] = (turns / self.cfg['gear_ratios'][name]) * 360.0
         return pos
 
-    def set_pos(self, pitch=None, yaw=None, verbose=True):
+    def set_pos(self, pitch=None, yaw=None, verbose=True, bypass_limits=False):
         for name, deg in [('pitch', pitch), ('yaw', yaw)]:
             if deg is None:
                 continue
-            lo, hi = self.cfg['limits'][name]
-            clamped = max(lo, min(hi, deg))
-            if verbose and clamped != deg:
-                print(f"WARNING: {name.capitalize()} clamped to {clamped}°")
+            if bypass_limits:
+                clamped = deg
+                if verbose:
+                    print(f"LIMITS BYPASSED: {name.capitalize()} set to {deg}°")
+            else:
+                lo, hi = self.cfg['limits'][name]
+                clamped = max(lo, min(hi, deg))
+                if verbose and clamped != deg:
+                    print(f"WARNING: {name.capitalize()} clamped to {clamped}°")
             turns = (clamped / 360.0) * self.cfg['gear_ratios'][name] + self.offsets[name]
             self.axes[name].controller.input_pos = turns
 
@@ -180,6 +195,7 @@ class ManualODriveControl:
         if not self._start_controller_services():
             return
         print("\nController mode active. Ctrl-C to exit.")
+        print("Hold 'A' button to bypass position limits.")
         base_vel, base_acc, base_dec = 60.0, 30.0, 20.0
         speed_mult = 1.0
         last_rb = last_lb = last_x = last_y = False
@@ -198,6 +214,7 @@ class ManualODriveControl:
                 lb = self.controller.get_button('LB')
                 xb = self.controller.get_button('X')
                 yb = self.controller.get_button('Y')
+                ab = self.controller.get_button('A')
                 if rb and not last_rb:
                     speed_mult = min(speed_mult * self.cfg['speed_step'], self.cfg['speed_mult_limits'][1])
                 if lb and not last_lb:
@@ -217,11 +234,10 @@ class ManualODriveControl:
                         ax.trap_traj.config.vel_limit = reduced_vel
                         ax.trap_traj.config.accel_limit = reduced_acc
                         ax.trap_traj.config.decel_limit = reduced_dec
-                        ax.controller.config.vel_limit = reduced_vel
 
                     # Command move to stored zero point (0 pitch, 0 yaw)
                     print("Moving to zero point at 0.1x speed")
-                    self.set_pos(0.0, 0.0)
+                    self.set_pos(0.0, 0.0, bypass_limits=False)
 
                     # Wait for trajectory to complete with a safety timeout
                     start_wait = time.time()
@@ -245,7 +261,6 @@ class ManualODriveControl:
                         ax.trap_traj.config.vel_limit = orig_vel
                         ax.trap_traj.config.accel_limit = orig_acc
                         ax.trap_traj.config.decel_limit = orig_dec
-                        ax.controller.config.vel_limit = orig_vel
 
                     # Ensure state tracking prevents immediate retrigger
                     yb = False
@@ -259,18 +274,22 @@ class ManualODriveControl:
                     ax.trap_traj.config.vel_limit = new_vel
                     ax.trap_traj.config.accel_limit = new_acc
                     ax.trap_traj.config.decel_limit = new_dec
-                    ax.controller.config.vel_limit = new_vel
 
                 yaw_in = self.controller.get_axis('LX')
                 pitch_in = -self.controller.get_axis('RY')
                 if abs(yaw_in) > 0.05 or abs(pitch_in) > 0.05:
                     scale = self.cfg['ctrl_speed_scale'] * 0.05 * speed_mult
                     pos = self.get_pos()
-                    tgt_yaw = max(self.cfg['limits']['yaw'][0], min(self.cfg['limits']['yaw'][1], pos['yaw'] + yaw_in*scale))
-                    tgt_pitch = max(self.cfg['limits']['pitch'][0], min(self.cfg['limits']['pitch'][1], pos['pitch'] + pitch_in*scale))
+                    if ab:  # A button held - bypass limits
+                        tgt_yaw = pos['yaw'] + yaw_in*scale
+                        tgt_pitch = pos['pitch'] + pitch_in*scale
+                    else:  # Normal operation with limits
+                        tgt_yaw = max(self.cfg['limits']['yaw'][0], min(self.cfg['limits']['yaw'][1], pos['yaw'] + yaw_in*scale))
+                        tgt_pitch = max(self.cfg['limits']['pitch'][0], min(self.cfg['limits']['pitch'][1], pos['pitch'] + pitch_in*scale))
                     if self.debug:
-                        print(f"DBG: Yaw_in={yaw_in:.2f}, Pitch_in={pitch_in:.2f} -> {tgt_yaw:.2f}, {tgt_pitch:.2f}")
-                    self.set_pos(tgt_pitch, tgt_yaw, verbose=False)
+                        limit_status = "LIMITS BYPASSED" if ab else "LIMITS ACTIVE"
+                        print(f"DBG: {limit_status} - Yaw_in={yaw_in:.2f}, Pitch_in={pitch_in:.2f} -> {tgt_yaw:.2f}, {tgt_pitch:.2f}")
+                    self.set_pos(tgt_pitch, tgt_yaw, verbose=False, bypass_limits=ab)
                 time.sleep(0.05)
         except KeyboardInterrupt:
             print("\nExiting controller mode.")
@@ -295,10 +314,11 @@ def main():
                 break
             if cmd == 'help':
                 print("Commands: status, zero, stop, pos <pitch> <yaw>, debug <on|off>, controller, quit")
+                print("Controller: LB/RB=speed, X=zero here, Y=go to zero, A=bypass limits")
             elif cmd == 'status': ctl.status()
             elif cmd == 'zero': ctl.zero()
             elif cmd == 'stop': ctl.stop()
-            elif cmd == 'pos' and len(args)==2: ctl.set_pos(float(args[0]), float(args[1]))
+            elif cmd == 'pos' and len(args)==2: ctl.set_pos(float(args[0]), float(args[1]), bypass_limits=False)
             elif cmd == 'debug' and args: ctl.toggle_debug(args[0]=='on')
             elif cmd == 'controller': ctl.run_controller_loop()
             else:
