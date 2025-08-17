@@ -8,8 +8,8 @@ use messages_prost::radio::RadioFrame;
 use prost::Message as _;
 use serde::Deserialize;
 use serde_json;
-use tracing::{error, info};
 use std::time::Instant;
+use tracing::{error, info};
 
 // Struct to represent a row from the OutgoingCommand table
 #[derive(Debug)]
@@ -36,6 +36,10 @@ struct PowerDownParams {
 #[derive(Deserialize, Debug)]
 struct RadioRateChangeParams {
     rate: String,
+}
+#[derive(Deserialize, Debug)]
+struct PingParams {
+    id: u32,
 }
 
 fn parse_board(s: &str) -> Node {
@@ -86,7 +90,9 @@ pub async fn process_single_command(
                     .map_err(|e| (cmd_id, Box::new(e) as Box<dyn std::error::Error>))?;
             cmd::Command {
                 node: default_target,
-                data: Some(cmd::command::Data::DeployDrogue(cmd::DeployDrogue { val: params.val })),
+                data: Some(cmd::command::Data::DeployDrogue(cmd::DeployDrogue {
+                    val: params.val,
+                })),
             }
         }
         "DeployMain" => {
@@ -95,7 +101,9 @@ pub async fn process_single_command(
                     .map_err(|e| (cmd_id, Box::new(e) as Box<dyn std::error::Error>))?;
             cmd::Command {
                 node: default_target,
-                data: Some(cmd::command::Data::DeployMain(cmd::DeployMain { val: params.val })),
+                data: Some(cmd::command::Data::DeployMain(cmd::DeployMain {
+                    val: params.val,
+                })),
             }
         }
         "PowerDown" => {
@@ -111,14 +119,19 @@ pub async fn process_single_command(
             let params: PowerDownParams = serde_json::from_str(params_str)
                 .map_err(|e| (cmd_id, Box::new(e) as Box<dyn std::error::Error>))?;
             let board = parse_board(&params.board) as i32;
-            cmd::Command { node: board, data: Some(cmd::command::Data::PowerDown(cmd::PowerDown { board })) }
+            cmd::Command {
+                node: board,
+                data: Some(cmd::command::Data::PowerDown(cmd::PowerDown { board })),
+            }
         }
-        "PowerUpCamera" => {
-            cmd::Command { node: default_target, data: Some(cmd::command::Data::PowerUpCamera(cmd::PowerUpCamera {})) }
-        }
-        "PowerDownCamera" => {
-            cmd::Command { node: default_target, data: Some(cmd::command::Data::PowerDownCamera(cmd::PowerDownCamera {})) }
-        }
+        "PowerUpCamera" => cmd::Command {
+            node: default_target,
+            data: Some(cmd::command::Data::PowerUpCamera(cmd::PowerUpCamera {})),
+        },
+        "PowerDownCamera" => cmd::Command {
+            node: default_target,
+            data: Some(cmd::command::Data::PowerDownCamera(cmd::PowerDownCamera {})),
+        },
         "RadioRateChange" => {
             let params_str = command_row.parameters.as_deref().ok_or_else(|| {
                 (
@@ -133,10 +146,23 @@ pub async fn process_single_command(
                 .map_err(|e| (cmd_id, Box::new(e) as Box<dyn std::error::Error>))?;
             cmd::Command {
                 node: default_target,
-                data: Some(cmd::command::Data::RadioRateChange(cmd::RadioRateChange { rate: parse_radio_rate(&params.rate) })),
+                data: Some(cmd::command::Data::RadioRateChange(cmd::RadioRateChange {
+                    rate: parse_radio_rate(&params.rate),
+                })),
             }
         }
-        "Ping" => cmd::Command { node: default_target, data: Some(cmd::command::Data::Ping(cmd::Ping { id: 0 })) },
+        "Ping" => {
+            let id = command_row
+                .parameters
+                .as_deref()
+                .and_then(|s| serde_json::from_str::<PingParams>(s).ok())
+                .map(|p| p.id)
+                .unwrap_or(0);
+            cmd::Command {
+                node: default_target,
+                data: Some(cmd::command::Data::Ping(cmd::Ping { id })),
+            }
+        }
         _ => {
             let err_msg = format!("Unknown command type: {}", command_row.command_type);
             error!("[Cmd ID: {}] {}", cmd_id, err_msg);

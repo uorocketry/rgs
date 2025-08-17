@@ -25,7 +25,7 @@ func parseArgs() Args {
 	var a Args
 	flag.StringVar(&a.LibsqlURL, "libsql-url", "", "LibSQL database URL (e.g. libsql://host.turso.io)")
 	flag.StringVar(&a.LibsqlAuthToken, "libsql-auth-token", "", "Optional LibSQL auth token")
-	flag.Uint64Var(&a.IntervalSecs, "interval-secs", 10, "Interval (seconds) for queuing Ping commands")
+	flag.Uint64Var(&a.IntervalSecs, "interval-secs", 30, "Interval (seconds) for queuing Ping commands")
 	flag.Parse()
 	return a
 }

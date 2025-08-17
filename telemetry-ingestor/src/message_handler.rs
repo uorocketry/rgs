@@ -23,9 +23,11 @@ pub async fn handle_messages(
         let db_conn_for_batch = db_connection.clone();
         let recv_result = mavlink_connection.recv();
 
+        // info!("recv_result: {:?}", recv_result);
+
         match recv_result {
             Ok((header, message)) => {
-                info!("Received message: {:?}", header.sequence);
+                // info!("Received message: {:?}", header.sequence);
                 let packets_lost =
                     ((header.sequence as i32) - (last_seq_num as i32) - 1).rem_euclid(256);
                 last_seq_num = header.sequence;
