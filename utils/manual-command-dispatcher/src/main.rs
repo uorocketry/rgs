@@ -37,6 +37,7 @@ fn encode_message<M: prost::Message>(msg: &M) -> Vec<u8> {
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn Error>> {
     let args = Args::parse();
+    let start_instant = Instant::now();
     // Initialize logging to a file relative to current working directory
     let log_path = std::env::current_dir()?.join("manual-command-dispatcher.log");
     let log_file = OpenOptions::new()
@@ -79,7 +80,10 @@ async fn main() -> Result<(), Box<dyn Error>> {
             .unwrap_or(Duration::from_secs(0));
 
         if crossterm::event::poll(timeout)? {
-            if let CEvent::Key(KeyEvent { code, modifiers, .. }) = event::read()? {
+            if let CEvent::Key(KeyEvent {
+                code, modifiers, ..
+            }) = event::read()?
+            {
                 match code {
                     KeyCode::Char('q') => break,
                     KeyCode::Up => {
@@ -111,6 +115,7 @@ async fn main() -> Result<(), Box<dyn Error>> {
                         let frame = RadioFrame {
                             payload: Some(Payload::Command(command)),
                             node: state.origin_node,
+                            millis_since_start: start_instant.elapsed().as_millis() as u64,
                         };
 
                         let bytes = encode_message(&frame);

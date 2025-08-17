@@ -1,7 +1,7 @@
 use messages_prost::command as cmd;
 use messages_prost::common::Node;
 use messages_prost::radio::{self, RadioFrame};
-use messages_prost::sensor::sbg::sbg_data;
+use messages_prost::sbg::sbg_data;
 use prost::Message as _;
 use tracing::{debug, warn};
 
@@ -71,11 +71,9 @@ pub fn summarize_received_bytes(bytes: &[u8]) -> SentMessage {
                     };
                 }
                 Some(radio::radio_frame::Payload::Gps(gps)) => {
+                    let len = gps.data.len();
                     return SentMessage {
-                        summary: format!(
-                            "RadioFrame Gps type={} from node={:?}",
-                            gps.message_type, origin
-                        ),
+                        summary: format!("RadioFrame Gps ({} bytes) from node={:?}", len, origin),
                     };
                 }
                 Some(radio::radio_frame::Payload::Madgwick(_m)) => {
@@ -98,14 +96,24 @@ pub fn summarize_received_bytes(bytes: &[u8]) -> SentMessage {
                         summary: format!("RadioFrame Log from node={:?}", origin),
                     };
                 }
-                Some(radio::radio_frame::Payload::State(_s)) => {
+                Some(radio::radio_frame::Payload::PhoenixState(_s)) => {
                     return SentMessage {
-                        summary: format!("RadioFrame State from node={:?}", origin),
+                        summary: format!("RadioFrame PhoenixState from node={:?}", origin),
                     };
                 }
-                Some(radio::radio_frame::Payload::Event(_e)) => {
+                Some(radio::radio_frame::Payload::PhoenixEvent(_e)) => {
                     return SentMessage {
-                        summary: format!("RadioFrame Event from node={:?}", origin),
+                        summary: format!("RadioFrame PhoenixEvent from node={:?}", origin),
+                    };
+                }
+                Some(radio::radio_frame::Payload::ArgusState(_s)) => {
+                    return SentMessage {
+                        summary: format!("RadioFrame ArgusState from node={:?}", origin),
+                    };
+                }
+                Some(radio::radio_frame::Payload::ArgusEvent(_e)) => {
+                    return SentMessage {
+                        summary: format!("RadioFrame ArgusEvent from node={:?}", origin),
                     };
                 }
                 Some(radio::radio_frame::Payload::Command(m)) => {
@@ -136,6 +144,21 @@ pub fn summarize_received_bytes(bytes: &[u8]) -> SentMessage {
                     };
                     return SentMessage {
                         summary: format!("RadioFrame Command from node={:?}: {}", origin, detail),
+                    };
+                }
+                Some(radio::radio_frame::Payload::ArgusPressure(_)) => {
+                    return SentMessage {
+                        summary: format!("RadioFrame ArgusPressure from node={:?}", origin),
+                    };
+                }
+                Some(radio::radio_frame::Payload::ArgusTemperature(_)) => {
+                    return SentMessage {
+                        summary: format!("RadioFrame ArgusTemperature from node={:?}", origin),
+                    };
+                }
+                Some(radio::radio_frame::Payload::ArgusStrain(_)) => {
+                    return SentMessage {
+                        summary: format!("RadioFrame ArgusStrain from node={:?}", origin),
                     };
                 }
                 None => {
