@@ -25,14 +25,16 @@ class ManualODriveControl:
             'pole_pairs': 7,
             'torque_constant': 8.27 / 150,
             'current_limit': 8.0,
+            'dc_max_negative_current': -0.01,
             'calibration_current': 5.0,
             'calibration_timeout': 30.0,
             'ctrl_speed_scale': 20.0,
             'speed_step': 1.5,
             'speed_mult_limits': (0.1, 3.0),
             'limits': {
-                'yaw': (-370, 370),
-                'pitch': (-100, 13),
+                # 'yaw': (-370, 370),
+                'yaw': (-80, 80),
+                'pitch': (-100, 0),
             },
             'gains': {
                 'pos': 4.0,
@@ -58,7 +60,7 @@ class ManualODriveControl:
 
     def configure(self):
         print("Configuring motors...")
-        self.device.config.dc_max_negative_current = -self.cfg['current_limit']
+        self.device.config.dc_max_negative_current = self.cfg['dc_max_negative_current']
         self.device.config.max_regen_current = self.cfg['current_limit']
         for name, axis in self.axes.items():
             mcfg = axis.motor.config
