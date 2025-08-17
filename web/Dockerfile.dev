@@ -20,4 +20,4 @@ ENV PORT=3000
 ENV WEB_SERVER_PORT=3000
 
 # Start the development server
-CMD ["bun", "run", "dev", "--host", "0.0.0.0"] 
+CMD ["bun", "run", "dev"] 
