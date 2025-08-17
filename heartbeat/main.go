@@ -59,7 +59,7 @@ func containsRune(s string, r rune) bool {
 func main() {
 	// Basic structured logger at INFO level.
 	h := slog.NewTextHandler(os.Stdout, &slog.HandlerOptions{Level: slog.LevelInfo})
-    slog.SetDefault(slog.New(h))
+	slog.SetDefault(slog.New(h))
 
 	args := parseArgs()
 	authUsed := args.LibsqlAuthToken != ""
