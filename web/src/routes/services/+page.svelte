@@ -41,6 +41,12 @@
 	// The scrollable wrapper we control (bind below)
 	let logWrapEl: HTMLDivElement | null = null;
 
+	// Explicit pin toggle for auto-scroll behavior
+	let pinToBottom = true;
+
+	// Track changes to tail to re-trim existing logs immediately
+	let lastAppliedTail = logTail;
+
 	// Buffer writes to avoid layout thrash on heavy streams
 	let buf: string[] = [];
 	let flushScheduled = false;
@@ -51,11 +57,11 @@
 		requestAnimationFrame(() => {
 			flushScheduled = false;
 			if (buf.length) {
-				const wasAtBottom = isAtBottom();
 				logText += (logText ? '\n' : '') + buf.join('\n');
 				buf = [];
-				// keep pinned to bottom if user hasn't scrolled up
-				if (wasAtBottom) queueMicrotask(scrollToBottom);
+				logText = trimToTail(logText);
+				// keep pinned to bottom if toggle is enabled
+				if (pinToBottom) queueMicrotask(scrollToBottom);
 			}
 		});
 	}
@@ -69,6 +75,15 @@
 
 	function scrollToBottom() {
 		logWrapEl?.scrollTo({ top: logWrapEl.scrollHeight });
+	}
+
+	function trimToTail(text: string): string {
+		const limit = Math.max(0, Math.floor(logTail));
+		if (limit <= 0) return '';
+		// Fast path: small text or already within limit
+		let parts = text.split('\n');
+		if (parts.length <= limit) return text;
+		return parts.slice(-limit).join('\n');
 	}
 
 	function validateRegex(pattern: string): RegExp | null {
@@ -133,14 +148,20 @@
 			if (logFilter) params.set('grep', logFilter);
 			const res = await fetch(`/services/logs/api?${params.toString()}`, { signal: ac.signal });
 			if (!res.ok) throw new Error(await res.text());
-			logText = await res.text();
+			logText = trimToTail(await res.text());
 			await tick();
-			scrollToBottom();
+			if (pinToBottom) scrollToBottom();
 		} catch (e: any) {
 			if (e?.name !== 'AbortError') {
 				logText = 'Failed to fetch logs';
 			}
 		}
+	}
+
+	// When tail changes, trim currently displayed logs accordingly
+	$: if (logTail !== lastAppliedTail) {
+		lastAppliedTail = logTail;
+		logText = trimToTail(logText);
 	}
 
 	// --- Streaming via SSE ---------------------------------------------------
@@ -393,6 +414,17 @@
 							disabled={!selectedService}
 						>
 							{streaming ? 'Stop stream' : 'Start stream'}
+						</Button>
+						<Button
+							size="small"
+							kind={pinToBottom ? 'secondary' : 'tertiary'}
+							on:click={() => {
+								pinToBottom = !pinToBottom;
+								if (pinToBottom) scrollToBottom();
+							}}
+							style="margin-left: 0.5rem;"
+						>
+							{pinToBottom ? 'Unpin' : 'Pin to bottom'}
 						</Button>
 					</Column>
 				</Row>

@@ -2,46 +2,44 @@ import type { RequestHandler } from './$types';
 import { getDbClient } from '$lib/server/db';
 
 // Module-scope state
-let latestImuData: any = {
+let latestQuatData: any = {
 	time_stamp: Math.floor(Date.now() / 1000),
 	status: 'INITIALIZING',
-	accelerometer_x: 0, accelerometer_y: 0, accelerometer_z: 9.81,
-	gyroscope_x: 0, gyroscope_y: 0, gyroscope_z: 0,
-	delta_velocity_x: 0, delta_velocity_y: 0, delta_velocity_z: 0,
-	delta_angle_x: 0, delta_angle_y: 0, delta_angle_z: 0,
-	temperature: 25
+	quaternion_w: 1,
+	quaternion_x: 0,
+	quaternion_y: 0,
+	quaternion_z: 0
 };
 const activeControllers = new Set<ReadableStreamDefaultController>();
 let dbPollingIntervalId: NodeJS.Timeout | null = null;
-const DB_POLL_INTERVAL_MS = 100;
+const DB_POLL_INTERVAL_MS = 500;
 
 const db = getDbClient(); // Initialize DB client once
 
-async function fetchAndUpdateImuData() {
+async function fetchAndUpdateQuatData() {
 	try {
 		const result = await db.execute({
-			sql: `SELECT * FROM SbgImu ORDER BY time_stamp DESC LIMIT 1`,
+			sql: `SELECT time_stamp, quaternion_w, quaternion_x, quaternion_y, quaternion_z, status FROM SbgEkfQuat ORDER BY id DESC LIMIT 1`,
 		});
 		if (!result.rows.length) {
-			latestImuData = {
+			latestQuatData = {
 				time_stamp: Math.floor(Date.now() / 1000),
 				status: 'NO_DATA',
-				accelerometer_x: 0, accelerometer_y: 0, accelerometer_z: 9.81,
-				gyroscope_x: 0, gyroscope_y: 0, gyroscope_z: 0,
-				delta_velocity_x: 0, delta_velocity_y: 0, delta_velocity_z: 0,
-				delta_angle_x: 0, delta_angle_y: 0, delta_angle_z: 0,
-				temperature: 25
+				quaternion_w: 1,
+				quaternion_x: 0,
+				quaternion_y: 0,
+				quaternion_z: 0
 			};
 		} else {
-			latestImuData = result.rows[0];
+			latestQuatData = result.rows[0];
 		}
 	} catch (e: any) {
-		console.error("Error fetching IMU data in central poller:", e);
-		latestImuData = { ...latestImuData, status: 'DB_ERROR', errorDetails: e.message };
+		console.error("Error fetching EKF quaternion in central poller:", e);
+		latestQuatData = { ...latestQuatData, status: 'DB_ERROR', errorDetails: e.message };
 	}
 
 	// Broadcast to all active clients
-	const message = `data: ${JSON.stringify(latestImuData)}\n\n`;
+	const message = `data: ${JSON.stringify(latestQuatData)}\n\n`;
 	activeControllers.forEach(controller => {
 		try {
 			controller.enqueue(message);
@@ -54,12 +52,12 @@ async function fetchAndUpdateImuData() {
 }
 
 // Perform an initial fetch when the module loads
-fetchAndUpdateImuData();
+fetchAndUpdateQuatData();
 
 // Start polling the database if not already started
 if (!dbPollingIntervalId) {
-	dbPollingIntervalId = setInterval(fetchAndUpdateImuData, DB_POLL_INTERVAL_MS);
-	console.log(`Central IMU data polling started every ${DB_POLL_INTERVAL_MS}ms.`);
+	dbPollingIntervalId = setInterval(fetchAndUpdateQuatData, DB_POLL_INTERVAL_MS);
+	console.log(`Central EKF quaternion polling started every ${DB_POLL_INTERVAL_MS}ms.`);
 }
 
 export const GET: RequestHandler = ({ request }) => {
@@ -72,7 +70,7 @@ export const GET: RequestHandler = ({ request }) => {
 			console.log('SSE client connected. Total clients:', activeControllers.size);
 
 			try {
-				streamScopedController.enqueue(`data: ${JSON.stringify(latestImuData)}\n\n`);
+				streamScopedController.enqueue(`data: ${JSON.stringify(latestQuatData)}\n\n`);
 			} catch (e) {
 				console.error("Error sending initial data to new client, client might have disconnected:", e);
 				activeControllers.delete(streamScopedController);
