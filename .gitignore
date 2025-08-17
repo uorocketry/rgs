@@ -69,3 +69,8 @@ bin/
 *.so
 *.dll
 *.dylib
+# Go binaries
+heartbeat/heartbeat
+
+# Accidental package.json in root
+package.json
