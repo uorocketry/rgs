@@ -1,14 +1,15 @@
 use crate::cli::Args;
 use crate::commands::{process_single_command, OutgoingCommandRow};
+use crate::link::LinkMonitor;
 use libsql::{params as libsql_params, Connection};
 use mavlink::{connect, uorocketry::MavMessage, MavConnection};
-use crate::link::LinkMonitor;
-use std::time::Duration;
+use std::time::{Duration, Instant};
 use tracing::{error, info, warn};
 
 pub async fn run_dispatcher(
     db_conn: Connection,
     args: Args,
+    start_instant: Instant,
 ) -> Result<(), Box<dyn std::error::Error>> {
     info!(
         "Dispatcher loop starting. Poll Interval: {}s. Gateway: {}",
@@ -111,8 +112,13 @@ pub async fn run_dispatcher(
                     commands.len()
                 );
                 for command_row in commands {
-                    let process_result =
-                        process_single_command(&db_conn, current_gateway_conn, command_row).await;
+                    let process_result = process_single_command(
+                        &db_conn,
+                        current_gateway_conn,
+                        command_row,
+                        start_instant,
+                    )
+                    .await;
 
                     if let Err(e) = process_result {
                         let (cmd_id, err_details) = e;
@@ -137,12 +143,7 @@ pub async fn run_dispatcher(
                 }
             }
             // Link monitor tick
-            link
-                .tick(
-                    current_gateway_conn.as_mut(),
-                    &db_conn,
-                )
-                .await;
+            link.tick(current_gateway_conn.as_mut(), &db_conn).await;
         }
 
         // Always sleep a bit so we don't busy loop even when not connected

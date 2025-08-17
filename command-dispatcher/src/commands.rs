@@ -9,6 +9,7 @@ use prost::Message as _;
 use serde::Deserialize;
 use serde_json;
 use tracing::{error, info};
+use std::time::Instant;
 
 // Struct to represent a row from the OutgoingCommand table
 #[derive(Debug)]
@@ -61,6 +62,7 @@ pub async fn process_single_command(
     db_conn: &Connection,
     gateway_conn: &mut Box<dyn MavConnection<MavMessage> + Sync + Send>,
     command_row: OutgoingCommandRow,
+    start_instant: Instant,
 ) -> Result<(), (i64, Box<dyn std::error::Error>)> {
     let cmd_id = command_row.id;
     info!(
@@ -146,7 +148,12 @@ pub async fn process_single_command(
         }
     };
 
-    let frame = RadioFrame { node: Node::GroundStation as i32, payload: Some(Payload::Command(command_payload)) };
+    let millis_since_start = start_instant.elapsed().as_millis() as u64;
+    let frame = RadioFrame {
+        node: Node::GroundStation as i32,
+        payload: Some(Payload::Command(command_payload)),
+        millis_since_start,
+    };
     let bytes = RadioFrame::encode_length_delimited_to_vec(&frame);
 
     let mut fixed_payload = [0u8; 255];

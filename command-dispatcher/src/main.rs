@@ -4,8 +4,8 @@ mod health;
 use health::run_service_status_task;
 mod dispatcher;
 use dispatcher::run_dispatcher;
-mod link;
 mod commands;
+mod link;
 
 use clap::Parser; // For Args::parse()
 use libsql::Builder;
@@ -17,6 +17,7 @@ pub const SERVICE_ID: &str = "command-dispatcher";
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
     let args = Args::parse();
+    let start_instant = std::time::Instant::now();
     tracing_subscriber::fmt()
         .with_max_level(tracing::Level::INFO)
         .init();
@@ -48,7 +49,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     info!("Command dispatcher initialized. Starting dispatch loop...");
 
-    if let Err(e) = run_dispatcher(db_connection, args).await {
+    if let Err(e) = run_dispatcher(db_connection, args, start_instant).await {
         error!("Dispatcher loop exited with critical error: {:?}", e);
         service_status_handle.abort();
         return Err(e);

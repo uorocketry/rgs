@@ -48,7 +48,7 @@ impl LinkMonitor {
                 node: Node::PressureBoard as i32,
                 data: Some(cmd::command::Data::Ping(cmd::Ping { id })),
             };
-            let frame = RadioFrame { node: Node::GroundStation as i32, payload: Some(Payload::Command(command)) };
+            let frame = RadioFrame { node: Node::GroundStation as i32, payload: Some(Payload::Command(command)), millis_since_start: self.last_ping_at.elapsed().as_millis() as u64 };
             let bytes = RadioFrame::encode_length_delimited_to_vec(&frame);
             let mut fixed = [0u8; 255];
             let len = bytes.len().min(255);
