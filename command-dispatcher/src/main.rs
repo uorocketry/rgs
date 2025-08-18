@@ -5,7 +5,6 @@ use health::run_service_status_task;
 mod dispatcher;
 use dispatcher::run_dispatcher;
 mod commands;
-mod link;
 
 use clap::Parser; // For Args::parse()
 use libsql::Builder;

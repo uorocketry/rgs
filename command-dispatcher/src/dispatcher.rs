@@ -1,6 +1,5 @@
 use crate::cli::Args;
 use crate::commands::{process_single_command, OutgoingCommandRow};
-use crate::link::LinkMonitor;
 use libsql::{params as libsql_params, Connection};
 use mavlink::{connect, uorocketry::MavMessage, MavConnection};
 use std::time::{Duration, Instant};
@@ -18,21 +17,16 @@ pub async fn run_dispatcher(
 
     let mut gateway_conn_opt: Option<Box<dyn MavConnection<MavMessage> + Sync + Send>> = None;
     let gateway_connection_string = args.gateway_connection_string.clone();
-    let host_string = hostname::get()
-        .unwrap_or_default()
-        .to_string_lossy()
-        .to_string();
-    let instance_id_string = format!(
-        "{}@{}-{}",
-        crate::SERVICE_ID,
-        host_string,
-        std::process::id()
-    );
-    let mut link = LinkMonitor::new(
-        instance_id_string,
-        crate::SERVICE_ID.to_string(),
-        host_string,
-    );
+    // let host_string = hostname::get()
+    //     .unwrap_or_default()
+    //     .to_string_lossy()
+    //     .to_string();
+    // let instance_id_string = format!(
+    //     "{}@{}-{}",
+    //     crate::SERVICE_ID,
+    //     host_string,
+    //     std::process::id()
+    // );
 
     loop {
         if gateway_conn_opt.is_none() {
@@ -142,8 +136,6 @@ pub async fn run_dispatcher(
                     }
                 }
             }
-            // Link monitor tick
-            link.tick(current_gateway_conn.as_mut(), &db_conn).await;
         }
 
         // Always sleep a bit so we don't busy loop even when not connected
