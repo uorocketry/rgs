@@ -167,6 +167,12 @@ pub async fn save_sbg(transaction: &Transaction, sbg: &SbgData) -> Result<i64> {
             transaction.last_insert_rowid()
         }
         sbg_data::Data::GpsPos(gps_pos) => {
+            // // Print gps_pos as JSON
+            // match serde_json::to_string_pretty(&gps_pos) {
+            //     Ok(json) => println!("{}", json),
+            //     Err(e) => eprintln!("Failed to serialize gps_pos to JSON: {:?}", e),
+            // }
+
             let status = gps_pos
                 .status
                 .as_ref()

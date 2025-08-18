@@ -83,7 +83,7 @@ pub async fn save_messages_batch(
                         }
                     }
                     // Intentionally ignored. Prefer SBG GpsPos/GpsVel.
-                    Some(radio::radio_frame::Payload::Gps(gps_data)) => {
+                    Some(radio::radio_frame::Payload::Gps(_gps_data)) => {
                         tracing::warn!(
                             "Generic GPS payload handler removed. Prefer SBG GpsPos/GpsVel."
                         );
