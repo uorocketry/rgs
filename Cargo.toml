@@ -3,7 +3,8 @@ members = [
     "telemetry-ingestor",
     "command-dispatcher",
     "hydra_manager_daemon",
-    "utils/manual-command-dispatcher"
+    "utils/manual-command-dispatcher",
+    "gps-ingest"
 ]
 resolver = "2"
 
