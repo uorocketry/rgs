@@ -1,0 +1,17 @@
+[package]
+name = "gps-ingest"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+tokio = { workspace = true }
+serde = { workspace = true }
+serde_json = { workspace = true }
+chrono = { workspace = true }
+clap = { workspace = true }
+tracing = { workspace = true }
+tracing-subscriber = { workspace = true }
+mavlink = { workspace = true }
+messages-prost = { workspace = true }
+anyhow = "1.0"
+prost = { version = "0.14", features = ["derive"], default-features = false }
