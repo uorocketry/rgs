@@ -5,8 +5,8 @@ WORKDIR /usr/src/app
 # Copy package files
 COPY package.json bun.lock ./
 
-# Install all dependencies (including devDependencies)
-RUN bun install
+# Copy local node_modules (pre-installed dependencies)
+COPY node_modules ./node_modules
 
 # Copy source code
 COPY . .
