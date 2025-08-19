@@ -25,8 +25,16 @@
 		packets_lost: number;
 	};
 
+	type Totals = {
+		total_packets_lost: number;
+		total_radio_frames: number;
+		packet_loss_ratio: number;
+		packet_loss_percentage: number;
+	};
+
 	// Reactive state
 	let metrics: RadioMetric[] = $state([]);
+	let totals: Totals | null = $state(null);
 	let error: string | null = $state(null);
 	let loading = $state(false);
 	let connected = $state(false);
@@ -91,7 +99,13 @@
 		eventSource.onmessage = (event) => {
 			try {
 				const data = JSON.parse(event.data);
-				metrics = data;
+				if (Array.isArray(data)) {
+					metrics = data;
+					totals = null;
+				} else if (data && data.metrics) {
+					metrics = data.metrics;
+					totals = data.totals ?? null;
+				}
 			} catch (e) {
 				console.error('Error parsing SSE data:', e);
 			}
@@ -100,7 +114,13 @@
 		eventSource.addEventListener('metrics', (event) => {
 			try {
 				const data = JSON.parse(event.data);
-				metrics = data;
+				if (Array.isArray(data)) {
+					metrics = data;
+					totals = null;
+				} else if (data && data.metrics) {
+					metrics = data.metrics;
+					totals = data.totals ?? null;
+				}
 			} catch (e) {
 				console.error('Error parsing metrics event:', e);
 			}
@@ -139,7 +159,14 @@
 		try {
 			const res = await fetch('/radio/api');
 			if (!res.ok) throw new Error(await res.text());
-			metrics = await res.json();
+			const data = await res.json();
+			if (Array.isArray(data)) {
+				metrics = data;
+				totals = null;
+			} else {
+				metrics = data.metrics ?? [];
+				totals = data.totals ?? null;
+			}
 			error = null;
 		} catch (e: any) {
 			error = e.message;
@@ -264,26 +291,25 @@
 						</Column>
 						<Column>
 							<Tile>
-								<h3>Packet Loss</h3>
-								{#if metrics[0]}
-									<div
-										style="font-size: 2rem; font-weight: bold; color: {getPacketLossStatus(
-											metrics[0].packets_lost
-										).color === 'green'
-											? '#24a148'
-											: getPacketLossStatus(metrics[0].packets_lost).color === 'blue'
-												? '#0f62fe'
-												: getPacketLossStatus(metrics[0].packets_lost).color === 'teal'
-													? '#009d9a'
-													: '#da1e28'};"
-									>
-										{metrics[0].packets_lost}
+								<h3>Total Packet Loss</h3>
+								{#if totals}
+									<div style="font-size: 2rem; font-weight: bold; color: #da1e28;">
+										{totals.total_packets_lost}
 									</div>
-									<Tag type={getPacketLossStatus(metrics[0].packets_lost).color} size="sm">
-										{getPacketLossStatus(metrics[0].packets_lost).status}
+									<Tag
+										type={totals.packet_loss_percentage < 1
+											? 'green'
+											: totals.packet_loss_percentage < 5
+												? 'blue'
+												: totals.packet_loss_percentage < 15
+													? 'teal'
+													: 'red'}
+										size="sm"
+									>
+										{totals.packet_loss_percentage.toFixed(2)}%
 									</Tag>
 									<ProgressBar
-										value={getPacketLossPercentage(metrics[0].packets_lost)}
+										value={Math.min(100, Math.max(0, totals.packet_loss_percentage))}
 										size="sm"
 										style="margin-top: 0.5rem;"
 									/>
