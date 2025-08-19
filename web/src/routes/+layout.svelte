@@ -314,7 +314,7 @@
 		{/if}
 
 		<!-- Command Box (Modal) -->
-		<MasterCommandBox />
+		<!-- <MasterCommandBox /> -->
 
 		<!-- Main Content -->
 		<Content>
