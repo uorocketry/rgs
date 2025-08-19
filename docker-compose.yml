@@ -99,13 +99,13 @@ services:
             - "traefik.http.services.tiles.loadbalancer.server.port=6565"
 
     heartbeat:
-        image: golang:bookworm
+        image: archlinux:latest
         networks:
             - web
         volumes:
             - ./heartbeat:/app
         working_dir: /app
-        command: [ "go", "run", ".", "--libsql-url", "http://db:8080" ]
+        command: [ "/app/heartbeat", "--libsql-url", "http://db:8080" ]
         restart: unless-stopped
         depends_on:
             - db
@@ -145,7 +145,7 @@ services:
         labels:
             - "traefik.enable=false"
     sergw:
-        image: golang:bookworm
+        image: archlinux:latest
         networks:
             - web
         volumes:
@@ -158,7 +158,7 @@ services:
         restart: unless-stopped
         labels:
             - "traefik.enable=false"
-        command: [ "go", "run", ".", "listen", "--serial", "/dev/ttyUSB0", "--baud", "57600", "--verbose", "--host", "0.0.0.0:5656" ]
+        command: [ "/app/sergw", "listen", "--serial", "/dev/ttyUSB0", "--baud", "57600", "--verbose", "--host", "0.0.0.0:5656" ]
 
 networks:
     web:
