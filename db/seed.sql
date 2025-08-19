@@ -257,6 +257,33 @@ CREATE TABLE IF NOT EXISTS RadioMetrics (
 
 CREATE INDEX IF NOT EXISTS idx_radiometrics_timestamp ON RadioMetrics (timestamp);
 
+-- Summary table to maintain aggregates for fast queries
+CREATE TABLE IF NOT EXISTS MetricsSummary (
+    id INTEGER PRIMARY KEY CHECK (id = 1),
+    total_packets_lost INTEGER NOT NULL DEFAULT 0,
+    total_radio_frames INTEGER NOT NULL DEFAULT 0
+);
+
+-- Ensure a single row exists
+INSERT INTO MetricsSummary (id, total_packets_lost, total_radio_frames)
+    SELECT 1, 0, 0
+    WHERE NOT EXISTS (SELECT 1 FROM MetricsSummary WHERE id = 1);
+
+-- Triggers to update summary on inserts
+CREATE TRIGGER IF NOT EXISTS trg_radiometrics_insert
+AFTER INSERT ON RadioMetrics
+BEGIN
+    UPDATE MetricsSummary
+    SET total_packets_lost = total_packets_lost + COALESCE(NEW.packets_lost, 0);
+END;
+
+CREATE TRIGGER IF NOT EXISTS trg_radioframe_insert
+AFTER INSERT ON RadioFrame
+BEGIN
+    UPDATE MetricsSummary
+    SET total_radio_frames = total_radio_frames + 1;
+END;
+
 -- Sensor tables for protobuf messages
 CREATE TABLE IF NOT EXISTS Iim20670Imu (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
