@@ -32,32 +32,23 @@ except Exception:  # pragma: no cover - optional dependency
 # -----------------------
 
 @dataclass
-class AntennaLimits:
-    yaw_deg: Tuple[float, float] = (-80.0, 80.0)
-    pitch_deg: Tuple[float, float] = (-10.0, 90.0)
-
-
-@dataclass
 class PredictorConfig:
     # Antenna site
     antenna_lat_deg: float = 48.48058344683317
     antenna_lon_deg: float = -81.33124126482966
     antenna_alt_m: float = 300.0
-    antenna_yaw_zero_deg: float = 180.0  # yaw-zero = South
-    yaw_normalization: str = "pm180"  # "pm180" or "0to360"
+    antenna_yaw_zero_deg: float = 270.0  # yaw-zero = West
+    yaw_normalization: str = "continuous"  # options: "continuous", "pm180", "0to360"
 
     # Data source
-    use_real_gps_ingest: bool = False
+    use_real_gps_ingest: bool = True
     gps_ingest_cmd: str = "cargo run -p gps-ingest"
-    test_target_lat_deg: float = 48.48158344683317
-    test_target_lon_deg: float = -81.33124126482966
+    test_target_lat_deg: float = 48.48055540
+    test_target_lon_deg: float = -81.33145070
     test_target_alt_m: float = 301.0
 
     # Prediction/history
     num_samples: int = 1  # how many samples to keep (and fit). 1 means latest only
-
-    # Limits
-    limits: AntennaLimits = field(default_factory=AntennaLimits)
 
 
 @dataclass
@@ -91,6 +82,7 @@ class PredictorService:
         self._stop = threading.Event()
         self._thread: Optional[threading.Thread] = None
         self._last_prediction: Optional[Prediction] = None
+        self._last_yaw_cmd: Optional[float] = None
 
     # ---- Public API ----
     def start(self) -> None:
@@ -115,6 +107,34 @@ class PredictorService:
 
     def get_prediction(self) -> Optional[Prediction]:
         return self._last_prediction
+
+    # ---- Yaw normalization helpers ----
+    @staticmethod
+    def _normalize_0_360(deg: float) -> float:
+        return (deg % 360.0 + 360.0) % 360.0
+
+    @staticmethod
+    def _normalize_pm180(deg: float) -> float:
+        d = PredictorService._normalize_0_360(deg)
+        return d - 360.0 if d > 180.0 else d
+
+    def _rotation_from_yaw_zero_basic(self, bearing_deg: float) -> float:
+        """Yaw relative to yaw-zero (single-turn), honoring config.yaw_normalization (0to360 or pm180)."""
+        raw = bearing_deg - self.config.antenna_yaw_zero_deg
+        if self.config.yaw_normalization == "0to360":
+            return PredictorService._normalize_0_360(raw)
+        # default for 'pm180' or anything else non-continuous
+        return PredictorService._normalize_pm180(raw)
+
+    def rotation_from_yaw_zero_continuous(self, bearing_deg: float, ref_yaw_deg: float) -> float:
+        """
+        Map desired yaw (bearing - yaw_zero) to nearest 360°-equivalent near ref_yaw_deg.
+        Enables multi-turn continuity (no wrap jumps).
+        """
+        desired_mod = PredictorService._normalize_0_360(bearing_deg - self.config.antenna_yaw_zero_deg)
+        ref_mod = PredictorService._normalize_0_360(ref_yaw_deg)
+        delta = PredictorService._normalize_pm180(desired_mod - ref_mod)  # shortest delta in [-180, 180]
+        return ref_yaw_deg + delta
 
     # ---- Internal loop ----
     def _run_loop(self) -> None:
@@ -296,22 +316,9 @@ class PredictorService:
         x = math.sin(dlon) * math.cos(lat2)
         y = math.cos(lat1) * math.sin(lat2) - math.sin(lat1) * math.cos(lat2) * math.cos(dlon)
         brng = math.degrees(math.atan2(x, y))
-        return PredictorService.normalize_angle_0_360(brng)
+        return PredictorService._normalize_0_360(brng)
 
-    @staticmethod
-    def normalize_angle_0_360(deg: float) -> float:
-        return (deg % 360.0 + 360.0) % 360.0
 
-    @staticmethod
-    def normalize_angle_pm180(deg: float) -> float:
-        d = PredictorService.normalize_angle_0_360(deg)
-        return d - 360.0 if d > 180.0 else d
-
-    def rotation_from_yaw_zero(self, bearing_deg: float) -> float:
-        raw = bearing_deg - self.config.antenna_yaw_zero_deg
-        if self.config.yaw_normalization == "0to360":
-            return PredictorService.normalize_angle_0_360(raw)
-        return PredictorService.normalize_angle_pm180(raw)
 
     def compute_az_el(self, tgt_lat: float, tgt_lon: float, tgt_alt: float) -> Tuple[float, float]:
         x_o, y_o, z_o = self._geodetic_to_ecef(
@@ -324,5 +331,27 @@ class PredictorService:
             az += 360.0
         el = math.degrees(math.atan2(u, math.hypot(e, n)))
         return az, el
+
+    def yaw_pitch_from_target(self, tgt_lat: float, tgt_lon: float, tgt_alt: float) -> Tuple[float, float]:
+        """
+        Compute yaw (relative to yaw-zero) and pitch.
+        Modes:
+          - continuous: unwrap around last commanded yaw
+          - pm180 / 0to360: single-turn normalized output
+        Updates self._last_yaw_cmd for continuity.
+        """
+        az, el = self.compute_az_el(tgt_lat, tgt_lon, tgt_alt)  # az from North
+
+        if self.config.yaw_normalization == "continuous" and self._last_yaw_cmd is not None:
+            yaw_rel = self.rotation_from_yaw_zero_continuous(az, self._last_yaw_cmd)
+        elif self.config.yaw_normalization == "continuous":
+            # first command in continuous mode: seed using pm180 for a near value
+            yaw_rel = self._rotation_from_yaw_zero_basic(az)
+        else:
+            yaw_rel = self._rotation_from_yaw_zero_basic(az)
+
+        # Remember last commanded yaw for continuity
+        self._last_yaw_cmd = yaw_rel
+        return yaw_rel, el
 
 

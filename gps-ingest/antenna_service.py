@@ -16,8 +16,8 @@ from typing import Dict, Tuple, Optional
 @dataclass
 class AntennaConfig:
     # Motion limits (degrees)
-    limits_yaw_deg: Tuple[float, float] = (-80.0, 80.0)
-    limits_pitch_deg: Tuple[float, float] = (-10.0, 90.0)
+    limits_yaw_deg: Tuple[float, float] = (-360.0, 360.0)  # Multi-turn support
+    limits_pitch_deg: Tuple[float, float] = (-1.0, 1.0)
     # Gear ratios for converting degrees <-> motor turns (optional if using real controller differently)
     gear_ratio_yaw: float = 30.0
     gear_ratio_pitch: float = 36.0
@@ -28,20 +28,20 @@ class AntennaConfig:
     # ODrive motor/controller settings
     pole_pairs: int = 7
     torque_constant: float = 8.27 / 150.0
-    current_limit: float = 7.0
-    regen_current_limit: float = 0.001
-    dc_max_negative_current: float = -0.01
-    dc_max_positive_current: float = 10.0
-    calibration_current: float = 5.0
+    current_limit: float = 30.0
+    regen_current_limit: float = 4.0
+    dc_max_negative_current: float = -6.0
+    dc_max_positive_current: float = 60.0
+    calibration_current: float = 8.0
     calibration_timeout: float = 30.0
     # Controller gains
     pos_gain: float = 2.0
     vel_gain: float = 0.10
     vel_integrator_gain: float = 3.0
-    # Trap trajectory defaults
-    trap_vel_limit: float = 120.0
-    trap_accel_limit: float = 20.0
-    trap_decel_limit: float = 20.0
+    # Trap trajectory defaults (in degrees per second)
+    trap_vel_limit_degps: float = 120.0
+    trap_accel_limit_degps2: float = 90.0
+    trap_decel_limit_degps2: float = 90.0
 
 
 class AntennaService:
@@ -126,10 +126,15 @@ class AntennaService:
                 ccfg.pos_gain = self.config.pos_gain
                 ccfg.vel_gain = self.config.vel_gain
                 ccfg.vel_integrator_gain = self.config.vel_integrator_gain
-                # Trap trajectory limits
-                tcfg.vel_limit = self.config.trap_vel_limit
-                tcfg.accel_limit = self.config.trap_accel_limit
-                tcfg.decel_limit = self.config.trap_decel_limit
+                # Trap trajectory limits (in motor turns per second)
+                if name == 'yaw':
+                    gear_ratio = self.config.gear_ratio_yaw
+                else:  # pitch
+                    gear_ratio = self.config.gear_ratio_pitch
+                
+                tcfg.vel_limit = (self.config.trap_vel_limit_degps / 360.0) * gear_ratio
+                tcfg.accel_limit = (self.config.trap_accel_limit_degps2 / 360.0) * gear_ratio
+                tcfg.decel_limit = (self.config.trap_decel_limit_degps2 / 360.0) * gear_ratio
                 # Keep controller vel_limit in sync with trap traj
                 ccfg.vel_limit = tcfg.vel_limit
                 if name == 'yaw':
