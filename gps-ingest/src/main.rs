@@ -161,6 +161,7 @@ fn handle_radio_frame(frame: radio::RadioFrame, latest: &mut LatestSample, prett
         },
         // We intentionally ignore other payloads (IMU, logs, etc.)
         _payload => {
+            // println!("other payload: {:?}", _payload);
             // print payload json
             // if let Ok(s) = serde_json::to_string_pretty(&payload) {
             //     println!("{}", s);
