@@ -69,7 +69,22 @@ const notificationSettings = {
 	]
 } satisfies SettingsGroup;
 
-export const settings = [uiSettings, notificationSettings];
+const flightSettings = {
+	name: 'flight',
+	settings: [
+		// Altitude page
+		{ name: 'altitudeMinutes', valueDescription: 'number', description: 'Minutes to look back for altitude', value: persistentStore('flight.altitudeMinutes', 15), min: 1, max: 1440, step: 1 },
+		{ name: 'altitudeQnhKpa', valueDescription: 'number', description: 'QNH (kPa) for barometric altitude', value: persistentStore('flight.altitudeQnhKpa', 100), min: 80, max: 110, step: 0.1 },
+		// IMU page
+		{ name: 'imuMinutes', valueDescription: 'number', description: 'Minutes to look back for IMU', value: persistentStore('flight.imuMinutes', 10), min: 1, max: 1440, step: 1 },
+		// Trajectory page
+		{ name: 'trajMinutes', valueDescription: 'number', description: 'Minutes to look back for trajectory', value: persistentStore('flight.trajMinutes', 240), min: 1, max: 1440, step: 1 },
+		{ name: 'trajMaxPoints', valueDescription: 'number', description: 'Max points on map path', value: persistentStore('flight.trajMaxPoints', 3000), min: 100, max: 20000, step: 100 },
+		{ name: 'trajRadiusKm', valueDescription: 'number', description: 'Radius around center (km)', value: persistentStore('flight.trajRadiusKm', 50), min: 1, max: 500, step: 1 },
+	]
+} satisfies SettingsGroup;
+
+export const settings = [uiSettings, notificationSettings, flightSettings];
 
 export const findSetting = (name: string): Setting | undefined => {
 	const groupName = name.split('.')[0];

@@ -11,6 +11,7 @@ let latestQuatData: any = {
 	quaternion_z: 0
 };
 const activeControllers = new Set<ReadableStreamDefaultController>();
+const encoder = new TextEncoder();
 let dbPollingIntervalId: NodeJS.Timeout | null = null;
 const DB_POLL_INTERVAL_MS = 500;
 
@@ -21,75 +22,91 @@ async function fetchAndUpdateQuatData() {
 		const result = await db.execute({
 			sql: `SELECT time_stamp, quaternion_w, quaternion_x, quaternion_y, quaternion_z, status FROM SbgEkfQuat ORDER BY id DESC LIMIT 1`,
 		});
-		if (!result.rows.length) {
-			latestQuatData = {
-				time_stamp: Math.floor(Date.now() / 1000),
-				status: 'NO_DATA',
-				quaternion_w: 1,
-				quaternion_x: 0,
-				quaternion_y: 0,
-				quaternion_z: 0
-			};
-		} else {
-			latestQuatData = result.rows[0];
-		}
+		latestQuatData = result.rows[0] ?? {
+			time_stamp: Math.floor(Date.now() / 1000),
+			status: 'NO_DATA',
+			quaternion_w: 1,
+			quaternion_x: 0,
+			quaternion_y: 0,
+			quaternion_z: 0
+		};
 	} catch (e: any) {
-		console.error("Error fetching EKF quaternion in central poller:", e);
+		console.error('Error fetching EKF quaternion in central poller:', e);
 		latestQuatData = { ...latestQuatData, status: 'DB_ERROR', errorDetails: e.message };
 	}
 
-	// Broadcast to all active clients
+	// Broadcast + prune closed sockets
 	const message = `data: ${JSON.stringify(latestQuatData)}\n\n`;
-	activeControllers.forEach(controller => {
+	for (const controller of Array.from(activeControllers)) {
 		try {
-			controller.enqueue(message);
-		} catch (err) {
-			console.warn("Error enqueuing data to a client, removing controller:", err);
+			controller.enqueue(encoder.encode(message));
+		} catch {
 			try { controller.close(); } catch { }
 			activeControllers.delete(controller);
 		}
-	});
+	}
 }
 
-// Perform an initial fetch when the module loads
+// Initial fetch
 fetchAndUpdateQuatData();
 
-// Start polling the database if not already started
+// Start central DB polling
 if (!dbPollingIntervalId) {
 	dbPollingIntervalId = setInterval(fetchAndUpdateQuatData, DB_POLL_INTERVAL_MS);
 	console.log(`Central EKF quaternion polling started every ${DB_POLL_INTERVAL_MS}ms.`);
 }
 
-export const GET: RequestHandler = ({ request }) => {
-	let streamScopedController: ReadableStreamDefaultController;
+export const GET: RequestHandler = (event) => {
+	let controllerForThisClient: ReadableStreamDefaultController;
 
 	const stream = new ReadableStream({
 		start(controller) {
-			streamScopedController = controller; // Assign to the GET handler's scope
-			activeControllers.add(streamScopedController);
+			controllerForThisClient = controller;
+			activeControllers.add(controllerForThisClient);
 			console.log('SSE client connected. Total clients:', activeControllers.size);
 
-			try {
-				streamScopedController.enqueue(`data: ${JSON.stringify(latestQuatData)}\n\n`);
-			} catch (e) {
-				console.error("Error sending initial data to new client, client might have disconnected:", e);
-				activeControllers.delete(streamScopedController);
-				try { streamScopedController.close(); } catch { }
-				return;
+			// Initial event flush
+			controller.enqueue(encoder.encode(`data: ${JSON.stringify(latestQuatData)}\n\n`));
+
+			// Robust cleanup with Node adapter if available
+			const node = (event as any)?.platform?.node as { req?: any; res?: any } | undefined;
+			if (node) {
+				const cleanup = () => {
+					if (controllerForThisClient) {
+						activeControllers.delete(controllerForThisClient);
+						try { controllerForThisClient.close(); } catch { }
+						node.req.off?.('close', cleanup);
+						node.res.off?.('close', cleanup);
+						node.req.off?.('aborted', cleanup);
+						console.log('SSE client disconnected (socket close). Total clients:', activeControllers.size);
+					}
+				};
+				node.req.on?.('close', cleanup);
+				node.res.on?.('close', cleanup);
+				node.req.on?.('aborted', cleanup);
 			}
+
+			// Fallback: abort signal
+			event.request.signal.addEventListener('abort', () => {
+				if (controllerForThisClient) {
+					activeControllers.delete(controllerForThisClient);
+					try { controllerForThisClient.close(); } catch { }
+					console.log('SSE client disconnected (abort). Total clients:', activeControllers.size);
+				}
+			});
 		},
 		cancel() {
-			if (streamScopedController) { // Check if it was assigned
-				activeControllers.delete(streamScopedController);
+			if (controllerForThisClient) {
+				activeControllers.delete(controllerForThisClient);
+				console.log('SSE client disconnected (cancel). Total clients:', activeControllers.size);
 			}
-			console.log('SSE client disconnected. Total clients:', activeControllers.size);
 		}
 	});
 
 	return new Response(stream, {
 		headers: {
 			'Content-Type': 'text/event-stream',
-			'Cache-Control': 'no-cache',
+			'Cache-Control': 'no-cache, no-transform',
 			'Connection': 'keep-alive'
 		}
 	});

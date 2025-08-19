@@ -60,8 +60,8 @@ services:
             - PORT=3000
             - WEB_SERVER_PORT=3000
             - DB_URL=http://db:8080
-            - VITE_ALLOWED_HOSTS=uorocketry.ca,localhost,127.0.0.1
-            - SVELTEKIT_ALLOWED_HOSTS=uorocketry.ca,localhost,127.0.0.1
+            - VITE_ALLOWED_HOSTS=uorocketry.ca,localhost,127.0.0.1,*.local
+            - SVELTEKIT_ALLOWED_HOSTS=uorocketry.ca,localhost,127.0.0.1,*.locald
             - ALLOWED_SUBNETS=192.168.8.0/24,127.0.0.1/32,172.18.0.0/16
             # - PROTECTED_PATH_PREFIXES=/services/api
         volumes:
@@ -75,7 +75,8 @@ services:
             - db
         labels:
             - "traefik.enable=true"
-            - "traefik.http.routers.web.rule=Host(`uorocketry.ca`)"
+            - "traefik.http.routers.web.rule=Host(`uorocketry.ca`) || HostRegexp(`{subdomain:.+}\\.local`)"
+
             - "traefik.http.routers.web.entrypoints=web"
             - "traefik.http.routers.web.service=web"
             - "traefik.http.routers.web.priority=100"

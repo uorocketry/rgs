@@ -1,24 +1,36 @@
 import { getDbClient } from '$lib/server/db';
 import type { RequestHandler } from './$types';
 
-type Row = { id: number; kind: 'State' | 'Event'; value: string; ts: number | null };
+type Row = { id: number; kind: 'State' | 'Event'; value: string; ts: number | null; duration_s: number | null };
+
+// Central SSE state
+const encoder = new TextEncoder();
+const activeControllers: Set<ReadableStreamDefaultController> = new Set();
+let pollIntervalId: NodeJS.Timeout | null = null;
+let lastBroadcastStateId: number | null = null;
+let lastBroadcastEventId: number | null = null;
 
 async function getLatest(kind: 'State' | 'Event'): Promise<Row | null> {
     const db = getDbClient();
-    const table = kind === 'State' ? 'State' : 'Event';
+    // Use Phoenix* tables
+    const table = kind === 'State' ? 'PhoenixState' : 'PhoenixEvent';
     const column = kind === 'State' ? 'state' : 'event';
+    const dataType = kind === 'State' ? 'PhoenixState' : 'PhoenixEvent';
     try {
         const res = await db.execute({
             sql: `SELECT t.id AS id, t.${column} AS value, rf.timestamp_epoch AS ts
                   FROM ${table} t
-                  JOIN RadioFrame rf ON rf.data_id = t.id AND rf.data_type = '${kind}'
+                  JOIN RadioFrame rf ON rf.data_id = t.id AND rf.data_type = '${dataType}'
                   ORDER BY rf.timestamp_epoch DESC
                   LIMIT 1`,
             args: []
         });
         if (res.rows.length) {
             const r = res.rows[0];
-            return { id: Number(r.id), kind, value: String(r.value), ts: r.ts ? Number(r.ts) : null };
+            const tsNum = r.ts ? Number(r.ts) : null;
+            const now = Math.floor(Date.now() / 1000);
+            const duration = tsNum != null ? Math.max(0, now - tsNum) : null;
+            return { id: Number(r.id), kind, value: String(r.value), ts: tsNum, duration_s: duration };
         }
     } catch (e) {
         console.error(`${kind} API: join query failed, falling back`, e);
@@ -30,7 +42,7 @@ async function getLatest(kind: 'State' | 'Event'): Promise<Row | null> {
         });
         if (res2.rows.length) {
             const r = res2.rows[0];
-            return { id: Number(r.id), kind, value: String(r.value), ts: null };
+            return { id: Number(r.id), kind, value: String(r.value), ts: null, duration_s: null };
         }
     } catch (e) {
         console.error(`${kind} API: fallback latest query failed`, e);
@@ -41,23 +53,46 @@ async function getLatest(kind: 'State' | 'Event'): Promise<Row | null> {
 async function getSnapshot(limit = 50): Promise<Row[]> {
     const db = getDbClient();
     try {
+        // Only transitions (changes) for state and event using window LAG over time
         const stateRes = await db.execute({
-            sql: `SELECT s.id AS id, s.state AS value, rf.timestamp_epoch AS ts, 'State' AS kind
-                  FROM State s
-                  JOIN RadioFrame rf ON rf.data_id = s.id AND rf.data_type = 'State'
-                  ORDER BY rf.timestamp_epoch DESC
+            sql: `WITH ordered AS (
+                      SELECT ps.id AS id,
+                             ps.state AS value,
+                             rf.timestamp_epoch AS ts,
+                             LAG(ps.state) OVER (ORDER BY rf.timestamp_epoch ASC) AS prev_value,
+                             LEAD(rf.timestamp_epoch) OVER (ORDER BY rf.timestamp_epoch ASC) AS next_ts
+                      FROM PhoenixState ps
+                      JOIN RadioFrame rf ON rf.data_id = ps.id AND rf.data_type = 'PhoenixState'
+                  )
+                  SELECT id, value, ts,
+                         COALESCE(next_ts, strftime('%s','now')) - ts AS duration_s,
+                         'State' AS kind
+                  FROM ordered
+                  WHERE prev_value IS NULL OR value <> prev_value
+                  ORDER BY ts DESC
                   LIMIT ?`,
             args: [limit]
         });
         const eventRes = await db.execute({
-            sql: `SELECT e.id AS id, e.event AS value, rf.timestamp_epoch AS ts, 'Event' AS kind
-                  FROM Event e
-                  JOIN RadioFrame rf ON rf.data_id = e.id AND rf.data_type = 'Event'
-                  ORDER BY rf.timestamp_epoch DESC
+            sql: `WITH ordered AS (
+                      SELECT pe.id AS id,
+                             pe.event AS value,
+                             rf.timestamp_epoch AS ts,
+                             LAG(pe.event) OVER (ORDER BY rf.timestamp_epoch ASC) AS prev_value,
+                             LEAD(rf.timestamp_epoch) OVER (ORDER BY rf.timestamp_epoch ASC) AS next_ts
+                      FROM PhoenixEvent pe
+                      JOIN RadioFrame rf ON rf.data_id = pe.id AND rf.data_type = 'PhoenixEvent'
+                  )
+                  SELECT id, value, ts,
+                         COALESCE(next_ts, strftime('%s','now')) - ts AS duration_s,
+                         'Event' AS kind
+                  FROM ordered
+                  WHERE prev_value IS NULL OR value <> prev_value
+                  ORDER BY ts DESC
                   LIMIT ?`,
             args: [limit]
         });
-        const toRow = (r: any) => ({ id: Number(r.id), kind: r.kind as 'State' | 'Event', value: String(r.value), ts: r.ts ? Number(r.ts) : null });
+        const toRow = (r: any) => ({ id: Number(r.id), kind: r.kind as 'State' | 'Event', value: String(r.value), ts: r.ts ? Number(r.ts) : null, duration_s: r.duration_s != null ? Number(r.duration_s) : null });
         return [...stateRes.rows.map(toRow), ...eventRes.rows.map(toRow)]
             .sort((a, b) => (b.ts ?? 0) - (a.ts ?? 0))
             .slice(0, limit);
@@ -67,54 +102,51 @@ async function getSnapshot(limit = 50): Promise<Row[]> {
     }
 }
 
-export const GET: RequestHandler = async ({ request }) => {
-    let cancelled = false;
-    let lastStateId: number | null = null;
-    let lastEventId: number | null = null;
-    let intervalId: any;
+function ensurePoller() {
+    if (pollIntervalId) return;
+    pollIntervalId = setInterval(async () => {
+        try {
+            const [s, e] = await Promise.all([getLatest('State'), getLatest('Event')]);
+            const newRows: Row[] = [];
+            if (s && (lastBroadcastStateId === null || s.id !== lastBroadcastStateId)) {
+                lastBroadcastStateId = s.id;
+                newRows.push(s);
+            }
+            if (e && (lastBroadcastEventId === null || e.id !== lastBroadcastEventId)) {
+                lastBroadcastEventId = e.id;
+                newRows.push(e);
+            }
+            if (newRows.length) {
+                newRows.sort((a, b) => (b.ts ?? 0) - (a.ts ?? 0));
+                const payload = JSON.stringify(newRows);
+                const chunk = encoder.encode(`event: append\n` + `data: ${payload}\n\n`);
+                for (const c of Array.from(activeControllers)) {
+                    try { c.enqueue(chunk); } catch { try { c.close(); } catch { } activeControllers.delete(c); }
+                }
+            }
+        } catch (e) {
+            // ignore single tick failures
+        }
+    }, 1000);
+}
 
+export const GET: RequestHandler = async ({ request }) => {
     const stream = new ReadableStream({
         start(controller) {
-            const encoder = new TextEncoder();
-
-            const sendEvent = (event: string, payload: unknown) => {
-                if (cancelled) return;
-                const data = typeof payload === 'string' ? payload : JSON.stringify(payload);
-                controller.enqueue(encoder.encode(`event: ${event}\n` + `data: ${data}\n\n`));
-            };
-
-            const push = async () => {
-                if (cancelled) return;
-                const [s, e] = await Promise.all([getLatest('State'), getLatest('Event')]);
-                const newRows: Row[] = [];
-                if (s && (lastStateId === null || s.id !== lastStateId)) {
-                    lastStateId = s.id;
-                    newRows.push(s);
-                }
-                if (e && (lastEventId === null || e.id !== lastEventId)) {
-                    lastEventId = e.id;
-                    newRows.push(e);
-                }
-                if (newRows.length) {
-                    newRows.sort((a, b) => (b.ts ?? 0) - (a.ts ?? 0));
-                    sendEvent('append', newRows);
-                }
-            };
-
-            // Initial snapshot
-            getSnapshot(50).then((rows) => sendEvent('snapshot', rows));
-
-            // Poll for new items
-            intervalId = setInterval(push, 1000);
-
+            activeControllers.add(controller);
+            ensurePoller();
+            // Initial snapshot for quick render
+            getSnapshot(50)
+                .then((rows) => controller.enqueue(encoder.encode(`event: snapshot\n` + `data: ${JSON.stringify(rows)}\n\n`)))
+                .catch(() => { });
             request.signal.addEventListener('abort', () => {
-                cancelled = true;
-                clearInterval(intervalId);
+                activeControllers.delete(controller);
+                try { controller.close(); } catch { }
+                if (activeControllers.size === 0 && pollIntervalId) { clearInterval(pollIntervalId); pollIntervalId = null; }
             });
         },
         cancel() {
-            cancelled = true;
-            if (intervalId) clearInterval(intervalId);
+            // best-effort cleanup
         }
     });
 

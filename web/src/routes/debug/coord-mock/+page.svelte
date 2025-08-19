@@ -8,6 +8,7 @@
 	let mapContainer: HTMLDivElement | null = null;
 	let map: any = null;
 	let marker: any = null;
+	let centerCircle: any = null;
 
 	let selectedLat = $state<number | null>(null);
 	let selectedLon = $state<number | null>(null);
@@ -18,6 +19,8 @@
 		$state(null);
 
 	const TILE_BASE = '//tiles.uorocketry.ca';
+	const CENTER = { lat: 47.986877, lon: -81.848765 };
+	const RADIUS_KM = 50;
 
 	function handleMapClick(e: any) {
 		if (!map) return;
@@ -35,6 +38,15 @@
 		map = Leaflet.map(mapContainer!, { minZoom: 1, maxZoom: 19 }).setView([0, 0], 2);
 		Leaflet.tileLayer(`${TILE_BASE}/tiles/{z}/{x}/{y}`, { maxZoom: 19, tileSize: 256 }).addTo(map);
 		map.on('click', handleMapClick);
+
+		// Add reference circle for the trajectory center
+		centerCircle = Leaflet.circle([CENTER.lat, CENTER.lon], {
+			radius: RADIUS_KM * 1000,
+			color: '#0f62fe',
+			fillColor: '#0f62fe',
+			fillOpacity: 0.05,
+			weight: 1
+		}).addTo(map);
 	});
 
 	onDestroy(() => {

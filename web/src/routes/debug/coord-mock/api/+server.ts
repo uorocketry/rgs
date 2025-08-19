@@ -12,6 +12,13 @@ function clampAltitudeMeters(v: unknown): number {
     return Math.max(0, Math.min(5000, Math.round(n)));
 }
 
+function pressureKpaFromAltitude(altitudeMeters: number, qnhKpa: number = 102.5): number {
+    // Invert standard atmosphere: p = p0 * (1 - h/44330)^(1/0.190263)
+    const ratio = 1 - Math.max(0, altitudeMeters) / 44330;
+    const p = qnhKpa * Math.pow(Math.max(1e-6, ratio), 1 / 0.190263);
+    return p;
+}
+
 function normalizeLatLon(v: unknown, min: number, max: number): number {
     const n = Number(v);
     if (!Number.isFinite(n)) throw error(400, 'Invalid coordinate');
@@ -38,6 +45,7 @@ export const POST: RequestHandler = async ({ request }) => {
 			VALUES (?, ?, 0, 0.0, ?, ?, 'OK', 0.0, 0.0, 0.0, 0, 0, 0)`,
             args: [latitude, longitude, altitude_m, ts]
         });
+        const gpsId = Number(gpsRes.lastInsertRowid ?? 0);
 
         // Insert SbgEkfNav
         const ekfRes = await transaction.execute({
@@ -49,15 +57,35 @@ export const POST: RequestHandler = async ({ request }) => {
         // Insert SbgAir
         const airRes = await transaction.execute({
             sql: `INSERT INTO SbgAir (time_stamp, status, pressure_abs, altitude, pressure_diff, true_airspeed, air_temperature)
-			VALUES (?, 'OK', NULL, ?, NULL, NULL, NULL)`,
-            args: [ts, altitude_m]
+			VALUES (?, 'OK', ?, ?, NULL, NULL, NULL)`,
+            args: [ts, Math.round(pressureKpaFromAltitude(altitude_m) * 1000), altitude_m]
         });
+        const airId = Number(airRes.lastInsertRowid ?? 0);
 
         // Insert Barometer
         const baroRes = await transaction.execute({
-            sql: `INSERT INTO Barometer (timestamp_us, pressure_pa, temperature_c, altitude_m)
-			VALUES (?, NULL, NULL, ?)`,
-            args: [ts * 1_000_000, altitude_m]
+            sql: `INSERT INTO Barometer (pressure_kpa, temperature_celsius)
+			VALUES (?, NULL)`,
+            args: [pressureKpaFromAltitude(altitude_m)]
+        });
+        const baroId = Number(baroRes.lastInsertRowid ?? 0);
+
+        // Create RadioFrame rows for each insert so downstream queries can join on timestamps
+        const isoTs = new Date(ts * 1000).toISOString();
+        await transaction.execute({
+            sql: `INSERT INTO RadioFrame (timestamp, timestamp_epoch, node, data_type, data_id, millis_since_start)
+                  VALUES (?, ?, 'Gps', 'SbgGpsPos', ?, NULL)`,
+            args: [isoTs, ts, gpsId]
+        });
+        await transaction.execute({
+            sql: `INSERT INTO RadioFrame (timestamp, timestamp_epoch, node, data_type, data_id, millis_since_start)
+                  VALUES (?, ?, 'Sbg', 'SbgAir', ?, NULL)`,
+            args: [isoTs, ts, airId]
+        });
+        await transaction.execute({
+            sql: `INSERT INTO RadioFrame (timestamp, timestamp_epoch, node, data_type, data_id, millis_since_start)
+                  VALUES (?, ?, 'Barometer', 'Barometer', ?, NULL)`,
+            args: [isoTs, ts, baroId]
         });
 
         // Commit the transaction

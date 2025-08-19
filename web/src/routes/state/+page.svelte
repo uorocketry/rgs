@@ -15,7 +15,13 @@
 		TableCell
 	} from 'carbon-components-svelte';
 
-	type Item = { id: number; kind: 'State' | 'Event'; value: string; ts: number | null };
+	type Item = {
+		id: number;
+		kind: 'State' | 'Event';
+		value: string;
+		ts: number | null;
+		duration_s: number | null;
+	};
 
 	let items: Item[] = [];
 	let connected = false;
@@ -82,6 +88,17 @@
 		return d.toLocaleString();
 	}
 
+	function formatDuration(seconds: number | null): string {
+		if (seconds == null || !isFinite(seconds)) return '—';
+		const s = Math.max(0, Math.floor(seconds));
+		const hrs = Math.floor(s / 3600);
+		const mins = Math.floor((s % 3600) / 60);
+		const secs = s % 60;
+		if (hrs > 0) return `${hrs}h ${mins}m ${secs}s`;
+		if (mins > 0) return `${mins}m ${secs}s`;
+		return `${secs}s`;
+	}
+
 	// Create unique keys for each items to prevent Svelte key conflicts
 	function getUniqueKey(item: Item, index: number): string {
 		return `${item.id}-${item.ts}-${index}`;
@@ -132,6 +149,7 @@
 							<TableHeader>ID</TableHeader>
 							<TableHeader>State</TableHeader>
 							<TableHeader>Timestamp</TableHeader>
+							<TableHeader>Duration</TableHeader>
 						</TableRow>
 					</TableHead>
 					<TableBody>
@@ -140,6 +158,7 @@
 								<TableCell>{it.id}</TableCell>
 								<TableCell><Tag type="green">{it.value}</Tag></TableCell>
 								<TableCell>{formatTs(it.ts)}</TableCell>
+								<TableCell>{formatDuration(it.duration_s)}</TableCell>
 							</TableRow>
 						{/each}
 					</TableBody>
@@ -155,6 +174,7 @@
 							<TableHeader>ID</TableHeader>
 							<TableHeader>Event</TableHeader>
 							<TableHeader>Timestamp</TableHeader>
+							<TableHeader>Duration</TableHeader>
 						</TableRow>
 					</TableHead>
 					<TableBody>
@@ -163,6 +183,7 @@
 								<TableCell>{it.id}</TableCell>
 								<TableCell><Tag type="cyan">{it.value}</Tag></TableCell>
 								<TableCell>{formatTs(it.ts)}</TableCell>
+								<TableCell>{formatDuration(it.duration_s)}</TableCell>
 							</TableRow>
 						{/each}
 					</TableBody>

@@ -89,5 +89,17 @@
 /* Carbon overrides */
 
 .bx--content {
+	padding: 0 !important;
+}
+
+.bx--grid {
+	padding: 0 !important;
+}
+
+/* .bx--tile {
+	padding: 0 !important;
+} */
+
+.bx--content {
 	padding: 0px;
 }

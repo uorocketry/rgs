@@ -5,17 +5,17 @@ import type { RequestHandler } from './$types';
 
 // Re-use the helper function (could be moved to a shared lib if used elsewhere too)
 async function getLatestRow(tableName: string): Promise<Row | null> {
-	const db = getDbClient();
-	try {
-		const result = await db.execute({
-			sql: `SELECT * FROM ${tableName} ORDER BY time_stamp DESC LIMIT 1`,
-			args: []
-		});
-		return result.rows.length > 0 ? result.rows[0] : null;
-	} catch (e: any) {
-		console.error(`Error fetching latest row from ${tableName} for API:`, e);
-		return null;
-	}
+    const db = getDbClient();
+    try {
+        const result = await db.execute({
+            sql: `SELECT * FROM ${tableName} ORDER BY time_stamp DESC LIMIT 1`,
+            args: []
+        });
+        return result.rows.length > 0 ? result.rows[0] : null;
+    } catch (e: any) {
+        console.error(`Error fetching latest row from ${tableName} for API:`, e);
+        return null;
+    }
 }
 
 // Map of supported metrics to their safe table/column definitions
@@ -93,72 +93,73 @@ async function getMetricSeries(metric: string, minutes: number) {
     };
 }
 
+const encoder = new TextEncoder();
+const activeControllers = new Set<ReadableStreamDefaultController>();
+let pollIntervalId: NodeJS.Timeout | null = null;
+let lastMetricPayload: any = null;
+let lastSnapshotPayload: any = null;
+
+async function centralPoll(metric: string | null, minutes: number) {
+    // If metric is provided, poll metric + snapshot; otherwise only snapshot
+    try {
+        const series = metric ? await getMetricSeries(metric, minutes) : null;
+        const snapshot = await Promise.all([
+            getLatestRow('SbgUtcTime'),
+            getLatestRow('SbgAir'),
+            getLatestRow('SbgEkfQuat'),
+            getLatestRow('SbgEkfNav'),
+            getLatestRow('SbgImu'),
+            getLatestRow('SbgGpsVel'),
+            getLatestRow('SbgGpsPos')
+        ]).then(([utc, air, quat, nav, imu, vel, pos]) => ({
+            utcTime: utc ?? {},
+            air: air ?? {},
+            ekfQuat: quat ?? {},
+            ekfNav: nav ?? {},
+            imu: imu ?? {},
+            gpsVel: vel ?? {},
+            gpsPos: pos ?? {}
+        }));
+        if (series) lastMetricPayload = series;
+        lastSnapshotPayload = snapshot;
+        const chunks: Uint8Array[] = [];
+        if (series) chunks.push(encoder.encode(`event: metric\n` + `data: ${JSON.stringify(series)}\n\n`));
+        chunks.push(encoder.encode(`event: snapshot\n` + `data: ${JSON.stringify(snapshot)}\n\n`));
+        for (const c of Array.from(activeControllers)) {
+            try { for (const ch of chunks) c.enqueue(ch); } catch { try { c.close(); } catch { } activeControllers.delete(c); }
+        }
+    } catch (e) {
+        const err = encoder.encode(`event: error\n` + `data: {"message":"Failed to fetch data"}\n\n`);
+        for (const c of Array.from(activeControllers)) {
+            try { c.enqueue(err); } catch { try { c.close(); } catch { } activeControllers.delete(c); }
+        }
+        console.error('SBG central poll error:', e);
+    }
+}
+
 export const GET: RequestHandler = async ({ url, request }) => {
     const metric = url.searchParams.get('metric');
     const minutes = Number(url.searchParams.get('minutes') || '10');
     const useSSE = url.searchParams.get('sse') === '1';
 
     if (metric && useSSE) {
-        // SSE stream for metric + snapshot updates
-        let cancelled = false;
-        let intervalId: any;
         const stream = new ReadableStream({
             start(controller) {
-                const encoder = new TextEncoder();
-
-                function sendEvent(event: string, payload: unknown) {
-                    if (cancelled) return;
-                    const data = typeof payload === 'string' ? payload : JSON.stringify(payload);
-                    const chunk = `event: ${event}\n` + `data: ${data}\n\n`;
-                    controller.enqueue(encoder.encode(chunk));
+                activeControllers.add(controller);
+                if (!pollIntervalId) {
+                    pollIntervalId = setInterval(() => centralPoll(metric, minutes), 5000);
+                    centralPoll(metric, minutes);
+                } else {
+                    if (lastMetricPayload) controller.enqueue(encoder.encode(`event: metric\n` + `data: ${JSON.stringify(lastMetricPayload)}\n\n`));
+                    if (lastSnapshotPayload) controller.enqueue(encoder.encode(`event: snapshot\n` + `data: ${JSON.stringify(lastSnapshotPayload)}\n\n`));
                 }
-
-                const push = async () => {
-                    if (cancelled) return;
-                    try {
-                        const [series, snapshot] = await Promise.all([
-                            getMetricSeries(metric, minutes),
-                            Promise.all([
-                                getLatestRow('SbgUtcTime'),
-                                getLatestRow('SbgAir'),
-                                getLatestRow('SbgEkfQuat'),
-                                getLatestRow('SbgEkfNav'),
-                                getLatestRow('SbgImu'),
-                                getLatestRow('SbgGpsVel'),
-                                getLatestRow('SbgGpsPos')
-                            ]).then(([utc, air, quat, nav, imu, vel, pos]) => ({
-                                utcTime: utc ?? {},
-                                air: air ?? {},
-                                ekfQuat: quat ?? {},
-                                ekfNav: nav ?? {},
-                                imu: imu ?? {},
-                                gpsVel: vel ?? {},
-                                gpsPos: pos ?? {}
-                            }))
-                        ]);
-                        if (cancelled) return;
-                        sendEvent('metric', series);
-                        sendEvent('snapshot', snapshot);
-                    } catch (e) {
-                        sendEvent('error', { message: 'Failed to fetch data' });
-                        console.error('SSE push error:', e);
-                    }
-                };
-
-                // initial push immediately, then interval
-                push();
-                intervalId = setInterval(push, 5000);
-
-                // Close stream on client disconnect
                 request.signal.addEventListener('abort', () => {
-                    cancelled = true;
-                    clearInterval(intervalId);
+                    activeControllers.delete(controller);
+                    try { controller.close(); } catch { }
+                    if (activeControllers.size === 0 && pollIntervalId) { clearInterval(pollIntervalId); pollIntervalId = null; }
                 });
             },
-            cancel() {
-                cancelled = true;
-                if (intervalId) clearInterval(intervalId);
-            }
+            cancel() { }
         });
 
         return new Response(stream, {

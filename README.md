@@ -66,3 +66,9 @@ Please refer to each of the following for more information.
 - [SvelteKit](https://kit.svelte.dev/docs/introduction) (Web Framework)
 - [Drizzle ORM](https://orm.drizzle.team/docs/overview) (Database Schema)
 - Slack (For general questions)
+
+
+# Reset perms
+
+sudo chown -R "$USER":"$USER" . && sudo chmod -R 0777 .
+chmod -R 0777 db/data

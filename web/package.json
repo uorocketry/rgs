@@ -63,6 +63,7 @@
 		"carbon-icons-svelte": "^12.18.0",
 		"d3": "^7.9.0",
 		"gsap": "^3.13.0",
-		"leaflet": "^1.9.4"
+		"leaflet": "^1.9.4",
+		"svelte-adapter-bun": "^0.5.2"
 	}
 }

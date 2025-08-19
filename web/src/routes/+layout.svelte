@@ -30,7 +30,8 @@
 		Theme,
 		breakpointObserver
 	} from 'carbon-components-svelte';
-	import type { CarbonTheme } from 'carbon-components-svelte/src/Theme/Theme.svelte';
+	import 'carbon-components-svelte/css/all.css';
+	import '@carbon/charts/styles.css';
 
 	let { children } = $props();
 
@@ -125,45 +126,40 @@
 
 	const MENU_GROUPS: MenuGroup[] = [
 		{
-			title: 'System & Monitoring',
-			icon: 'fas fa-heartbeat',
-			items: [
-				{ href: '/health', tip: 'System Health', icon: 'fas fa-heart' },
-				{ href: '/metrics', tip: 'Metrics', icon: 'fas fa-chart-line' },
-				{ href: '/services', tip: 'Service Manager', icon: 'fas fa-server' }
-			]
-		},
-		{
-			title: 'Communication',
-			icon: 'fas fa-wifi',
-			items: [
-				{ href: '/comm', tip: 'Hydra Provider', icon: 'fas fa-broadcast-tower' },
-				{ href: '/radio', tip: 'Radio', icon: 'fas fa-signal' },
-				{ href: '/commands', tip: 'Commands', icon: 'fas fa-terminal' }
-			]
-		},
-		{
-			title: 'Flight Data',
+			title: 'Flight',
 			icon: 'fas fa-rocket',
 			items: [
 				{ href: '/state', tip: 'State', icon: 'fas fa-flag-checkered' },
-				{ href: '/sbg', tip: 'SBG Sensors', icon: 'fas fa-satellite' },
-				{ href: '/pfd', tip: 'PFD', icon: 'fas fa-plane' },
+				{ href: '/altitude', tip: 'Altitude', icon: 'fas fa-mountain' },
+				{ href: '/imu', tip: 'IMU', icon: 'fas fa-microchip' },
+				{ href: '/trajectory', tip: 'Trajectory', icon: 'fas fa-route' },
 				{ href: '/navball', tip: 'Navball', icon: 'fas fa-compass' }
 			]
 		},
 		{
-			title: 'Development',
-			icon: 'fas fa-code',
+			title: 'Sensors',
+			icon: 'fas fa-satellite',
 			items: [
-				{ href: '/mock', tip: 'Mock', icon: 'fas fa-masks-theater' },
-				{ href: '/map-downloader', tip: 'Map Downloader', icon: 'fas fa-map' }
+				{ href: '/sbg', tip: 'SBG', icon: 'fas fa-satellite' },
+				{ href: '/radio', tip: 'Radio', icon: 'fas fa-signal' }
 			]
 		},
 		{
-			title: 'Debug',
-			icon: 'fas fa-bug',
-			items: [{ href: '/debug/coord-mock', tip: 'Coord Mock', icon: 'fas fa-crosshairs' }]
+			title: 'Control',
+			icon: 'fas fa-terminal',
+			items: [
+				{ href: '/commands', tip: 'Commands', icon: 'fas fa-terminal' },
+				{ href: '/services', tip: 'Services', icon: 'fas fa-server' }
+			]
+		},
+		{
+			title: 'Tools',
+			icon: 'fas fa-tools',
+			items: [
+				{ href: '/mock', tip: 'Mock Data', icon: 'fas fa-masks-theater' },
+				{ href: '/map-downloader', tip: 'Maps', icon: 'fas fa-map' },
+				{ href: '/debug/coord-mock', tip: 'Mock Coordinates', icon: 'fas fa-crosshairs' }
+			]
 		}
 	];
 

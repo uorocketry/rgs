@@ -30,6 +30,7 @@
 		total_radio_frames: number;
 		packet_loss_ratio: number;
 		packet_loss_percentage: number;
+		frames_per_second?: number;
 	};
 
 	// Reactive state
@@ -283,6 +284,32 @@
 									</div>
 									<Tag type={getRssiStatus(metrics[0].rssi).color} size="sm">
 										{getRssiStatus(metrics[0].rssi).status}
+									</Tag>
+								{:else}
+									<div style="font-size: 2rem; font-weight: bold; color: gray;">N/A</div>
+								{/if}
+							</Tile>
+						</Column>
+						<Column>
+							<Tile>
+								<h3>Frames per second</h3>
+								{#if totals?.frames_per_second != null}
+									<div style="font-size: 2rem; font-weight: bold;">
+										{totals.frames_per_second.toFixed(2)} fps
+									</div>
+									<Tag
+										type={totals.frames_per_second > 10
+											? 'green'
+											: totals.frames_per_second > 3
+												? 'blue'
+												: 'red'}
+										size="sm"
+									>
+										{totals.frames_per_second > 10
+											? 'High'
+											: totals.frames_per_second > 3
+												? 'Moderate'
+												: 'Low'}
 									</Tag>
 								{:else}
 									<div style="font-size: 2rem; font-weight: bold; color: gray;">N/A</div>
