@@ -403,8 +403,8 @@ class ManualODriveControl:
                 # Apply kinematic velocity limits
                 yaw_dps_limited = self.calculate_max_permissible_velocity('yaw', yaw_dps)
                 pitch_dps_limited = self.calculate_max_permissible_velocity('pitch', pitch_dps)
-                # if abs(yaw_in) > 0.05 or abs(pitch_in) > 0.05:  # Only print when moving
-                #     print(f"Limited velocities: Pitch {pitch_dps_limited:.1f}°/s, Yaw {yaw_dps_limited:.1f}°/s")
+                if abs(yaw_in) > 0.05 or abs(pitch_in) > 0.05:  # Only print when moving
+                    print(f"Limited velocities: Pitch {pitch_dps_limited:.1f}°/s, Yaw {yaw_dps_limited:.1f}°/s")
 
                 self.set_vel(pitch_dps_limited, yaw_dps_limited)
                 self.has_errors()
@@ -412,8 +412,7 @@ class ManualODriveControl:
                 # Print estimated position in degrees
                 if abs(yaw_in) > 0.05 or abs(pitch_in) > 0.05:  # Only print when moving
                     pos_deg = self.get_pos()
-                    print(f"\rpitch={str.rjust(f"{pos_deg['pitch']:.2f}", 6)}° yaw={str.rjust(f"{pos_deg['yaw']:.2f}", 6)}°", end="")
-                    # print(f"Position: Pitch {pos_deg['pitch']:.2f}°, Yaw {pos_deg['yaw']:.2f}° | Velocity: Pitch {pitch_dps:.1f}°/s, Yaw {yaw_dps:.1f}°/s")
+                    print(f"Position: Pitch {pos_deg['pitch']:.2f}°, Yaw {pos_deg['yaw']:.2f}° | Velocity: Pitch {pitch_dps:.1f}°/s, Yaw {yaw_dps:.1f}°/s")
 
                 time.sleep(0.02)
         except KeyboardInterrupt:
