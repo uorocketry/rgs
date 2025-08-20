@@ -64,7 +64,8 @@ func handleConn(ctx context.Context, conn net.Conn, clients *Clients, serialOutb
 	}()
 
 	// Per-connection writer queue (broadcast consumer)
-	tx := make(chan []byte, 256)
+	// 64MB buffer to minimize message drops for slow clients
+	tx := make(chan []byte, 64*1024*1024)
 	clients.Add(addr, tx)
 
 	// Writer goroutine: serial→TCP
