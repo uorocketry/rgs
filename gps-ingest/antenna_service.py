@@ -16,13 +16,13 @@ from typing import Dict, Tuple, Optional
 @dataclass
 class AntennaConfig:
     # Motion limits (degrees)
-    limits_yaw_deg: Tuple[float, float] = (-360.0, 360.0)  # Multi-turn support
+    limits_yaw_deg: Tuple[float, float] = (-370.0, 370.0)  # Multi-turn support to match manual.py
     limits_pitch_deg: Tuple[float, float] = (-10.0, 90.0)
     # Gear ratios for converting degrees <-> motor turns (optional if using real controller differently)
     gear_ratio_yaw: float = 30.0
     gear_ratio_pitch: float = 36.0
     # Hardware toggles
-    use_real_hardware: bool = True
+    use_real_hardware: bool = False
     # Optional debug prints
     debug: bool = False
     # ODrive motor/controller settings
@@ -42,6 +42,14 @@ class AntennaConfig:
     trap_vel_limit_degps: float = 120.0
     trap_accel_limit_degps2: float = 90.0
     trap_decel_limit_degps2: float = 90.0
+    # Direction (+1 normal, -1 if mechanics/wiring are reversed)
+    dir_yaw: float = +1.0
+    dir_pitch: float = +1.0
+    # Velocity control (controller mode)
+    vel_ramp_rate_degps2_yaw: float = 180.0
+    vel_ramp_rate_degps2_pitch: float = 180.0
+    max_vel_degps_yaw: float = 120.0
+    max_vel_degps_pitch: float = 120.0
 
 
 class AntennaService:
@@ -137,8 +145,8 @@ class AntennaService:
                 tcfg.decel_limit = (self.config.trap_decel_limit_degps2 / 360.0) * gear_ratio
                 # Keep controller vel_limit in sync with trap traj
                 ccfg.vel_limit = tcfg.vel_limit
-                if name == 'yaw':
-                    ccfg.circular_setpoints = False
+                # Ensure non-circular setpoints for both axes
+                ccfg.circular_setpoints = False
             self._configured = True
             if self.config.debug:
                 print("AntennaService: configured motors and controller")
@@ -158,18 +166,30 @@ class AntennaService:
             assert dev is not None
             dev.clear_errors()
             timeout_s = self.config.calibration_timeout
+            # Start calibration on both axes simultaneously
             for name, ax in self._axes.items():
                 if self.config.debug:
-                    print(f"AntennaService: calibrating {name} axis...")
+                    print(f"AntennaService: requesting calibration for {name} axis...")
                 ax.requested_state = self._AxisState.FULL_CALIBRATION_SEQUENCE
-                start = time.time()
-                while ax.current_state != self._AxisState.IDLE:
-                    if time.time() - start > timeout_s:
-                        print(f"AntennaService: calibration timed out for {name}")
-                        return False
-                    time.sleep(0.2)
+
+            # Wait until both axes are idle or timeout
+            start = time.time()
+            while True:
+                all_idle = all(ax.current_state == self._AxisState.IDLE for ax in self._axes.values())
+                if all_idle:
+                    break
+                if time.time() - start > timeout_s:
+                    print("AntennaService: calibration timed out for one or more axes")
+                    return False
+                time.sleep(0.2)
+
+            # Set both axes to closed loop control
+            for name, ax in self._axes.items():
                 ax.requested_state = self._AxisState.CLOSED_LOOP_CONTROL
-                time.sleep(0.5)
+            time.sleep(0.5)
+
+            # Check for errors on both axes
+            for name, ax in self._axes.items():
                 if ax.error != 0:
                     try:
                         from odrive.utils import dump_errors  # type: ignore
@@ -227,13 +247,77 @@ class AntennaService:
         except Exception:
             return False
 
+    # ---- Velocity control (controller mode) ----
+    def enter_velocity_mode(self) -> bool:
+        if not self._connected:
+            return False
+        if not self.config.use_real_hardware:
+            # No-op in mock mode
+            return True
+        try:
+            for name, ax in self._axes.items():
+                ccfg = ax.controller.config
+                ccfg.control_mode = self._ControlMode.VELOCITY_CONTROL
+                ccfg.input_mode = self._InputMode.VEL_RAMP
+                # Configure ramp rates per axis
+                if name == 'yaw':
+                    ramp_deg_s2 = self.config.vel_ramp_rate_degps2_yaw
+                    max_deg_s = self.config.max_vel_degps_yaw
+                    gear = self.config.gear_ratio_yaw
+                else:
+                    ramp_deg_s2 = self.config.vel_ramp_rate_degps2_pitch
+                    max_deg_s = self.config.max_vel_degps_pitch
+                    gear = self.config.gear_ratio_pitch
+                ccfg.vel_ramp_rate = (ramp_deg_s2 / 360.0) * gear
+                ccfg.vel_limit = max(1.0, (max_deg_s / 360.0) * gear * 1.5)
+            return True
+        except Exception:
+            return False
+
+    def set_velocity(self, *, pitch_dps: Optional[float] = None, yaw_dps: Optional[float] = None) -> bool:
+        if pitch_dps is None and yaw_dps is None:
+            return True
+        if not self.config.use_real_hardware:
+            # In mock mode, just accept
+            return True
+        try:
+            if pitch_dps is not None:
+                turns_per_s = (self.config.dir_pitch * pitch_dps / 360.0) * self.config.gear_ratio_pitch
+                self._axes['pitch'].controller.input_vel = turns_per_s
+            if yaw_dps is not None:
+                turns_per_s = (self.config.dir_yaw * yaw_dps / 360.0) * self.config.gear_ratio_yaw
+                self._axes['yaw'].controller.input_vel = turns_per_s
+            return not self._has_errors()
+        except Exception:
+            return False
+
+    def calculate_max_permissible_velocity(self, axis_name: str, requested_velocity_degps: float) -> float:
+        """Limit velocity so motion can stop before hitting position limits."""
+        if requested_velocity_degps == 0.0:
+            return 0.0
+        pos = self.get_position()
+        current_pos = pos[axis_name]
+        lo, hi = (self.config.limits_pitch_deg if axis_name == 'pitch' else self.config.limits_yaw_deg)
+        max_accel = self.config.vel_ramp_rate_degps2_pitch if axis_name == 'pitch' else self.config.vel_ramp_rate_degps2_yaw
+        if requested_velocity_degps > 0:
+            available = hi - current_pos
+            direction = 1.0
+        else:
+            available = current_pos - lo
+            direction = -1.0
+        if available <= 0:
+            return 0.0
+        max_stop_vel = (2.0 * max_accel * max(available, 0.0)) ** 0.5
+        limited = max_stop_vel if abs(requested_velocity_degps) > max_stop_vel else abs(requested_velocity_degps)
+        return direction * limited
+
     def zero(self) -> None:
         if not self.config.use_real_hardware:
             self._yaw_deg = 0.0
             self._pitch_deg = 0.0
             return
         for name, ax in self._axes.items():
-            self._offset_turns[name] = float(ax.controller.input_pos)
+            self._offset_turns[name] = float(ax.encoder.pos_estimate)
 
     # ---- Status ----
     def get_position(self) -> Dict[str, float]:
@@ -241,12 +325,13 @@ class AntennaService:
             return {"yaw": self._yaw_deg, "pitch": self._pitch_deg}
         pos: Dict[str, float] = {}
         for name, ax in self._axes.items():
-            turns = float(ax.controller.input_pos) - self._offset_turns[name]
+            turns = float(ax.encoder.pos_estimate) - self._offset_turns[name]
             if name == 'yaw':
                 deg = (turns / self.config.gear_ratio_yaw) * 360.0
+                pos[name] = self.config.dir_yaw * deg
             else:
                 deg = (turns / self.config.gear_ratio_pitch) * 360.0
-            pos[name] = deg
+                pos[name] = self.config.dir_pitch * deg
         return pos
 
     def status(self) -> Dict[str, bool]:
@@ -259,42 +344,55 @@ class AntennaService:
 
     # ---- Command ----
     def set_position(self, *, pitch: Optional[float] = None, yaw: Optional[float] = None, bypass_limits: bool = False) -> bool:
+        # Always print when called, with arguments
+        if self.config.debug:
+            print(f"AntennaService: set_position called with pitch={pitch} yaw={yaw} bypass_limits={bypass_limits}")
+
         if pitch is None and yaw is None:
             return True
-        # Clamp to limits unless bypassed
-        pitch_cmd = None
-        yaw_cmd = None
-        if pitch is not None:
-            if bypass_limits:
-                pitch_cmd = pitch
-            else:
-                lo, hi = self.config.limits_pitch_deg
-                pitch_cmd = max(lo, min(hi, pitch))
-        if yaw is not None:
-            if bypass_limits:
-                yaw_cmd = yaw
-            else:
-                lo, hi = self.config.limits_yaw_deg
-                yaw_cmd = max(lo, min(hi, yaw))
+
+        # Clamp in logical space (positive-up convention) with optional debug warnings
+        orig_pitch, orig_yaw = pitch, yaw
+        if pitch is not None and not bypass_limits:
+            lo, hi = self.config.limits_pitch_deg
+            new_pitch = max(lo, min(hi, pitch))
+            if new_pitch != pitch and self.config.debug:
+                print(f"WARNING: Pitch clamped {pitch:.2f}° -> {new_pitch:.2f}°")
+            pitch = new_pitch
+        if yaw is not None and not bypass_limits:
+            lo, hi = self.config.limits_yaw_deg
+            new_yaw = max(lo, min(hi, yaw))
+            if new_yaw != yaw and self.config.debug:
+                print(f"WARNING: Yaw clamped {yaw:.2f}° -> {new_yaw:.2f}°")
+            yaw = new_yaw
+
         if not self.config.use_real_hardware:
-            if pitch_cmd is not None:
-                self._pitch_deg = pitch_cmd
-            if yaw_cmd is not None:
-                self._yaw_deg = yaw_cmd
             if self.config.debug:
-                print(f"AntennaService: set_position pitch={self._pitch_deg:.2f} yaw={self._yaw_deg:.2f}")
+                print(f"AntennaService: (TEST) set_position to pitch={pitch} yaw={yaw}")
+            if pitch is not None:
+                self._pitch_deg = pitch
+            if yaw is not None:
+                self._yaw_deg = yaw
+            if self.config.debug:
+                print(f"AntennaService: (TEST) internal state now pitch={self._pitch_deg:.2f} yaw={self._yaw_deg:.2f}")
             return True
+
         try:
-            if pitch_cmd is not None:
-                turns = (pitch_cmd / 360.0) * self.config.gear_ratio_pitch + self._offset_turns["pitch"]
-                self._axes["pitch"].controller.input_pos = turns
-            if yaw_cmd is not None:
-                turns = (yaw_cmd / 360.0) * self.config.gear_ratio_yaw + self._offset_turns["yaw"]
-                self._axes["yaw"].controller.input_pos = turns
+            # Map to hardware direction and send
             if self.config.debug:
-                pd = pitch_cmd if pitch_cmd is not None else self.get_position().get("pitch", 0.0)
-                yd = yaw_cmd if yaw_cmd is not None else self.get_position().get("yaw", 0.0)
-                print(f"AntennaService: set_position pitch={pd:.2f} yaw={yd:.2f}")
+                print(f"AntennaService: (HW) set_position to pitch={pitch} yaw={yaw}")
+            if pitch is not None:
+                pitch_hw = self.config.dir_pitch * pitch
+                turns = (pitch_hw / 360.0) * self.config.gear_ratio_pitch + self._offset_turns["pitch"]
+                if self.config.debug:
+                    print(f"AntennaService: (HW) pitch command: pitch_hw={pitch_hw:.2f}, turns={turns:.4f}")
+                self._axes["pitch"].controller.input_pos = turns
+            if yaw is not None:
+                yaw_hw = self.config.dir_yaw * yaw
+                turns = (yaw_hw / 360.0) * self.config.gear_ratio_yaw + self._offset_turns["yaw"]
+                if self.config.debug:
+                    print(f"AntennaService: (HW) yaw command: yaw_hw={yaw_hw:.2f}, turns={turns:.4f}")
+                self._axes["yaw"].controller.input_pos = turns
             return not self._has_errors()
         except Exception as e:
             print("AntennaService: set_position failed:", e)
