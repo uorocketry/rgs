@@ -88,6 +88,7 @@ def cmd_rotate(svc: PredictorService, ant: AntennaService) -> None:
         return
 
     yaw_cmd, pit_cmd = svc.yaw_pitch_from_target(pred.lat, pred.lon, pred.alt_m)
+    pit_cmd *= -1
 
     ok = ant.set_position(pitch=pit_cmd, yaw=yaw_cmd, bypass_limits=False)
     if ok:
@@ -96,15 +97,16 @@ def cmd_rotate(svc: PredictorService, ant: AntennaService) -> None:
         print("Failed to send rotation command")
 
 
-def cmd_yolo(svc: PredictorService, ant: AntennaService) -> None:
+# def cmd_yolo(svc: PredictorService, ant: AntennaService) -> None:
+def cmd_yolo(svc: PredictorService) -> None:
     print("Auto-tracking predictions (Ctrl-C to stop)...")
     try:
         while True:
             pred = svc.get_prediction()
             if pred:
                 yaw_cmd, pit_cmd = svc.yaw_pitch_from_target(pred.lat, pred.lon, pred.alt_m)
-                ant.set_position(pitch=pit_cmd, yaw=yaw_cmd, bypass_limits=False)
-                print(f"TRACK pitch={pit_cmd:.2f}° yaw={yaw_cmd:.2f}° -> lat={pred.lat:.6f} lon={pred.lon:.6f}")
+                # ant.set_position(pitch=pit_cmd, yaw=yaw_cmd, bypass_limits=False)
+                print(f"\rpitch={str.rjust(f"{pos_deg['pitch']:.2f}", 6)}° yaw={str.rjust(f"{pos_deg['yaw']:.2f}", 6)}°", end="")
             time.sleep(0.3)
     except KeyboardInterrupt:
         print("\nStopped auto-tracking.")
@@ -209,8 +211,8 @@ def cmd_help() -> None:
 def main() -> None:
     cfg = PredictorConfig()
     svc = PredictorService(cfg)
-    ant = AntennaService(AntennaConfig())
-    ant.connect(); ant.configure(); ant.calibrate(); ant.engage()
+    # ant = AntennaService(AntennaConfig())
+    # ant.connect(); ant.configure(); ant.calibrate(); ant.engage()
     svc.start()
     print("gps-ingest REPL. Commands: gps, prediction, rotate, yolo, calibrate, engage, disengage, help, quit")
     try:
@@ -230,7 +232,8 @@ def main() -> None:
             elif cmd == "rotate":
                 cmd_rotate(svc, ant)
             elif cmd == "yolo":
-                cmd_yolo(svc, ant)
+                # cmd_yolo(svc, ant)
+                cmd_yolo(svc)
             elif cmd == "calibrate":
                 cmd_calibrate(ant)
             elif cmd == "engage":
