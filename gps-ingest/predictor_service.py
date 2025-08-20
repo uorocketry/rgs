@@ -28,16 +28,24 @@ except Exception:  # pragma: no cover - optional dependency
 
 
 # -----------------------
+# Timestamp helper
+# -----------------------
+def _parse_iso_to_epoch(ts_iso: str) -> float:
+    """Parse ISO-8601 string to UNIX epoch seconds. Handles 'Z' and '+00:00'."""
+    return datetime.fromisoformat(ts_iso.replace('Z', '+00:00')).timestamp()
+
+
+# -----------------------
 # Configuration and Models
 # -----------------------
 
 @dataclass
 class PredictorConfig:
     # Antenna site
-    antenna_lat_deg: float = 47.990527
-    antenna_lon_deg: float = -81.851502
-    antenna_alt_m: float = 373.0
-    antenna_yaw_zero_deg: float = 194.0  # yaw-zero = South
+    antenna_lat_deg: float = 48.480495
+    antenna_lon_deg: float = -81.331258
+    antenna_alt_m: float = 294.04
+    antenna_yaw_zero_deg: float = 270.0  # yaw-zero = West
     yaw_normalization: str = "continuous"  # options: "continuous", "pm180", "0to360"
     # Debug flag to silence prints in tests unless enabled
     debug: bool = False
@@ -45,9 +53,9 @@ class PredictorConfig:
     # Data source
     use_real_gps_ingest: bool = False
     gps_ingest_cmd: str = "cargo run -p gps-ingest"
-    test_target_lat_deg: float = 47.991527
-    test_target_lon_deg: float = -81.851502
-    test_target_alt_m: float = 1000.0
+    test_target_lat_deg: float = 48.480345
+    test_target_lon_deg: float = -81.331308
+    test_target_alt_m: float = 299
 
     # Prediction/history
     num_samples: int = 1  # how many samples to keep (and fit). 1 means latest only
@@ -204,13 +212,18 @@ class PredictorService:
                         or data.get("ts") is None
                     ):
                         continue
+                    # Prefer GPS-provided timestamp to improve model robustness
+                    try:
+                        t_epoch_parsed = _parse_iso_to_epoch(str(data["ts"]))
+                    except Exception:
+                        t_epoch_parsed = time.time()
                     sample = GpsSample(
                         lat=float(data["lat"]),
                         lon=float(data["lon"]),
                         alt_m=float(data["altitude_m"]),
                         ts_iso=str(data["ts"]),
                         source=str(data.get("source", "gps-ingest")),
-                        t_epoch=time.time(),
+                        t_epoch=t_epoch_parsed,
                     )
                     self._push_sample(sample)
                     self._compute_prediction()

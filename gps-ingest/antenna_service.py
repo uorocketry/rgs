@@ -17,7 +17,7 @@ from typing import Dict, Tuple, Optional
 class AntennaConfig:
     # Motion limits (degrees)
     limits_yaw_deg: Tuple[float, float] = (-370.0, 370.0)  # Multi-turn support to match manual.py
-    limits_pitch_deg: Tuple[float, float] = (-10.0, 90.0)
+    limits_pitch_deg: Tuple[float, float] = (-1.0, 90.0)
     # Gear ratios for converting degrees <-> motor turns (optional if using real controller differently)
     gear_ratio_yaw: float = 30.0
     gear_ratio_pitch: float = 36.0

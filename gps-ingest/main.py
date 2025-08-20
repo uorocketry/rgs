@@ -17,6 +17,8 @@ from __future__ import annotations
 import sys
 import time
 from dataclasses import asdict
+import os
+import json
 
 from predictor_service import PredictorConfig, PredictorService
 from antenna_service import AntennaConfig, AntennaService
@@ -80,6 +82,10 @@ def cmd_prediction(svc: PredictorService) -> None:
     )
     print(f"  yaw(az from North)={az:.2f}° pitch(el)={el:.2f}°")
     print(f"  bearing={bearing:.2f}° from North; rotation(yaw-zero={svc.config.antenna_yaw_zero_deg:.1f}, mode={svc.config.yaw_normalization})={rotation_preview:.2f}°")
+    
+    # Show what would be sent to the antenna
+    yaw_cmd, pit_cmd = svc.yaw_pitch_from_target(pred.lat, pred.lon, pred.alt_m)
+    print(f"ROTATE pitch={pit_cmd:.2f}° yaw={yaw_cmd:.2f}°")
 
 
 def cmd_rotate(svc: PredictorService, ant: AntennaService) -> None:
@@ -97,21 +103,62 @@ def cmd_rotate(svc: PredictorService, ant: AntennaService) -> None:
 
 
 # def cmd_yolo(svc: PredictorService, ant: AntennaService) -> None:
-def cmd_yolo(svc: PredictorService) -> None:
+def cmd_yolo(svc: PredictorService, ant: AntennaService | None = None, *, do_move: bool = False) -> None:
     print("Auto-tracking predictions (Ctrl-C to stop)...")
     try:
         while True:
             pred = svc.get_prediction()
             if pred:
                 yaw_cmd, pit_cmd = svc.yaw_pitch_from_target(pred.lat, pred.lon, pred.alt_m)
-                # If you want to actually move hardware here, uncomment:
-                # ant.set_position(pitch=pit_cmd, yaw=yaw_cmd, bypass_limits=False)
+                if do_move and ant is not None:
+                    ant.set_position(pitch=pit_cmd, yaw=yaw_cmd, bypass_limits=False)
                 print(f"\rpitch={pit_cmd:+06.2f}°  yaw={yaw_cmd:+07.2f}°", end="")
             time.sleep(0.3)
     except KeyboardInterrupt:
         print("\nStopped auto-tracking.")
 
 
+def cmd_demo(svc: PredictorService, ant: AntennaService, jsonl_path: str, *, speed: float = 10.0, delay: float = 5.0, do_move: bool = False) -> None:
+    """Preview first 5 lines of the JSONL, then stream using the replay script with delay."""
+    abs_jsonl = os.path.abspath(jsonl_path)
+    if not os.path.exists(abs_jsonl):
+        print(f"JSONL not found: {abs_jsonl}")
+        return
+    print(f"Demo preview (first 5 lines) from {abs_jsonl}:")
+    try:
+        with open(abs_jsonl, 'r') as f:
+            shown = 0
+            for line in f:
+                line = line.strip()
+                if not line:
+                    continue
+                try:
+                    obj = json.loads(line)
+                except Exception:
+                    continue
+                ts = obj.get('ts')
+                lat = obj.get('lat')
+                lon = obj.get('lon')
+                alt = obj.get('altitude_m')
+                src = obj.get('source', 'jsonl')
+                print(f"  [{ts}] lat={lat:.8f} lon={lon:.8f} alt={alt:.1f}m src={src}")
+                shown += 1
+                if shown >= 5:
+                    break
+    except Exception as e:
+        print("Failed to preview JSONL:", e)
+        return
+
+    # Reconfigure predictor to use external feed via replay script
+    svc.stop()
+    script_path = os.path.abspath(os.path.join(os.path.dirname(__file__), 'fake_gps_ingest.py'))
+    svc.config.use_real_gps_ingest = True
+    svc.config.num_samples = 8
+    svc.config.gps_ingest_cmd = f"python3 {script_path} {abs_jsonl} --speed {speed} --delay {delay}"
+    print(f"Starting demo stream with delay={delay}s, speed={speed}x...{' (MOVING)' if do_move else ''}")
+    svc.start()
+    # Run like yolo (auto-tracking printout); Ctrl-C to stop
+    cmd_yolo(svc, ant if do_move else None, do_move=do_move)
 def cmd_calibrate(ant: AntennaService) -> None:
     """Calibrate the antenna motors using the same logic as manual.py"""
     print("Clearing errors and calibrating axes...")
@@ -200,7 +247,10 @@ def cmd_help() -> None:
     print("  gps           - Stream GPS history and live updates (Ctrl-C to stop)")
     print("  prediction    - Show current prediction, pointing angles and antenna rotation")
     print("  rotate        - Rotate antenna to current prediction (respects limits)")
-    print("  yolo          - Auto-track predictions continuously (Ctrl-C to stop)")
+    print("  yolo          - Auto-track predictions continuously (no motion)")
+    print("  yolo-move     - Auto-track and MOVE antenna continuously (Ctrl-C to stop)")
+    print("  demo [path]   - Replay JSONL with 5s delay (like yolo; no motion); default is gps-ingest/rocket_gps.jsonl")
+    print("  demo-move [path] - Replay JSONL with 5s delay and MOVE antenna continuously")
     print("  pos <pitch> <yaw> [bypass] - Set absolute position in degrees; add 'bypass' to ignore limits")
     print("  zero          - Set current encoder offsets as zero for both axes")
     print("  set-yaw-zero <deg> - Set predictor yaw-zero at runtime (no restart)")
@@ -323,8 +373,19 @@ def main() -> None:
             elif cmd == "rotate":
                 cmd_rotate(svc, ant)
             elif cmd == "yolo":
-                # cmd_yolo(svc, ant)
-                cmd_yolo(svc)
+                cmd_yolo(svc, None, do_move=False)
+            elif cmd == "yolo-move":
+                cmd_yolo(svc, ant, do_move=True)
+            elif cmd.startswith("demo"):
+                parts = cmd.split(maxsplit=1)
+                if len(parts) == 2 and parts[1]:
+                    path = parts[1].strip()
+                else:
+                    path = os.path.abspath(os.path.join(os.path.dirname(__file__), 'rocket_gps.jsonl'))
+                if cmd.startswith("demo-move"):
+                    cmd_demo(svc, ant, path, do_move=True)
+                else:
+                    cmd_demo(svc, ant, path, do_move=False)
             elif cmd.startswith("pos"):
                 # usage: pos <pitch> <yaw> [bypass]
                 args = cmd[len("pos"):].strip()
