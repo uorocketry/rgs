@@ -39,9 +39,11 @@ class PredictorConfig:
     antenna_alt_m: float = 373.0
     antenna_yaw_zero_deg: float = 194.0  # yaw-zero = South
     yaw_normalization: str = "continuous"  # options: "continuous", "pm180", "0to360"
+    # Debug flag to silence prints in tests unless enabled
+    debug: bool = False
 
     # Data source
-    use_real_gps_ingest: bool = True
+    use_real_gps_ingest: bool = False
     gps_ingest_cmd: str = "cargo run -p gps-ingest"
     test_target_lat_deg: float = 47.991527
     test_target_lon_deg: float = -81.851502
@@ -292,7 +294,10 @@ class PredictorService:
         x = (N + h_m) * cos_lat * cos_lon
         y = (N + h_m) * cos_lat * sin_lon
         z = (N * (1.0 - PredictorService._WGS84_E2) + h_m) * sin_lat
-        print("_geodetic_to_ecef", "in:", lat_deg, lon_deg, h_m, "\n", "out:", x, y, z)
+        # Verbose print only when debug enabled
+        # Note: staticmethod, cannot access self.config; keep quiet by default
+        # If needed, enable prints in callers
+        # print("_geodetic_to_ecef", "in:", lat_deg, lon_deg, h_m, "\n", "out:", x, y, z)
         return x, y, z
 
 
@@ -323,19 +328,22 @@ class PredictorService:
 
 
     def compute_az_el(self, tgt_lat: float, tgt_lon: float, tgt_alt: float) -> Tuple[float, float]:
-        print("Calculating  antenna ecef")
+        if self.config.debug:
+            print("Calculating  antenna ecef")
         x_o, y_o, z_o = self._geodetic_to_ecef(
             self.config.antenna_lat_deg, self.config.antenna_lon_deg, self.config.antenna_alt_m
         )
-        print("Calculating target ecef")
+        if self.config.debug:
+            print("Calculating target ecef")
         x_t, y_t, z_t = self._geodetic_to_ecef(tgt_lat, tgt_lon, tgt_alt)
         e, n, u = self._ecef_to_enu((x_t - x_o, y_t - y_o, z_t - z_o), self.config.antenna_lat_deg, self.config.antenna_lon_deg)
         az = math.degrees(math.atan2(e, n))
         if az < 0:
             az += 360.0
         el = math.degrees(math.atan2(u, math.hypot(e, n)))
-        print("Calculated AZ:", az)
-        print("Calculated EL:", el)
+        if self.config.debug:
+            print("Calculated AZ:", az)
+            print("Calculated EL:", el)
         return az, el
 
     def yaw_pitch_from_target(self, tgt_lat: float, tgt_lon: float, tgt_alt: float) -> Tuple[float, float]:
@@ -346,7 +354,8 @@ class PredictorService:
           - pm180 / 0to360: single-turn normalized output
         Updates self._last_yaw_cmd for continuity.
         """
-        print("Calculating Yaw pitch from target")
+        if self.config.debug:
+            print("Calculating Yaw pitch from target")
         az, el = self.compute_az_el(tgt_lat, tgt_lon, tgt_alt)  # az from North
 
         if self.config.yaw_normalization == "continuous" and self._last_yaw_cmd is not None:
@@ -360,4 +369,8 @@ class PredictorService:
         # Remember last commanded yaw for continuity
         self._last_yaw_cmd = yaw_rel
         return yaw_rel, el
+
+    def reset_yaw_continuity(self) -> None:
+        """Reset the last yaw command to seed continuous unwrapping fresh."""
+        self._last_yaw_cmd = None
 

@@ -20,6 +20,7 @@ from dataclasses import asdict
 
 from predictor_service import PredictorConfig, PredictorService
 from antenna_service import AntennaConfig, AntennaService
+from remote import XboxController
 
 
 def _print_gps(sample) -> None:
@@ -88,8 +89,6 @@ def cmd_rotate(svc: PredictorService, ant: AntennaService) -> None:
         return
 
     yaw_cmd, pit_cmd = svc.yaw_pitch_from_target(pred.lat, pred.lon, pred.alt_m)
-    pit_cmd *= -1
-
     ok = ant.set_position(pitch=pit_cmd, yaw=yaw_cmd, bypass_limits=False)
     if ok:
         print(f"ROTATE pitch={pit_cmd:.2f}° yaw={yaw_cmd:.2f}° (sent)")
@@ -105,8 +104,9 @@ def cmd_yolo(svc: PredictorService) -> None:
             pred = svc.get_prediction()
             if pred:
                 yaw_cmd, pit_cmd = svc.yaw_pitch_from_target(pred.lat, pred.lon, pred.alt_m)
+                # If you want to actually move hardware here, uncomment:
                 # ant.set_position(pitch=pit_cmd, yaw=yaw_cmd, bypass_limits=False)
-                print(f"\rpitch={str.rjust(f"{pos_deg['pitch']:.2f}", 6)}° yaw={str.rjust(f"{pos_deg['yaw']:.2f}", 6)}°", end="")
+                print(f"\rpitch={pit_cmd:+06.2f}°  yaw={yaw_cmd:+07.2f}°", end="")
             time.sleep(0.3)
     except KeyboardInterrupt:
         print("\nStopped auto-tracking.")
@@ -197,24 +197,115 @@ def cmd_disengage(ant: AntennaService) -> None:
 
 def cmd_help() -> None:
     print("Available commands:")
-    print("  gps        - Stream GPS history and live updates (Ctrl-C to stop)")
-    print("  prediction - Show current prediction, pointing angles and antenna rotation")
-    print("  rotate     - Rotate antenna to current prediction (respects limits)")
-    print("  yolo       - Auto-track predictions continuously (Ctrl-C to stop)")
-    print("  calibrate  - Calibrate antenna motors (clears errors, runs full calibration)")
-    print("  engage     - Engage antenna motors for closed loop control")
-    print("  disengage  - Disengage antenna motors and set to idle")
-    print("  help       - Show this help message")
-    print("  quit/exit  - Exit the program")
+    print("  gps           - Stream GPS history and live updates (Ctrl-C to stop)")
+    print("  prediction    - Show current prediction, pointing angles and antenna rotation")
+    print("  rotate        - Rotate antenna to current prediction (respects limits)")
+    print("  yolo          - Auto-track predictions continuously (Ctrl-C to stop)")
+    print("  pos <pitch> <yaw> [bypass] - Set absolute position in degrees; add 'bypass' to ignore limits")
+    print("  zero          - Set current encoder offsets as zero for both axes")
+    print("  set-yaw-zero <deg> - Set predictor yaw-zero at runtime (no restart)")
+    print("  controller    - Enter controller mode (Xbox): LX=yaw, RY=pitch; X=zero, Y=go to zero, B=idle")
+    print("  calibrate     - Calibrate antenna motors (clears errors, runs full calibration)")
+    print("  engage        - Engage antenna motors for closed loop control")
+    print("  disengage     - Disengage antenna motors and set to idle")
+    print("  help          - Show this help message")
+    print("  quit/exit     - Exit the program")
+
+
+def _run_controller_mode(ant: AntennaService) -> None:
+    """Controller mode similar to manual.py: LX=yaw, RY=pitch; X=zero, Y=go to zero, B=idle."""
+    ctl = XboxController(deadzone=0.1)
+    if not ctl.start():
+        print("ERROR: failed to start controller")
+        return
+    print("\nController mode (VELOCITY). Ctrl-C to exit.")
+    print("X=set zero here, Y=go to zero, B=idle")
+    try:
+        # Switch to velocity mode
+        if not ant.enter_velocity_mode():
+            print("ERROR: couldn't enter velocity mode")
+            return
+        last_x = last_y = last_b = False
+        while True:
+            if not ctl.is_connected():
+                print("Controller disconnected.")
+                break
+            xb = ctl.get_button('X')
+            yb = ctl.get_button('Y')
+            bb = ctl.get_button('B')
+
+            if xb and not last_x:
+                ant.zero()
+                print("Zero position set at current location")
+
+            if yb and not last_y:
+                # Temporarily move to zero using position control
+                ant.set_position(pitch=0.0, yaw=0.0, bypass_limits=False)
+                time.sleep(0.5)
+
+            if bb and not last_b:
+                print("EMERGENCY STOP: setting IDLE")
+                ant.disengage()
+                break
+
+            last_x, last_y, last_b = xb, yb, bb
+
+            yaw_in = ctl.get_axis('LX')
+            pitch_in = -ctl.get_axis('RY')
+            yaw_dps = yaw_in * ant.config.max_vel_degps_yaw
+            pitch_dps = pitch_in * ant.config.max_vel_degps_pitch
+            # Apply kinematic limits based on remaining travel
+            yaw_dps_limited = ant.calculate_max_permissible_velocity('yaw', yaw_dps)
+            pitch_dps_limited = ant.calculate_max_permissible_velocity('pitch', pitch_dps)
+            ant.set_velocity(pitch_dps=pitch_dps_limited, yaw_dps=yaw_dps_limited)
+
+            # Optional: show position when moving
+            if abs(yaw_in) > 0.05 or abs(pitch_in) > 0.05:
+                pos_deg = ant.get_position()
+                print(f"\rpitch={pos_deg['pitch']:+06.2f}°  yaw={pos_deg['yaw']:+07.2f}°", end="")
+            time.sleep(0.02)
+    except KeyboardInterrupt:
+        print("\nExiting controller mode...")
+    finally:
+        ctl.stop()
+
+
+def cmd_pos(ant: AntennaService, args: str) -> None:
+    """Set absolute pitch/yaw in degrees, like manual.py set_pos.
+
+    Usage: pos <pitch> <yaw> [bypass]
+    """
+    parts = args.split()
+    if len(parts) < 2:
+        print("Usage: pos <pitch> <yaw> [bypass]")
+        return
+    try:
+        pitch = float(parts[0])
+        yaw = float(parts[1])
+    except ValueError:
+        print("Usage: pos <pitch> <yaw> [bypass]")
+        return
+    bypass = False
+    if len(parts) >= 3 and parts[2].lower() in ("bypass", "true", "yes", "on"):
+        bypass = True
+    if bypass:
+        # Mirror manual.py: announce limits bypass explicitly
+        print(f"LIMITS BYPASSED: Pitch set to {pitch:.2f}°; Yaw set to {yaw:.2f}°")
+    ok = ant.set_position(pitch=pitch, yaw=yaw, bypass_limits=bypass)
+    # If not bypassing, AntennaService will WARN on clamps when debug=True
+    if ok:
+        print(f"Pitch Degrees: {pitch:.2f}, Yaw Degrees: {yaw:.2f}")
+    else:
+        print("ERROR: Failed to send position command")
 
 
 def main() -> None:
     cfg = PredictorConfig()
     svc = PredictorService(cfg)
-    # ant = AntennaService(AntennaConfig())
-    # ant.connect(); ant.configure(); ant.calibrate(); ant.engage()
+    ant = AntennaService(AntennaConfig())
+    ant.connect(); ant.configure(); ant.calibrate(); ant.engage()
     svc.start()
-    print("gps-ingest REPL. Commands: gps, prediction, rotate, yolo, calibrate, engage, disengage, help, quit")
+    print("gps-ingest REPL. Type 'help' for commands.")
     try:
         while True:
             try:
@@ -234,6 +325,27 @@ def main() -> None:
             elif cmd == "yolo":
                 # cmd_yolo(svc, ant)
                 cmd_yolo(svc)
+            elif cmd.startswith("pos"):
+                # usage: pos <pitch> <yaw> [bypass]
+                args = cmd[len("pos"):].strip()
+                cmd_pos(ant, args)
+            elif cmd == "zero":
+                ant.zero()
+                print("Zero position set from encoder.")
+            elif cmd.startswith("set-yaw-zero"):
+                parts = cmd.split()
+                if len(parts) != 2:
+                    print("Usage: set-yaw-zero <degrees>")
+                else:
+                    try:
+                        new_zero = float(parts[1])
+                        svc.config.antenna_yaw_zero_deg = new_zero
+                        svc.reset_yaw_continuity()
+                        print(f"Set yaw-zero to {new_zero:.2f}° and reset continuity.")
+                    except ValueError:
+                        print("Invalid number. Usage: set-yaw-zero <degrees>")
+            elif cmd == "controller":
+                _run_controller_mode(ant)
             elif cmd == "calibrate":
                 cmd_calibrate(ant)
             elif cmd == "engage":
