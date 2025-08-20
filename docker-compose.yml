@@ -119,7 +119,7 @@ services:
         volumes:
             - ./target/debug:/app/bin:ro
         working_dir: /app
-        command: [ "/app/bin/telemetry-ingestor", "--libsql-url", "http://db:8080", "--gateway-connection-string", "tcpout:sergw:5656" ]
+        command: [ "/app/bin/telemetry-ingestor", "--libsql-url", "http://db:8080", "--gateway-connection-string", "tcpout:192.168.8.178:5656" ]
         restart: unless-stopped
         depends_on:
             - db
@@ -139,27 +139,27 @@ services:
         networks:
             - web
         # command: [ "/app/bin/command-dispatcher", "--libsql-url", "http://db:8080", "--gateway-connection-string", "tcpout:sergw:5656" ]
-        command: [ "/app/bin/command-dispatcher", "--libsql-url", "http://db:8080", "--gateway-connection-string", "tcpout:sergw:5656" ]
+        command: [ "/app/bin/command-dispatcher", "--libsql-url", "http://db:8080", "--gateway-connection-string", "tcpout:192.168.8.178:5656" ]
         restart: unless-stopped
         depends_on:
             - db
         labels:
             - "traefik.enable=false"
-    sergw:
-        image: archlinux:latest
-        networks:
-            - web
-        volumes:
-            - ./sergw:/app
-        working_dir: /app
-        devices:
-            - /dev/ttyUSB0:/dev/ttyUSB0:rwm
-        ports:
-            - "5656:5656"
-        restart: unless-stopped
-        labels:
-            - "traefik.enable=false"
-        command: [ "/app/sergw", "listen", "--serial", "/dev/ttyUSB0", "--baud", "57600", "--verbose", "--host", "0.0.0.0:5656" ]
+    # sergw:
+    #     image: archlinux:latest
+    #     networks:
+    #         - web
+    #     volumes:
+    #         - ./sergw:/app
+    #     working_dir: /app
+    #     devices:
+    #         - /dev/ttyUSB0:/dev/ttyUSB0:rwm
+    #     ports:
+    #         - "5656:5656"
+    #     restart: unless-stopped
+    #     labels:
+    #         - "traefik.enable=false"
+    #     command: [ "/app/sergw", "listen", "--serial", "/dev/ttyUSB0", "--baud", "57600", "--verbose", "--host", "0.0.0.0:5656" ]
 
 networks:
     web:
