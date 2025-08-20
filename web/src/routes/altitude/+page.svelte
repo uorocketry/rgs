@@ -42,6 +42,8 @@
 			: 15
 	);
 
+	let mToFeet = (meters: number) => meters / 0.3048;
+
 	let chartData: ChartTabularData = $state([]);
 	const chartOptions: LineChartOptions = {
 		title: 'Altitude Over Time',
@@ -200,7 +202,8 @@
 							{#if latest?.barometer}
 								<div style="font-size: 1.25rem;">{formatTs(latest.barometer.ts)}</div>
 								<div style="font-size: 2rem; font-weight: bold;">
-									{latest.barometer.altitude_m.toFixed(1)} m
+									{latest.barometer.altitude_m.toFixed(1)} m <br />
+									{mToFeet(latest.barometer.altitude_m).toFixed(1)} ft
 								</div>
 								<Tag type="blue" size="sm">{latest.barometer.pressure_kpa.toFixed(3)} kPa</Tag>
 							{:else}
@@ -214,7 +217,8 @@
 							{#if latest?.sbgAir}
 								<div style="font-size: 1.25rem;">{formatTs(latest.sbgAir.ts)}</div>
 								<div style="font-size: 2rem; font-weight: bold;">
-									{latest.sbgAir.altitude_m.toFixed(1)} m
+									{latest.sbgAir.altitude_m.toFixed(1)} m <br />
+									{mToFeet(latest.sbgAir.altitude_m).toFixed(1)} ft
 								</div>
 								<Tag type="teal" size="sm">{latest.sbgAir.pressure_kpa.toFixed(3)} kPa</Tag>
 							{:else}
@@ -228,7 +232,8 @@
 							{#if latest?.gnss}
 								<div style="font-size: 1.25rem;">{formatTs(latest.gnss.ts)}</div>
 								<div style="font-size: 2rem; font-weight: bold;">
-									{latest.gnss.altitude_m.toFixed(1)} m
+									{latest.gnss.altitude_m.toFixed(1)} m <br />
+									{mToFeet(latest.gnss.altitude_m).toFixed(1)} ft
 								</div>
 								<Tag type="green" size="sm">GPS</Tag>
 							{:else}
