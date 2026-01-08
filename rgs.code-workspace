@@ -11,9 +11,6 @@
             "path": "./telemetry-ingestor"
         },
         {
-            "path": "./hydrand"
-        },
-        {
             "path": "./sergw"
         },
         {

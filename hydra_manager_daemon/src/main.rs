@@ -25,7 +25,6 @@ struct ServiceInfo {
 #[derive(Serialize, Deserialize, Debug)]
 enum ServiceType {
     SerGW,
-    Hydrand,
 }
 
 #[derive(Deserialize, Debug)]
@@ -33,9 +32,6 @@ struct StartServicePayload {
     service_type: ServiceType,
     serial_port: Option<String>,
     baud_rate: Option<u32>,
-    interval: Option<u64>,
-    #[serde(rename = "libsql_url")]
-    libsql_url: Option<String>,
     output_tcp_address: String,
     output_tcp_port: u16,
 }
@@ -168,15 +164,6 @@ async fn start_new_service_handler(
             payload.output_tcp_address,
             payload.output_tcp_port
         ),
-        ServiceType::Hydrand => format!(
-            "Hydrand - Interval: {}ms, LibSQL: {}, Host: {}:{}",
-            payload
-                .interval
-                .map_or("N/A".to_string(), |i| i.to_string()),
-            payload.libsql_url.as_deref().unwrap_or("N/A"),
-            payload.output_tcp_address,
-            payload.output_tcp_port
-        ),
     };
 
     let state_clone = state.clone();
@@ -200,16 +187,6 @@ async fn start_new_service_handler(
                     "{}:{}",
                     payload.output_tcp_address, payload.output_tcp_port
                 ));
-                command
-            }
-            ServiceType::Hydrand => {
-                let mut command = Command::new("./target/debug/hydrand"); // Ensure this path is correct
-                if let Some(interval) = payload.interval {
-                    command.arg("--interval").arg(interval.to_string());
-                }
-                if let Some(libsql_url) = payload.libsql_url {
-                    command.arg("--libsql-url").arg(libsql_url);
-                }
                 command
             }
         };

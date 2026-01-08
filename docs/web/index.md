@@ -1,8 +1,8 @@
 # Web
 
-Web is where the main RGS dashboard lives. It is built with SvelteKit, it's UI is designed to be extensible and straightforward to use.
+SvelteKit dashboard frontend for the RGS ground station.
 
-To get started locally, run:
+## Quick Start
 
 ```bash
 cd web
@@ -10,6 +10,4 @@ bun install
 bun run dev
 ```
 
-This starts Vite dev server at <http://localhost:5173>.
-
-In Docker, the web service serves on port 3000.
+Development server runs at <http://localhost:3000>. Configure port via `WEB_SERVER_PORT` environment variable.

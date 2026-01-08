@@ -1,17 +1,13 @@
 # Getting Started
 
-## Overview
-
-The Rocket Ground Station (RGS) holds the infrastructure for the next generation ground station for the University of Ottawa's Rocketry Team.
-
-It is designed to be extensible and easy to use, with a focus on logging and visualizing data from the rocket.
+RGS (Rocket Ground Station) infrastructure for the University of Ottawa's Rocketry Team. Extensible system for logging and visualizing rocket telemetry.
 
 ## Tech Stack
 
-The RGS infrastructure is built with:
-
-- [SvelteKit](https://kit.svelte.dev/docs/introduction) — main dashboard/web UI
-- [LibSQL](https://libsql.org/) — database, seeded by SQL (`db/seed.sql`) via a small Bun script (`db/index.ts`)
-- [messages-prost](https://github.com/uorocketry/messages-prost) — Protobuf message types used over radio
-- [MAVLink](https://mavlink.io/en/) — transport between ground and rocket
-- Rust services — `telemetry-ingestor`, `command-dispatcher`, `sergw`
+- [SvelteKit](https://kit.svelte.dev/docs/introduction) — Dashboard/web UI
+- [LibSQL](https://libsql.org/) — Database (schema: `db/seed.sql`, migration: `db/index.ts`)
+- [messages-prost](https://github.com/uorocketry/messages-prost) — Protobuf message types
+- [MAVLink](https://mavlink.io/en/) — Ground-to-rocket transport
+- **Rust services**: `telemetry-ingestor`, `command-dispatcher`, `gps-ingest`, `hydra_manager_daemon`
+- **Go services**: `sergw`, `heartbeat`
+- **Desktop**: `dashboard` (Wails/Go) for Linux and Windows

@@ -1,78 +1,78 @@
 # GPS Ingest
 
-A simple Rust program that extracts the latest GPS coordinates and altitude data from the RGS database and outputs them in JSON format.
+A Rust program that streams GPS coordinates and altitude data from MAVLink POSTCARD messages and outputs them as JSON lines.
 
 ## Features
 
-- Queries the latest GPS position data from `SbgGpsPos` table
-- Queries the latest altitude data from `SbgAir` table  
-- Outputs data in structured JSON format
-- Configurable database path and record limit
+- Connects to MAVLink and listens for POSTCARD messages
+- Extracts GPS position data from `SbgGpsPos` messages
+- Extracts altitude data from `SbgAir` messages
+- Validates coordinates (filters invalid coordinates near 0,0 and outside Canada bounds)
+- Outputs JSON lines to stdout (one complete sample per line)
+- Automatic reconnection on connection loss
 - Designed to be piped to other programs
 
 ## Usage
 
-### Basic usage (defaults to latest 1 record)
+### Basic usage (default MAVLink connection)
 ```bash
 cargo run
 ```
 
-### Specify database path
+### Specify MAVLink connection string
 ```bash
-cargo run -- --database /path/to/rgs.db
+cargo run -- --connection tcpout:127.0.0.1:5656
 ```
 
-### Get multiple latest records
+### Use UDP input instead
 ```bash
-cargo run -- --limit 5
+cargo run -- --connection udpin:0.0.0.0:14550
+```
+
+### Pretty JSON output (multi-line)
+```bash
+cargo run -- --pretty
 ```
 
 ### Pipe output to another program
 ```bash
-cargo run | jq '.gps[0].latitude'
+cargo run | jq '.lat'
 ```
 
 ## Command Line Options
 
-- `-d, --database`: Path to the SQLite database file (default: `db/rgs.db`)
-- `-l, --limit`: Number of latest GPS records to retrieve (default: 1)
+- `--connection`: MAVLink connection string (default: `tcpout:127.0.0.1:5656`)
+  - Examples: `tcpout:127.0.0.1:5656`, `udpin:0.0.0.0:14550`, `udpout:192.168.1.100:14550`
+- `--pretty`: Print pretty JSON (multi-line) instead of compact single-line JSON (default: false)
 - `-h, --help`: Show help information
 
 ## Output Format
 
-The program outputs JSON with the following structure:
+The program outputs JSON lines (one per complete sample) with the following structure:
 
 ```json
-{
-  "gps": [
-    {
-      "timestamp": "2024-01-01T12:00:00Z",
-      "timestamp_epoch": 1704110400,
-      "latitude": 45.123456,
-      "longitude": -75.654321,
-      "altitude": 100.5,
-      "latitude_accuracy": 0.001,
-      "longitude_accuracy": 0.001,
-      "altitude_accuracy": 0.5,
-      "num_sv_used": 8,
-      "status": "Valid"
-    }
-  ],
-  "altitude": [
-    {
-      "timestamp": "1704110400",
-      "timestamp_epoch": 1704110400,
-      "altitude": 100.5,
-      "pressure_abs": 1013.25,
-      "pressure_diff": 0.0,
-      "true_airspeed": 0.0,
-      "air_temperature": 15.0,
-      "status": "Valid"
-    }
-  ],
-  "generated_at": "2024-01-01T12:00:00Z"
-}
+{"lat":45.123456,"lon":-75.654321,"altitude_m":100.5,"ts":"2024-01-01T12:00:00Z","source":"gps-ingest"}
 ```
+
+Each line contains:
+- `lat`: Latitude in degrees (f64)
+- `lon`: Longitude in degrees (f64)
+- `altitude_m`: Altitude in meters (f64)
+- `ts`: ISO 8601 timestamp (RFC3339 format)
+- `source`: Always "gps-ingest"
+
+The program only outputs a line when it has received both GPS position (from `SbgGpsPos`) and altitude (from `SbgAir`) data, ensuring complete samples.
+
+## How It Works
+
+1. Connects to the specified MAVLink endpoint
+2. Listens for `POSTCARD_MESSAGE` MAVLink messages
+3. Decodes the protobuf `RadioFrame` from each POSTCARD message
+4. Extracts GPS coordinates from `SbgGpsPos` data
+5. Extracts altitude from `SbgAir` data
+6. Validates coordinates (must be within Canada bounds and not near 0,0)
+7. Outputs a JSON line when all required fields are available
+8. Automatically reconnects if the connection is lost
 
 ## Building
 
@@ -84,9 +84,12 @@ The binary will be available at `target/release/gps-ingest`.
 
 ## Dependencies
 
-- `libsql`: SQLite database access
+- `mavlink`: MAVLink protocol support
+- `messages-prost`: Protobuf message definitions for radio frames
 - `serde` + `serde_json`: JSON serialization
 - `chrono`: Timestamp handling
 - `tokio`: Async runtime
 - `clap`: Command line argument parsing
+- `tracing`: Structured logging
 - `anyhow`: Error handling
+- `prost`: Protobuf decoding

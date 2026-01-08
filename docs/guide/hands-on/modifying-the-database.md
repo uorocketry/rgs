@@ -1,16 +1,16 @@
 # Modifying the Database
 
-Our schema lives in `db/seed.sql` and is applied using a small Bun script in `db/index.ts` which executes the SQL statements against LibSQL.
+Schema is defined in `db/seed.sql` and applied via `db/index.ts` (Bun script).
 
-Steps to modify the database:
+**Steps:**
 
-1) Edit `db/seed.sql` and add/adjust tables/indexes as needed.
-2) Start your LibSQL instance (see Requirements → Docker).
-3) Apply the schema with Bun:
+1. Edit `db/seed.sql` (add/adjust tables/indexes)
+2. Start LibSQL instance (see [Docker requirements](../requirements/docker.md))
+3. Apply schema:
 
 ```sh
 cd db
 bun run index.ts
 ```
 
-If any statement fails, the script will print the failed SQL and exit non-zero.
+On failure, the script prints the failed SQL and exits non-zero.

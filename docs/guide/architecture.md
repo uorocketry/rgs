@@ -1,16 +1,22 @@
 # Architecture
 
-Here is a general overview of the architecture of the RGS project.
+RGS uses a microservices architecture with decoupled components communicating through well-defined interfaces.
 
-![RGS Architecture](/static/rgs.drawio.png)
+## Goals
 
-It's main goals are to:
-- Decentralize the data storage and visualization to allow for multiple ground stations to be used simultaneously
-- Provide a decent and decoupled I/O interface for the rocket
-- Provide a real-time data visualization interface for the rocket
-- Reliably save and store data for later analysis
+- Decentralized data storage and visualization for multiple ground stations
+- Decoupled I/O interface for rocket communication
+- Real-time data visualization
+- Reliable data persistence for analysis
 
-These goals are achieved by combining programs that:
-- Do one thing and do it well
-- Communicate with each other through well-defined interfaces
-- Reliably handle fatal errors and edge cases
+## Services
+
+- **telemetry-ingestor** (Rust) - Ingests MAVLink telemetry and stores in database
+- **command-dispatcher** (Rust) - Monitors database for pending commands and sends via MAVLink
+- **heartbeat** (Go) - Service health monitoring and status reporting
+- **sergw** (Go) - Serial-to-TCP gateway for antenna/radio communication
+- **gps-ingest** (Rust) - Streams GPS coordinates from MAVLink POSTCARD messages as JSON
+- **web** (SvelteKit) - Dashboard frontend for visualization and control
+- **tile_provider** - Map tile serving for the web dashboard
+- **hydra_manager_daemon** (Rust/Axum) - REST API for managing SerGW services (port 3030)
+- **dashboard** (Wails/Go) - Desktop application for Linux Flatpak and Windows

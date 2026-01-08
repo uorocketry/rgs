@@ -1,3 +1,8 @@
 # Rust
 
-Rust is already installed with `devbox`. But to run rust application you also need to run and build them with `cargo run` or `cargo build`.
+Rust is installed via `devbox`. Build and run Rust services with:
+
+```sh
+cargo build
+cargo run
+```

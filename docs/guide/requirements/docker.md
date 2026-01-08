@@ -1,20 +1,20 @@
 # Docker
 
-One of the most important requirements is [Docker](https://docs.docker.com/), it's how we set up the services and database.
+[Docker](https://docs.docker.com/) is required for services and database. Install [Docker Desktop](https://www.docker.com/products/docker-desktop).
 
-The easiest way to install it is by downloading [Docker Desktop](https://www.docker.com/products/docker-desktop) for your operating system.
-
-After installing Docker, bring up the dev stack (web, db, gateway, ingestor, dispatcher) with:
+## Start Services
 
 ```sh
-docker compose -f docker-compose.dev.yml up -d
+docker compose up -d
 ```
 
-Once up, services will connect to LibSQL at `http://db:8080` internally (see compose files). Apply the schema from your host:
+## Apply Database Schema
+
+Services connect to LibSQL at `http://db:8080`. Apply schema from host:
 
 ```sh
 cd db
 bun run index.ts
 ```
 
-To inspect LibSQL data, use a LibSQL/Turso-compatible client or service logs. The schema in `db/seed.sql` creates tables like `RadioFrame`, `Command`, and SBG sensor tables.
+Schema (`db/seed.sql`) creates tables: `RadioFrame`, `Command`, SBG sensor tables. Inspect data with LibSQL/Turso-compatible clients or service logs.

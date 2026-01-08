@@ -2,29 +2,29 @@
 
 ## Overview
 
-The `gps-ingest` program is designed to be a simple, focused component in a larger data processing pipeline. It extracts the latest GPS coordinates and altitude data from the RGS database and outputs them in JSON format, making it easy to pipe to other programs.
+The `gps-ingest` program is designed to be a simple, focused component in a larger data processing pipeline. It streams GPS coordinates and altitude data from MAVLink POSTCARD messages and outputs them as JSON lines, making it easy to pipe to other programs.
 
 ## System Architecture
 
 This program is designed to fit into the antenna tracker architecture shown in the system diagram:
 
 ```
-GPS Stream (Rust) → Predictor (Python) → Antenna Tracker API
-     ↓                    ↓                    ↓
-gps-ingest         example_pipeline.py    (External System)
+MAVLink Source → gps-ingest → JSON Lines → Predictor (Python) → Antenna Tracker API
+     ↓                ↓            ↓              ↓                    ↓
+  SerGW/Radio    (Rust)      stdout pipe    example_pipeline.py    (External System)
 ```
 
 ### Component Roles
 
 1. **GPS Stream (gps-ingest)**
    - **Language**: Rust
-   - **Input**: SQLite database queries
-   - **Output**: JSON to stdout
-   - **Purpose**: Extract and format latest GPS/altitude data
+   - **Input**: MAVLink POSTCARD messages (via TCP/UDP connection)
+   - **Output**: JSON lines to stdout
+   - **Purpose**: Extract and format GPS/altitude data from MAVLink telemetry
 
 2. **Predictor (example_pipeline.py)**
    - **Language**: Python
-   - **Input**: JSON from gps-ingest (via pipe)
+   - **Input**: JSON lines from gps-ingest (via pipe)
    - **Output**: Prediction commands
    - **Purpose**: Process GPS data and predict future positions
 
@@ -37,71 +37,66 @@ gps-ingest         example_pipeline.py    (External System)
 ## Data Flow
 
 ```
-Database → gps-ingest → JSON → Python Script → Predictions → API Commands
+MAVLink POSTCARD → RadioFrame (protobuf) → SbgGpsPos/SbgAir → JSON Lines → Python Script → Predictions → API Commands
 ```
 
-### Database Schema
+### MAVLink Message Processing
 
-The program queries two main tables:
+The program processes the following MAVLink messages:
 
-- **SbgGpsPos**: GPS position data (lat/lon/alt/accuracy)
-- **SbgAir**: Altitude and atmospheric data
+- **POSTCARD_MESSAGE**: Contains a protobuf-encoded `RadioFrame` with telemetry data
+  - Extracts `SbgGpsPos` data for GPS coordinates (latitude, longitude)
+  - Extracts `SbgAir` data for barometric altitude
+- **RADIO_STATUS**: Logged for monitoring but not used for GPS output
+
+### Data Validation
+
+Before outputting a sample, the program validates:
+- GPS coordinates are not near (0, 0) - invalid GPS fix
+- GPS coordinates are within Canada bounds (lat: 41.68 to 83.11, lon: -141.00 to -52.62)
+- All required fields are present (lat, lon, altitude_m)
 
 ### JSON Output Format
 
+The program outputs one JSON line per complete sample:
+
 ```json
-{
-  "gps": [
-    {
-      "timestamp": "2024-01-01T12:00:00Z",
-      "timestamp_epoch": 1704110400,
-      "latitude": 45.123456,
-      "longitude": -75.654321,
-      "altitude": 100.5,
-      "latitude_accuracy": 0.001,
-      "longitude_accuracy": 0.001,
-      "altitude_accuracy": 0.5,
-      "num_sv_used": 8,
-      "status": "Valid"
-    }
-  ],
-  "altitude": [
-    {
-      "timestamp": "1704110400",
-      "timestamp_epoch": 1704110400,
-      "altitude": 100.5,
-      "pressure_abs": 1013.25,
-      "pressure_diff": 0.0,
-      "true_airspeed": 0.0,
-      "air_temperature": 15.0,
-      "status": "Valid"
-    }
-  ],
-  "generated_at": "2024-01-01T12:00:00Z"
-}
+{"lat":45.123456,"lon":-75.654321,"altitude_m":100.5,"ts":"2024-01-01T12:00:00Z","source":"gps-ingest"}
 ```
+
+Each line contains:
+- `lat`: Latitude in degrees (f64)
+- `lon`: Longitude in degrees (f64)
+- `altitude_m`: Altitude in meters (f64) - from barometric pressure, not GPS
+- `ts`: ISO 8601 timestamp (RFC3339 format)
+- `source`: Always "gps-ingest"
+
+The program only outputs when it has received both GPS position and altitude data, ensuring complete samples.
 
 ## Usage Patterns
 
 ### Basic Usage
 ```bash
-# Get latest GPS data
+# Stream GPS data (default: tcpout:127.0.0.1:5656)
 cargo run -p gps-ingest
 
-# Get multiple records
-cargo run -p gps-ingest -- --limit 5
+# Use different MAVLink connection
+cargo run -p gps-ingest -- --connection udpin:0.0.0.0:14550
+
+# Pretty JSON output
+cargo run -p gps-ingest -- --pretty
 ```
 
 ### Piping to Other Programs
 ```bash
 # Extract just latitude
-cargo run -p gps-ingest | jq -r '.gps[0].latitude'
+cargo run -p gps-ingest | jq -r '.lat'
 
 # Format coordinates
-cargo run -p gps-ingest | jq -r '.gps[0] | "\(.latitude),\(.longitude),\(.altitude)"'
+cargo run -p gps-ingest | jq -r '"\(.lat),\(.lon),\(.altitude_m)"'
 
-# Check data freshness
-cargo run -p gps-ingest | jq -r '.gps[0] | if (.timestamp_epoch // 0) > (now - 3600) then "Recent" else "Stale" end'
+# Filter recent samples
+cargo run -p gps-ingest | jq -r 'select(.ts | fromdateiso8601 > (now - 3600))'
 ```
 
 ### Integration with Python
@@ -109,70 +104,80 @@ cargo run -p gps-ingest | jq -r '.gps[0] | if (.timestamp_epoch // 0) > (now - 3
 import subprocess
 import json
 
-# Run gps-ingest and capture output
-result = subprocess.run(
+# Run gps-ingest and capture output line by line
+proc = subprocess.Popen(
     ["cargo", "run", "-p", "gps-ingest"],
-    capture_output=True,
+    stdout=subprocess.PIPE,
     text=True
 )
 
-# Parse JSON output
-data = json.loads(result.stdout)
-gps_data = data['gps'][0]
-print(f"Position: {gps_data['latitude']}, {gps_data['longitude']}")
+for line in proc.stdout:
+    line = line.strip()
+    if not line:
+        continue
+    try:
+        data = json.loads(line)
+        print(f"Position: {data['lat']}, {data['lon']}, Altitude: {data['altitude_m']}m")
+    except json.JSONDecodeError:
+        continue
 ```
 
 ## Design Principles
 
-1. **Single Responsibility**: Only extracts GPS data, doesn't process it
+1. **Single Responsibility**: Only extracts GPS data from MAVLink, doesn't process it
 2. **Unix Philosophy**: Does one thing well, outputs to stdout
-3. **JSON Output**: Structured, parseable format for easy integration
-4. **Configurable**: Database path and record limit can be specified
-5. **Error Handling**: Graceful degradation when data is unavailable
-6. **Performance**: Fast database queries with proper indexing
+3. **JSON Lines**: One complete sample per line for easy streaming and parsing
+4. **Configurable**: MAVLink connection string can be specified
+5. **Error Handling**: Automatic reconnection on connection loss
+6. **Data Validation**: Filters invalid coordinates before output
+7. **Real-time**: Streams data as it arrives, not batch processing
+
+## Connection Management
+
+- Automatically connects to the specified MAVLink endpoint
+- Handles connection failures gracefully with automatic reconnection
+- Reconnection delay: 1 second after connection loss
+- Logs connection status and errors using structured logging (tracing)
 
 ## Future Enhancements
 
-- **Real-time Mode**: Continuous output with `--watch` flag
+- **Connection Retry Backoff**: Exponential backoff for reconnection attempts
 - **Data Filtering**: Time range and quality filters
 - **Multiple Formats**: CSV, XML, or binary output options
 - **WebSocket Output**: Real-time streaming over network
-- **Data Validation**: Quality checks and outlier detection
-- **Caching**: In-memory caching for frequently accessed data
+- **Data Validation**: Additional quality checks and outlier detection
+- **Rate Limiting**: Configurable output rate limiting
 
 ## Dependencies
 
-- **libsql**: Modern SQLite interface with async support
+- **mavlink**: MAVLink protocol support for uORocketry message set
+- **messages-prost**: Protobuf message definitions for RadioFrame and SBG data
 - **serde**: JSON serialization/deserialization
-- **tokio**: Async runtime for database operations
+- **tokio**: Async runtime for MAVLink I/O operations
 - **clap**: Command-line argument parsing
 - **chrono**: Timestamp handling and formatting
+- **tracing**: Structured logging
+- **prost**: Protobuf decoding
+- **anyhow**: Error handling
 
 ## Building and Testing
 
 ```bash
 # Build the project
-make build
+cargo build --release
 
 # Check compilation
-make check
+cargo check
 
-# Run tests
-make test
-
-# Test piping examples
-make test-pipe
-
-# Run example pipeline
-make example
+# Run with verbose logging
+RUST_LOG=debug cargo run
 ```
 
 ## Integration Notes
 
 - The program is designed to be lightweight and fast
-- JSON output is optimized for parsing by other tools
-- Error conditions are handled gracefully
+- JSON lines output is optimized for parsing by other tools
+- Error conditions are handled gracefully with automatic reconnection
 - The program can be easily integrated into CI/CD pipelines
-- Database connections are properly managed and closed
-
-
+- MAVLink connections are properly managed and automatically recovered
+- Designed to work with SerGW (Serial Gateway) which bridges serial devices to TCP

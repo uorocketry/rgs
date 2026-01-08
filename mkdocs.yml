@@ -19,7 +19,6 @@ nav:
           - Rust: guide/requirements/rust.md
       - Hands-on:
           - Modify the database: guide/hands-on/modifying-the-database.md
-          - Altitude widget: guide/hands-on/altitude-widget.md
   - Services:
       - Sergw: sergw/index.md
       - Web: web/index.md
